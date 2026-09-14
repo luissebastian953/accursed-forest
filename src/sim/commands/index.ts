@@ -5,14 +5,18 @@
 
 import type { Command, CommandType } from '../types.ts';
 
+import { burnBlock } from './burnBlock.ts';
 import { buyBlock } from './buyBlock.ts';
 import { buyItem } from './buyItem.ts';
 import { chopBlock } from './chopBlock.ts';
+import { drainBlock } from './drainBlock.ts';
 import { fertilizeBlock } from './fertilizeBlock.ts';
 import type { CommandHandler } from './handler.ts';
 import { harvestBlock } from './harvestBlock.ts';
+import { irrigateBlock } from './irrigateBlock.ts';
 import { placeKopdes } from './placeKopdes.ts';
 import { plantBlock } from './plantBlock.ts';
+import { sanitizeBlock } from './sanitizeBlock.ts';
 import { upgradeKopdes } from './upgradeKopdes.ts';
 
 // Handlers are typed against their own command; the registry erases that so
@@ -26,6 +30,10 @@ const registry: Partial<Record<CommandType, CommandHandler>> = {
   FertilizeBlock: fertilizeBlock as CommandHandler,
   UpgradeKopdes: upgradeKopdes as CommandHandler,
   BuyItem: buyItem as CommandHandler,
+  BurnBlock: burnBlock as CommandHandler,
+  SanitizeBlock: sanitizeBlock as CommandHandler,
+  IrrigateBlock: irrigateBlock as CommandHandler,
+  DrainBlock: drainBlock as CommandHandler,
 };
 
 export function handlerFor(command: Command): CommandHandler | undefined {

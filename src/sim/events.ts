@@ -6,7 +6,7 @@
  * touched so `render/sync.ts` can build its dirty set without diffing state.
  */
 
-import type { BlockId, GrowthStage, ItemId, Species } from './types.ts';
+import type { BlockId, FireIntensity, GrowthStage, ItemId, Species } from './types.ts';
 
 export type SimEvent =
   | { type: 'BlockChanged'; block: BlockId }
@@ -22,6 +22,17 @@ export type SimEvent =
   | { type: 'BlockFertilized'; block: BlockId }
   | { type: 'ItemBought'; item: ItemId; quantity: number }
   | { type: 'KopdesUpgraded'; level: number }
+  | { type: 'BurnStarted'; block: BlockId; intensity: FireIntensity }
+  | { type: 'FireSpread'; from: BlockId; to: BlockId }
+  | { type: 'BurnFinished'; block: BlockId }
+  | { type: 'FireExtinguished'; block: BlockId }
+  | { type: 'PalmsBurned'; block: BlockId; count: number }
+  | { type: 'WildfireStarted' }
+  | { type: 'WildfireEnded' }
+  | { type: 'TimberSold'; block: BlockId; revenue: number }
+  | { type: 'BlockSanitized'; block: BlockId; debris: number }
+  | { type: 'BlockIrrigated'; block: BlockId }
+  | { type: 'BlockDrained'; block: BlockId }
   | { type: 'YearPassed'; year: number }
   | { type: 'CashChanged'; cash: number };
 

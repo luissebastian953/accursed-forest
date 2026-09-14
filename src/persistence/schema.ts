@@ -36,6 +36,8 @@ export const KEY_PREFIX = 'accursed-forest';
  *
  * 1 — M1a: blocks, palms, economy, weather, society, run, command log.
  * 2 — M1b: economy gains tbsPriceHistory, tbsPending, soldKgTotal.
+ *     M1c added command variants (burn, sanitize, irrigate, drain) without a
+ *     bump: a v2 save's command log only ever holds commands that existed.
  */
 export const CURRENT_SCHEMA = 2;
 
@@ -207,8 +209,9 @@ const CommandSchema = z.discriminatedUnion('type', [
     block: Id,
     intensity: z.union([z.literal(1), z.literal(2), z.literal(3)]),
   }),
-  z.object({ type: z.literal('ReforestBlock'), block: Id }),
   z.object({ type: z.literal('SanitizeBlock'), block: Id }),
+  z.object({ type: z.literal('IrrigateBlock'), block: Id }),
+  z.object({ type: z.literal('DrainBlock'), block: Id }),
   z.object({ type: z.literal('HarvestBlock'), block: Id }),
   z.object({ type: z.literal('FertilizeBlock'), block: Id }),
   z.object({ type: z.literal('PlaceKopdes'), block: Id }),

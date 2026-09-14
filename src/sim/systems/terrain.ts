@@ -1,10 +1,13 @@
 /**
- * Terrain system (§3.1): clearing progress and debris decay.
+ * Terrain system (§3.1): clearing and burning progress, timber, debris decay.
  */
 
 import { BIOMES } from '../balance/biomes.ts';
+import { FIRE } from '../balance/fire.ts';
 import { DEBRIS } from '../balance/pests.ts';
-import type { SimContext } from '../state.ts';
+import { TIMBER_VALUE } from '../balance/prices.ts';
+import { finishBurn } from '../fire.ts';
+import { earn, type SimContext } from '../state.ts';
 
 export function terrain(ctx: SimContext): void {
   const { state, events } = ctx;
@@ -12,15 +15,32 @@ export function terrain(ctx: SimContext): void {
   for (const block of state.blocks.values()) {
     if (!state.active.has(block.id)) continue;
 
+    if (block.burning) {
+      const days = FIRE.burnDays[block.fireIntensity as 1 | 2 | 3] ?? FIRE.burnDays[1];
+      block.clearProgress += 1 / days;
+      // 1/7 added seven times lands at 0.9999…: compare with slack.
+      if (block.clearProgress >= 1 - 1e-9) finishBurn(ctx, block);
+      else events.push({ type: 'BlockChanged', block: block.id });
+      continue;
+    }
+
     if (block.phase === 'clearing') {
       const spec = BIOMES[block.biome];
       block.clearProgress += 1 / Math.max(1, spec.chopDays);
 
-      if (block.clearProgress >= 1) {
+      if (block.clearProgress >= 1 - 1e-9) {
         block.clearProgress = 1;
         block.phase = 'cleared';
         block.debris = Math.min(100, block.debris + spec.chopDebris);
         events.push({ type: 'BlockCleared', block: block.id });
+
+        // The timber partly offsets the crew's wages (§3.1.1).
+        const revenue = TIMBER_VALUE[block.biome];
+        if (revenue !== undefined && revenue > 0) {
+          earn(state, revenue, 'sale', `timber: block ${block.id}`);
+          events.push({ type: 'TimberSold', block: block.id, revenue });
+          events.push({ type: 'CashChanged', cash: state.economy.cash });
+        }
       }
       events.push({ type: 'BlockChanged', block: block.id });
       continue;

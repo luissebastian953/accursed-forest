@@ -246,11 +246,27 @@ describe('commands (§4.2)', () => {
     expect((result as { reason: string }).reason).toMatch(/Kopdes/);
   });
 
-  it('refuses commands that are not implemented yet instead of throwing', () => {
+  it('every command in the union has a handler', () => {
     const sim = createSim(42);
     const block = firstOwnedWild(sim);
-    const result = sim.dispatch({ type: 'BurnBlock', block, intensity: 2 });
-    expect(result).toMatchObject({ ok: false, code: 'notImplemented' });
+    const all: Command[] = [
+      { type: 'PlantBlock', block, species: 'palm' },
+      { type: 'BuyBlock', block },
+      { type: 'ChopBlock', block },
+      { type: 'BurnBlock', block, intensity: 1 },
+      { type: 'SanitizeBlock', block },
+      { type: 'IrrigateBlock', block },
+      { type: 'DrainBlock', block },
+      { type: 'HarvestBlock', block },
+      { type: 'FertilizeBlock', block },
+      { type: 'PlaceKopdes', block },
+      { type: 'UpgradeKopdes' },
+      { type: 'BuyItem', item: 'bibit', quantity: 1 },
+    ];
+    for (const command of all) {
+      const result = sim.validate(command);
+      expect(result?.code).not.toBe('notImplemented');
+    }
   });
 
   it('logs accepted commands with their tick, and never rejected ones', () => {
@@ -382,9 +398,22 @@ describe('determinism (§4.3)', () => {
       fc.record({ type: fc.constant('UpgradeKopdes' as const) }),
       fc.record({
         type: fc.constant('BuyItem' as const),
-        item: fc.constantFrom('bibit' as const, 'fertilizer' as const, 'forestSapling' as const),
+        item: fc.constantFrom(
+          'bibit' as const,
+          'fertilizer' as const,
+          'forestSapling' as const,
+          'sanitationCrew' as const,
+        ),
         quantity: fc.integer({ min: 1, max: 300 }),
       }),
+      fc.record({
+        type: fc.constant('BurnBlock' as const),
+        block: fc.constantFrom(...blocks),
+        intensity: fc.constantFrom(1 as const, 2 as const, 3 as const),
+      }),
+      fc.record({ type: fc.constant('SanitizeBlock' as const), block: fc.constantFrom(...blocks) }),
+      fc.record({ type: fc.constant('IrrigateBlock' as const), block: fc.constantFrom(...blocks) }),
+      fc.record({ type: fc.constant('DrainBlock' as const), block: fc.constantFrom(...blocks) }),
     );
 
   function fingerprint(sim: Sim): string {

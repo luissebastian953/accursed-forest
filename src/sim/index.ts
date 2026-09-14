@@ -23,6 +23,7 @@ import { growth } from './systems/growth.ts';
 import { harvest } from './systems/harvest.ts';
 import { terrain } from './systems/terrain.ts';
 import { weather } from './systems/weather.ts';
+import { worldEvents } from './systems/worldEvents.ts';
 import type { Command, DispatchResult, Rejection, SimState } from './types.ts';
 import { createWorld, type World } from './worldgen/index.ts';
 
@@ -90,7 +91,7 @@ class SimImpl implements Sim {
     rebuildActiveSet(state, world);
 
     weather(this.ctx);
-    // worldEvents (M1e)
+    worldEvents(this.ctx);
     terrain(this.ctx);
     growth(this.ctx);
     // pest (M1d)

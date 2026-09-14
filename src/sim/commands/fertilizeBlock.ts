@@ -19,6 +19,7 @@ export const fertilizeBlock: CommandHandler<FertilizeBlock> = {
     }
     const block = readBlock(state, world, command.block);
     if (!block.owned) return reject('notOwned', 'You do not own this block.');
+    if (block.burning) return reject('burning', 'This block is on fire.');
     if (block.phase !== 'planted' && block.phase !== 'reforesting') {
       return reject('wrongPhase', 'Only planted blocks take fertilizer.');
     }

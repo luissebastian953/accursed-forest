@@ -1,12 +1,12 @@
 /**
  * ChopBlock (§3.1.1): the safe, slow way to clear. Puts a crew on the block;
- * `systems/terrain.ts` advances the work each day and leaves stumps and debris
- * behind when it is done.
+ * `systems/terrain.ts` advances the work each day, leaves stumps and debris
+ * behind when it is done, and sells the timber.
  */
 
 import { BIOMES } from '../balance/biomes.ts';
 import { CREW_WAGE_PER_DAY } from '../balance/prices.ts';
-import { readBlock, spend, writeBlock, type SimContext } from '../state.ts';
+import { readBlock, spend, writeBlock } from '../state.ts';
 import type { Command } from '../types.ts';
 
 import { reject, type CommandHandler } from './handler.ts';
@@ -18,7 +18,7 @@ export function chopCost(biome: keyof typeof BIOMES): number {
 }
 
 export const chopBlock: CommandHandler<ChopBlock> = {
-  validate(ctx: SimContext, command) {
+  validate(ctx, command) {
     const { state, world } = ctx;
     if (!world.inBounds(...world.toXY(command.block))) {
       return reject('unknownBlock', 'That block is outside the map.');
@@ -29,6 +29,7 @@ export const chopBlock: CommandHandler<ChopBlock> = {
     if (block.bannedUntil > state.tick) {
       return reject('banned', `Clearing is banned here until day ${block.bannedUntil}.`);
     }
+    if (block.burning) return reject('burning', 'This block is on fire.');
     if (block.phase !== 'wild') return reject('wrongPhase', 'Only wild land can be chopped.');
     if (!BIOMES[block.biome].clearable) {
       return reject('wrongPhase', 'This land cannot be cleared.');

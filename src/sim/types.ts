@@ -242,13 +242,18 @@ export interface SimState {
 
 export type FireIntensity = 1 | 2 | 3;
 
+/**
+ * Everything the player can do. Reforestation is `PlantBlock` with
+ * `species: 'forest'` (§3.10): one planting path, two things to plant.
+ */
 export type Command =
   | { type: 'PlantBlock'; block: BlockId; species: Species }
   | { type: 'BuyBlock'; block: BlockId }
   | { type: 'ChopBlock'; block: BlockId }
   | { type: 'BurnBlock'; block: BlockId; intensity: FireIntensity }
-  | { type: 'ReforestBlock'; block: BlockId }
   | { type: 'SanitizeBlock'; block: BlockId }
+  | { type: 'IrrigateBlock'; block: BlockId }
+  | { type: 'DrainBlock'; block: BlockId }
   | { type: 'HarvestBlock'; block: BlockId }
   | { type: 'FertilizeBlock'; block: BlockId }
   | { type: 'PlaceKopdes'; block: BlockId }
@@ -280,6 +285,8 @@ export interface Rejection {
     | 'noInventory'
     | 'maxLevel'
     | 'badQuantity'
+    | 'burning'
+    | 'noFuel'
     | 'unknownBlock'
     | 'notImplemented';
   reason: string;

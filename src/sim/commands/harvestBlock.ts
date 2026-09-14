@@ -32,6 +32,7 @@ export const harvestBlock: CommandHandler<HarvestBlock> = {
     }
     const block = readBlock(state, world, command.block);
     if (!block.owned) return reject('notOwned', 'You do not own this block.');
+    if (block.burning) return reject('burning', 'This block is on fire.');
     if (block.phase !== 'planted' || block.species !== 'palm') {
       return reject('wrongPhase', 'Nothing to harvest here.');
     }

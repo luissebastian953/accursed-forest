@@ -55,6 +55,8 @@ export function growth(ctx: SimContext): void {
   for (const [id, palms] of state.palms) {
     const block = state.blocks.get(id);
     if (!block || (block.phase !== 'planted' && block.phase !== 'reforesting')) continue;
+    // A burning block grows nothing; its palms are about to be debris.
+    if (block.burning) continue;
 
     const blockG = growthMultiplier(state, block);
     const species = block.species;

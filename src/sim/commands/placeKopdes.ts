@@ -21,6 +21,7 @@ export const placeKopdes: CommandHandler<PlaceKopdes> = {
 
     const block = readBlock(state, world, command.block);
     if (!block.owned) return reject('notOwned', 'You do not own this block.');
+    if (block.burning) return reject('burning', 'This block is on fire.');
     if (block.phase !== 'cleared') return reject('wrongPhase', 'The Kopdes needs a cleared block.');
     if (state.economy.cash < KOPDES_BUILD_COST) {
       return reject(

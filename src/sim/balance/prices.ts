@@ -1,6 +1,6 @@
 /** Starting economy, land pricing and shop prices (§3.1.1, §3.3, §3.5). */
 
-import type { ItemId } from '../types.ts';
+import type { Biome, ItemId } from '../types.ts';
 
 export const ECONOMY = {
   /** Enough for roughly two grassfield blocks, the Kopdes and bibit — no more. */
@@ -22,6 +22,8 @@ export const ECONOMY = {
    * (§3.5: "possible but tight").
    */
   upkeepPerPlantedBlock: 22_000,
+  /** Extra daily cost of keeping an irrigated block watered (§3.1). */
+  irrigationUpkeepPerDay: 6_000,
   /** Price history kept for the HUD trend and sparkline. */
   priceHistoryCap: 60,
 
@@ -63,6 +65,21 @@ export const ITEM_PRICES: Record<ItemId, number> = {
 };
 
 export const KOPDES_BUILD_COST = 22_000_000;
+
+/** What a chopped block's timber fetches at the Kopdes (§3.1.1: offsets wages). */
+export const TIMBER_VALUE: Partial<Record<Biome, number>> = {
+  forest: 4_500_000,
+  protected: 6_000_000,
+  hills: 1_200_000,
+  riverbank: 900_000,
+  rubber: 2_000_000,
+  peat: 1_500_000,
+  swamp: 500_000,
+};
+
+/** Per-block upgrades (§3.1): irrigation lifts the dry-scrub penalty; drainage flood-proofs. */
+export const IRRIGATION_COST = 6_000_000;
+export const DRAINAGE_COST = 4_000_000;
 
 /** Cost to go from level `i` to `i + 1`; index 0 is unused (building is separate). */
 export const KOPDES_UPGRADE_COST: readonly number[] = [0, 18_000_000, 30_000_000, 50_000_000];

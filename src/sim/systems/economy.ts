@@ -29,10 +29,14 @@ export function economy(ctx: SimContext): void {
 
   // ── Upkeep ─────────────────────────────────────────────────────────────
   let planted = 0;
+  let irrigated = 0;
   for (const block of state.blocks.values()) {
     if (block.phase === 'planted') planted += 1;
+    if (block.irrigated && block.owned) irrigated += 1;
   }
-  if (planted > 0) spend(state, planted * ECONOMY.upkeepPerPlantedBlock, 'upkeep');
+  const upkeep =
+    planted * ECONOMY.upkeepPerPlantedBlock + irrigated * ECONOMY.irrigationUpkeepPerDay;
+  if (upkeep > 0) spend(state, upkeep, 'upkeep');
 
   // ── Price walk ─────────────────────────────────────────────────────────
   const pull = ECONOMY.tbsPriceMeanReversion * (ECONOMY.tbsPriceMean - e.tbsPrice);

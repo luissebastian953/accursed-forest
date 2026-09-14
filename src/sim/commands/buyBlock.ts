@@ -43,6 +43,7 @@ export const buyBlock: CommandHandler<BuyBlock> = {
 
     const block = readBlock(state, world, command.block);
     if (block.owned) return reject('occupied', 'You already own this block.');
+    if (block.burning) return reject('burning', 'This block is on fire — nobody is selling.');
     if (!block.forSale) {
       return reject('notForSale', `${describe(block.biome)} is not for sale.`);
     }
