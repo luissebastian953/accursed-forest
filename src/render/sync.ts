@@ -7,7 +7,7 @@
  */
 
 import type { SimEvent } from '@sim/events';
-import type { BlockId } from '@sim/types';
+import type { BlockId, ItemId } from '@sim/types';
 
 export interface EventDigest {
   /** Blocks whose terrain look changed: rebuild their chunks. */
@@ -20,6 +20,11 @@ export interface EventDigest {
   kopdesChanged: boolean;
   yearPassed: number | null;
   harvested: { block: BlockId; kilograms: number }[];
+  ripeBlocks: Set<BlockId>;
+  sold: { kilograms: number; price: number; revenue: number }[];
+  kopdesUpgraded: number | null;
+  fertilizedBlocks: Set<BlockId>;
+  bought: { item: ItemId; quantity: number }[];
 }
 
 export function digestEvents(events: readonly SimEvent[]): EventDigest {
@@ -31,6 +36,11 @@ export function digestEvents(events: readonly SimEvent[]): EventDigest {
     kopdesChanged: false,
     yearPassed: null,
     harvested: [],
+    ripeBlocks: new Set(),
+    sold: [],
+    kopdesUpgraded: null,
+    fertilizedBlocks: new Set(),
+    bought: [],
   };
 
   for (const event of events) {
@@ -57,10 +67,28 @@ export function digestEvents(events: readonly SimEvent[]): EventDigest {
         digest.palmBlocks.add(event.block);
         break;
       case 'BlockRipe':
+        digest.ripeBlocks.add(event.block);
         break;
       case 'Harvested':
         digest.palmBlocks.add(event.block);
         digest.harvested.push({ block: event.block, kilograms: event.kilograms });
+        break;
+      case 'TbsSold':
+        digest.sold.push({
+          kilograms: event.kilograms,
+          price: event.price,
+          revenue: event.revenue,
+        });
+        break;
+      case 'BlockFertilized':
+        digest.fertilizedBlocks.add(event.block);
+        break;
+      case 'ItemBought':
+        digest.bought.push({ item: event.item, quantity: event.quantity });
+        break;
+      case 'KopdesUpgraded':
+        digest.kopdesUpgraded = event.level;
+        digest.kopdesChanged = true;
         break;
       case 'YearPassed':
         digest.yearPassed = event.year;

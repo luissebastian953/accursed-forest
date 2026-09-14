@@ -18,7 +18,7 @@ import { Picker } from '@render/picking';
 import { createRenderer } from '@render/Renderer';
 import { ChunkManager } from '@render/scene/ChunkManager';
 import { KopdesMesh } from '@render/scene/Kopdes';
-import { SelectionRing } from '@render/scene/Overlays';
+import { RangeRing, SelectionRing } from '@render/scene/Overlays';
 import { Palms } from '@render/scene/Palms';
 import { Sky } from '@render/scene/Sky';
 import { digestEvents } from '@render/sync';
@@ -26,7 +26,9 @@ import { WORLD } from '@sim/balance/world';
 import { createSim, restoreSim, type Sim } from '@sim/index';
 import type { BlockId, Command } from '@sim/types';
 import { BlockPanel } from '@ui/BlockPanel';
+import { formatKg, formatRp } from '@ui/format';
 import { Hud } from '@ui/Hud';
+import { KopdesShop } from '@ui/KopdesShop';
 import { Menu } from '@ui/Menu';
 import { Toasts } from '@ui/Toasts';
 
@@ -95,7 +97,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   const palms = new Palms(material);
   const kopdes = new KopdesMesh(material);
   const ring = new SelectionRing(material);
-  scene.add(chunks.group, palms.group, kopdes.mesh, ring.mesh);
+  const rangeRing = new RangeRing(material);
+  scene.add(chunks.group, palms.group, kopdes.mesh, ring.mesh, rangeRing.mesh);
 
   let picker = new Picker(rig.camera, chunks.group, sim.world);
   const visible: GroundRect = { minX: 0, maxX: 0, minZ: 0, maxZ: 0 };
@@ -128,9 +131,15 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     },
   });
 
+  const shop = new KopdesShop(root, {
+    dispatch: (command) => dispatch(command),
+    close: () => closeShop(),
+  });
+
   const panel = new BlockPanel(root, {
     dispatch: (command) => dispatch(command),
     close: () => select(null),
+    openShop: () => openShop(),
   });
 
   const menu = new Menu(root, {
@@ -153,6 +162,16 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     },
   });
 
+  function openShop(): void {
+    shop.open(sim);
+    rangeRing.show(sim.state, sim.world);
+  }
+
+  function closeShop(): void {
+    shop.close();
+    rangeRing.hide();
+  }
+
   function refreshMenu(): void {
     let lastSavedAt: string | null = null;
     const manifest = storage.get(slot.manifestKey);
@@ -171,10 +190,21 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     });
   }
 
+  function priceTrend(): -1 | 0 | 1 {
+    const history = sim.state.economy.tbsPriceHistory;
+    const now = sim.state.economy.tbsPrice;
+    const earlier = history[Math.max(0, history.length - 11)] ?? now;
+    if (now > earlier * 1.01) return 1;
+    if (now < earlier * 0.99) return -1;
+    return 0;
+  }
+
   function refreshHud(): void {
     hud.update({
       cash: sim.state.economy.cash,
       tick: sim.state.tick,
+      tbsPrice: sim.state.economy.tbsPrice,
+      tbsTrend: priceTrend(),
       regime: sim.state.weather.regime,
       rain: sim.state.weather.rain,
       speed: time.speed,
@@ -203,7 +233,11 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         palmsDirty = true;
         animateBlocks.add(command.block);
       }
-      if (command.type === 'PlaceKopdes') kopdes.sync(sim.state, sim.world);
+      if (command.type === 'HarvestBlock') palmsDirty = true;
+      if (command.type === 'PlaceKopdes' || command.type === 'UpgradeKopdes') {
+        kopdes.sync(sim.state, sim.world);
+        if (shop.isOpen) rangeRing.show(sim.state, sim.world);
+      }
       if (ring.block !== null) ring.show(sim.state, sim.world, ring.block, performance.now());
       refreshHud();
     } else {
@@ -236,6 +270,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   function switchSim(next: Sim): void {
     sim = next;
     select(null);
+    closeShop();
     scene.remove(chunks.group);
     chunks.dispose();
     chunks = new ChunkManager({
@@ -254,6 +289,11 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     refreshMenu();
   }
 
+  function blockName(block: BlockId): string {
+    const [x, y] = sim.world.toXY(block);
+    return `block ${x}, ${y}`;
+  }
+
   function onTick(): void {
     const events = sim.tick();
     const digest = digestEvents(events);
@@ -262,8 +302,20 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     if (digest.palmBlocks.size > 0) palmsDirty = true;
     for (const block of digest.animateBlocks) animateBlocks.add(block);
     if (digest.kopdesChanged) kopdes.sync(sim.state, sim.world);
-    if (digest.yearPassed !== null)
+    if (digest.yearPassed !== null) {
       toasts.push(`Year ${digest.yearPassed + 1} begins — ${regimeLine(sim.state.weather.regime)}`);
+    }
+    for (const block of digest.ripeBlocks)
+      toasts.push(`Ripe: ${blockName(block)} is ready to harvest.`);
+    for (const sale of digest.sold) {
+      toasts.push(
+        `Sold ${formatKg(sale.kilograms)} of TBS at ${formatRp(sale.price)}/kg — ${formatRp(sale.revenue)}.`,
+      );
+    }
+    if (digest.kopdesUpgraded !== null) {
+      toasts.push(`Kopdes upgraded to level ${digest.kopdesUpgraded}.`);
+      if (shop.isOpen) rangeRing.show(sim.state, sim.world);
+    }
 
     // Moisture and growth move every tick on every estate block, so every
     // chunk with estate in it is dirty for the save; the dirty set earns its
@@ -293,6 +345,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
     refreshHud();
     if (panel.selected !== null) panel.refresh();
+    if (shop.isOpen) shop.refresh();
     handle.render(scene, rig.camera);
   }
 
@@ -318,8 +371,13 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     setSpeed: (speed) => time.set(speed),
     rotate: (direction) => rig.rotate(direction, performance.now()),
     focusKopdes: () => focusBlock(sim.state.kopdes?.blockId ?? sim.state.worldGen.kopdesBlock),
+    openShop: () => {
+      if (shop.isOpen) closeShop();
+      else openShop();
+    },
     escape: () => {
       if (menu.isOpen) menu.hide();
+      else if (shop.isOpen) closeShop();
       else select(null);
     },
   });
@@ -353,12 +411,14 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     observer.disconnect();
     hud.dispose();
     panel.dispose();
+    shop.dispose();
     menu.dispose();
     toasts.dispose();
     chunks.dispose();
     palms.dispose();
     kopdes.dispose();
     ring.dispose();
+    rangeRing.dispose();
     sky.dispose();
     rig.dispose();
     material.dispose();

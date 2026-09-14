@@ -3,9 +3,14 @@
 import { GROWTH } from '@sim/balance/growth';
 
 const rupiah = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 });
+const kilos = new Intl.NumberFormat('en', { maximumFractionDigits: 0 });
 
 export function formatRp(amount: number): string {
   return `Rp ${rupiah.format(Math.round(amount))}`;
+}
+
+export function formatKg(kilograms: number): string {
+  return `${kilos.format(Math.round(kilograms))} kg`;
 }
 
 export function formatDate(tick: number): string {

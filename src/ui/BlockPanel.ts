@@ -10,18 +10,23 @@ import { BIOMES } from '@sim/balance/biomes';
 import { GROWTH } from '@sim/balance/growth';
 import { KOPDES_BUILD_COST } from '@sim/balance/prices';
 import { landPrice } from '@sim/commands/buyBlock';
+import { itemPrice } from '@sim/commands/buyItem';
 import { chopCost } from '@sim/commands/chopBlock';
-import { plantingCost } from '@sim/commands/plantBlock';
+import { seedlingItem, seedlingsNeeded } from '@sim/commands/plantBlock';
+import { kopdesUpgradeCost } from '@sim/commands/upgradeKopdes';
 import type { Sim } from '@sim/index';
+import { distanceToKopdes, inKopdesRange, kopdesRange } from '@sim/kopdes';
 import { slotStage } from '@sim/palms';
 import { readBlock } from '@sim/state';
+import { daysUntilRipe, harvestableKg } from '@sim/systems/harvest';
 import type { Biome, BlockId, Command, DispatchResult, GrowthStage } from '@sim/types';
 
-import { formatPercent, formatRp } from './format.ts';
+import { formatKg, formatPercent, formatRp } from './format.ts';
 
 export interface BlockPanelHandlers {
   dispatch(command: Command): DispatchResult;
   close(): void;
+  openShop(): void;
 }
 
 const BIOME_LABEL: Record<Biome, string> = {
@@ -44,6 +49,7 @@ interface Action {
   label: string;
   command: Command;
   cost?: number;
+  testId: string;
 }
 
 export class BlockPanel {
@@ -88,60 +94,94 @@ export class BlockPanel {
     const block = readBlock(state, world, id);
     const [x, y] = world.toXY(id);
     const spec = BIOMES[block.biome];
+    const index = state.economy.inputPriceIndex;
 
     const actions: Action[] = [];
     if (!block.owned) {
-      const buy: Action = { label: 'Buy land', command: { type: 'BuyBlock', block: id } };
+      const buy: Action = {
+        label: 'Buy land',
+        command: { type: 'BuyBlock', block: id },
+        testId: 'action-BuyBlock',
+      };
       if (block.forSale) buy.cost = landPrice(state, world, id);
       actions.push(buy);
     } else {
-      if (block.phase === 'wild')
-        actions.push({
-          label: 'Chop',
-          command: { type: 'ChopBlock', block: id },
-          cost: chopCost(block.biome),
-        });
-      if (block.phase === 'cleared' || block.phase === 'wild') {
-        actions.push({
-          label: 'Plant palms',
-          command: { type: 'PlantBlock', block: id, species: 'palm' },
-          cost: plantingCost(block.biome, 'palm', state.economy.inputPriceIndex),
-        });
-        actions.push({
-          label: 'Plant forest',
-          command: { type: 'PlantBlock', block: id, species: 'forest' },
-          cost: plantingCost(block.biome, 'forest', state.economy.inputPriceIndex),
-        });
-      }
-      if (block.phase === 'cleared' && !state.kopdes) {
-        actions.push({
-          label: 'Place Kopdes',
-          command: { type: 'PlaceKopdes', block: id },
-          cost: KOPDES_BUILD_COST,
-        });
+      switch (block.phase) {
+        case 'wild':
+          actions.push({
+            label: 'Chop',
+            command: { type: 'ChopBlock', block: id },
+            cost: chopCost(block.biome),
+            testId: 'action-ChopBlock',
+          });
+          break;
+        case 'cleared': {
+          const needed = seedlingsNeeded(block.biome);
+          actions.push({
+            label: `Plant palms (${needed} bibit)`,
+            command: { type: 'PlantBlock', block: id, species: 'palm' },
+            testId: 'action-PlantBlock-palm',
+          });
+          if (state.kopdes && state.inventory.bibit < needed) {
+            const shortfall = needed - state.inventory.bibit;
+            actions.push({
+              label: `Buy ${shortfall} bibit`,
+              command: { type: 'BuyItem', item: seedlingItem('palm'), quantity: shortfall },
+              cost: itemPrice('bibit', index) * shortfall,
+              testId: 'action-BuyBibit',
+            });
+          }
+          actions.push({
+            label: `Plant forest (${needed} saplings)`,
+            command: { type: 'PlantBlock', block: id, species: 'forest' },
+            testId: 'action-PlantBlock-forest',
+          });
+          if (!state.kopdes) {
+            actions.push({
+              label: 'Place Kopdes',
+              command: { type: 'PlaceKopdes', block: id },
+              cost: KOPDES_BUILD_COST,
+              testId: 'action-PlaceKopdes',
+            });
+          }
+          break;
+        }
+        case 'planted':
+          if (block.species === 'palm') {
+            actions.push({
+              label: 'Harvest',
+              command: { type: 'HarvestBlock', block: id },
+              testId: 'action-HarvestBlock',
+            });
+          }
+          actions.push({
+            label: 'Fertilize (90 days)',
+            command: { type: 'FertilizeBlock', block: id },
+            testId: 'action-FertilizeBlock',
+          });
+          break;
+        case 'reforesting':
+          actions.push({
+            label: 'Fertilize (90 days)',
+            command: { type: 'FertilizeBlock', block: id },
+            testId: 'action-FertilizeBlock',
+          });
+          break;
+        case 'kopdes': {
+          const cost = kopdesUpgradeCost(state.kopdes?.level ?? 1);
+          const upgrade: Action = {
+            label: 'Upgrade Kopdes',
+            command: { type: 'UpgradeKopdes' },
+            testId: 'action-UpgradeKopdes',
+          };
+          if (cost !== null) upgrade.cost = cost;
+          actions.push(upgrade);
+          break;
+        }
+        case 'clearing':
+          break;
       }
     }
-
-    const palms = state.palms.get(id);
-    const stageCounts = new Map<GrowthStage, number>();
-    let growthSum = 0;
-    let growthN = 0;
-    if (palms) {
-      for (let slot = 0; slot < palms.plantedAt.length; slot++) {
-        if (palms.plantedAt[slot]! < 0) continue;
-        const stage = slotStage(palms, slot, block.species, state.tick);
-        stageCounts.set(stage, (stageCounts.get(stage) ?? 0) + 1);
-        growthSum += palms.growth[slot]!;
-        growthN += 1;
-      }
-    }
-    const meanGrowth = growthN > 0 ? growthSum / growthN : 0;
-    const nextStage =
-      meanGrowth < GROWTH.seedlingDays
-        ? GROWTH.seedlingDays
-        : meanGrowth < GROWTH.immatureDays
-          ? GROWTH.immatureDays
-          : null;
 
     return html`
       <div
@@ -151,7 +191,9 @@ export class BlockPanel {
         <div class="mb-2 flex items-start justify-between gap-2">
           <div>
             <div class="text-xs uppercase tracking-wide opacity-60">Block ${x}, ${y}</div>
-            <div class="font-semibold">${BIOME_LABEL[block.biome]}</div>
+            <div class="font-semibold">
+              ${block.phase === 'kopdes' ? 'Kopdes' : BIOME_LABEL[block.biome]}
+            </div>
           </div>
           <button
             class="rounded px-2 py-0.5 hover:bg-white/15"
@@ -183,29 +225,28 @@ export class BlockPanel {
                   <dd>${spec.plantableSlots} / 144 slots</dd>`
               : nothing
           }
+          ${
+            block.fertilizedUntil > state.tick
+              ? html`<dt class="opacity-60">Fertilized</dt>
+                  <dd>${block.fertilizedUntil - state.tick} days left</dd>`
+              : nothing
+          }
+          ${
+            block.owned && block.phase !== 'kopdes' && state.kopdes
+              ? html`<dt class="opacity-60">Kopdes</dt>
+                  <dd data-testid="block-range">
+                    ${
+                      inKopdesRange(state, world, id)
+                        ? `in range (${distanceToKopdes(state, world, id)} blocks)`
+                        : `out of range (${distanceToKopdes(state, world, id)} of ${kopdesRange(state.kopdes.level)}) — TBS would spoil`
+                    }
+                  </dd>`
+              : nothing
+          }
         </dl>
 
-        ${
-          palms
-            ? html`
-                <div class="mb-3 rounded bg-white/5 p-2 text-xs">
-                  <div class="mb-1 font-medium">
-                    ${block.species === 'forest' ? 'Forest' : 'Palms'} · ${growthN}
-                  </div>
-                  <div class="flex flex-wrap gap-x-3">
-                    ${STAGE_ORDER.filter((s) => stageCounts.has(s)).map((s) => html`<span>${s}: ${stageCounts.get(s)}</span>`)}
-                  </div>
-                  ${
-                    nextStage !== null
-                      ? html`<div class="mt-1 opacity-70" data-testid="growth-progress">
-                          ${Math.round(meanGrowth)} / ${nextStage} growth-days
-                        </div>`
-                      : nothing
-                  }
-                </div>
-              `
-            : nothing
-        }
+        ${block.phase === 'kopdes' && state.kopdes ? this.kopdesSection(sim) : nothing}
+        ${state.palms.has(id) ? this.palmsSection(sim, id) : nothing}
 
         <div class="flex flex-col gap-1.5">
           ${actions.map((action) => {
@@ -219,7 +260,7 @@ export class BlockPanel {
                       : 'w-full rounded bg-emerald-600 px-3 py-1.5 text-left font-medium hover:bg-emerald-500'
                   }
                   ?disabled=${rejection !== null}
-                  data-testid=${`action-${action.command.type}${'species' in action.command ? `-${action.command.species}` : ''}`}
+                  data-testid=${action.testId}
                   @click=${() => this.act(action.command)}
                 >
                   <span class="flex justify-between gap-2">
@@ -232,6 +273,83 @@ export class BlockPanel {
             `;
           })}
         </div>
+      </div>
+    `;
+  }
+
+  private kopdesSection(sim: Sim) {
+    const kopdes = sim.state.kopdes!;
+    return html`
+      <div class="mb-3 rounded bg-white/5 p-2 text-xs">
+        <div class="flex items-baseline justify-between">
+          <span class="font-medium">Level ${kopdes.level}</span>
+          <span class="opacity-70">sells within ${kopdesRange(kopdes.level)} blocks</span>
+        </div>
+        <button
+          class="mt-2 w-full rounded bg-white/10 px-3 py-1.5 text-left font-medium hover:bg-white/20"
+          data-testid="action-OpenShop"
+          @click=${() => this.handlers.openShop()}
+        >
+          Open shop
+        </button>
+      </div>
+    `;
+  }
+
+  private palmsSection(sim: Sim, id: BlockId) {
+    const { state } = sim;
+    const block = state.blocks.get(id)!;
+    const palms = state.palms.get(id)!;
+
+    const stageCounts = new Map<GrowthStage, number>();
+    let growthSum = 0;
+    let growthN = 0;
+    for (let slot = 0; slot < palms.plantedAt.length; slot++) {
+      if (palms.plantedAt[slot]! < 0) continue;
+      const stage = slotStage(palms, slot, block.species, state.tick);
+      stageCounts.set(stage, (stageCounts.get(stage) ?? 0) + 1);
+      growthSum += palms.growth[slot]!;
+      growthN += 1;
+    }
+    const meanGrowth = growthN > 0 ? growthSum / growthN : 0;
+    const nextStage =
+      meanGrowth < GROWTH.seedlingDays
+        ? GROWTH.seedlingDays
+        : meanGrowth < GROWTH.immatureDays
+          ? GROWTH.immatureDays
+          : null;
+
+    const bearing = (stageCounts.get('mature') ?? 0) + (stageCounts.get('senile') ?? 0);
+    const kg = block.species === 'palm' ? harvestableKg(palms, 'palm', state.tick) : 0;
+    const days = daysUntilRipe(block, state.tick);
+
+    return html`
+      <div class="mb-3 rounded bg-white/5 p-2 text-xs">
+        <div class="mb-1 font-medium">
+          ${block.species === 'forest' ? 'Forest' : 'Palms'} · ${growthN}
+        </div>
+        <div class="flex flex-wrap gap-x-3">
+          ${STAGE_ORDER.filter((s) => stageCounts.has(s)).map((s) => html`<span>${s}: ${stageCounts.get(s)}</span>`)}
+        </div>
+        ${
+          nextStage !== null
+            ? html`<div class="mt-1 opacity-70" data-testid="growth-progress">
+                ${Math.round(meanGrowth)} / ${nextStage} growth-days
+              </div>`
+            : nothing
+        }
+        ${
+          bearing > 0
+            ? html`
+                <div class="mt-1 flex justify-between opacity-90" data-testid="harvest-info">
+                  <span>On the trees: ${formatKg(kg)}</span>
+                  <span
+                    >${days === null ? '' : days === 0 ? 'ripe now' : `next round in ${days} d`}</span
+                  >
+                </div>
+              `
+            : nothing
+        }
       </div>
     `;
   }

@@ -14,6 +14,9 @@ import { formatDate, formatRp } from './format.ts';
 export interface HudView {
   cash: number;
   tick: number;
+  tbsPrice: number;
+  /** -1 falling, 0 flat, 1 rising, against ~10 days ago. */
+  tbsTrend: -1 | 0 | 1;
   regime: ClimateRegime;
   rain: number;
   speed: Speed;
@@ -61,6 +64,14 @@ export class Hud {
             ${formatRp(view.cash)}
           </div>
           <div class="tabular-nums opacity-90" data-testid="hud-date">${formatDate(view.tick)}</div>
+          <div class="tabular-nums opacity-90" title="TBS price today" data-testid="hud-price">
+            ${formatRp(view.tbsPrice)}/kg
+            <span
+              class=${view.tbsTrend > 0 ? 'text-emerald-300' : view.tbsTrend < 0 ? 'text-red-300' : 'opacity-60'}
+            >
+              ${view.tbsTrend > 0 ? '▲' : view.tbsTrend < 0 ? '▼' : '▬'}
+            </span>
+          </div>
           <div class="opacity-90" title=${REGIME_LABEL[view.regime]}>
             ${weather} ${REGIME_LABEL[view.regime]}
           </div>

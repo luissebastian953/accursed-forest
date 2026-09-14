@@ -13,30 +13,32 @@ Section references in the code (`§6.5`, `§4.1`, …) point into it.
 
 ## Status
 
-**M1a — Skeleton: done.** You can pan a generated 64×64 world, select a
-block, chop and plant it, speed through the immature phase at 20×, save,
-reload and continue. M1b (harvest, Kopdes shop, TBS price) is next.
+**M1a Skeleton and M1b Loop: done.** Place the Kopdes, stock bibit at its
+shop, chop and plant a block, speed through the immature years at 20×,
+harvest ripe rounds and watch them sell at the day's price, save, reload and
+continue. M1c (land expansion: buy / chop / burn with fire pressure,
+reforestation, debris) is next.
 
-| Area                                                          | State                           |
-| ------------------------------------------------------------- | ------------------------------- |
-| Repo, tooling, CI, ADRs, layer-boundary lint                  | done                            |
-| Seeded RNG, easing + spring, base64 codec                     | done                            |
-| World generation: elevation, moisture, biomes, rivers, start  | done                            |
-| Sparse block map, active set, pure `tick()` and `dispatch()`  | done                            |
-| Systems: weather, terrain, growth (G), economy (upkeep)       | done                            |
-| Commands: Buy, Chop, Plant (palm / forest), Place Kopdes      | done                            |
-| Chunked, validated, migratable `localStorage` saves; autosave | done                            |
-| Column terrain via mesher worker + chunk streaming            | done                            |
-| Instanced palms, selection ring, Kopdes building              | done                            |
-| Orthographic map camera, picking, keyboard, HUD, block panel  | done                            |
-| Menu: new estate by code, save, load                          | done                            |
-| Harvest, TBS sales, Kopdes shop and range                     | **M1b**                         |
-| Burn, fire pressure, reforestation, land expansion rules      | **M1c**                         |
-| Pests, weather events, news, authority, endings               | **M1d–M1g**                     |
-| Far-LOD heatmap tiles, GPU per-instance animation             | deferred until palm counts bite |
+| Area                                                                                | State                           |
+| ----------------------------------------------------------------------------------- | ------------------------------- |
+| Repo, tooling, CI, ADRs, layer-boundary lint                                        | done                            |
+| Seeded RNG, easing + spring, base64 codec                                           | done                            |
+| World generation: elevation, moisture, biomes, rivers, start                        | done                            |
+| Sparse block map, active set, pure `tick()` and `dispatch()`                        | done                            |
+| Systems: weather, terrain, growth (G), harvest, economy                             | done                            |
+| Commands: Buy land, Chop, Plant, Place/Upgrade Kopdes, Buy item, Harvest, Fertilize | done                            |
+| Kopdes range and same-day sales; TBS price walk                                     | done                            |
+| Scripted autoplayer and `pnpm sweep` balance tool                                   | done                            |
+| Chunked, validated, migratable `localStorage` saves; autosave                       | done (schema v2)                |
+| Column terrain via mesher worker + chunk streaming                                  | done                            |
+| Instanced palms, selection ring, range ring, Kopdes building                        | done                            |
+| Map camera, picking, keyboard, HUD, block panel, shop, menu                         | done                            |
+| Burn, fire pressure, reforestation growth, land rules                               | **M1c**                         |
+| Pests, weather events, news, authority, endings                                     | **M1d–M1g**                     |
+| Far-LOD heatmap tiles, GPU per-instance animation                                   | deferred until palm counts bite |
 
-Tests: 145 unit (Vitest) and 7 browser (Playwright, WebGL fallback) — the
-browser suite plays the M1a loop end to end.
+Tests: 163 unit (Vitest) and 7 browser (Playwright, WebGL fallback) — the
+browser suite plays the whole loop end to end.
 
 ## Getting started
 
@@ -51,7 +53,7 @@ spike instead of the game.
 
 Controls: drag to pan, wheel to zoom, **Q/E** rotate a quarter turn, click a
 block, double-click to focus it, **space** pauses, **1/2/3** set speed,
-**F** jumps to the Kopdes, **Esc** closes panels.
+**F** jumps to the Kopdes, **K** opens its shop, **Esc** closes panels.
 
 ## Scripts
 

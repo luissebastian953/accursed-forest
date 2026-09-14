@@ -1,6 +1,7 @@
 /**
  * Keyboard shortcuts (§6.2, §8): space pauses, 1/2/3 pick a speed, Q/E snap
- * the camera a quarter turn, F jumps to the Kopdes, Escape closes things.
+ * the camera a quarter turn, F jumps to the Kopdes, K opens the shop, Escape
+ * closes things.
  */
 
 import type { Speed } from '@app/timeControl';
@@ -10,6 +11,7 @@ export interface KeyHandlers {
   setSpeed(speed: Speed): void;
   rotate(direction: 1 | -1): void;
   focusKopdes(): void;
+  openShop(): void;
   escape(): void;
 }
 
@@ -44,6 +46,10 @@ export function attachKeys(handlers: KeyHandlers, target: Window = window): () =
       case 'f':
       case 'F':
         handlers.focusKopdes();
+        break;
+      case 'k':
+      case 'K':
+        handlers.openShop();
         break;
       case 'Escape':
         handlers.escape();
