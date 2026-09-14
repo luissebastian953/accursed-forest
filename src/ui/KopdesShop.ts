@@ -45,6 +45,12 @@ const ROWS: ShopRow[] = [
     note: 'one application lifts a block for 90 days',
     bundles: [1, 5],
   },
+  {
+    item: 'sanitationCrew',
+    label: 'Sanitation crew',
+    note: 'clears 60 debris from one block — the only real fix for beetles',
+    bundles: [1],
+  },
 ];
 
 type Tab = 'buy' | 'sell';

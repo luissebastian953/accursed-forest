@@ -63,7 +63,7 @@ describe('chunk field (§6.3, §6.7)', () => {
     const { world, state } = sim;
     const planted = [...state.blocks.values()].find((b) => b.owned && b.phase === 'wild')!;
     planted.phase = 'planted';
-    const diverged = new Map<number, DivergedBlockLite>([[planted.id, toLite(planted)]]);
+    const diverged = new Map<number, DivergedBlockLite>([[planted.id, toLite(planted, 0)]]);
 
     const [cx, cy] = chunkOfBlock(world, planted.id);
     const field = buildChunkField(world, cx, cy, diverged);
@@ -90,7 +90,7 @@ describe('chunk field (§6.3, §6.7)', () => {
     const [bx, by] = world.toXY(block.id);
 
     const slotAt = (phase: DivergedBlockLite['phase'], burning = false): number => {
-      const lite: DivergedBlockLite = { ...toLite(block), phase, burning };
+      const lite: DivergedBlockLite = { ...toLite(block, 0), phase, burning };
       const f = buildChunkField(world, cx, cy, new Map([[block.id, lite]]));
       const lx = (bx - cx * WORLD.chunkSide) * WORLD.blockSide + f.inset! + 5;
       const lz = (by - cy * WORLD.chunkSide) * WORLD.blockSide + f.inset! + 5;

@@ -7,19 +7,28 @@
 import { html, nothing, render } from 'lit-html';
 
 import { BIOMES } from '@sim/balance/biomes';
+import { FIRE } from '@sim/balance/fire';
 import { GROWTH } from '@sim/balance/growth';
-import { KOPDES_BUILD_COST } from '@sim/balance/prices';
+import { DRAINAGE_COST, IRRIGATION_COST, KOPDES_BUILD_COST } from '@sim/balance/prices';
 import { landPrice } from '@sim/commands/buyBlock';
 import { itemPrice } from '@sim/commands/buyItem';
 import { chopCost } from '@sim/commands/chopBlock';
 import { seedlingItem, seedlingsNeeded } from '@sim/commands/plantBlock';
 import { kopdesUpgradeCost } from '@sim/commands/upgradeKopdes';
+import { isFuel, isWildfire } from '@sim/fire';
 import type { Sim } from '@sim/index';
 import { distanceToKopdes, inKopdesRange, kopdesRange } from '@sim/kopdes';
 import { slotStage } from '@sim/palms';
-import { readBlock } from '@sim/state';
+import { neighbourIds, readBlock } from '@sim/state';
 import { daysUntilRipe, harvestableKg } from '@sim/systems/harvest';
-import type { Biome, BlockId, Command, DispatchResult, GrowthStage } from '@sim/types';
+import type {
+  Biome,
+  BlockId,
+  Command,
+  DispatchResult,
+  FireIntensity,
+  GrowthStage,
+} from '@sim/types';
 
 import { formatKg, formatPercent, formatRp } from './format.ts';
 
@@ -27,6 +36,8 @@ export interface BlockPanelHandlers {
   dispatch(command: Command): DispatchResult;
   close(): void;
   openShop(): void;
+  /** Hovering a Burn button previews which neighbours could catch (§8 panel 22). */
+  hoverBurn(blocks: BlockId[] | null): void;
 }
 
 const BIOME_LABEL: Record<Biome, string> = {
@@ -44,12 +55,15 @@ const BIOME_LABEL: Record<Biome, string> = {
 };
 
 const STAGE_ORDER: GrowthStage[] = ['seedling', 'immature', 'mature', 'senile', 'dead'];
+const INTENSITY_LABEL: Record<FireIntensity, string> = { 1: 'Low', 2: 'Medium', 3: 'High' };
 
 interface Action {
   label: string;
   command: Command;
   cost?: number;
   testId: string;
+  /** Secondary actions render smaller and grey. */
+  minor?: boolean;
 }
 
 export class BlockPanel {
@@ -73,6 +87,7 @@ export class BlockPanel {
   show(sim: Sim, block: BlockId | null): void {
     this.sim = sim;
     this.block = block;
+    if (block === null) this.handlers.hoverBurn(null);
     this.refresh();
   }
 
@@ -97,6 +112,7 @@ export class BlockPanel {
     const index = state.economy.inputPriceIndex;
 
     const actions: Action[] = [];
+    let burnable = false;
     if (!block.owned) {
       const buy: Action = {
         label: 'Buy land',
@@ -105,7 +121,7 @@ export class BlockPanel {
       };
       if (block.forSale) buy.cost = landPrice(state, world, id);
       actions.push(buy);
-    } else {
+    } else if (!block.burning) {
       switch (block.phase) {
         case 'wild':
           actions.push({
@@ -114,6 +130,7 @@ export class BlockPanel {
             cost: chopCost(block.biome),
             testId: 'action-ChopBlock',
           });
+          burnable = isFuel(block, false);
           break;
         case 'cleared': {
           const needed = seedlingsNeeded(block.biome);
@@ -144,6 +161,7 @@ export class BlockPanel {
               testId: 'action-PlaceKopdes',
             });
           }
+          burnable = isFuel(block, false);
           break;
         }
         case 'planted':
@@ -181,6 +199,35 @@ export class BlockPanel {
         case 'clearing':
           break;
       }
+
+      if (block.debris > 0) {
+        actions.push({
+          label: 'Sanitize (1 crew)',
+          command: { type: 'SanitizeBlock', block: id },
+          testId: 'action-SanitizeBlock',
+          minor: true,
+        });
+      }
+      if (block.phase !== 'kopdes' && block.biome !== 'river') {
+        if (!block.irrigated) {
+          actions.push({
+            label: 'Irrigate',
+            command: { type: 'IrrigateBlock', block: id },
+            cost: IRRIGATION_COST,
+            testId: 'action-IrrigateBlock',
+            minor: true,
+          });
+        }
+        if (!block.drained) {
+          actions.push({
+            label: 'Drain',
+            command: { type: 'DrainBlock', block: id },
+            cost: DRAINAGE_COST,
+            testId: 'action-DrainBlock',
+            minor: true,
+          });
+        }
+      }
     }
 
     return html`
@@ -206,17 +253,27 @@ export class BlockPanel {
 
         <dl class="mb-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
           <dt class="opacity-60">Status</dt>
-          <dd data-testid="block-phase">${phaseLabel(block.phase, block.clearProgress)}</dd>
+          <dd data-testid="block-phase">
+            ${phaseLabel(block.phase, block.clearProgress, block.burning, block.fireIntensity)}
+          </dd>
           <dt class="opacity-60">Title</dt>
           <dd>${block.owned ? 'Yours' : block.forSale ? 'For sale' : 'Not for sale'}</dd>
           <dt class="opacity-60">Elevation</dt>
           <dd>${block.elevation}${block.slope ? ' · slope' : ''}</dd>
           <dt class="opacity-60">Moisture</dt>
-          <dd>${formatPercent(block.moisture)}</dd>
+          <dd>
+            ${formatPercent(block.moisture)}${block.irrigated ? ' · irrigated' : ''}${block.drained ? ' · drained' : ''}
+          </dd>
           ${
             block.debris > 0
               ? html`<dt class="opacity-60">Debris</dt>
-                  <dd>${Math.round(block.debris)} / 100</dd>`
+                  <dd data-testid="block-debris">${Math.round(block.debris)} / 100</dd>`
+              : nothing
+          }
+          ${
+            block.ashUntil > state.tick
+              ? html`<dt class="opacity-60">Ash</dt>
+                  <dd>fertile for ${block.ashUntil - state.tick} more days</dd>`
               : nothing
           }
           ${
@@ -249,29 +306,107 @@ export class BlockPanel {
         ${state.palms.has(id) ? this.palmsSection(sim, id) : nothing}
 
         <div class="flex flex-col gap-1.5">
-          ${actions.map((action) => {
-            const rejection = sim.validate(action.command);
+          ${actions.filter((a) => !a.minor).map((action) => this.actionButton(sim, action))}
+          ${burnable ? this.burnSection(sim, id) : nothing}
+          ${
+            actions.some((a) => a.minor)
+              ? html`<div class="mt-1 flex flex-wrap gap-1.5">
+                  ${actions.filter((a) => a.minor).map((action) => this.actionButton(sim, action))}
+                </div>`
+              : nothing
+          }
+        </div>
+      </div>
+    `;
+  }
+
+  private actionButton(sim: Sim, action: Action) {
+    const rejection = sim.validate(action.command);
+    const base = action.minor
+      ? 'rounded px-2.5 py-1 text-left text-xs'
+      : 'w-full rounded px-3 py-1.5 text-left';
+    return html`
+      <div class=${action.minor ? '' : ''}>
+        <button
+          class=${
+            rejection
+              ? `${base} cursor-not-allowed bg-white/10 opacity-60`
+              : action.minor
+                ? `${base} bg-white/15 font-medium hover:bg-white/25`
+                : `${base} bg-emerald-600 font-medium hover:bg-emerald-500`
+          }
+          ?disabled=${rejection !== null}
+          title=${rejection?.reason ?? ''}
+          data-testid=${action.testId}
+          @click=${() => this.act(action.command)}
+        >
+          <span class="flex justify-between gap-2">
+            <span>${action.label}</span>
+            ${action.cost !== undefined ? html`<span class="tabular-nums opacity-80">${formatRp(action.cost)}</span>` : nothing}
+          </span>
+        </button>
+        ${rejection && !action.minor ? html`<div class="mt-0.5 px-1 text-xs text-amber-200/90">${rejection.reason}</div>` : nothing}
+      </div>
+    `;
+  }
+
+  /** Burn: three intensities, the spread preview on hover, the pressure it adds. */
+  private burnSection(sim: Sim, id: BlockId) {
+    const { state, world } = sim;
+    const wildfire = isWildfire(state);
+    const fuel = neighbourIds(world, id).filter((n) =>
+      isFuel(readBlock(state, world, n), wildfire),
+    );
+    const threshold = FIRE.wildfireThreshold;
+    const pressure = state.society.firePressure;
+
+    return html`
+      <div
+        class="rounded bg-orange-950/40 p-2"
+        data-testid="burn-section"
+        @mouseenter=${() => this.handlers.hoverBurn(fuel)}
+        @mouseleave=${() => this.handlers.hoverBurn(null)}
+      >
+        <div class="mb-1.5 flex items-baseline justify-between text-xs">
+          <span class="font-medium">Burn</span>
+          <span class="opacity-70"
+            >${formatRp(FIRE.burnCost)} · pressure ${pressure.toFixed(1)} / ${threshold}</span
+          >
+        </div>
+        <div class="flex gap-1.5">
+          ${([1, 2, 3] as FireIntensity[]).map((intensity) => {
+            const command: Command = { type: 'BurnBlock', block: id, intensity };
+            const rejection = sim.validate(command);
+            const tips = pressure + FIRE.pressure[intensity] > threshold;
             return html`
-              <div>
-                <button
-                  class=${
-                    rejection
-                      ? 'w-full cursor-not-allowed rounded bg-white/10 px-3 py-1.5 text-left opacity-60'
-                      : 'w-full rounded bg-emerald-600 px-3 py-1.5 text-left font-medium hover:bg-emerald-500'
-                  }
-                  ?disabled=${rejection !== null}
-                  data-testid=${action.testId}
-                  @click=${() => this.act(action.command)}
+              <button
+                class=${
+                  rejection
+                    ? 'flex-1 cursor-not-allowed rounded bg-white/10 px-2 py-1.5 text-xs opacity-60'
+                    : tips
+                      ? 'flex-1 rounded bg-red-700 px-2 py-1.5 text-xs font-medium hover:bg-red-600'
+                      : 'flex-1 rounded bg-orange-700 px-2 py-1.5 text-xs font-medium hover:bg-orange-600'
+                }
+                ?disabled=${rejection !== null}
+                title=${rejection?.reason ?? (tips ? 'This would tip the fire pressure over the line.' : '')}
+                data-testid=${`action-BurnBlock-${intensity}`}
+                @click=${() => this.act(command)}
+              >
+                ${INTENSITY_LABEL[intensity]}
+                <span class="block opacity-80"
+                  >${FIRE.burnDays[intensity]} d · +${FIRE.pressure[intensity]}</span
                 >
-                  <span class="flex justify-between gap-2">
-                    <span>${action.label}</span>
-                    ${action.cost !== undefined ? html`<span class="tabular-nums opacity-80">${formatRp(action.cost)}</span>` : nothing}
-                  </span>
-                </button>
-                ${rejection ? html`<div class="mt-0.5 px-1 text-xs text-amber-200/90">${rejection.reason}</div>` : nothing}
-              </div>
+              </button>
             `;
           })}
+        </div>
+        <div class="mt-1.5 text-xs opacity-70" data-testid="burn-preview">
+          ${
+            fuel.length === 0
+              ? 'Nothing next door will catch.'
+              : `Could spread to ${fuel.length} neighbour${fuel.length === 1 ? '' : 's'} — ${Math.round(FIRE.spreadPerDay[1] * 100)}–${Math.round(FIRE.spreadPerDay[3] * 100)}% per day by intensity${state.weather.regime === 'elNino' ? ', doubled this El Niño year' : ''}.`
+          }
+          ${wildfire ? html`<span class="text-red-300"> A wildfire is burning: any new fire joins it.</span>` : nothing}
         </div>
       </div>
     `;
@@ -360,7 +495,9 @@ export class BlockPanel {
   }
 }
 
-function phaseLabel(phase: string, progress: number): string {
+function phaseLabel(phase: string, progress: number, burning: boolean, intensity: number): string {
+  if (burning)
+    return `Burning · ${['', 'low', 'medium', 'high'][intensity] ?? ''} · ${Math.round(progress * 100)}%`;
   switch (phase) {
     case 'wild':
       return 'Wild';

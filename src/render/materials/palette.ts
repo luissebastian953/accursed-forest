@@ -45,6 +45,9 @@ const COLOURS: Partial<Record<number, [Hex, Hex]>> = {
   [Palette.Rock]: [0x7d7a72, 0x928f86],
   [Palette.Sand]: [0xcfc09a, 0xe0d3ab],
   [Palette.Charcoal]: [0x241f1c, 0x2e2825],
+  [Palette.Fire]: [0xff7a1f, 0xff8f2a],
+  [Palette.Ash]: [0xb8b3aa, 0xc9c4ba],
+  [Palette.Smoke]: [0x6e6a66, 0x7a766f],
 
   [Palette.Water]: [0x2f6f9c, 0x3d7ea8],
   [Palette.WaterShallow]: [0x4a95b5, 0x59a3bf],

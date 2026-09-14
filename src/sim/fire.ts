@@ -42,12 +42,22 @@ export function isFuel(block: Readonly<Block>, wildfire: boolean): boolean {
   }
 }
 
-/** Fuel richness, 1 for plain vegetation, more for debris-heavy ground. */
+/**
+ * Fuel richness: wet ground resists, debris piles feed. Riverbanks and wet
+ * forest are the natural firebreaks; dry scrub and grass carry a fire.
+ */
 export function fuelFactor(block: Readonly<Block>): number {
-  if (block.phase === 'cleared' || block.phase === 'clearing') {
-    return 1 + (block.debris / 100) * FIRE.debrisFuel;
-  }
-  return 1;
+  // Soil moisture is not fuel dryness: dry-season ground at ~0.4 carries a
+  // fire well, riverbanks and irrigated blocks above ~0.7 do not.
+  const dryness = Math.pow(
+    Math.min(1, Math.max(0, (FIRE.fuelWetAt - block.moisture) / FIRE.fuelDryRange)),
+    FIRE.moistureResistance,
+  );
+  const debris =
+    block.phase === 'cleared' || block.phase === 'clearing'
+      ? 1 + (block.debris / 100) * FIRE.debrisFuel
+      : 1;
+  return dryness * debris;
 }
 
 /** Set a block alight. Materialises it into the sparse map. */

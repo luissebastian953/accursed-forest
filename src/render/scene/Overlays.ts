@@ -151,3 +151,52 @@ function buildRangeGeometry(state: SimState, world: World) {
   }
   return b.build();
 }
+
+/**
+ * The fire-spread preview (§8 panel 22): while hovering a Burn button, the
+ * neighbours that could catch are framed in flame orange.
+ */
+export class HazardRing {
+  readonly mesh: Mesh;
+
+  constructor(material: Material) {
+    this.mesh = new Mesh(new BoxBuilder().build(), material);
+    this.mesh.visible = false;
+  }
+
+  show(blocks: readonly BlockId[], state: SimState, world: World): void {
+    if (blocks.length === 0) {
+      this.hide();
+      return;
+    }
+    const b = new BoxBuilder();
+    const s = WORLD.blockSide;
+    const t = 0.35;
+    const h = 0.25;
+    for (const id of blocks) {
+      const [bx, by] = world.toXY(id);
+      const generated = world.generated(bx, by);
+      const diverged = state.blocks.get(id);
+      const terraced = diverged && diverged.phase !== 'wild';
+      const y = terraceHeight(generated.elevation) + (terraced ? 0.5 : ELEVATION_STEP + 0.5);
+      const cx = bx * s + s / 2;
+      const cz = by * s + s / 2;
+      const len = s - 1;
+      b.addAABox(cx, y, cz - len / 2 + t / 2, len, h, t, { side: Palette.Fire });
+      b.addAABox(cx, y, cz + len / 2 - t / 2, len, h, t, { side: Palette.Fire });
+      b.addAABox(cx - len / 2 + t / 2, y, cz, t, h, len, { side: Palette.Fire });
+      b.addAABox(cx + len / 2 - t / 2, y, cz, t, h, len, { side: Palette.Fire });
+    }
+    this.mesh.geometry.dispose();
+    this.mesh.geometry = b.build();
+    this.mesh.visible = true;
+  }
+
+  hide(): void {
+    this.mesh.visible = false;
+  }
+
+  dispose(): void {
+    this.mesh.geometry.dispose();
+  }
+}

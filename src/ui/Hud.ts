@@ -25,6 +25,12 @@ export interface HudView {
   backend: 'webgpu' | 'webgl';
   saveNote: string | null;
   saveError: string | null;
+  /** §8 panel 5: shown once any burn has happened. */
+  firePressure: number;
+  fireThreshold: number;
+  burningCount: number;
+  wildfire: boolean;
+  haze: boolean;
 }
 
 export interface HudHandlers {
@@ -75,6 +81,41 @@ export class Hud {
           <div class="opacity-90" title=${REGIME_LABEL[view.regime]}>
             ${weather} ${REGIME_LABEL[view.regime]}
           </div>
+
+          ${
+            view.firePressure > 0.01 || view.wildfire
+              ? html`
+                  <div
+                    class="flex items-center gap-2"
+                    title="Fire pressure — past the line the fire is no longer yours"
+                    data-testid="fire-gauge"
+                  >
+                    <span>🔥</span>
+                    <div class="relative h-2 w-20 overflow-hidden rounded bg-white/15">
+                      <div
+                        class=${view.wildfire || view.firePressure > view.fireThreshold ? 'h-full bg-red-500' : view.firePressure > view.fireThreshold * 0.6 ? 'h-full bg-amber-400' : 'h-full bg-emerald-400'}
+                        style=${`width: ${Math.min(100, (view.firePressure / view.fireThreshold) * 100)}%`}
+                      ></div>
+                      <div class="absolute inset-y-0 right-0 w-px bg-white/70"></div>
+                    </div>
+                    <span class="text-xs tabular-nums opacity-80"
+                      >${view.firePressure.toFixed(1)}</span
+                    >
+                    ${view.wildfire ? html`<span class="rounded bg-red-600 px-1.5 py-0.5 text-xs font-semibold" data-testid="wildfire-badge">WILDFIRE</span>` : nothing}
+                  </div>
+                `
+              : nothing
+          }
+          ${
+            view.burningCount > 0
+              ? html`<span
+                  class="rounded bg-orange-700/80 px-2 py-0.5 text-xs font-medium"
+                  data-testid="burning-chip"
+                  >burning: ${view.burningCount} block${view.burningCount === 1 ? '' : 's'}</span
+                >`
+              : nothing
+          }
+          ${view.haze ? html`<span class="rounded bg-amber-900/70 px-2 py-0.5 text-xs" title="Smoke: less light, slower growth">haze</span>` : nothing}
 
           <div class="flex items-center gap-1" role="group" aria-label="Sim speed">
             ${SPEEDS.map(

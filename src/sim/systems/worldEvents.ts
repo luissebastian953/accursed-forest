@@ -20,6 +20,9 @@ import {
 import { chance } from '../rng.ts';
 import { neighbourIds, readBlock, type SimContext } from '../state.ts';
 
+/** Per-neighbour daily ignition chance is never a certainty. */
+const SPREAD_CAP = 0.9;
+
 export function worldEvents(ctx: SimContext): void {
   const { state, events } = ctx;
   const tick = state.tick;
@@ -31,7 +34,6 @@ export function worldEvents(ctx: SimContext): void {
   // ── Fires: rain, then spread ────────────────────────────────────────────
   const burning = burningBlocks(state);
   const wildfire = isWildfire(state);
-  const regimeFactor = FIRE.regimeSpreadMultiplier[weather.regime];
   const sustainedRain = weather.wetStreak >= FIRE.extinguishWetStreak;
 
   for (const block of burning) {
@@ -40,15 +42,18 @@ export function worldEvents(ctx: SimContext): void {
       continue;
     }
 
-    const base = FIRE.spreadPerDay[block.fireIntensity as 1 | 2 | 3] ?? 0;
-    const spread = base * regimeFactor * (wildfire ? FIRE.wildfireSpreadMultiplier : 1);
+    const spread = wildfire
+      ? FIRE.wildfireSpreadPerDay * FIRE.wildfireRegimeMultiplier[weather.regime]
+      : (FIRE.spreadPerDay[block.fireIntensity as 1 | 2 | 3] ?? 0) *
+        FIRE.regimeSpreadMultiplier[weather.regime];
     if (spread <= 0) continue;
 
     for (const neighbourId of neighbourIds(ctx.world, block.id)) {
       const neighbour = readBlock(state, ctx.world, neighbourId);
       if (!isFuel(neighbour, wildfire)) continue;
-      if (!chance(state.rng, Math.min(0.95, spread * fuelFactor(neighbour)))) continue;
-      ignite(ctx, neighbourId, wildfire ? 3 : block.fireIntensity === 0 ? 1 : block.fireIntensity);
+      if (!chance(state.rng, Math.min(SPREAD_CAP, spread * fuelFactor(neighbour)))) continue;
+      const intensity = wildfire ? 3 : block.fireIntensity === 0 ? 1 : block.fireIntensity;
+      ignite(ctx, neighbourId, intensity);
       events.push({ type: 'FireSpread', from: block.id, to: neighbourId });
       events.push({ type: 'BlockChanged', block: neighbourId });
     }
@@ -57,8 +62,7 @@ export function worldEvents(ctx: SimContext): void {
   // ── Wildfire lifetime: lives while anything burns; smoke lingers after ──
   const fire = activeEvent(state, WILDFIRE_EVENT);
   if (fire) {
-    const stillBurning = burningBlocks(state).length > 0;
-    if (stillBurning) {
+    if (burningBlocks(state).length > 0) {
       fire.endsAt = tick + 1;
       const haze = activeEvent(state, HAZE_EVENT);
       if (haze) haze.endsAt = tick + FIRE.hazeTailDays;

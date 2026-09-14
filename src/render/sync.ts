@@ -25,10 +25,21 @@ export interface EventDigest {
   kopdesUpgraded: number | null;
   fertilizedBlocks: Set<BlockId>;
   bought: { item: ItemId; quantity: number }[];
+  burnStarted: Set<BlockId>;
+  fireSpread: { from: BlockId; to: BlockId }[];
+  burnFinished: Set<BlockId>;
+  extinguished: Set<BlockId>;
+  palmsBurned: { block: BlockId; count: number }[];
+  wildfireStarted: boolean;
+  wildfireEnded: boolean;
+  timber: { block: BlockId; revenue: number }[];
+  sanitized: Set<BlockId>;
+  irrigated: Set<BlockId>;
+  drained: Set<BlockId>;
 }
 
 export function digestEvents(events: readonly SimEvent[]): EventDigest {
-  const digest: EventDigest = {
+  const d: EventDigest = {
     terrainBlocks: new Set(),
     palmBlocks: new Set(),
     animateBlocks: new Set(),
@@ -41,6 +52,17 @@ export function digestEvents(events: readonly SimEvent[]): EventDigest {
     kopdesUpgraded: null,
     fertilizedBlocks: new Set(),
     bought: [],
+    burnStarted: new Set(),
+    fireSpread: [],
+    burnFinished: new Set(),
+    extinguished: new Set(),
+    palmsBurned: [],
+    wildfireStarted: false,
+    wildfireEnded: false,
+    timber: [],
+    sanitized: new Set(),
+    irrigated: new Set(),
+    drained: new Set(),
   };
 
   for (const event of events) {
@@ -48,56 +70,91 @@ export function digestEvents(events: readonly SimEvent[]): EventDigest {
       case 'BlockChanged':
       case 'BlockCleared':
       case 'BlockBought':
-        digest.terrainBlocks.add(event.block);
+        d.terrainBlocks.add(event.block);
         break;
       case 'BlockPlanted':
-        digest.terrainBlocks.add(event.block);
-        digest.palmBlocks.add(event.block);
-        digest.animateBlocks.add(event.block);
+        d.terrainBlocks.add(event.block);
+        d.palmBlocks.add(event.block);
+        d.animateBlocks.add(event.block);
         break;
       case 'KopdesPlaced':
-        digest.terrainBlocks.add(event.block);
-        digest.kopdesChanged = true;
+        d.terrainBlocks.add(event.block);
+        d.kopdesChanged = true;
         break;
       case 'PalmStageChanged':
-        digest.palmBlocks.add(event.block);
-        digest.animateBlocks.add(event.block);
+        d.palmBlocks.add(event.block);
+        d.animateBlocks.add(event.block);
         break;
       case 'PalmDied':
-        digest.palmBlocks.add(event.block);
+        d.palmBlocks.add(event.block);
         break;
       case 'BlockRipe':
-        digest.ripeBlocks.add(event.block);
+        d.ripeBlocks.add(event.block);
         break;
       case 'Harvested':
-        digest.palmBlocks.add(event.block);
-        digest.harvested.push({ block: event.block, kilograms: event.kilograms });
+        d.palmBlocks.add(event.block);
+        d.harvested.push({ block: event.block, kilograms: event.kilograms });
         break;
       case 'TbsSold':
-        digest.sold.push({
-          kilograms: event.kilograms,
-          price: event.price,
-          revenue: event.revenue,
-        });
+        d.sold.push({ kilograms: event.kilograms, price: event.price, revenue: event.revenue });
         break;
       case 'BlockFertilized':
-        digest.fertilizedBlocks.add(event.block);
+        d.fertilizedBlocks.add(event.block);
         break;
       case 'ItemBought':
-        digest.bought.push({ item: event.item, quantity: event.quantity });
+        d.bought.push({ item: event.item, quantity: event.quantity });
         break;
       case 'KopdesUpgraded':
-        digest.kopdesUpgraded = event.level;
-        digest.kopdesChanged = true;
+        d.kopdesUpgraded = event.level;
+        d.kopdesChanged = true;
+        break;
+      case 'BurnStarted':
+        d.burnStarted.add(event.block);
+        d.terrainBlocks.add(event.block);
+        break;
+      case 'FireSpread':
+        d.fireSpread.push({ from: event.from, to: event.to });
+        d.terrainBlocks.add(event.to);
+        break;
+      case 'BurnFinished':
+        d.burnFinished.add(event.block);
+        d.terrainBlocks.add(event.block);
+        break;
+      case 'FireExtinguished':
+        d.extinguished.add(event.block);
+        d.terrainBlocks.add(event.block);
+        break;
+      case 'PalmsBurned':
+        d.palmsBurned.push({ block: event.block, count: event.count });
+        d.palmBlocks.add(event.block);
+        break;
+      case 'WildfireStarted':
+        d.wildfireStarted = true;
+        break;
+      case 'WildfireEnded':
+        d.wildfireEnded = true;
+        break;
+      case 'TimberSold':
+        d.timber.push({ block: event.block, revenue: event.revenue });
+        break;
+      case 'BlockSanitized':
+        d.sanitized.add(event.block);
+        d.terrainBlocks.add(event.block);
+        break;
+      case 'BlockIrrigated':
+        d.irrigated.add(event.block);
+        break;
+      case 'BlockDrained':
+        d.drained.add(event.block);
         break;
       case 'YearPassed':
-        digest.yearPassed = event.year;
+        d.yearPassed = event.year;
         break;
       case 'CashChanged':
-        digest.cashChanged = true;
+        d.cashChanged = true;
         break;
     }
   }
 
-  return digest;
+  return d;
 }

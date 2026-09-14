@@ -17,12 +17,15 @@ import { createPaletteMaterial } from '@render/materials/paletteMaterial';
 import { Picker } from '@render/picking';
 import { createRenderer } from '@render/Renderer';
 import { ChunkManager } from '@render/scene/ChunkManager';
+import { Fires } from '@render/scene/Fires';
 import { KopdesMesh } from '@render/scene/Kopdes';
-import { RangeRing, SelectionRing } from '@render/scene/Overlays';
+import { HazardRing, RangeRing, SelectionRing } from '@render/scene/Overlays';
 import { Palms } from '@render/scene/Palms';
 import { Sky } from '@render/scene/Sky';
 import { digestEvents } from '@render/sync';
+import { FIRE } from '@sim/balance/fire';
 import { WORLD } from '@sim/balance/world';
+import { HAZE_EVENT, activeEvent, burningBlocks, isWildfire } from '@sim/fire';
 import { createSim, restoreSim, type Sim } from '@sim/index';
 import type { BlockId, Command } from '@sim/types';
 import { BlockPanel } from '@ui/BlockPanel';
@@ -88,20 +91,41 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     maxZ: sim.world.height * WORLD.blockSide,
   });
 
+  const makeChunks = (): ChunkManager =>
+    new ChunkManager({
+      world: sim.world,
+      material,
+      getDiverged: () => sim.state.blocks.values(),
+      getTick: () => sim.state.tick,
+    });
+
   const rig = new MapRig({ domElement: handle.canvas, bounds: worldUnits() });
-  let chunks = new ChunkManager({
-    world: sim.world,
-    material,
-    getDiverged: () => sim.state.blocks.values(),
-  });
+  let chunks = makeChunks();
   const palms = new Palms(material);
   const kopdes = new KopdesMesh(material);
   const ring = new SelectionRing(material);
   const rangeRing = new RangeRing(material);
-  scene.add(chunks.group, palms.group, kopdes.mesh, ring.mesh, rangeRing.mesh);
+  const hazardRing = new HazardRing(material);
+  const fires = new Fires(material);
+  scene.add(
+    chunks.group,
+    palms.group,
+    kopdes.mesh,
+    ring.mesh,
+    rangeRing.mesh,
+    hazardRing.mesh,
+    fires.group,
+  );
 
   let picker = new Picker(rig.camera, chunks.group, sim.world);
   const visible: GroundRect = { minX: 0, maxX: 0, minZ: 0, maxZ: 0 };
+
+  // Edge vignette while anything burns (§8 panel 7).
+  const vignette = document.createElement('div');
+  vignette.className = 'pointer-events-none absolute inset-0 z-[5] transition-opacity duration-700';
+  vignette.style.boxShadow = 'inset 0 0 140px 30px rgba(255, 96, 24, 0.55)';
+  vignette.style.opacity = '0';
+  root.appendChild(vignette);
 
   // ── Time ────────────────────────────────────────────────────────────────
   const time = new TimeControl();
@@ -140,6 +164,10 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     dispatch: (command) => dispatch(command),
     close: () => select(null),
     openShop: () => openShop(),
+    hoverBurn: (blocks) => {
+      if (blocks) hazardRing.show(blocks, sim.state, sim.world);
+      else hazardRing.hide();
+    },
   });
 
   const menu = new Menu(root, {
@@ -199,6 +227,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     return 0;
   }
 
+  let burningCount = 0;
+
   function refreshHud(): void {
     hud.update({
       cash: sim.state.economy.cash,
@@ -213,12 +243,24 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       backend: handle.backend,
       saveNote,
       saveError,
+      firePressure: sim.state.society.firePressure,
+      fireThreshold: FIRE.wildfireThreshold,
+      burningCount,
+      wildfire: isWildfire(sim.state),
+      haze: activeEvent(sim.state, HAZE_EVENT) !== undefined,
     });
   }
 
   // ── Wiring ──────────────────────────────────────────────────────────────
   let palmsDirty = true;
   let animateBlocks = new Set<BlockId>();
+
+  function syncFireState(): void {
+    burningCount = burningBlocks(sim.state).length;
+    time.lockToRealtime(burningCount > 0);
+    fires.sync(sim.state, sim.world);
+    vignette.style.opacity = burningCount > 0 ? (isWildfire(sim.state) ? '1' : '0.6') : '0';
+  }
 
   function dispatch(command: Command) {
     const result = sim.dispatch(command);
@@ -234,6 +276,16 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         animateBlocks.add(command.block);
       }
       if (command.type === 'HarvestBlock') palmsDirty = true;
+      if (command.type === 'BurnBlock') {
+        syncFireState();
+        hazardRing.hide();
+        toasts.push(
+          isWildfire(sim.state)
+            ? 'Fire pressure over the line — this is a wildfire now.'
+            : `${blockName(command.block)} burning — speed locked to 1×.`,
+          isWildfire(sim.state) ? 'error' : 'warn',
+        );
+      }
       if (command.type === 'PlaceKopdes' || command.type === 'UpgradeKopdes') {
         kopdes.sync(sim.state, sim.world);
         if (shop.isOpen) rangeRing.show(sim.state, sim.world);
@@ -249,6 +301,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   function select(block: BlockId | null): void {
     if (block === null) {
       ring.hide();
+      hazardRing.hide();
       panel.show(sim, null);
       return;
     }
@@ -273,16 +326,13 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     closeShop();
     scene.remove(chunks.group);
     chunks.dispose();
-    chunks = new ChunkManager({
-      world: sim.world,
-      material,
-      getDiverged: () => sim.state.blocks.values(),
-    });
+    chunks = makeChunks();
     scene.add(chunks.group);
     picker = new Picker(rig.camera, chunks.group, sim.world);
     palmsDirty = true;
     animateBlocks = new Set();
     kopdes.sync(sim.state, sim.world);
+    syncFireState();
     dirty.take();
     focusStart();
     refreshHud();
@@ -296,35 +346,69 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   function onTick(): void {
     const events = sim.tick();
-    const digest = digestEvents(events);
+    const d = digestEvents(events);
 
-    for (const block of digest.terrainBlocks) chunks.markBlockDirty(block);
-    if (digest.palmBlocks.size > 0) palmsDirty = true;
-    for (const block of digest.animateBlocks) animateBlocks.add(block);
-    if (digest.kopdesChanged) kopdes.sync(sim.state, sim.world);
-    if (digest.yearPassed !== null) {
-      toasts.push(`Year ${digest.yearPassed + 1} begins — ${regimeLine(sim.state.weather.regime)}`);
-    }
-    for (const block of digest.ripeBlocks)
-      toasts.push(`Ripe: ${blockName(block)} is ready to harvest.`);
-    for (const sale of digest.sold) {
+    for (const block of d.terrainBlocks) chunks.markBlockDirty(block);
+    if (d.palmBlocks.size > 0) palmsDirty = true;
+    for (const block of d.animateBlocks) animateBlocks.add(block);
+    if (d.kopdesChanged) kopdes.sync(sim.state, sim.world);
+
+    if (d.yearPassed !== null)
+      toasts.push(`Year ${d.yearPassed + 1} begins — ${regimeLine(sim.state.weather.regime)}`);
+    for (const block of d.ripeBlocks) toasts.push(`Ripe: ${blockName(block)} is ready to harvest.`);
+    for (const sale of d.sold) {
       toasts.push(
         `Sold ${formatKg(sale.kilograms)} of TBS at ${formatRp(sale.price)}/kg — ${formatRp(sale.revenue)}.`,
       );
     }
-    if (digest.kopdesUpgraded !== null) {
-      toasts.push(`Kopdes upgraded to level ${digest.kopdesUpgraded}.`);
+    for (const t of d.timber)
+      toasts.push(`Timber from ${blockName(t.block)} sold for ${formatRp(t.revenue)}.`);
+    if (d.kopdesUpgraded !== null) {
+      toasts.push(`Kopdes upgraded to level ${d.kopdesUpgraded}.`);
       if (shop.isOpen) rangeRing.show(sim.state, sim.world);
+    }
+    if (d.wildfireStarted)
+      toasts.push(
+        'Wildfire. The fire is no longer yours — it burns until the rain comes.',
+        'error',
+      );
+    if (d.wildfireEnded) toasts.push('The wildfire is out. The smoke will take a while to clear.');
+    // Fire news is aggregated: a wildfire tick can touch dozens of blocks.
+    if (d.fireSpread.length === 1)
+      toasts.push(`Fire spread to ${blockName(d.fireSpread[0]!.to)}.`, 'warn');
+    else if (d.fireSpread.length > 1)
+      toasts.push(`Fire spread to ${d.fireSpread.length} blocks.`, 'warn');
+    const lostPalms = d.palmsBurned.reduce((sum, p) => sum + p.count, 0);
+    if (d.palmsBurned.length === 1)
+      toasts.push(`${lostPalms} palms burned on ${blockName(d.palmsBurned[0]!.block)}.`, 'error');
+    else if (d.palmsBurned.length > 1)
+      toasts.push(`${lostPalms} palms burned across ${d.palmsBurned.length} blocks.`, 'error');
+    if (d.extinguished.size === 1)
+      toasts.push(`Rain put out the fire on ${blockName([...d.extinguished][0]!)}.`);
+    else if (d.extinguished.size > 1)
+      toasts.push(`Rain put out fires on ${d.extinguished.size} blocks.`);
+    const burnedClear = [...d.burnFinished].filter((b) => !d.extinguished.has(b));
+    if (burnedClear.length === 1)
+      toasts.push(
+        `${blockName(burnedClear[0]!)} burned clear — the ash will feed it for a season.`,
+      );
+    else if (burnedClear.length > 1) toasts.push(`${burnedClear.length} blocks burned clear.`);
+
+    if (
+      d.burnStarted.size ||
+      d.fireSpread.length ||
+      d.burnFinished.size ||
+      d.extinguished.size ||
+      d.wildfireStarted ||
+      d.wildfireEnded
+    ) {
+      syncFireState();
     }
 
     // Moisture and growth move every tick on every estate block, so every
     // chunk with estate in it is dirty for the save; the dirty set earns its
     // keep on chunks far from the estate that were touched once.
     for (const id of sim.state.blocks.keys()) dirty.mark(sim.state.width, id);
-
-    let burning = false;
-    for (const block of sim.state.blocks.values()) if (block.burning) burning = true;
-    time.lockToRealtime(burning);
 
     autosave.onTick(sim.state.tick);
   }
@@ -341,6 +425,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     }
     palms.update(nowMs);
     ring.update(nowMs);
+    fires.update(nowMs);
     sky.update(sim.state.weather, uniforms);
 
     refreshHud();
@@ -393,6 +478,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   const detachAutosave = autosave.attach();
 
   kopdes.sync(sim.state, sim.world);
+  syncFireState();
   focusStart();
   refreshHud();
   refreshMenu();
@@ -414,11 +500,14 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     shop.dispose();
     menu.dispose();
     toasts.dispose();
+    vignette.remove();
     chunks.dispose();
     palms.dispose();
     kopdes.dispose();
     ring.dispose();
     rangeRing.dispose();
+    hazardRing.dispose();
+    fires.dispose();
     sky.dispose();
     rig.dispose();
     material.dispose();
@@ -430,7 +519,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 function regimeLine(regime: 'normal' | 'elNino' | 'laNina'): string {
   switch (regime) {
     case 'elNino':
-      return 'forecasters call an El Niño year.';
+      return 'forecasters call an El Niño year. Fires will spread.';
     case 'laNina':
       return 'a La Niña year: expect a wet one.';
     case 'normal':

@@ -174,4 +174,64 @@ test.describe('Sawit Simulator', () => {
     await page.keyboard.press('Escape');
     await expect(tid(page, 'block-panel')).toHaveCount(0);
   });
+
+  test('burning: a controlled burn locks the clock, a second one tips the wildfire', async ({
+    page,
+  }) => {
+    test.setTimeout(90_000);
+    const errors = await boot(page);
+
+    // Into the dry season, so a shower does not rain the burn out.
+    await tid(page, 'speed-20').click();
+    await expect(tid(page, 'hud-date')).toContainText(/Day (1[3-9]\d|2\d\d)/, { timeout: 30_000 });
+    await tid(page, 'speed-1').click();
+
+    await selectWildNeighbour(page);
+    await expect(tid(page, 'burn-preview')).toContainText(/Could spread|Nothing next door/);
+    await tid(page, 'action-BurnBlock-2').click();
+
+    await expect(tid(page, 'block-phase')).toContainText('Burning · medium');
+    await expect(tid(page, 'fire-gauge')).toBeVisible();
+    await expect(tid(page, 'burning-chip')).toBeVisible();
+    // §3.1.1: speed is locked to 1× while anything burns.
+    await expect(tid(page, 'speed-20')).toBeDisabled();
+    await expect(tid(page, 'speed-5')).toBeDisabled();
+    await expect(tid(page, 'wildfire-badge')).toHaveCount(0);
+
+    // A second medium burn: pressure 6 > 5.5.
+    await page.keyboard.press('Escape');
+    const c = await canvasCentre(page);
+    const offsets: readonly (readonly [number, number])[] = [
+      [-78, 45],
+      [78, -45],
+      [-78, -45],
+      [156, 0],
+      [-156, 0],
+    ];
+    let lit = false;
+    for (const [dx, dy] of offsets) {
+      await page.mouse.click(c.x + dx, c.y + dy);
+      await page.waitForTimeout(150);
+      const phase = (
+        await tid(page, 'block-phase')
+          .textContent()
+          .catch(() => '')
+      )?.trim();
+      if (phase === 'Wild') {
+        await tid(page, 'action-BurnBlock-2').click();
+        lit = true;
+        break;
+      }
+    }
+    expect(lit).toBe(true);
+    await expect(tid(page, 'wildfire-badge')).toBeVisible();
+    await expect(
+      page
+        .getByTestId('toast')
+        .filter({ hasText: /wildfire/i })
+        .first(),
+    ).toBeVisible();
+
+    expect(errors).toEqual([]);
+  });
 });

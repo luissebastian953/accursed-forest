@@ -28,6 +28,9 @@ export const Palette = {
   Rock: 18,
   Sand: 19,
   Charcoal: 20,
+  Fire: 21,
+  Ash: 22,
+  Smoke: 23,
 
   Water: 24,
   WaterShallow: 25,
