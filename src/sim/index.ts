@@ -22,12 +22,14 @@ import { economy } from './systems/economy.ts';
 import { growth } from './systems/growth.ts';
 import { terrain } from './systems/terrain.ts';
 import { weather } from './systems/weather.ts';
-import type { Command, DispatchResult, SimState } from './types.ts';
+import type { Command, DispatchResult, Rejection, SimState } from './types.ts';
 import { createWorld, type World } from './worldgen/index.ts';
 
 export interface Sim {
   readonly state: SimState;
   readonly world: World;
+  /** Why a command would be refused right now, or null if it would go through. */
+  validate(command: Command): Rejection | null;
   dispatch(command: Command): DispatchResult;
   /** Advance one day. Returns the events that happened, oldest first. */
   tick(): SimEvent[];
@@ -59,16 +61,20 @@ class SimImpl implements Sim {
     this.ctx = { state, world, events: new EventSink() };
   }
 
-  dispatch(command: Command): DispatchResult {
+  validate(command: Command): Rejection | null {
     const handler = handlerFor(command);
     if (!handler) {
       return { ok: false, code: 'notImplemented', reason: `${command.type} is not available yet.` };
     }
+    return handler.validate(this.ctx, command);
+  }
 
-    const rejection = handler.validate(this.ctx, command);
+  dispatch(command: Command): DispatchResult {
+    const rejection = this.validate(command);
     if (rejection) return rejection;
 
-    handler.apply(this.ctx, command);
+    // validate() already proved the handler exists.
+    handlerFor(command)!.apply(this.ctx, command);
 
     const log = this.state.commandLog;
     log.push({ tick: this.state.tick, command });

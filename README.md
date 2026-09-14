@@ -13,33 +13,45 @@ Section references in the code (`§6.5`, `§4.1`, …) point into it.
 
 ## Status
 
-**Scaffold + art spike.** The toolchain, the layer boundaries, the deterministic
-primitives and the §6.9 art spike are in place and verified. The simulation core
-(M1a) has not been built yet.
+**M1a — Skeleton: done.** You can pan a generated 64×64 world, select a
+block, chop and plant it, speed through the immature phase at 20×, save,
+reload and continue. M1b (harvest, Kopdes shop, TBS price) is next.
 
-What exists:
+| Area                                                          | State                           |
+| ------------------------------------------------------------- | ------------------------------- |
+| Repo, tooling, CI, ADRs, layer-boundary lint                  | done                            |
+| Seeded RNG, easing + spring, base64 codec                     | done                            |
+| World generation: elevation, moisture, biomes, rivers, start  | done                            |
+| Sparse block map, active set, pure `tick()` and `dispatch()`  | done                            |
+| Systems: weather, terrain, growth (G), economy (upkeep)       | done                            |
+| Commands: Buy, Chop, Plant (palm / forest), Place Kopdes      | done                            |
+| Chunked, validated, migratable `localStorage` saves; autosave | done                            |
+| Column terrain via mesher worker + chunk streaming            | done                            |
+| Instanced palms, selection ring, Kopdes building              | done                            |
+| Orthographic map camera, picking, keyboard, HUD, block panel  | done                            |
+| Menu: new estate by code, save, load                          | done                            |
+| Harvest, TBS sales, Kopdes shop and range                     | **M1b**                         |
+| Burn, fire pressure, reforestation, land expansion rules      | **M1c**                         |
+| Pests, weather events, news, authority, endings               | **M1d–M1g**                     |
+| Far-LOD heatmap tiles, GPU per-instance animation             | deferred until palm counts bite |
 
-| Area                                             | State                  |
-| ------------------------------------------------ | ---------------------- |
-| Repo, tooling, CI, ADRs                          | done                   |
-| Layer boundary enforcement                       | done, and probe-tested |
-| Seeded RNG (`xoshiro128**`) with save/restore    | done, 12 tests         |
-| Easing + spring library (CPU half)               | done, 30 tests         |
-| `base64` typed-array codec, shared math          | done, 20 tests         |
-| Palette strip + shared TSL material              | done                   |
-| Box builder, procedural palm, column mesher      | done                   |
-| §6.9 art spike (season / haze / replant cascade) | done                   |
-| `sim/` state, worldgen, systems, commands        | **not started**        |
-| `persistence/`, `ui/`, `input/`, chunk streaming | **not started**        |
+Tests: 145 unit (Vitest) and 7 browser (Playwright, WebGL fallback) — the
+browser suite plays the M1a loop end to end.
 
 ## Getting started
 
 ```bash
 pnpm install
-pnpm dev            # http://localhost:5173 — the art spike
+pnpm dev            # http://localhost:5173
 ```
 
-Add `?webgl` to force the WebGL 2 fallback path that CI uses.
+URL flags: `?webgl` forces the WebGL 2 fallback CI uses; `?seed=42` picks a
+world; `?fresh` ignores the save in this browser; `?spike` opens the §6.9 art
+spike instead of the game.
+
+Controls: drag to pan, wheel to zoom, **Q/E** rotate a quarter turn, click a
+block, double-click to focus it, **space** pauses, **1/2/3** set speed,
+**F** jumps to the Kopdes, **Esc** closes panels.
 
 ## Scripts
 
@@ -78,7 +90,7 @@ so a seed plus a command log replays a run exactly.
 
 ```
 src/
-├── app/          composition root and the art spike
+├── app/          composition root, game loop, time control, the art spike
 ├── sim/          the simulation (pure)
 │   ├── rng.ts    xoshiro128** — the only source of randomness
 │   ├── worldgen/ f(seed, x, y)

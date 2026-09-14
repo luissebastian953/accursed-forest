@@ -5,7 +5,8 @@ import { expect, test } from '@playwright/test';
  * scene actually renders, and prove the spike's weather uniforms are wired.
  *
  * `?webgl` forces the fallback because WebGPU is not available in headless CI
- * (§6.4). The WebGPU path is exercised by hand in a real browser.
+ * (§6.4); `?spike` selects the spike over the game. The WebGPU path is
+ * exercised by hand in a real browser.
  *
  * Note: the canvas cannot be read back with `drawImage` — the renderer runs
  * without `preserveDrawingBuffer`, so the backbuffer is empty by the time a 2D
@@ -20,7 +21,7 @@ test.describe('art spike', () => {
     });
     page.on('pageerror', (error) => errors.push(error.message));
 
-    await page.goto('/?webgl');
+    await page.goto('/?webgl&spike');
 
     const canvas = page.locator('canvas');
     await expect(canvas).toBeVisible();
@@ -41,7 +42,7 @@ test.describe('art spike', () => {
   });
 
   test('the haze slider visibly changes the frame', async ({ page }) => {
-    await page.goto('/?webgl');
+    await page.goto('/?webgl&spike');
     await expect(page.locator('canvas')).toBeVisible();
     await page.waitForTimeout(1500);
 
@@ -59,7 +60,7 @@ test.describe('art spike', () => {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
 
-    await page.goto('/?webgl');
+    await page.goto('/?webgl&spike');
     await expect(page.locator('#spike-replant')).toBeVisible();
     await page.locator('#spike-replant').click();
     await page.waitForTimeout(800);

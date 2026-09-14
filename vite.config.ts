@@ -2,7 +2,11 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 import checker from 'vite-plugin-checker';
 
+/** Stamped into save manifests (§7). */
+const appVersion = JSON.stringify(process.env['npm_package_version'] ?? '0.0.0-dev');
+
 export default defineConfig({
+  define: { __APP_VERSION__: appVersion },
   plugins: [
     tailwindcss(),
     checker({

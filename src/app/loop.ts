@@ -55,8 +55,10 @@ export class GameLoop {
     this.lastFrameMs = null;
     this.accumulatorMs = 0;
     const onFrame = (nowMs: number): void => {
-      this.step(nowMs);
+      // Schedule first: a frame that throws (a render or UI bug) must never
+      // stop the simulation. The exception still reaches the console.
       this.handle = this.requestFrame(onFrame);
+      this.step(nowMs);
     };
     this.handle = this.requestFrame(onFrame);
   }

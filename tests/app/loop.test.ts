@@ -122,6 +122,35 @@ describe('game loop (§4.2)', () => {
   });
 });
 
+describe('game loop resilience', () => {
+  it('a frame that throws does not stop the loop', () => {
+    const scheduled: ((t: number) => void)[] = [];
+    let frames = 0;
+    const loop = new GameLoop({
+      ticksPerSecond: () => 0,
+      tick: () => {},
+      frame: () => {
+        frames += 1;
+        if (frames === 1) throw new Error('render bug');
+      },
+      now: () => 0,
+      requestFrame: (cb) => {
+        scheduled.push(cb);
+        return scheduled.length;
+      },
+      cancelFrame: () => {},
+    });
+
+    loop.start();
+    expect(() => scheduled.shift()!(0)).toThrow('render bug');
+    // The next frame was already requested before the throwing one ran.
+    expect(scheduled.length).toBe(1);
+    scheduled.shift()!(16);
+    expect(frames).toBe(2);
+    expect(loop.running).toBe(true);
+  });
+});
+
 describe('time control (§3.1.1, §8)', () => {
   it('defaults to 1× and reports ticks per second', () => {
     const tc = new TimeControl();
