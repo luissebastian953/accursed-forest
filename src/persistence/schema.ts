@@ -31,8 +31,13 @@ import type {
 
 export const KEY_PREFIX = 'accursed-forest';
 
-/** Bump on any breaking change to the save shape; add a migration alongside. */
-export const CURRENT_SCHEMA = 1;
+/**
+ * Bump on any breaking change to the save shape; add a migration alongside.
+ *
+ * 1 — M1a: blocks, palms, economy, weather, society, run, command log.
+ * 2 — M1b: economy gains tbsPriceHistory, tbsPending, soldKgTotal.
+ */
+export const CURRENT_SCHEMA = 2;
 
 export type SaveErrorCode = 'missing' | 'corrupt' | 'newerSchema' | 'quota';
 
@@ -158,6 +163,16 @@ const SocietySchema = z.object({
   unreadSince: Tick,
 });
 
+const ItemIdSchema = z.enum([
+  'bibit',
+  'fertilizer',
+  'pheromoneTrap',
+  'metarhizium',
+  'trichoderma',
+  'sanitationCrew',
+  'forestSapling',
+]);
+
 const LedgerEntrySchema = z.object({
   tick: Tick,
   kind: z.enum(['sale', 'upkeep', 'purchase', 'wages', 'fine']),
@@ -170,17 +185,10 @@ const EconomySchema = z.object({
   tbsPrice: z.number(),
   inputPriceIndex: z.number(),
   ledger: z.array(LedgerEntrySchema),
+  tbsPriceHistory: z.array(z.number()),
+  tbsPending: z.number(),
+  soldKgTotal: z.number(),
 });
-
-const ItemIdSchema = z.enum([
-  'bibit',
-  'fertilizer',
-  'pheromoneTrap',
-  'metarhizium',
-  'trichoderma',
-  'sanitationCrew',
-  'forestSapling',
-]);
 
 const RunSchema = z.object({
   startedAt: Tick,
@@ -202,7 +210,10 @@ const CommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('ReforestBlock'), block: Id }),
   z.object({ type: z.literal('SanitizeBlock'), block: Id }),
   z.object({ type: z.literal('HarvestBlock'), block: Id }),
+  z.object({ type: z.literal('FertilizeBlock'), block: Id }),
   z.object({ type: z.literal('PlaceKopdes'), block: Id }),
+  z.object({ type: z.literal('UpgradeKopdes') }),
+  z.object({ type: z.literal('BuyItem'), item: ItemIdSchema, quantity: z.int().positive() }),
 ]);
 
 export type AssertCommandSchemaMatches = [Command] extends [z.infer<typeof CommandSchema>]
@@ -325,6 +336,9 @@ export function serializeState(
         tbsPrice: state.economy.tbsPrice,
         inputPriceIndex: state.economy.inputPriceIndex,
         ledger: state.economy.ledger.map((e) => ({ ...e })),
+        tbsPriceHistory: [...state.economy.tbsPriceHistory],
+        tbsPending: state.economy.tbsPending,
+        soldKgTotal: state.economy.soldKgTotal,
       },
       weather: {
         ...state.weather,
@@ -454,6 +468,9 @@ export function deserializeState(manifestJson: unknown, chunkJsons: Iterable<unk
       tbsPrice: h.economy.tbsPrice,
       inputPriceIndex: h.economy.inputPriceIndex,
       ledger: h.economy.ledger.map(decodeLedger),
+      tbsPriceHistory: [...h.economy.tbsPriceHistory],
+      tbsPending: h.economy.tbsPending,
+      soldKgTotal: h.economy.soldKgTotal,
     },
     inventory: { ...h.inventory },
     weather: { ...h.weather, activeEvents: h.weather.activeEvents.map(decodeActiveEvent) },

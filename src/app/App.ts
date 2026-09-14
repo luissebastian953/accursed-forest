@@ -195,8 +195,10 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     if (result.ok) {
       // Commands take effect at once even while paused: the sim's own events
       // only surface on the next tick.
-      chunks.markBlockDirty(command.block);
-      dirty.mark(sim.state.width, command.block);
+      if ('block' in command) {
+        chunks.markBlockDirty(command.block);
+        dirty.mark(sim.state.width, command.block);
+      }
       if (command.type === 'PlantBlock') {
         palmsDirty = true;
         animateBlocks.add(command.block);

@@ -10,7 +10,7 @@
  *
  *   weather → worldEvents → terrain → growth → pest → harvest → economy → endings → news
  *
- * M1a runs the four that exist; the others slot in where the comments say.
+ * The systems that exist run in that order; the others slot in where the comments say.
  */
 
 import { rebuildActiveSet } from './activeSet.ts';
@@ -20,6 +20,7 @@ import { EventSink, type SimEvent } from './events.ts';
 import { createInitialState, type SimContext } from './state.ts';
 import { economy } from './systems/economy.ts';
 import { growth } from './systems/growth.ts';
+import { harvest } from './systems/harvest.ts';
 import { terrain } from './systems/terrain.ts';
 import { weather } from './systems/weather.ts';
 import type { Command, DispatchResult, Rejection, SimState } from './types.ts';
@@ -93,7 +94,7 @@ class SimImpl implements Sim {
     terrain(this.ctx);
     growth(this.ctx);
     // pest (M1d)
-    // harvest (M1b)
+    harvest(this.ctx);
     economy(this.ctx);
     // endings — yearly (M1g)
     // news (M1f)

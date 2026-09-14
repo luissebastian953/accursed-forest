@@ -16,8 +16,14 @@ export const ECONOMY = {
   tbsPriceMeanReversion: 0.015,
   tbsPriceMean: 2_650,
 
-  /** Labour per planted block per tick. */
-  upkeepPerPlantedBlock: 18_000,
+  /**
+   * Labour per planted block per tick. Tuned with `pnpm sweep` so one block
+   * is cash-positive after its first harvests but the immature years hurt
+   * (§3.5: "possible but tight").
+   */
+  upkeepPerPlantedBlock: 22_000,
+  /** Price history kept for the HUD trend and sparkline. */
+  priceHistoryCap: 60,
 
   /** Manhattan distance from the Kopdes within which TBS can be sold same-day. */
   kopdesRange: 3,
@@ -57,3 +63,13 @@ export const ITEM_PRICES: Record<ItemId, number> = {
 };
 
 export const KOPDES_BUILD_COST = 22_000_000;
+
+/** Cost to go from level `i` to `i + 1`; index 0 is unused (building is separate). */
+export const KOPDES_UPGRADE_COST: readonly number[] = [0, 18_000_000, 30_000_000, 50_000_000];
+
+export const HARVEST = {
+  /** A harvest crew's wages per block per round. */
+  crewWagePerRound: 180_000,
+  /** Unharvested fruit rots on the tree beyond this many rounds' worth. */
+  overripeCapRounds: 1.5,
+} as const;

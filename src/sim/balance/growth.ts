@@ -69,6 +69,9 @@ export const YIELD_CURVE: readonly (readonly [ageYears: number, kg: number])[] =
 /** Days between harvest rounds on a block (§2). */
 export const HARVEST_ROTATION_DAYS = 10;
 
+/** One fertilizer application lifts fertility for this long (§3.5). */
+export const FERTILIZER_DAYS = 90;
+
 /**
  * Reforestation grows on the same machinery with its own thresholds: sapling to
  * young to mature forest over roughly eight years (§3.10).

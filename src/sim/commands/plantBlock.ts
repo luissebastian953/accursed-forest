@@ -1,31 +1,39 @@
 /**
- * PlantBlock (§3.2, §3.10): fill a cleared block with palms or forest saplings.
- * In M1a bibit are bought implicitly at list price; the Kopdes shop and the
- * inventory indirection arrive in M1b.
+ * PlantBlock (§3.2, §3.10): fill a cleared block with palms or forest saplings
+ * from stock. Bibit and saplings are bought at the Kopdes (`BuyItem`); the
+ * block needs one per plantable slot.
  */
 
 import { BIOMES } from '../balance/biomes.ts';
-import { ITEM_PRICES } from '../balance/prices.ts';
 import { createPalmArrays, plantSlots } from '../palms.ts';
-import { readBlock, spend, writeBlock, type SimContext } from '../state.ts';
-import type { Command, Species } from '../types.ts';
+import { readBlock, writeBlock } from '../state.ts';
+import type { Command, ItemId, Species } from '../types.ts';
 
+import { itemPrice } from './buyItem.ts';
 import { reject, type CommandHandler } from './handler.ts';
 
 type PlantBlock = Extract<Command, { type: 'PlantBlock' }>;
 
+export function seedlingItem(species: Species): ItemId {
+  return species === 'forest' ? 'forestSapling' : 'bibit';
+}
+
+/** Seedlings a block of this biome needs. */
+export function seedlingsNeeded(biome: keyof typeof BIOMES): number {
+  return BIOMES[biome].plantableSlots;
+}
+
+/** What buying the seedlings for a block would cost at the shop today. */
 export function plantingCost(
   biome: keyof typeof BIOMES,
   species: Species,
   priceIndex: number,
 ): number {
-  const slots = BIOMES[biome].plantableSlots;
-  const unit = species === 'forest' ? ITEM_PRICES.forestSapling : ITEM_PRICES.bibit;
-  return Math.round(slots * unit * priceIndex);
+  return seedlingsNeeded(biome) * itemPrice(seedlingItem(species), priceIndex);
 }
 
 export const plantBlock: CommandHandler<PlantBlock> = {
-  validate(ctx: SimContext, command) {
+  validate(ctx, command) {
     const { state, world } = ctx;
     if (!world.inBounds(...world.toXY(command.block))) {
       return reject('unknownBlock', 'That block is outside the map.');
@@ -43,9 +51,15 @@ export const plantBlock: CommandHandler<PlantBlock> = {
       );
     }
 
-    const cost = plantingCost(block.biome, command.species, state.economy.inputPriceIndex);
-    if (state.economy.cash < cost) {
-      return reject('noCash', `Planting costs Rp ${cost.toLocaleString('id-ID')} here.`);
+    const item = seedlingItem(command.species);
+    const needed = seedlingsNeeded(block.biome);
+    const have = state.inventory[item];
+    if (have < needed) {
+      const label = command.species === 'forest' ? 'saplings' : 'bibit';
+      return reject(
+        'noInventory',
+        `Needs ${needed} ${label}; you have ${have}. Buy them at the Kopdes.`,
+      );
     }
     return null;
   },
@@ -53,23 +67,17 @@ export const plantBlock: CommandHandler<PlantBlock> = {
   apply(ctx, command) {
     const { state, world, events } = ctx;
     const block = writeBlock(state, world, command.block);
-    const slots = BIOMES[block.biome].plantableSlots;
+    const needed = seedlingsNeeded(block.biome);
 
-    spend(
-      state,
-      plantingCost(block.biome, command.species, state.economy.inputPriceIndex),
-      'purchase',
-      `${command.species === 'forest' ? 'saplings' : 'bibit'}: block ${command.block}`,
-    );
+    state.inventory[seedlingItem(command.species)] -= needed;
 
     const palms = createPalmArrays();
-    const count = plantSlots(palms, slots, state.tick);
+    const count = plantSlots(palms, needed, state.tick);
     state.palms.set(command.block, palms);
 
     block.species = command.species;
     block.phase = command.species === 'forest' ? 'reforesting' : 'planted';
 
     events.push({ type: 'BlockPlanted', block: command.block, species: command.species, count });
-    events.push({ type: 'CashChanged', cash: state.economy.cash });
   },
 };

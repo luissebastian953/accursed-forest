@@ -1,21 +1,49 @@
 /**
- * Economy system (§3.5). M1a: upkeep only. The TBS price walk, sales and
- * spoilage arrive with the Kopdes in M1b.
+ * Economy system (§3.3, §3.5): sell the day's TBS, charge upkeep, walk the price.
+ *
+ * The price is a bounded random walk pulled back toward a long-run mean — mild
+ * market pressure, not a market. Macro shocks and the input price index move
+ * with the news system (M1f).
  */
 
+import { clamp } from '@shared/math';
+
 import { ECONOMY } from '../balance/prices.ts';
-import { spend, type SimContext } from '../state.ts';
+import { nextGaussian } from '../rng.ts';
+import { earn, spend, type SimContext } from '../state.ts';
 
 export function economy(ctx: SimContext): void {
   const { state, events } = ctx;
+  const e = state.economy;
+  const cashBefore = e.cash;
 
+  // ── Sales: everything harvested today, at today's price ────────────────
+  if (e.tbsPending > 0) {
+    const kilograms = e.tbsPending;
+    const revenue = Math.round(kilograms * e.tbsPrice);
+    earn(state, revenue, 'sale', `${Math.round(kilograms)} kg TBS @ ${e.tbsPrice}`);
+    e.soldKgTotal += kilograms;
+    e.tbsPending = 0;
+    events.push({ type: 'TbsSold', kilograms, price: e.tbsPrice, revenue });
+  }
+
+  // ── Upkeep ─────────────────────────────────────────────────────────────
   let planted = 0;
   for (const block of state.blocks.values()) {
     if (block.phase === 'planted') planted += 1;
   }
+  if (planted > 0) spend(state, planted * ECONOMY.upkeepPerPlantedBlock, 'upkeep');
 
-  if (planted === 0) return;
+  // ── Price walk ─────────────────────────────────────────────────────────
+  const pull = ECONOMY.tbsPriceMeanReversion * (ECONOMY.tbsPriceMean - e.tbsPrice);
+  const noise = nextGaussian(state.rng) * ECONOMY.tbsPriceDrift;
+  e.tbsPrice = Math.round(
+    clamp(e.tbsPrice + pull + noise, ECONOMY.tbsPriceMin, ECONOMY.tbsPriceMax),
+  );
+  e.tbsPriceHistory.push(e.tbsPrice);
+  if (e.tbsPriceHistory.length > ECONOMY.priceHistoryCap) {
+    e.tbsPriceHistory.splice(0, e.tbsPriceHistory.length - ECONOMY.priceHistoryCap);
+  }
 
-  spend(state, planted * ECONOMY.upkeepPerPlantedBlock, 'upkeep');
-  events.push({ type: 'CashChanged', cash: state.economy.cash });
+  if (e.cash !== cashBefore) events.push({ type: 'CashChanged', cash: e.cash });
 }

@@ -43,6 +43,9 @@ export function createInitialState(world: World): SimState {
       tbsPrice: ECONOMY.startingTbsPrice,
       inputPriceIndex: 1,
       ledger: [],
+      tbsPriceHistory: [ECONOMY.startingTbsPrice],
+      tbsPending: 0,
+      soldKgTotal: 0,
     },
     inventory: {
       bibit: 0,

@@ -6,10 +6,14 @@
 import type { Command, CommandType } from '../types.ts';
 
 import { buyBlock } from './buyBlock.ts';
+import { buyItem } from './buyItem.ts';
 import { chopBlock } from './chopBlock.ts';
+import { fertilizeBlock } from './fertilizeBlock.ts';
 import type { CommandHandler } from './handler.ts';
+import { harvestBlock } from './harvestBlock.ts';
 import { placeKopdes } from './placeKopdes.ts';
 import { plantBlock } from './plantBlock.ts';
+import { upgradeKopdes } from './upgradeKopdes.ts';
 
 // Handlers are typed against their own command; the registry erases that so
 // `dispatch` can look up by discriminant. The cast is the single unsafe point.
@@ -18,6 +22,10 @@ const registry: Partial<Record<CommandType, CommandHandler>> = {
   ChopBlock: chopBlock as CommandHandler,
   PlantBlock: plantBlock as CommandHandler,
   PlaceKopdes: placeKopdes as CommandHandler,
+  HarvestBlock: harvestBlock as CommandHandler,
+  FertilizeBlock: fertilizeBlock as CommandHandler,
+  UpgradeKopdes: upgradeKopdes as CommandHandler,
+  BuyItem: buyItem as CommandHandler,
 };
 
 export function handlerFor(command: Command): CommandHandler | undefined {

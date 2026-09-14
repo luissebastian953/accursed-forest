@@ -55,8 +55,15 @@ function tickUntil(sim: Sim, predicate: () => boolean, limit = 5000): number {
 }
 
 function chopAndPlant(sim: Sim, block: BlockId): void {
+  if (!sim.state.kopdes) {
+    expect(sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock })).toEqual({
+      ok: true,
+    });
+  }
   expect(sim.dispatch({ type: 'ChopBlock', block })).toEqual({ ok: true });
   tickUntil(sim, () => sim.state.blocks.get(block)!.phase === 'cleared');
+  const needed = BIOMES[sim.state.blocks.get(block)!.biome].plantableSlots;
+  expect(sim.dispatch({ type: 'BuyItem', item: 'bibit', quantity: needed })).toEqual({ ok: true });
   expect(sim.dispatch({ type: 'PlantBlock', block, species: 'palm' })).toEqual({ ok: true });
 }
 
@@ -210,12 +217,8 @@ describe('commands (§4.2)', () => {
   it('plants every plantable slot and emits one BlockPlanted with the count', () => {
     const sim = createSim(42);
     const block = firstOwnedWild(sim);
-    expect(sim.dispatch({ type: 'ChopBlock', block })).toEqual({ ok: true });
-    tickUntil(sim, () => sim.state.blocks.get(block)!.phase === 'cleared');
-
-    // Drain the tick's events first so the planting event is isolated.
-    sim.tick();
-    expect(sim.dispatch({ type: 'PlantBlock', block, species: 'palm' })).toEqual({ ok: true });
+    // Drain pending events so the planting event is isolated on the next tick.
+    chopAndPlant(sim, block);
 
     const palms = sim.state.palms.get(block)!;
     const spec = BIOMES[sim.state.blocks.get(block)!.biome];
@@ -224,12 +227,23 @@ describe('commands (§4.2)', () => {
     expect(planted).toBe(spec.plantableSlots);
     expect(palms.plantedAt.length).toBe(SLOTS_PER_BLOCK);
     expect(sim.state.blocks.get(block)!.phase).toBe('planted');
+    expect(sim.state.inventory.bibit).toBe(0);
 
     // The events came out of dispatch's tick context; they surface on the next tick.
     const events = sim.tick();
     expect(
       events.some((e) => e.type === 'BlockPlanted' && e.block === block && e.count === planted),
     ).toBe(true);
+  });
+
+  it('planting needs seedlings in stock, and says where to get them', () => {
+    const sim = createSim(42);
+    const block = firstOwnedWild(sim);
+    expect(sim.dispatch({ type: 'ChopBlock', block })).toEqual({ ok: true });
+    tickUntil(sim, () => sim.state.blocks.get(block)!.phase === 'cleared');
+    const result = sim.dispatch({ type: 'PlantBlock', block, species: 'palm' });
+    expect(result).toMatchObject({ ok: false, code: 'noInventory' });
+    expect((result as { reason: string }).reason).toMatch(/Kopdes/);
   });
 
   it('refuses commands that are not implemented yet instead of throwing', () => {
@@ -360,6 +374,17 @@ describe('determinism (§4.3)', () => {
       }),
       fc.record({ type: fc.constant('BuyBlock' as const), block: fc.constantFrom(...blocks) }),
       fc.record({ type: fc.constant('PlaceKopdes' as const), block: fc.constantFrom(...blocks) }),
+      fc.record({ type: fc.constant('HarvestBlock' as const), block: fc.constantFrom(...blocks) }),
+      fc.record({
+        type: fc.constant('FertilizeBlock' as const),
+        block: fc.constantFrom(...blocks),
+      }),
+      fc.record({ type: fc.constant('UpgradeKopdes' as const) }),
+      fc.record({
+        type: fc.constant('BuyItem' as const),
+        item: fc.constantFrom('bibit' as const, 'fertilizer' as const, 'forestSapling' as const),
+        quantity: fc.integer({ min: 1, max: 300 }),
+      }),
     );
 
   function fingerprint(sim: Sim): string {
@@ -419,7 +444,6 @@ describe('determinism (§4.3)', () => {
     const a = createSim(1234);
     const block = firstOwnedWild(a);
     chopAndPlant(a, block);
-    a.dispatch({ type: 'PlaceKopdes', block: a.state.worldGen.kopdesBlock });
     for (let i = 0; i < 400; i++) a.tick();
     a.dispatch({ type: 'BuyBlock', block: firstBuyable(a) });
     for (let i = 0; i < 200; i++) a.tick();
@@ -448,6 +472,8 @@ describe('determinism (§4.3)', () => {
 describe('performance guardrails (§10.3)', () => {
   it('ticks a planted estate well under the 2 ms budget', () => {
     const sim = createSim(42);
+    sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
+    sim.dispatch({ type: 'BuyItem', item: 'bibit', quantity: 6 * SLOTS_PER_BLOCK });
     // Plant several blocks so growth has real work to do.
     let planted = 0;
     for (const block of [...sim.state.blocks.values()]) {

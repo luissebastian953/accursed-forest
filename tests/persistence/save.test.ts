@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest';
 
 import { Autosave } from '@persistence/autosave.ts';
 import { DirtyChunks, SaveSlot } from '@persistence/chunks.ts';
-import { migrate, type Migration, type RawSave } from '@persistence/migrations.ts';
+import { MIGRATIONS, migrate, type Migration, type RawSave } from '@persistence/migrations.ts';
 import { CURRENT_SCHEMA, KEY_PREFIX, SaveError, chunkKeyOf } from '@persistence/schema.ts';
 import { memoryStorage } from '@persistence/storage.ts';
 import { BIOMES } from '@sim/balance/biomes.ts';
-import { WORLD } from '@sim/balance/world.ts';
+import { SLOTS_PER_BLOCK, WORLD } from '@sim/balance/world.ts';
 import { createSim, restoreSim, type Sim } from '@sim/index.ts';
 import type { BlockId, SimState } from '@sim/types.ts';
 
@@ -21,10 +21,17 @@ function slotFor(storage = memoryStorage(), slot = 'slot0', migrations?: readonl
   );
 }
 
-/** A run with something in it: chop, plant, Kopdes, a purchase, 400 days. */
+/** A run with something in it: Kopdes, stock, two chopped and planted blocks, a purchase, 400 days. */
 function workedEstate(seed = 42): Sim {
   const sim = createSim(seed);
   const { state, world } = sim;
+
+  expect(sim.dispatch({ type: 'PlaceKopdes', block: state.worldGen.kopdesBlock })).toEqual({
+    ok: true,
+  });
+  expect(sim.dispatch({ type: 'BuyItem', item: 'bibit', quantity: 2 * SLOTS_PER_BLOCK })).toEqual({
+    ok: true,
+  });
 
   const wild: BlockId[] = [];
   for (const block of state.blocks.values()) {
@@ -32,9 +39,6 @@ function workedEstate(seed = 42): Sim {
   }
   expect(sim.dispatch({ type: 'ChopBlock', block: wild[0]! })).toEqual({ ok: true });
   expect(sim.dispatch({ type: 'ChopBlock', block: wild[1]! })).toEqual({ ok: true });
-  expect(sim.dispatch({ type: 'PlaceKopdes', block: state.worldGen.kopdesBlock })).toEqual({
-    ok: true,
-  });
 
   for (let i = 0; i < 50; i++) sim.tick();
   for (const id of [wild[0]!, wild[1]!]) {
@@ -331,34 +335,36 @@ describe('migrations (§7)', () => {
     expect(ran).toBe(false);
   });
 
-  it('a save slot applies its migrations on load', () => {
+  it('a save slot applies its migrations on load: a v1 save opens in a v2 build', () => {
     const sim = workedEstate();
     const storage = memoryStorage();
     slotFor(storage).save(sim.state);
 
-    // Pretend the file is one schema behind and that the fix is to restore `app`.
+    // Rewind the manifest to what M1a wrote: no sales fields, schema 1.
     const key = `${KEY_PREFIX}:save:slot0`;
-    const manifest = JSON.parse(storage.get(key)!) as Record<string, unknown>;
-    manifest['schema'] = CURRENT_SCHEMA - 1 || 1;
-    delete manifest['app'];
+    const manifest = JSON.parse(storage.get(key)!) as {
+      schema: number;
+      head: { economy: Record<string, unknown> };
+    };
+    manifest.schema = 1;
+    delete manifest.head.economy['tbsPriceHistory'];
+    delete manifest.head.economy['tbsPending'];
+    delete manifest.head.economy['soldKgTotal'];
     storage.map.set(key, JSON.stringify(manifest));
 
-    const steps: Migration[] = [
-      {
-        from: CURRENT_SCHEMA - 1 || 1,
-        up: (s) => {
-          s.manifest['app'] = 'migrated';
-        },
-      },
-    ];
-    // With CURRENT_SCHEMA === 1 there is nothing below to migrate from, so the
-    // step is only exercised once the schema has actually been bumped.
-    if (CURRENT_SCHEMA > 1) {
-      const loaded = slotFor(storage, 'slot0', steps).load();
-      expect(fingerprint(loaded)).toBe(fingerprint(sim.state));
-    } else {
-      expect(() => slotFor(storage, 'slot0', steps).load()).toThrow(SaveError);
-    }
+    const loaded = slotFor(storage).load();
+    expect(loaded.economy.tbsPending).toBe(0);
+    expect(loaded.economy.soldKgTotal).toBe(0);
+    expect(loaded.economy.tbsPriceHistory).toEqual([loaded.economy.tbsPrice]);
+    // Everything the v1 save did carry survives untouched.
+    expect(loaded.economy.cash).toBe(sim.state.economy.cash);
+    expect(loaded.tick).toBe(sim.state.tick);
+    expect(loaded.palms.size).toBe(sim.state.palms.size);
+  });
+
+  it('the real migration list covers every schema from 1 to current', () => {
+    const covered = new Set(MIGRATIONS.map((m) => m.from));
+    for (let schema = 1; schema < CURRENT_SCHEMA; schema++) expect(covered.has(schema)).toBe(true);
   });
 });
 

@@ -18,7 +18,20 @@ export interface Migration {
 }
 
 /** Append here whenever `CURRENT_SCHEMA` is bumped. */
-export const MIGRATIONS: readonly Migration[] = [];
+export const MIGRATIONS: readonly Migration[] = [
+  {
+    // M1b: the economy learned to sell. A v1 save has never sold anything.
+    from: 1,
+    up(save) {
+      const head = save.manifest['head'] as { economy?: Record<string, unknown> } | undefined;
+      const economy = head?.economy;
+      if (!economy) throw new SaveError('corrupt', 'v1 manifest has no economy');
+      economy['tbsPriceHistory'] ??= [economy['tbsPrice']];
+      economy['tbsPending'] ??= 0;
+      economy['soldKgTotal'] ??= 0;
+    },
+  },
+];
 
 /**
  * Bring `save` up to `target` in place. Exposed with injectable steps so the

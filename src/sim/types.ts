@@ -164,6 +164,15 @@ export interface Economy {
   /** 1.0 baseline; shop prices are `base * index` (§3.7). */
   inputPriceIndex: number;
   ledger: LedgerEntry[];
+  /** Recent daily prices, newest last — the HUD trend and sparkline. */
+  tbsPriceHistory: number[];
+  /**
+   * Kilograms harvested this tick, awaiting sale. The economy system sells
+   * them at the day's price the same tick; TBS never survives a night (§2).
+   */
+  tbsPending: number;
+  /** Lifetime kilograms sold. */
+  soldKgTotal: number;
 }
 
 export type ItemId =
@@ -241,7 +250,10 @@ export type Command =
   | { type: 'ReforestBlock'; block: BlockId }
   | { type: 'SanitizeBlock'; block: BlockId }
   | { type: 'HarvestBlock'; block: BlockId }
-  | { type: 'PlaceKopdes'; block: BlockId };
+  | { type: 'FertilizeBlock'; block: BlockId }
+  | { type: 'PlaceKopdes'; block: BlockId }
+  | { type: 'UpgradeKopdes' }
+  | { type: 'BuyItem'; item: ItemId; quantity: number };
 
 export type CommandType = Command['type'];
 
@@ -264,6 +276,10 @@ export interface Rejection {
     | 'outOfRange'
     | 'occupied'
     | 'nothingToHarvest'
+    | 'notRipe'
+    | 'noInventory'
+    | 'maxLevel'
+    | 'badQuantity'
     | 'unknownBlock'
     | 'notImplemented';
   reason: string;
