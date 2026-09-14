@@ -1,0 +1,14 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "src/main.ts",
+    "src/workers/*.worker.ts",
+    "tools/*.ts",
+    "e2e/**/*.spec.ts",
+    "tests/**/*.test.ts"
+  ],
+  "project": ["src/**/*.ts", "tools/**/*.ts"],
+  "ignoreDependencies": ["lucide-static", "lil-gui", "stats-gl", "@commitlint/config-conventional"],
+  "vite": { "config": ["vite.config.ts"] },
+  "vitest": { "config": ["vitest.config.ts"] }
+}

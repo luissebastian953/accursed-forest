@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["vite/client"],
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "useDefineForClassFields": true,
+
+    "noEmit": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "baseUrl": ".",
+    "paths": {
+      "@app/*": ["src/app/*"],
+      "@sim/*": ["src/sim/*"],
+      "@render/*": ["src/render/*"],
+      "@ui/*": ["src/ui/*"],
+      "@input/*": ["src/input/*"],
+      "@persistence/*": ["src/persistence/*"],
+      "@workers/*": ["src/workers/*"],
+      "@shared/*": ["src/shared/*"]
+    }
+  },
+  "include": ["src", "tests"]
+}

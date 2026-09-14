@@ -1,0 +1,20 @@
+{
+  "path": "cz-git",
+  "scopes": [
+    "sim",
+    "render",
+    "ui",
+    "app",
+    "input",
+    "persistence",
+    "workers",
+    "shared",
+    "balance",
+    "tools",
+    "docs",
+    "ci",
+    "deps"
+  ],
+  "allowCustomScopes": false,
+  "allowEmptyScopes": true
+}

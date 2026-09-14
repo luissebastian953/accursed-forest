@@ -1,0 +1,33 @@
+@import 'tailwindcss';
+
+/*
+ * Game palette tokens (§6.1). Defined once here so the HUD and the 3D palette
+ * strip stay in step; the numbers mirror `render/materials/palette.ts`.
+ */
+@theme {
+  --color-sawit: #2f7a2b;
+  --color-frond-young: #7fb03a;
+  --color-laterite: #9c4a24;
+  --color-peat: #2b2118;
+  --color-ochre: #a89a46;
+  --color-haze: #c9a06a;
+  --color-ash: #9a9a9a;
+  --color-sky-humid: #cddbe0;
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: #10151a;
+  color: #e8eef2;
+  font-family: var(--font-sans);
+}
+
+canvas {
+  display: block;
+}

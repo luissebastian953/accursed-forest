@@ -1,0 +1,25 @@
+node_modules/
+dist/
+dist-ssr/
+coverage/
+.vite/
+*.local
+
+# test output
+playwright-report/
+test-results/
+blob-report/
+.playwright/
+
+# editor / os
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
