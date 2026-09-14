@@ -94,7 +94,8 @@ export default tseslint.config(
             policy('render', ['sim', 'shared', 'workers']),
             policy('input', ['sim', 'shared', 'render']),
             policy('persistence', ['sim', 'shared']),
-            policy('workers', ['sim', 'shared']),
+            // The mesher worker is render code that happens to run off-thread.
+            policy('workers', ['render', 'sim', 'shared']),
             policy('sim', ['shared']),
             // `shared` is intentionally absent: default 'disallow' keeps it leaf-level.
           ],

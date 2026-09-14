@@ -6,9 +6,9 @@
  * once at startup and merged; nothing here runs per frame.
  */
 
-import { BufferGeometry, Float32BufferAttribute, Matrix3, Matrix4, Vector3 } from 'three/webgpu';
+import { BufferGeometry, Float32BufferAttribute, Matrix3, Matrix4, Vector3 } from 'three';
 
-import { paletteU, type PaletteSlot } from '../materials/palette.ts';
+import { paletteU, type PaletteSlot } from '../materials/paletteSlots.ts';
 
 /** Per-face palette slots. `side` fills in for any face left unspecified. */
 export interface BoxFaces {
@@ -142,15 +142,40 @@ export class BoxBuilder {
     return this.addBox(m, faces, skip);
   }
 
-  build(): BufferGeometry {
-    const geometry = new BufferGeometry();
-    geometry.setAttribute('position', new Float32BufferAttribute(this.positions, 3));
-    geometry.setAttribute('normal', new Float32BufferAttribute(this.normals, 3));
-    geometry.setAttribute('paletteU', new Float32BufferAttribute(this.us, 1));
-    geometry.computeBoundingSphere();
-    geometry.computeBoundingBox();
-    return geometry;
+  /**
+   * Raw attribute arrays, for shipping out of a worker as transferables.
+   * `build()` is this plus a `BufferGeometry` wrapper.
+   */
+  toArrays(): MeshArrays {
+    return {
+      positions: Float32Array.from(this.positions),
+      normals: Float32Array.from(this.normals),
+      paletteU: Float32Array.from(this.us),
+      triangles: this.triangleCount,
+    };
   }
+
+  build(): BufferGeometry {
+    return geometryFromArrays(this.toArrays());
+  }
+}
+
+export interface MeshArrays {
+  positions: Float32Array;
+  normals: Float32Array;
+  paletteU: Float32Array;
+  triangles: number;
+}
+
+/** Wrap mesher output in a geometry. The arrays are adopted, not copied. */
+export function geometryFromArrays(arrays: MeshArrays): BufferGeometry {
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new Float32BufferAttribute(arrays.positions, 3));
+  geometry.setAttribute('normal', new Float32BufferAttribute(arrays.normals, 3));
+  geometry.setAttribute('paletteU', new Float32BufferAttribute(arrays.paletteU, 1));
+  geometry.computeBoundingSphere();
+  geometry.computeBoundingBox();
+  return geometry;
 }
 
 const _normal = new Matrix3();

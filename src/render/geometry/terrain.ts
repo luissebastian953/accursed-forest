@@ -11,9 +11,9 @@
  * dependency-light (no sim imports) so the worker can own it.
  */
 
-import type { BufferGeometry } from 'three/webgpu';
+import type { BufferGeometry } from 'three';
 
-import { BoxBuilder } from './boxBuilder.ts';
+import { BoxBuilder, geometryFromArrays, type MeshArrays } from './boxBuilder.ts';
 
 export interface ColumnField {
   /** Columns per side. */
@@ -28,7 +28,14 @@ export interface ColumnField {
   deepSlot?: number;
   /** Y below which nothing is drawn — the underside of the diorama slab. */
   floorY: number;
-  /** World-space offset of column (0,0). */
+  /**
+   * Columns within `inset` of the field's edge are neighbour context only:
+   * their heights cull the faces of the columns beside them, but they are not
+   * emitted. A chunk builds with `inset: 1` so its border faces are culled
+   * against the next chunk rather than drawn as a wall down to the floor.
+   */
+  inset?: number;
+  /** World-space position of the first *emitted* column. */
   originX?: number;
   originZ?: number;
 }
@@ -39,13 +46,14 @@ function heightAt(field: ColumnField, x: number, z: number): number {
   return field.heights[z * field.size + x]!;
 }
 
-export function buildColumnGeometry(field: ColumnField): BufferGeometry {
+export function buildColumnArrays(field: ColumnField): MeshArrays {
   const b = new BoxBuilder();
-  const ox = field.originX ?? 0;
-  const oz = field.originZ ?? 0;
+  const inset = field.inset ?? 0;
+  const ox = (field.originX ?? 0) - inset;
+  const oz = (field.originZ ?? 0) - inset;
 
-  for (let z = 0; z < field.size; z++) {
-    for (let x = 0; x < field.size; x++) {
+  for (let z = inset; z < field.size - inset; z++) {
+    for (let x = inset; x < field.size - inset; x++) {
       const h = field.heights[z * field.size + x]!;
 
       const east = heightAt(field, x + 1, z);
@@ -86,5 +94,9 @@ export function buildColumnGeometry(field: ColumnField): BufferGeometry {
     }
   }
 
-  return b.build();
+  return b.toArrays();
+}
+
+export function buildColumnGeometry(field: ColumnField): BufferGeometry {
+  return geometryFromArrays(buildColumnArrays(field));
 }

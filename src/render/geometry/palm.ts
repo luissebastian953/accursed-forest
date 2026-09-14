@@ -8,9 +8,9 @@
  * ~0.65 units reads as the real 6 m tree next to its neighbours.
  */
 
-import { Euler, Matrix4, Quaternion, Vector3, type BufferGeometry } from 'three/webgpu';
+import { Euler, Matrix4, Quaternion, Vector3, type BufferGeometry } from 'three';
 
-import { Palette } from '../materials/palette.ts';
+import { Palette } from '../materials/paletteSlots.ts';
 
 import { BoxBuilder } from './boxBuilder.ts';
 
