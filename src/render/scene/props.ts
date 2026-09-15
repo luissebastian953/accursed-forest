@@ -1,16 +1,25 @@
 /**
- * Wild vegetation and rocks (§6.1, §6.3): box trees in the forest, taller and
- * darker ones in protected forest, rubber in rows, bushes on scrub, tufts on
- * grassland, boulders on the hills, reeds along the water.
+ * Where the scenery grows (§6.1, §6.3). The models live in `render/models/`;
+ * this file is the ecology — which of them each kind of land carries, and
+ * how thickly.
  *
- * Props are merged into the chunk mesh the worker builds, so they stream,
- * cull and rebuild with the terrain: chop a forest block and its chunk is
- * remeshed without the trees. Placement is a jittered grid per block with a
- * hash of (seed, block, index), so a block always grows the same trees.
- * Nothing grows on a block that has left the wild.
+ * - forest: rainforest trees, the odd emergent giant hung with vines, fallen
+ *   logs, understory bushes and flowers, a weeping fig or a wood cabin now and then
+ * - protected forest: the same, denser and older, more giants
+ * - riverbank: willows, reeds at the water's edge, flowers
+ * - grassland: tufts, wildflowers, bushes, a lone tree, rarely an abandoned house
+ * - scrub: dry bushes, dead trees, cactus, tumbleweed, rocks
+ * - hills: pines and boulders; spires and caves on the high ridges
+ * - villages: stilt houses around a weeping fig
+ * - burning, or burned within the ash window: charred snags on charred ground
+ *
+ * Props are merged into the chunk mesh the worker builds, so they stream and
+ * rebuild with the terrain: chop a forest block and its chunk is remeshed
+ * without the trees. Each block visits a jittered grid of spots, asks what the
+ * ground there shows (the same warped edges the ground colour uses, so forest
+ * edges wander across the block grid), and rolls that land's table. A hash of
+ * (seed, block, draw) makes a block always grow the same things.
  */
-
-import { Matrix4 } from 'three';
 
 import { WORLD } from '@sim/balance/world';
 import type { Biome } from '@sim/types';
@@ -18,9 +27,11 @@ import type { Biome } from '@sim/types';
 import type { BoxBuilder } from '../geometry/boxBuilder.ts';
 import type { ColumnField } from '../geometry/terrain.ts';
 import { Palette } from '../materials/paletteSlots.ts';
+import { MODELS, ModelKit, type Model } from '../models/index.ts';
 
 const SIDE = WORLD.blockSide;
-const SKIP_BOTTOM = { ny: true } as const;
+/** Candidate spots per block side; each spot grows at most one thing. */
+const SPOTS = 6;
 
 /** Deterministic 0..1 from three integers. */
 export function hash01(a: number, b: number, c: number): number {
@@ -41,7 +52,10 @@ export interface PropBlock {
   bx: number;
   by: number;
   biome: Biome;
-  burning: boolean;
+  elevation: number;
+  slope: boolean;
+  /** On fire, or burned and still inside the ash window. */
+  burnt: boolean;
 }
 
 export interface PropContext {
@@ -53,212 +67,220 @@ export interface PropContext {
   lookBiome(gx: number, gz: number, own: Biome): Biome;
 }
 
-const _m = new Matrix4();
-const _r = new Matrix4();
+interface Spot {
+  x: number;
+  z: number;
+  block: PropBlock;
+  ctx: PropContext;
+}
+
+/** One row of a land's table: a model, its chance per spot, and a scale range. */
+interface Growth {
+  model: Model;
+  p: number;
+  scale?: readonly [number, number];
+  /** Only where this holds. */
+  where?: (spot: Spot) => boolean;
+}
+
+const m = MODELS;
+const nearWater = ({ x, z, ctx }: Spot): boolean => {
+  const edge = ctx.riverEdge(Math.floor(x), Math.floor(z));
+  return edge >= 0 && edge <= 3;
+};
+const high = ({ block }: Spot): boolean => block.elevation >= 2;
+const summit = ({ block }: Spot): boolean => block.elevation >= 3;
+const cliff = ({ block }: Spot): boolean => block.elevation >= 2 && block.slope;
+
+const TABLE: Partial<Record<Biome, readonly Growth[]>> = {
+  forest: [
+    { model: m.giantTree, p: 0.02, scale: [0.9, 1.1] },
+    { model: m.woodCabin, p: 0.003 },
+    { model: m.weepingFig, p: 0.004 },
+    { model: m.rainforestTree, p: 0.34, scale: [0.85, 1.2] },
+    { model: m.fallenLog, p: 0.03 },
+    { model: m.bush, p: 0.06 },
+    { model: m.floweringBush, p: 0.02 },
+    { model: m.flowers, p: 0.01 },
+  ],
+  protected: [
+    { model: m.giantTree, p: 0.07, scale: [1, 1.2] },
+    { model: m.rainforestTree, p: 0.42, scale: [1, 1.3] },
+    { model: m.fallenLog, p: 0.04 },
+    { model: m.bush, p: 0.05 },
+  ],
+  riverbank: [
+    { model: m.reeds, p: 0.45, where: nearWater },
+    { model: m.willowTree, p: 0.06, scale: [0.85, 1.1] },
+    { model: m.rainforestTree, p: 0.03, scale: [0.75, 0.95] },
+    { model: m.flowers, p: 0.05 },
+    { model: m.bush, p: 0.03 },
+    { model: m.boulders, p: 0.01, scale: [0.5, 0.8] },
+  ],
+  grassfield: [
+    { model: m.abandonedHouse, p: 0.0015 },
+    { model: m.weepingFig, p: 0.003 },
+    { model: m.rainforestTree, p: 0.012, scale: [0.75, 0.95] },
+    { model: m.floweringBush, p: 0.01 },
+    { model: m.bush, p: 0.035 },
+    { model: m.flowers, p: 0.06 },
+    { model: m.boulders, p: 0.005, scale: [0.5, 0.8] },
+    { model: m.grassTuft, p: 0.28 },
+  ],
+  scrub: [
+    { model: m.abandonedHouse, p: 0.002 },
+    { model: m.deadTree, p: 0.03 },
+    { model: m.cactus, p: 0.03 },
+    { model: m.tumbleweed, p: 0.04 },
+    { model: m.bush, p: 0.14, scale: [0.7, 1] },
+    { model: m.boulders, p: 0.06, scale: [0.6, 1] },
+    { model: m.grassTuft, p: 0.06 },
+  ],
+  hills: [
+    { model: m.cave, p: 0.008, where: cliff },
+    { model: m.rockSpire, p: 0.05, where: summit, scale: [0.8, 1.2] },
+    { model: m.woodCabin, p: 0.002 },
+    { model: m.pineTree, p: 0.22, where: high, scale: [0.85, 1.2] },
+    { model: m.pineTree, p: 0.06, scale: [0.8, 1] },
+    { model: m.boulders, p: 0.11 },
+    { model: m.deadTree, p: 0.02 },
+    { model: m.grassTuft, p: 0.15 },
+  ],
+  peat: [
+    { model: m.deadTree, p: 0.05 },
+    { model: m.reeds, p: 0.2 },
+  ],
+  swamp: [
+    { model: m.deadTree, p: 0.04 },
+    { model: m.willowTree, p: 0.03 },
+    { model: m.reeds, p: 0.35 },
+  ],
+  village: [
+    { model: m.flowers, p: 0.1 },
+    { model: m.bush, p: 0.04 },
+    { model: m.grassTuft, p: 0.1 },
+  ],
+};
+
+/** Lands whose trees leave snags behind when they burn, and how many per spot. */
+const SNAGS: Partial<Record<Biome, number>> = {
+  forest: 0.3,
+  protected: 0.4,
+  rubber: 0.3,
+  riverbank: 0.08,
+  hills: 0.06,
+  scrub: 0.04,
+  grassfield: 0.02,
+};
 
 class Grower {
   private n = 0;
+  private readonly kit: ModelKit;
 
   constructor(
-    private readonly b: BoxBuilder,
+    builder: BoxBuilder,
     private readonly ctx: PropContext,
     private readonly block: PropBlock,
-  ) {}
-
-  riverEdge(x: number, z: number): number {
-    return this.ctx.riverEdge(Math.floor(x), Math.floor(z));
+  ) {
+    this.kit = new ModelKit(builder);
   }
 
-  rand(): number {
-    return hash01(this.ctx.seed, this.block.id, this.n++);
-  }
+  readonly rand = (): number => hash01(this.ctx.seed, this.block.id, this.n++);
 
-  range(min: number, max: number): number {
-    return min + (max - min) * this.rand();
-  }
-
-  /** Ground height under world column (gx, gz), or null over water or off the field. */
-  ground(gx: number, gz: number): number | null {
+  /** Ground height under a column, or null over water or outside the emitted field. */
+  private ground(x: number, z: number): number | null {
     const f = this.ctx.field;
     const inset = f.inset ?? 0;
-    const lx = Math.floor(gx) - (f.originX ?? 0) + inset;
-    const lz = Math.floor(gz) - (f.originZ ?? 0) + inset;
+    const lx = Math.floor(x) - (f.originX ?? 0) + inset;
+    const lz = Math.floor(z) - (f.originZ ?? 0) + inset;
     if (lx < inset || lz < inset || lx >= f.size - inset || lz >= f.size - inset) return null;
     const slot = f.topSlots[lz * f.size + lx]!;
     if (slot === Palette.Water || slot === Palette.WaterShallow) return null;
     return f.heights[lz * f.size + lx]!;
   }
 
-  box(
-    x: number,
-    y: number,
-    z: number,
-    sx: number,
-    sy: number,
-    sz: number,
-    slot: number,
-    turn: number,
-  ) {
-    // Keep the turned footprint inside the block, and so inside its chunk.
-    const half = Math.max(sx, sz) * Math.SQRT1_2;
+  /** Grow `model` at (x, z), pulled inward so all of it stays inside the block. */
+  grow(model: Model, x: number, z: number, scale: number): void {
+    const reach = Math.min(SIDE / 2 - 0.01, model.radius * scale);
     const x0 = this.block.bx * SIDE;
     const z0 = this.block.by * SIDE;
-    const cx = Math.min(x0 + SIDE - half, Math.max(x0 + half, x));
-    const cz = Math.min(z0 + SIDE - half, Math.max(z0 + half, z));
-    _m.makeScale(sx, sy, sz);
-    _r.makeRotationY(turn);
-    _m.premultiply(_r).setPosition(cx, y + sy / 2, cz);
-    this.b.addBox(_m, { side: slot }, SKIP_BOTTOM);
+    const px = Math.min(x0 + SIDE - reach, Math.max(x0 + reach, x));
+    const pz = Math.min(z0 + SIDE - reach, Math.max(z0 + reach, z));
+    const y = this.ground(px, pz);
+    if (y === null) return;
+    this.kit.at({ x: px, y, z: pz, scale, turn: this.rand() * Math.PI * 2 });
+    model.build(this.kit, this.rand);
   }
 
-  /**
-   * Visit a jittered grid of `cells`×`cells` spots in the block, each taken
-   * with probability `p`. `margin` keeps a prop of that half-width inside the
-   * block, and so inside its chunk.
-   */
-  scatter(
-    cells: number,
-    p: number,
-    margin: number,
-    jitter: boolean,
-    place: (x: number, z: number) => void,
-  ) {
+  /** Visit a `cells`×`cells` grid over the block, jittered within each cell. */
+  spots(cells: number, jitter: boolean, visit: (x: number, z: number) => void): void {
     const cell = SIDE / cells;
     const x0 = this.block.bx * SIDE;
     const z0 = this.block.by * SIDE;
     for (let j = 0; j < cells; j++) {
       for (let i = 0; i < cells; i++) {
-        const take = this.rand() < p;
         const jx = jitter ? this.rand() : 0.5;
         const jz = jitter ? this.rand() : 0.5;
-        if (!take) continue;
-        const x = Math.min(x0 + SIDE - margin, Math.max(x0 + margin, x0 + (i + jx) * cell));
-        const z = Math.min(z0 + SIDE - margin, Math.max(z0 + margin, z0 + (j + jz) * cell));
-        place(x, z);
+        visit(x0 + (i + jx) * cell, z0 + (j + jz) * cell);
       }
     }
   }
 
-  tree(x: number, z: number, scale: number, canopies: readonly number[], charred: boolean) {
-    const y = this.ground(x, z);
-    if (y === null) return;
-    const turn = this.range(0, Math.PI / 2);
-    const trunk = this.range(1.1, 2) * scale;
-    const girth = 0.35 * Math.max(0.8, scale);
-    this.box(x, y, z, girth, trunk, girth, charred ? Palette.Charcoal : Palette.Bark, turn);
-    if (charred) return;
-    const width = this.range(1.9, 2.8) * scale;
-    const height = this.range(1.5, 2.3) * scale;
-    const slot = canopies[Math.floor(this.rand() * canopies.length)]!;
-    this.box(x, y + trunk * 0.85, z, width, height, width, slot, turn);
-    if (this.rand() < 0.55) {
-      const top = width * this.range(0.5, 0.7);
-      this.box(x, y + trunk * 0.85 + height * 0.8, z, top, height * 0.7, top, slot, turn + 0.4);
+  roll(table: readonly Growth[], x: number, z: number): void {
+    const spot: Spot = { x, z, block: this.block, ctx: this.ctx };
+    let roll = this.rand();
+    for (const row of table) {
+      if (row.where && !row.where(spot)) continue;
+      if (roll < row.p) {
+        const [lo, hi] = row.scale ?? [0.9, 1.1];
+        this.grow(row.model, x, z, lo + (hi - lo) * this.rand());
+        return;
+      }
+      roll -= row.p;
     }
-  }
-
-  bush(x: number, z: number, width: number, height: number, slot: number) {
-    const y = this.ground(x, z);
-    if (y === null) return;
-    this.box(x, y, z, width, height, width * this.range(0.7, 1), slot, this.range(0, Math.PI / 2));
   }
 }
 
-const CANOPY = [Palette.Canopy, Palette.Canopy, Palette.CanopyLight, Palette.CanopyDark] as const;
-const CANOPY_OLD = [Palette.CanopyDark, Palette.CanopyDark, Palette.Canopy] as const;
-const RUBBER = [Palette.CanopyLight] as const;
+/** Grow the props of one block into the chunk's builder. */
+export function growBlock(builder: BoxBuilder, ctx: PropContext, block: PropBlock): void {
+  const g = new Grower(builder, ctx, block);
 
-/** Candidate spots per block side; each spot grows at most one prop. */
-const SPOTS = 6;
-
-type Grow = (g: Grower, x: number, z: number, charred: boolean) => void;
-
-/** Per-spot chances by biome, in order; the rest of the time nothing grows. */
-const TABLE: Partial<Record<Biome, readonly (readonly [number, Grow])[]>> = {
-  forest: [[0.4, (g, x, z, c) => g.tree(x, z, g.range(0.85, 1.15), CANOPY, c)]],
-  protected: [
-    [0.12, (g, x, z, c) => g.tree(x, z, g.range(1.35, 1.6), CANOPY_OLD, c)],
-    [0.45, (g, x, z, c) => g.tree(x, z, g.range(1.05, 1.3), CANOPY_OLD, c)],
-  ],
-  riverbank: [
-    [0.08, (g, x, z, c) => g.tree(x, z, g.range(0.7, 0.95), CANOPY, c)],
-    [
-      0.55,
-      (g, x, z, c) => {
-        if (c) return;
-        const edge = g.riverEdge(x, z);
-        if (edge >= 0 && edge <= 3) g.bush(x, z, 0.25, g.range(0.9, 1.6), Palette.Reed);
-      },
-    ],
-  ],
-  grassfield: [
-    [0.015, (g, x, z, c) => !c && g.tree(x, z, g.range(0.7, 0.9), CANOPY, false)],
-    [0.045, (g, x, z, c) => !c && g.bush(x, z, g.range(1, 1.5), g.range(0.7, 1), Palette.Bush)],
-    [
-      0.3,
-      (g, x, z, c) =>
-        !c &&
-        g.bush(x, z, 0.5, g.range(0.35, 0.6), g.rand() < 0.5 ? Palette.GrassLight : Palette.Reed),
-    ],
-  ],
-  scrub: [
-    [0.07, (g, x, z, c) => !c && g.bush(x, z, g.range(0.6, 1.1), g.range(0.4, 0.7), Palette.Rock)],
-    [
-      0.25,
-      (g, x, z, c) =>
-        !c &&
-        g.bush(
-          x,
-          z,
-          g.range(1, 1.8),
-          g.range(0.6, 1.1),
-          g.rand() < 0.6 ? Palette.Bush : Palette.ScrubDark,
-        ),
-    ],
-  ],
-  hills: [
-    [
-      0.14,
-      (g, x, z) =>
-        g.bush(
-          x,
-          z,
-          g.range(0.8, 2),
-          g.range(0.5, 1.4),
-          g.rand() < 0.5 ? Palette.Rock : Palette.RockDark,
-        ),
-    ],
-    [0.05, (g, x, z, c) => !c && g.tree(x, z, g.range(0.7, 0.95), CANOPY, false)],
-    [0.2, (g, x, z, c) => !c && g.bush(x, z, 0.5, g.range(0.3, 0.5), Palette.GrassLight)],
-  ],
-};
-
-/**
- * Grow the props of one wild block into the chunk's builder. Each spot asks
- * `lookBiome` what the ground there shows — the same warped edges the ground
- * colour uses — so a forest's edge wanders across the block grid with it.
- * Rubber is planted in rows and ignores the warp.
- */
-export function growBlock(b: BoxBuilder, ctx: PropContext, block: PropBlock): void {
-  const g = new Grower(b, ctx, block);
-  const charred = block.burning;
-
-  if (block.biome === 'rubber') {
-    g.scatter(4, 0.95, 1.2, false, (x, z) => g.tree(x, z, 0.8, RUBBER, charred));
+  if (block.burnt) {
+    const p = SNAGS[block.biome] ?? 0;
+    g.spots(SPOTS, true, (x, z) => {
+      if (g.rand() < p) g.grow(MODELS.burntTree, x, z, 0.8 + g.rand() * 0.4);
+    });
     return;
   }
 
-  g.scatter(SPOTS, 1, 0.3, true, (x, z) => {
-    const biome = ctx.lookBiome(Math.floor(x), Math.floor(z), block.biome);
-    const table = TABLE[biome === 'rubber' ? block.biome : biome];
-    if (!table) return;
-    let roll = g.rand();
-    for (const [p, grow] of table) {
-      if (roll < p) {
-        grow(g, x, z, charred);
-        return;
-      }
-      roll -= p;
-    }
+  if (block.biome === 'rubber') {
+    // Planted in rows: no jitter, no warp.
+    g.spots(4, false, (x, z) => {
+      if (g.rand() < 0.95) g.grow(MODELS.rainforestTree, x, z, 0.6);
+    });
+    return;
+  }
+
+  if (block.biome === 'village') {
+    const centre = SIDE / 2;
+    const cx = block.bx * SIDE + centre;
+    const cz = block.by * SIDE + centre;
+    if (g.rand() < 0.7) g.grow(MODELS.weepingFig, cx, cz, 0.9);
+    // Houses round the fig, facing every which way.
+    g.spots(3, true, (x, z) => {
+      const middle = Math.abs(x - cx) < 3 && Math.abs(z - cz) < 3;
+      if (!middle && g.rand() < 0.55) g.grow(MODELS.stiltHouse, x, z, 0.95 + g.rand() * 0.2);
+    });
+  }
+
+  g.spots(SPOTS, true, (x, z) => {
+    const shown =
+      block.biome === 'village'
+        ? block.biome
+        : ctx.lookBiome(Math.floor(x), Math.floor(z), block.biome);
+    // Village land does not spill its houses and flowers into its neighbours.
+    const land = shown === 'village' || shown === 'rubber' ? block.biome : shown;
+    const table = TABLE[land];
+    if (table) g.roll(table, x, z);
   });
 }

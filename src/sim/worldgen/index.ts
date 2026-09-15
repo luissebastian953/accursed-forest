@@ -14,11 +14,12 @@
 
 import { BIOMES } from '../balance/biomes.ts';
 import { NOISE, WORLD } from '../balance/world.ts';
+import { forkRng } from '../rng.ts';
 import type { Biome, Block, BlockId, WorldGenParams } from '../types.ts';
 
 import { classifyBiome, type CellTerrain } from './biomes.ts';
-import { createElevationField, type ElevationField } from './elevation.ts';
-import { findProtectedForest, findStartSite, type StartSite } from './features.ts';
+import { NOISE_TAG, createElevationField, type ElevationField } from './elevation.ts';
+import { findProtectedForest, findStartSite, findVillages, type StartSite } from './features.ts';
 import { createMoistureField } from './moisture.ts';
 import { traceRivers, type RiverField } from './rivers.ts';
 
@@ -132,6 +133,12 @@ export function createWorld(
   const protectedCells = findProtectedForest(featureInputs);
   const isProtected = (x: number, y: number): boolean => protectedCells.has(toId(x, y));
   const start = findStartSite(featureInputs, isProtected);
+  const villageCells = findVillages(
+    featureInputs,
+    isProtected,
+    start,
+    forkRng(seed, NOISE_TAG.villages),
+  );
 
   const generatedCache = new Array<GeneratedBlock | undefined>(width * height);
 
@@ -144,7 +151,11 @@ export function createWorld(
 
     const terrain = terrainAt(x, y);
     const protectedHere = isProtected(x, y);
-    const biome: Biome = protectedHere ? 'protected' : baseBiomeAt(x, y);
+    const biome: Biome = protectedHere
+      ? 'protected'
+      : villageCells.has(key)
+        ? 'village'
+        : baseBiomeAt(x, y);
 
     const block: GeneratedBlock = {
       biome,

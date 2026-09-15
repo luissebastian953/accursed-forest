@@ -77,6 +77,25 @@ export const PROTECTED = {
   minElevation: 2,
 } as const;
 
+/**
+ * Kampung (§3.1, village land): a few small clusters of houses along the
+ * rivers, well away from the estate. Not for sale and not clearable.
+ */
+export const VILLAGES = {
+  min: 2,
+  max: 4,
+  /** Blocks per village, before running out of suitable neighbours. */
+  minSize: 2,
+  maxSize: 4,
+  /** A village sits this close to river water... */
+  riverWithin: 3,
+  /** ...on low ground... */
+  maxElevation: 1,
+  /** ...and at least this many blocks outside the starting square. */
+  startClearance: 5,
+  biomes: ['grassfield', 'riverbank', 'scrub'] as const,
+} as const;
+
 export const START_SITE = {
   /** Search radius, in blocks, around the map centre. */
   searchRadius: 18,

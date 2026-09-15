@@ -65,10 +65,30 @@ const COLOURS: Partial<Record<number, [Hex, Hex]>> = {
 
   [Palette.Debris]: [0x6a5540, 0x82694e],
   [Palette.Stump]: [0x4b3a29, 0x5d4a35],
+  [Palette.Log]: [0x6b5138, 0x7d6143],
+  [Palette.DeadWood]: [0x8a8175, 0x9c9285],
+  [Palette.Vine]: [0x3f7a2e, 0x5a8034],
+  [Palette.Pine]: [0x2a5a3a, 0x3c6440],
+  [Palette.PineDark]: [0x1d4530, 0x2c5034],
+  [Palette.Willow]: [0x6f9e45, 0x8ea24f],
 
   [Palette.KopdesWall]: [0xd9cbb0, 0xe6dabf],
   [Palette.KopdesRoof]: [0x8c3f2e, 0xa04c37],
   [Palette.KopdesFlag]: [0xc23b2e, 0xd14738],
+
+  [Palette.HouseWall]: [0xd8c9a6, 0xe4d6b4],
+  [Palette.HouseWood]: [0x8a6440, 0x9c734b],
+  [Palette.HouseRoof]: [0xa44a2c, 0xb85634],
+  [Palette.Thatch]: [0x9c8a55, 0xb39d62],
+  [Palette.Cave]: [0x1a1714, 0x221e1a],
+  [Palette.Cactus]: [0x4f8a4a, 0x68924f],
+  [Palette.Tumbleweed]: [0xa88d5a, 0xbfa067],
+  [Palette.FlowerRed]: [0xd8403a, 0xe0503f],
+  [Palette.FlowerYellow]: [0xf0c93a, 0xf4d24a],
+  [Palette.FlowerWhite]: [0xf2eee4, 0xf6f2e8],
+  [Palette.FlowerPink]: [0xe486b0, 0xea94b8],
+  [Palette.Rain]: [0xbcd6e6, 0xc8dde8],
+  [Palette.CharredGround]: [0x3a322b, 0x463c33],
 };
 
 const FALLBACK: [Hex, Hex] = [0xff00ff, 0xff00ff];

@@ -48,10 +48,30 @@ export const Palette = {
 
   Debris: 32,
   Stump: 33,
+  Log: 34,
+  DeadWood: 35,
+  Vine: 36,
+  Pine: 37,
+  PineDark: 38,
+  Willow: 39,
 
   KopdesWall: 40,
   KopdesRoof: 41,
   KopdesFlag: 42,
+
+  HouseWall: 44,
+  HouseWood: 45,
+  HouseRoof: 46,
+  Thatch: 47,
+  Cave: 48,
+  Cactus: 49,
+  Tumbleweed: 50,
+  FlowerRed: 51,
+  FlowerYellow: 52,
+  FlowerWhite: 53,
+  FlowerPink: 54,
+  Rain: 55,
+  CharredGround: 56,
 } as const;
 
 export type PaletteSlot = (typeof Palette)[keyof typeof Palette];

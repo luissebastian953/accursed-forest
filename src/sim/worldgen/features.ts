@@ -7,7 +7,8 @@
  * per-cell on demand.
  */
 
-import { PROTECTED, START_SITE, WORLD } from '../balance/world.ts';
+import { PROTECTED, START_SITE, VILLAGES, WORLD } from '../balance/world.ts';
+import { nextInt, type RngState } from '../rng.ts';
 import type { Biome } from '../types.ts';
 
 const NEIGHBOURS: readonly (readonly [number, number])[] = [
@@ -197,4 +198,70 @@ function scoreSite(
 
   const riverBonus = nearestRiver <= START_SITE.riverWithin ? 3 : 0;
   return share * 10 + riverBonus + forestBonus - (blocked / cells) * 8;
+}
+
+/**
+ * Villages (§4.6): a few clusters of village land near the rivers, placed
+ * after the start site and kept clear of it, so they never change where the
+ * estate begins. Returns the cells, which become the `village` biome.
+ */
+export function findVillages(
+  input: FeatureInputs,
+  isProtected: (x: number, y: number) => boolean,
+  start: StartSite,
+  rng: RngState,
+): Set<number> {
+  const { width, height, biomeAt, elevationAt, riverDistanceAt } = input;
+  const allowed: ReadonlySet<Biome> = new Set(VILLAGES.biomes);
+  const clear = VILLAGES.startClearance;
+  const suitable = (x: number, y: number): boolean =>
+    x >= 0 &&
+    y >= 0 &&
+    x < width &&
+    y < height &&
+    allowed.has(biomeAt(x, y)) &&
+    !isProtected(x, y) &&
+    elevationAt(x, y) <= VILLAGES.maxElevation &&
+    riverDistanceAt(x, y) >= 1 &&
+    riverDistanceAt(x, y) <= VILLAGES.riverWithin &&
+    !(
+      x >= start.x - clear &&
+      x < start.x + start.size + clear &&
+      y >= start.y - clear &&
+      y < start.y + start.size + clear
+    );
+
+  const candidates: number[] = [];
+  for (let y = 0; y < height; y++)
+    for (let x = 0; x < width; x++) if (suitable(x, y)) candidates.push(y * width + x);
+
+  const villages = new Set<number>();
+  const count = VILLAGES.min + nextInt(rng, VILLAGES.max - VILLAGES.min + 1);
+  for (let v = 0; v < count && candidates.length > 0; v++) {
+    const seedKey = candidates.splice(nextInt(rng, candidates.length), 1)[0]!;
+    const sx = seedKey % width;
+    const sy = (seedKey - sx) / width;
+    // Keep villages apart: no two within eight blocks.
+    let tooClose = false;
+    for (const key of villages) {
+      const x = key % width;
+      if (Math.abs(x - sx) + Math.abs((key - x) / width - sy) < 8) tooClose = true;
+    }
+    if (tooClose) continue;
+
+    const size = VILLAGES.minSize + nextInt(rng, VILLAGES.maxSize - VILLAGES.minSize + 1);
+    const cluster = [seedKey];
+    for (let i = 0; i < cluster.length && cluster.length < size; i++) {
+      const key = cluster[i]!;
+      const x = key % width;
+      const y = (key - x) / width;
+      for (const [dx, dy] of NEIGHBOURS) {
+        const nKey = (y + dy) * width + (x + dx);
+        if (cluster.length < size && suitable(x + dx, y + dy) && !cluster.includes(nKey))
+          cluster.push(nKey);
+      }
+    }
+    for (const key of cluster) villages.add(key);
+  }
+  return villages;
 }

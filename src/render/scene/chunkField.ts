@@ -76,6 +76,9 @@ function tinted(slot: number, v: number): number {
       return v < -0.35 ? Palette.ScrubDark : slot;
     case Palette.Rock:
       return v < -0.35 ? Palette.RockDark : slot;
+    case Palette.Sand:
+      // Village ground: trodden paths through grass.
+      return v > 0.1 ? Palette.GrassLight : v < -0.35 ? Palette.Dirt : slot;
     default:
       return slot;
   }
@@ -134,7 +137,7 @@ function topSlot(
     case 'reforesting':
       return Palette.Terrace;
     case 'cleared':
-      return ashy ? Palette.Ash : Palette.Laterite;
+      return ashy ? Palette.CharredGround : Palette.Laterite;
     case 'clearing':
     case 'kopdes':
       return Palette.Laterite;
@@ -253,7 +256,16 @@ export function buildChunkField(
         }
       }
 
-      topSlots[i] = topSlot(biome, phase, burning, ashy, flooded);
+      const slot = topSlot(biome, phase, burning, ashy, flooded);
+      // Burned ground is mottled char and ash, not one flat colour.
+      topSlots[i] =
+        slot === Palette.CharredGround || slot === Palette.Charcoal
+          ? hash01(gx, gz, 11) < 0.12
+            ? Palette.Ash
+            : hash01(gx, gz, 12) < 0.5
+              ? Palette.Charcoal
+              : Palette.CharredGround
+          : slot;
     }
   }
 
@@ -317,9 +329,19 @@ export function buildChunkArrays(
         if (!world.inBounds(bx, by)) continue;
         const id = world.toId(bx, by);
         const lite = diverged.get(id);
-        if (lite && lite.phase !== 'wild') continue;
-        const biome = lite?.biome ?? world.generated(bx, by).biome;
-        growBlock(builder, ctx, { id, bx, by, biome, burning: lite?.burning ?? false });
+        // Burned land keeps its snags through the ash window; other estate land is bare.
+        const burnt = (lite?.burning ?? false) || (lite?.phase === 'cleared' && lite.ashy);
+        if (lite && lite.phase !== 'wild' && !burnt) continue;
+        const generated = world.generated(bx, by);
+        growBlock(builder, ctx, {
+          id,
+          bx,
+          by,
+          biome: lite?.biome ?? generated.biome,
+          elevation: generated.elevation,
+          slope: generated.slope,
+          burnt,
+        });
       }
     }
   });

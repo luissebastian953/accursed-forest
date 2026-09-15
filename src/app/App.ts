@@ -23,6 +23,7 @@ import { KopdesMesh } from '@render/scene/Kopdes';
 import { HazardRing, RangeRing, SelectionRing } from '@render/scene/Overlays';
 import { Palms } from '@render/scene/Palms';
 import { Police } from '@render/scene/Police';
+import { Rain } from '@render/scene/Rain';
 import { Sky } from '@render/scene/Sky';
 import { digestEvents } from '@render/sync';
 import { BANKRUPTCY, ISPO } from '@sim/balance/endings';
@@ -199,7 +200,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   let picker = new Picker(rig.camera, chunks.group, sim.world);
   const police = new Police(material);
   const ceremony = new Ceremony(material);
-  scene.add(police.group, ceremony.group);
+  const rain = new Rain(material);
+  scene.add(police.group, ceremony.group, rain.mesh);
   const visible: GroundRect = { minX: 0, maxX: 0, minZ: 0, maxZ: 0 };
 
   // Edge vignette while anything burns (§8 panel 7).
@@ -939,6 +941,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     newsPanel.update(sim.state.society.news);
     fires.update(nowMs);
     sky.update(sim.state.weather, uniforms, atmosphere(), dt);
+    rain.update(dt, sim.state.weather.rain, visible, time.speed > 0);
 
     refreshHud();
     if (panel.selected !== null) panel.refresh();
@@ -1057,6 +1060,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     fires.dispose();
     police.dispose();
     ceremony.dispose();
+    rain.dispose();
     sky.dispose();
     rig.dispose();
     material.dispose();
