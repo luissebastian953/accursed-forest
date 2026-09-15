@@ -40,7 +40,8 @@ the authority meter) is next.
 | Column terrain via mesher worker + chunk streaming; ash and char tops          | done                     |
 | Instanced palms, Kopdes, flames, selection / range / hazard rings              | done                     |
 | Map camera, picking, keyboard, HUD (price, fire, plague), panels, shop         | done                     |
-| Weather event deck, landslides, forest cover, news, authority, endings         | **M1e–M1g**              |
+| Weather deck: haze, ash, flood, drought; forest cover and landslides           | done                     |
+| News feed, integrity, authority meter, endings                                 | **M1f–M1g**              |
 | Far-LOD heatmap tiles, GPU per-instance animation, forest box-trees            | deferred until they bite |
 
 Tests: 215 unit (Vitest) and 10 browser (Playwright, WebGL fallback) — the
