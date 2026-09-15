@@ -5,7 +5,10 @@
  *
  * Chunk payloads are lz-string compressed to UTF-16 — `localStorage` stores
  * UTF-16, so that is the encoding that actually shrinks the footprint. The
- * manifest stays plain JSON: it is small, and readable when debugging.
+ * manifest stays plain JSON by default, readable when debugging; year
+ * snapshots compress it too, because 25 copies of a late-game command log
+ * would not fit beside the save (a year-12 manifest is ~260k characters).
+ * Loading accepts either.
  *
  * Writes are not atomic across keys. A crash between a chunk write and the
  * manifest write leaves the old manifest pointing at the same chunk keys with
@@ -38,6 +41,8 @@ export interface SaveSlotOptions {
   migrations?: readonly Migration[];
   /** Injected so tests and the sim stay clock-free. */
   now?: () => string;
+  /** Compress the manifest as well as the chunks (year snapshots). */
+  compressManifest?: boolean;
 }
 
 export class SaveSlot {
@@ -46,6 +51,7 @@ export class SaveSlot {
   private readonly appVersion: string;
   private readonly migrations: readonly Migration[];
   private readonly now: () => string;
+  private readonly compressManifest: boolean;
 
   constructor(options: SaveSlotOptions) {
     this.storage = options.storage;
@@ -53,6 +59,7 @@ export class SaveSlot {
     this.appVersion = options.appVersion;
     this.migrations = options.migrations ?? MIGRATIONS;
     this.now = options.now ?? (() => new Date().toISOString());
+    this.compressManifest = options.compressManifest ?? false;
   }
 
   get manifestKey(): string {
@@ -83,7 +90,8 @@ export class SaveSlot {
       written.push(key);
     }
 
-    this.storage.set(this.manifestKey, JSON.stringify(manifest));
+    const json = JSON.stringify(manifest);
+    this.storage.set(this.manifestKey, this.compressManifest ? compressToUTF16(json) : json);
     written.push(this.manifestKey);
     return written;
   }
@@ -99,7 +107,11 @@ export class SaveSlot {
     const manifestText = this.storage.get(this.manifestKey);
     if (manifestText === null) throw new SaveError('missing', `no save in slot "${this.slot}"`);
 
-    const manifest = parseJson(manifestText, 'manifest');
+    const manifestJson = manifestText.startsWith('{')
+      ? manifestText
+      : decompressFromUTF16(manifestText);
+    if (!manifestJson) throw new SaveError('corrupt', 'manifest did not decompress');
+    const manifest = parseJson(manifestJson, 'manifest');
     const listed = manifest['chunks'];
     if (!Array.isArray(listed)) throw new SaveError('corrupt', 'manifest has no chunk list');
 

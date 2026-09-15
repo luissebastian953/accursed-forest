@@ -111,7 +111,12 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   // ── Year snapshots (§3.8 rewind, §7) ───────────────────────────────────
   function snapshotSlot(year: number): SaveSlot {
-    return new SaveSlot({ storage, slot: `year:${year}`, appVersion: __APP_VERSION__ });
+    return new SaveSlot({
+      storage,
+      slot: `year:${year}`,
+      appVersion: __APP_VERSION__,
+      compressManifest: true,
+    });
   }
 
   /** Years with a snapshot, newest first. */
@@ -217,6 +222,13 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       }, 2500);
     },
     onError: (error) => {
+      // The save outranks the rewind: make room by dropping the oldest snapshots.
+      const oldest = snapshotYears().slice(-3);
+      if (error instanceof QuotaError && oldest.length > 0) {
+        for (const year of oldest) snapshotSlot(year).delete();
+        queueMicrotask(() => autosave.saveNow());
+        return;
+      }
       saveError = error instanceof Error ? error.message : String(error);
       toasts.push(`Autosave failed: ${saveError}`, 'error');
     },

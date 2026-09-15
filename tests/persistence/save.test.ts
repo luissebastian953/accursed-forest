@@ -460,6 +460,27 @@ describe('migrations (§7)', () => {
     );
   });
 
+  it('a snapshot slot compresses its manifest and still loads', () => {
+    const sim = workedEstate();
+    const storage = memoryStorage();
+    const plain = slotFor(storage, 'slot0');
+    const snapshot = new SaveSlot({
+      storage,
+      slot: 'year:2',
+      appVersion: APP,
+      now: NOW,
+      compressManifest: true,
+    });
+    plain.save(sim.state);
+    snapshot.save(sim.state);
+
+    const plainText = storage.get(plain.manifestKey)!;
+    const packed = storage.get(snapshot.manifestKey)!;
+    expect(plainText.startsWith('{')).toBe(true);
+    expect(packed.length).toBeLessThan(plainText.length / 3);
+    expect(fingerprint(snapshot.load())).toBe(fingerprint(sim.state));
+  });
+
   it('an ended run survives the trip: ending, chronicle, year summaries', () => {
     const sim = workedEstate();
     for (let i = 0; i < 400; i++) sim.tick();
