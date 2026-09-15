@@ -12,6 +12,7 @@ import { DirtyChunks, SaveSlot } from '@persistence/chunks';
 import { KEY_PREFIX, SaveError } from '@persistence/schema';
 import { QuotaError, localStorageAdapter } from '@persistence/storage';
 import { MapRig, type GroundRect } from '@render/camera/MapRig';
+import { Glow } from '@render/Glow';
 import { createPaletteTexture } from '@render/materials/palette';
 import { createPaletteMaterial } from '@render/materials/paletteMaterial';
 import { Picker } from '@render/picking';
@@ -201,6 +202,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   const police = new Police(material);
   const ceremony = new Ceremony(material);
   const rain = new Rain(material);
+  const glow = new Glow(handle.renderer, scene, rig.camera);
   scene.add(police.group, ceremony.group, rain.mesh);
   const visible: GroundRect = { minX: 0, maxX: 0, minZ: 0, maxZ: 0 };
 
@@ -946,7 +948,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     refreshHud();
     if (panel.selected !== null) panel.refresh();
     if (shop.isOpen) shop.refresh();
-    handle.render(scene, rig.camera);
+    // Bloom only while something glows: it costs a few full-screen passes.
+    if (fires.burning) glow.render();
+    else handle.render(scene, rig.camera);
   }
 
   const loop = new GameLoop({
@@ -1061,6 +1065,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     police.dispose();
     ceremony.dispose();
     rain.dispose();
+    glow.dispose();
     sky.dispose();
     rig.dispose();
     material.dispose();
