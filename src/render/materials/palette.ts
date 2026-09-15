@@ -32,6 +32,9 @@ const COLOURS: Partial<Record<number, [Hex, Hex]>> = {
   [Palette.PalmFrondSenile]: [0x4a6b2a, 0x7a7c3c],
   [Palette.PalmTrunk]: [0x5a4632, 0x6f5a41],
   [Palette.PalmBunch]: [0xd4562a, 0xe06a2f],
+  [Palette.GrassLight]: [0x93ad4a, 0xb9a954],
+  [Palette.ForestLight]: [0x2f6a2c, 0x4a7632],
+  [Palette.ScrubDark]: [0xa3945f, 0xb9a46e],
 
   [Palette.Grass]: [0x7f9a3c, 0xa89a46],
   [Palette.Forest]: [0x245c26, 0x3d6b2c],
@@ -39,6 +42,8 @@ const COLOURS: Partial<Record<number, [Hex, Hex]>> = {
   [Palette.Terrace]: [0x6b8f3a, 0x8d9243],
   [Palette.Scrub]: [0xb8a874, 0xcdb883],
   [Palette.Peat]: [0x2b2118, 0x3a2d20],
+  [Palette.Bank]: [0x8a7a55, 0xa8946a],
+  [Palette.Reed]: [0x6f9a3a, 0x9da34a],
 
   [Palette.Laterite]: [0x9c4a24, 0xc2612e],
   [Palette.Dirt]: [0x6b4a30, 0x8a6340],
@@ -51,6 +56,12 @@ const COLOURS: Partial<Record<number, [Hex, Hex]>> = {
 
   [Palette.Water]: [0x2f6f9c, 0x3d7ea8],
   [Palette.WaterShallow]: [0x4a95b5, 0x59a3bf],
+  [Palette.RockDark]: [0x5f5c56, 0x74716a],
+  [Palette.Bush]: [0x557a2c, 0x7d8a3a],
+  [Palette.Canopy]: [0x2d6e2a, 0x467a30],
+  [Palette.CanopyLight]: [0x4a8a34, 0x6a9340],
+  [Palette.CanopyDark]: [0x1c4d22, 0x2f5a27],
+  [Palette.Bark]: [0x4a3a2a, 0x5c4a36],
 
   [Palette.Debris]: [0x6a5540, 0x82694e],
   [Palette.Stump]: [0x4b3a29, 0x5d4a35],

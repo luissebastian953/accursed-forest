@@ -34,6 +34,12 @@ export interface RiverField {
   /** Blocks from the nearest water cell; `Infinity` beyond the search range. */
   distance: Float32Array;
   count: number;
+  /**
+   * Each river's cells, source first, ending on the coast. The simulation
+   * only needs `water`; the renderer draws a smoothed, meandering channel
+   * along these instead of the block staircase.
+   */
+  paths: number[][];
 }
 
 const NEIGHBOURS: readonly (readonly [number, number])[] = [
@@ -53,6 +59,7 @@ export function traceRivers(
   const rng: RngState = forkRng(seed, NOISE_TAG.rivers);
   const count = RIVERS.min + nextInt(rng, RIVERS.max - RIVERS.min + 1);
   const water = new Set<number>();
+  const paths: number[][] = [];
 
   // Ridge candidates: the highest cells of the map's interior, sampled
   // coarsely so sources spread out. Sources near the border make stub rivers
@@ -80,12 +87,12 @@ export function traceRivers(
   for (let i = 0; i < count && sources.length > 0; i++) {
     const [source] = sources.splice(nextInt(rng, sources.length), 1);
     if (!source) continue;
-    for (const key of leastCostPath(source.x, source.y, width, height, coast, enterCost)) {
-      water.add(key);
-    }
+    const path = leastCostPath(source.x, source.y, width, height, coast, enterCost);
+    for (const key of path) water.add(key);
+    paths.push(path);
   }
 
-  return { water, distance: distanceField(water, width, height, maxDistance), count };
+  return { water, distance: distanceField(water, width, height, maxDistance), count, paths };
 }
 
 type Edge = 'north' | 'south' | 'west' | 'east';

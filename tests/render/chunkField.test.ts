@@ -103,20 +103,45 @@ describe('chunk field (§6.3, §6.7)', () => {
     expect(slotAt('wild', true)).toBe(Palette.Charcoal);
   });
 
-  it('water sits below the land and river tops are painted as water', () => {
+  it('water follows the smoothed channel: every river block holds water, and none strays far', () => {
     const world = createWorld(42);
-    let checked = 0;
+    const blocks = new Map<number, { water: number }>();
+    const seen = new Set<string>();
     for (const key of world.rivers.water) {
-      const [bx, by] = world.toXY(key);
       const [cx, cy] = chunkOfBlock(world, key);
+      if (seen.has(`${cx}:${cy}`)) continue;
+      seen.add(`${cx}:${cy}`);
       const f = buildChunkField(world, cx, cy, EMPTY);
-      const lx = (bx - cx * WORLD.chunkSide) * WORLD.blockSide + f.inset! + 6;
-      const lz = (by - cy * WORLD.chunkSide) * WORLD.blockSide + f.inset! + 6;
-      expect(f.topSlots[lz * f.size + lx]).toBe(Palette.Water);
-      checked += 1;
-      if (checked >= 5) break;
+      for (let z = f.inset!; z < f.size - f.inset!; z++) {
+        for (let x = f.inset!; x < f.size - f.inset!; x++) {
+          if (f.topSlots[z * f.size + x] !== Palette.Water) continue;
+          const bx = Math.floor((f.originX! + x - f.inset!) / WORLD.blockSide);
+          const by = Math.floor((f.originZ! + z - f.inset!) / WORLD.blockSide);
+          const id = world.toId(bx, by);
+          expect(world.rivers.distance[id]).toBeLessThanOrEqual(2);
+          const entry = blocks.get(id) ?? { water: 0 };
+          entry.water += 1;
+          blocks.set(id, entry);
+        }
+      }
+      if (seen.size >= 6) break;
     }
-    expect(checked).toBeGreaterThan(0);
+    let river = 0;
+    let wet = 0;
+    for (const key of world.rivers.water) {
+      const [cx, cy] = chunkOfBlock(world, key);
+      if (!seen.has(`${cx}:${cy}`)) continue;
+      river += 1;
+      if ((blocks.get(key)?.water ?? 0) > 0) wet += 1;
+    }
+    expect(river).toBeGreaterThan(0);
+    expect(wet / river).toBeGreaterThan(0.9);
+  });
+
+  it('wild ground is not one flat colour per block', () => {
+    const world = createWorld(42);
+    const f = buildChunkField(world, 6, 6, EMPTY);
+    expect(new Set(f.topSlots).size).toBeGreaterThan(3);
   });
 
   it('elevation steps are visible: a level-2 block is a full step above level 1', () => {
@@ -136,8 +161,9 @@ describe('chunk mesh (§6.7 budgets)', () => {
     ] as const) {
       const arrays = buildChunkArrays(world, cx, cy, EMPTY);
       expect(arrays.triangles).toBeGreaterThan(CHUNK_COLUMNS * CHUNK_COLUMNS * 2 - 1); // at least every top
-      // §6.7: ~6–10k triangles per culled 48×48 chunk. Full boxes would be 27k.
-      expect(arrays.triangles).toBeLessThan(14_000);
+      // §6.7: ~6–10k triangles per culled 48×48 chunk, plus the trees and
+      // rocks merged into it (a chunk of protected forest is the worst case).
+      expect(arrays.triangles).toBeLessThan(16_000);
       expect(arrays.positions.length).toBe(arrays.triangles * 9);
       expect(arrays.normals.length).toBe(arrays.triangles * 9);
       expect(arrays.paletteU.length).toBe(arrays.triangles * 3);

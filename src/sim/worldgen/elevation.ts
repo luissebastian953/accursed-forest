@@ -23,6 +23,10 @@ export const NOISE_TAG = {
   rivers: 5,
   features: 6,
   riverWobble: 7,
+  // Render-only streams: the look of the land, never the sim's terrain.
+  riverMeander: 8,
+  groundTint: 9,
+  groundWarp: 10,
 } as const;
 
 export function noiseFor(seed: number, tag: number): (x: number, y: number) => number {

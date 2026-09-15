@@ -46,7 +46,14 @@ function heightAt(field: ColumnField, x: number, z: number): number {
   return field.heights[z * field.size + x]!;
 }
 
-export function buildColumnArrays(field: ColumnField): MeshArrays {
+/**
+ * Mesh a column field. `decorate` may add more boxes to the same builder —
+ * the chunk mesher grows its trees and rocks there, so they ship as one mesh.
+ */
+export function buildColumnArrays(
+  field: ColumnField,
+  decorate?: (builder: BoxBuilder) => void,
+): MeshArrays {
   const b = new BoxBuilder();
   const inset = field.inset ?? 0;
   const ox = (field.originX ?? 0) - inset;
@@ -94,6 +101,7 @@ export function buildColumnArrays(field: ColumnField): MeshArrays {
     }
   }
 
+  decorate?.(b);
   return b.toArrays();
 }
 

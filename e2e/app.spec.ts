@@ -181,7 +181,9 @@ test.describe('Sawit Simulator', () => {
     expect(errors).toEqual([]);
   });
 
-  test('keyboard: space pauses, K opens the shop, escape closes things', async ({ page }) => {
+  test('keyboard: space pauses, K opens the shop, H shows controls, escape closes things', async ({
+    page,
+  }) => {
     await boot(page);
     await page.keyboard.press(' ');
     const paused = await tid(page, 'hud-date').textContent();
@@ -197,6 +199,17 @@ test.describe('Sawit Simulator', () => {
     await selectCentreBlock(page);
     await page.keyboard.press('Escape');
     await expect(tid(page, 'block-panel')).toHaveCount(0);
+
+    // Controls: H and the top bar's ? button both toggle the popover.
+    await page.keyboard.press('h');
+    await expect(tid(page, 'controls-help')).toBeVisible();
+    await expect(tid(page, 'controls-help')).toContainText('Pan the map');
+    await page.keyboard.press('Escape');
+    await expect(tid(page, 'controls-help')).toHaveCount(0);
+    await tid(page, 'help-button').click();
+    await expect(tid(page, 'controls-help')).toBeVisible();
+    await tid(page, 'controls-help-close').click();
+    await expect(tid(page, 'controls-help')).toHaveCount(0);
   });
 
   test('burning: a controlled burn locks the clock, a second one tips the wildfire', async ({

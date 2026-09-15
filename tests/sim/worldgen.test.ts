@@ -166,6 +166,42 @@ describe('world generation (§4.6)', () => {
     }
   });
 
+  it('every start has standing forest in or around it', () => {
+    for (let seed = 1; seed <= 20; seed++) {
+      const world = createWorld(seed);
+      const { x: sx, y: sy, size } = world.start;
+      const r = START_SITE.forestRing;
+      let forest = 0;
+      let area = 0;
+      for (let y = sy - r; y < sy + size + r; y++) {
+        for (let x = sx - r; x < sx + size + r; x++) {
+          if (!world.inBounds(x, y)) continue;
+          area += 1;
+          const biome = world.generated(x, y).biome;
+          if (biome === 'forest' || biome === 'protected') forest += 1;
+        }
+      }
+      expect(forest / area, `seed ${seed}`).toBeGreaterThanOrEqual(0.25);
+    }
+  });
+
+  it('river paths are the water, cell to neighbouring cell, ending on the map edge', () => {
+    const world = createWorld(42);
+    const { paths, water } = world.rivers;
+    expect(paths.length).toBe(world.rivers.count);
+    const covered = new Set(paths.flat());
+    expect([...water].every((key) => covered.has(key))).toBe(true);
+    for (const path of paths) {
+      for (let i = 1; i < path.length; i++) {
+        const [ax, ay] = world.toXY(path[i - 1]!);
+        const [bx, by] = world.toXY(path[i]!);
+        expect(Math.abs(ax - bx) + Math.abs(ay - by)).toBe(1);
+      }
+      const [ex, ey] = world.toXY(path.at(-1)!);
+      expect(ex === 0 || ey === 0 || ex === world.width - 1 || ey === world.height - 1).toBe(true);
+    }
+  });
+
   it('a fresh Block from the world is wild, unowned and carries the terrain', () => {
     const world = createWorld(7);
     const block = world.block(10, 12);

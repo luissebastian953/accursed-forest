@@ -100,7 +100,7 @@ const ALLOWED: ReadonlySet<Biome> = new Set(START_SITE.allowed);
 /**
  * Search outward from the map centre for somewhere to put the estate: a core
  * that is plantable, off the slopes, clear of protected forest and water, with
- * a river within reach. Always returns a site — if nothing scores well the best
+ * a river within reach and standing forest in or around it. Always returns a site — if nothing scores well the best
  * candidate found wins, because a world with nowhere to start is not playable.
  */
 export function findStartSite(
@@ -181,6 +181,20 @@ function scoreSite(
   const share = allowed / cells;
   if (share < START_SITE.minAllowedShare) return share - 10;
 
+  let forest = 0;
+  let area = 0;
+  const r = START_SITE.forestRing;
+  for (let y = originY - r; y < originY + size + r; y++) {
+    for (let x = originX - r; x < originX + size + r; x++) {
+      if (x < 0 || y < 0 || x >= input.width || y >= input.height) continue;
+      area += 1;
+      const biome = biomeAt(x, y);
+      if (biome === 'forest' || isProtected(x, y)) forest += 1;
+    }
+  }
+  const forestBonus =
+    Math.min(1, forest / area / START_SITE.forestTarget) * START_SITE.forestWeight;
+
   const riverBonus = nearestRiver <= START_SITE.riverWithin ? 3 : 0;
-  return share * 10 + riverBonus - (blocked / cells) * 8;
+  return share * 10 + riverBonus + forestBonus - (blocked / cells) * 8;
 }

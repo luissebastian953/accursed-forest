@@ -86,4 +86,13 @@ export const START_SITE = {
   allowed: ['grassfield', 'forest'] as const,
   /** Minimum share of the starting square that must be allowed biomes. */
   minAllowedShare: 0.7,
+  /**
+   * Standing forest in and around the square (this many blocks out): the
+   * choice between chopping and burning needs forest to choose about, and a
+   * start on bare grassland looked like nothing was there.
+   */
+  forestRing: 3,
+  /** Forest share of that area that earns the full bonus. */
+  forestTarget: 0.3,
+  forestWeight: 5,
 } as const;

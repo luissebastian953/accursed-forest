@@ -15,6 +15,9 @@ export const Palette = {
   PalmFrondSenile: 2,
   PalmTrunk: 3,
   PalmBunch: 4,
+  GrassLight: 5,
+  ForestLight: 6,
+  ScrubDark: 7,
 
   Grass: 8,
   Forest: 9,
@@ -22,6 +25,8 @@ export const Palette = {
   Terrace: 11,
   Scrub: 12,
   Peat: 13,
+  Bank: 14,
+  Reed: 15,
 
   Laterite: 16,
   Dirt: 17,
@@ -34,6 +39,12 @@ export const Palette = {
 
   Water: 24,
   WaterShallow: 25,
+  RockDark: 26,
+  Bush: 27,
+  Canopy: 28,
+  CanopyLight: 29,
+  CanopyDark: 30,
+  Bark: 31,
 
   Debris: 32,
   Stump: 33,

@@ -55,6 +55,7 @@ export interface HudHandlers {
   setSpeed(speed: Speed): void;
   openMenu(): void;
   openCertificate(): void;
+  openHelp(): void;
 }
 
 const REGIME_LABEL: Record<ClimateRegime, string> = {
@@ -261,6 +262,16 @@ export class Hud {
                   : nothing
             }
           </div>
+
+          <button
+            class="rounded bg-white/10 px-2.5 py-1 font-medium hover:bg-white/20"
+            title="Controls (H)"
+            aria-label="Controls"
+            data-testid="help-button"
+            @click=${() => this.handlers.openHelp()}
+          >
+            ?
+          </button>
 
           <button
             class="rounded bg-white/10 px-2.5 py-1 font-medium hover:bg-white/20"

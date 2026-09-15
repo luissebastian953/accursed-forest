@@ -48,6 +48,7 @@ import type { BlockId, Command } from '@sim/types';
 import { AuthorityCards, type CardKind } from '@ui/AuthorityCards';
 import { BlockPanel } from '@ui/BlockPanel';
 import { CertificatePanel, YearEndCard } from '@ui/Certificate';
+import { ControlsHelp } from '@ui/ControlsHelp';
 import { Epilogue } from '@ui/Epilogue';
 import { formatKg, formatRp } from '@ui/format';
 import { Hud, type EventChip } from '@ui/Hud';
@@ -241,6 +242,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       menu.show();
       refreshMenu();
     },
+    openHelp: () => help.toggle(),
     openCertificate: () => {
       if (certificate.isOpen) certificate.hide();
       else certificate.show(ispoConditions(sim.state, sim.world));
@@ -318,6 +320,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   });
 
   const certificate = new CertificatePanel(root, { close: () => certificate.hide() });
+  const help = new ControlsHelp(root, { close: () => help.hide() });
   const yearEnd = new YearEndCard(root);
 
   const epilogue = new Epilogue(root, {
@@ -969,6 +972,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       if (newsPanel.isOpen) newsPanel.hide();
       else openNews();
     },
+    toggleHelp: () => help.toggle(),
     openShop: () => {
       if (shop.isOpen) closeShop();
       else openShop();
@@ -977,6 +981,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       if (epilogue.isOpen) return;
       if (cards.showing) cards.hide();
       else if (certificate.isOpen) certificate.hide();
+      else if (help.isOpen) help.hide();
       else if (newsPanel.isOpen) newsPanel.hide();
       else if (menu.isOpen) menu.hide();
       else if (shop.isOpen) closeShop();
@@ -1018,7 +1023,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   loop.start();
 
   if (!slot.exists() && !params.has('seed')) {
-    toasts.push(`New estate ${sim.world.estateCode}. Click a block to begin.`);
+    toasts.push(
+      `New estate ${sim.world.estateCode}. Click a block to begin — press H or ? for controls.`,
+    );
   }
 
   return () => {
@@ -1038,6 +1045,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     cards.dispose();
     epilogue.dispose();
     certificate.dispose();
+    help.dispose();
     yearEnd.dispose();
     vignette.remove();
     chunks.dispose();
