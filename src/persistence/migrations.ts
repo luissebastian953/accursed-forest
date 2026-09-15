@@ -4,6 +4,9 @@
  * than this build knows is refused with a clear error, never half-read.
  */
 
+import { encodeTypedArray } from '@shared/base64';
+import { SLOTS_PER_BLOCK } from '@sim/balance/world';
+
 import { CURRENT_SCHEMA, SaveError } from './schema.ts';
 
 export interface RawSave {
@@ -29,6 +32,24 @@ export const MIGRATIONS: readonly Migration[] = [
       economy['tbsPriceHistory'] ??= [economy['tbsPrice']];
       economy['tbsPending'] ??= 0;
       economy['soldKgTotal'] ??= 0;
+    },
+  },
+  {
+    // M1d: pests. A v2 palm has never been infected and has no trenches.
+    from: 2,
+    up(save) {
+      const cleanSince = encodeTypedArray(new Int32Array(SLOTS_PER_BLOCK).fill(-1));
+      const noTrench = encodeTypedArray(new Uint8Array(SLOTS_PER_BLOCK));
+      for (const chunk of save.chunks.values()) {
+        const palms = chunk['palms'];
+        if (!Array.isArray(palms)) continue;
+        for (const entry of palms) {
+          if (!Array.isArray(entry) || entry.length < 2) continue;
+          const arrays = entry[1] as Record<string, unknown>;
+          arrays['ganodermaSince'] ??= cleanSince;
+          arrays['trenched'] ??= noTrench;
+        }
+      }
     },
   },
 ];

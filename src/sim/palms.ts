@@ -1,13 +1,17 @@
 /**
- * Per-block palm storage and the stage function (§3.6.1, §4.4).
+ * Per-block palm storage, the stage function and the planting lattice
+ * (§3.4, §3.6.1, §4.4).
  *
  * Palms are struct-of-arrays over the block's slots. Growth is accumulated
  * growth-days; the stage is a threshold on that, except senescence, which is
  * calendar age — palms get tall whether or not they grew well.
+ *
+ * Slots form a 12×12 triangular lattice: odd rows are offset half a slot, so
+ * every palm has six neighbours. Ganoderma spreads root to root along it.
  */
 
 import { FOREST_GROWTH, GROWTH } from './balance/growth.ts';
-import { SLOTS_PER_BLOCK } from './balance/world.ts';
+import { SLOTS_PER_BLOCK, WORLD } from './balance/world.ts';
 import type { GrowthStage, PalmArrays, Species, Tick } from './types.ts';
 
 export function createPalmArrays(slots: number = SLOTS_PER_BLOCK): PalmArrays {
@@ -17,7 +21,29 @@ export function createPalmArrays(slots: number = SLOTS_PER_BLOCK): PalmArrays {
     health: new Uint8Array(slots),
     ganoderma: new Uint8Array(slots),
     yieldAcc: new Float32Array(slots),
+    ganodermaSince: new Int32Array(slots).fill(-1),
+    trenched: new Uint8Array(slots),
   };
+}
+
+/** Put a fresh palm in one slot. Trenches survive replanting. */
+export function plantSlot(palms: PalmArrays, slot: number, tick: Tick): void {
+  palms.plantedAt[slot] = tick;
+  palms.growth[slot] = 0;
+  palms.health[slot] = 255;
+  palms.ganoderma[slot] = 0;
+  palms.ganodermaSince[slot] = -1;
+  palms.yieldAcc[slot] = 0;
+}
+
+/** Empty a slot, leaving the ground (and any trench) as it was. */
+export function clearSlot(palms: PalmArrays, slot: number): void {
+  palms.plantedAt[slot] = -1;
+  palms.growth[slot] = 0;
+  palms.health[slot] = 0;
+  palms.ganoderma[slot] = 0;
+  palms.ganodermaSince[slot] = -1;
+  palms.yieldAcc[slot] = 0;
 }
 
 /** Plant the first `count` empty slots. Returns how many were planted. */
@@ -25,11 +51,7 @@ export function plantSlots(palms: PalmArrays, count: number, tick: Tick): number
   let planted = 0;
   for (let i = 0; i < palms.plantedAt.length && planted < count; i++) {
     if (palms.plantedAt[i] !== -1) continue;
-    palms.plantedAt[i] = tick;
-    palms.growth[i] = 0;
-    palms.health[i] = 255;
-    palms.ganoderma[i] = 0;
-    palms.yieldAcc[i] = 0;
+    plantSlot(palms, i, tick);
     planted += 1;
   }
   return planted;
@@ -88,4 +110,56 @@ export function slotStage(
 /** Palms that bear fruit. */
 export function isBearing(stage: GrowthStage): boolean {
   return stage === 'mature' || stage === 'senile';
+}
+
+/** Palms the beetle bores: the young ones (§2). */
+export function isYoung(stage: GrowthStage): boolean {
+  return stage === 'seedling' || stage === 'immature';
+}
+
+// ── Lattice ───────────────────────────────────────────────────────────────
+
+const SIDE = WORLD.blockSide;
+
+export function slotRow(slot: number): number {
+  return Math.floor(slot / SIDE);
+}
+
+export function slotCol(slot: number): number {
+  return slot % SIDE;
+}
+
+export function slotIndex(row: number, col: number): number {
+  return row * SIDE + col;
+}
+
+/**
+ * The up-to-six neighbours of a slot on the offset triangular lattice, written
+ * into `out`; returns how many. Odd rows are shifted right by half a slot.
+ */
+export function slotNeighbours(slot: number, out: number[]): number {
+  const row = slotRow(slot);
+  const col = slotCol(slot);
+  const odd = row % 2 === 1;
+  let n = 0;
+
+  const push = (r: number, c: number): void => {
+    if (r < 0 || c < 0 || r >= SIDE || c >= SIDE) return;
+    out[n++] = slotIndex(r, c);
+  };
+
+  push(row, col - 1);
+  push(row, col + 1);
+  if (odd) {
+    push(row - 1, col);
+    push(row - 1, col + 1);
+    push(row + 1, col);
+    push(row + 1, col + 1);
+  } else {
+    push(row - 1, col - 1);
+    push(row - 1, col);
+    push(row + 1, col - 1);
+    push(row + 1, col);
+  }
+  return n;
 }

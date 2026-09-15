@@ -1,3 +1,4 @@
+import { compressToUTF16, decompressFromUTF16 } from 'lz-string';
 import { describe, expect, it } from 'vitest';
 
 import { Autosave } from '@persistence/autosave.ts';
@@ -72,6 +73,21 @@ function workedEstate(seed = 42): Sim {
 
   for (let i = 0; i < 350; i++) sim.tick();
   return sim;
+}
+
+/** Rewrite every stored chunk without the schema-3 palm arrays. */
+function stripPalmFields(storage: ReturnType<typeof memoryStorage>, chunkKeys: string[]): void {
+  for (const chunkKey of chunkKeys) {
+    const storageKey = `${KEY_PREFIX}:save:slot0:c:${chunkKey}`;
+    const chunk = JSON.parse(decompressFromUTF16(storage.get(storageKey)!)!) as {
+      palms: [number, Record<string, unknown>][];
+    };
+    for (const [, arrays] of chunk.palms) {
+      delete arrays['ganodermaSince'];
+      delete arrays['trenched'];
+    }
+    storage.map.set(storageKey, compressToUTF16(JSON.stringify(chunk)));
+  }
 }
 
 function fingerprint(state: SimState): string {
@@ -335,31 +351,56 @@ describe('migrations (§7)', () => {
     expect(ran).toBe(false);
   });
 
-  it('a save slot applies its migrations on load: a v1 save opens in a v2 build', () => {
+  it('a save slot applies its migrations on load: a v1 save opens in the current build', () => {
     const sim = workedEstate();
     const storage = memoryStorage();
     slotFor(storage).save(sim.state);
 
-    // Rewind the manifest to what M1a wrote: no sales fields, schema 1.
+    // Rewind to what M1a wrote: no sales fields, no pest arrays, schema 1.
     const key = `${KEY_PREFIX}:save:slot0`;
     const manifest = JSON.parse(storage.get(key)!) as {
       schema: number;
       head: { economy: Record<string, unknown> };
+      chunks: string[];
     };
     manifest.schema = 1;
     delete manifest.head.economy['tbsPriceHistory'];
     delete manifest.head.economy['tbsPending'];
     delete manifest.head.economy['soldKgTotal'];
     storage.map.set(key, JSON.stringify(manifest));
+    stripPalmFields(storage, manifest.chunks);
 
     const loaded = slotFor(storage).load();
     expect(loaded.economy.tbsPending).toBe(0);
     expect(loaded.economy.soldKgTotal).toBe(0);
     expect(loaded.economy.tbsPriceHistory).toEqual([loaded.economy.tbsPrice]);
+    for (const palms of loaded.palms.values()) {
+      expect(palms.ganodermaSince.length).toBe(SLOTS_PER_BLOCK);
+      expect(palms.ganodermaSince.every((v) => v === -1)).toBe(true);
+      expect(palms.trenched.every((v) => v === 0)).toBe(true);
+    }
     // Everything the v1 save did carry survives untouched.
     expect(loaded.economy.cash).toBe(sim.state.economy.cash);
     expect(loaded.tick).toBe(sim.state.tick);
     expect(loaded.palms.size).toBe(sim.state.palms.size);
+  });
+
+  it('a v2 save (M1b/M1c) opens in the current build with clean palms', () => {
+    const sim = workedEstate();
+    const storage = memoryStorage();
+    slotFor(storage).save(sim.state);
+    const key = `${KEY_PREFIX}:save:slot0`;
+    const manifest = JSON.parse(storage.get(key)!) as { schema: number; chunks: string[] };
+    manifest.schema = 2;
+    storage.map.set(key, JSON.stringify(manifest));
+    stripPalmFields(storage, manifest.chunks);
+
+    const loaded = slotFor(storage).load();
+    expect(loaded.palms.size).toBe(sim.state.palms.size);
+    for (const [id, palms] of loaded.palms) {
+      expect(Array.from(palms.growth)).toEqual(Array.from(sim.state.palms.get(id)!.growth));
+      expect(palms.ganodermaSince.every((v) => v === -1)).toBe(true);
+    }
   });
 
   it('the real migration list covers every schema from 1 to current', () => {

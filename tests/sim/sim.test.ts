@@ -262,6 +262,12 @@ describe('commands (§4.2)', () => {
       { type: 'PlaceKopdes', block },
       { type: 'UpgradeKopdes' },
       { type: 'BuyItem', item: 'bibit', quantity: 1 },
+      { type: 'SetTrap', block },
+      { type: 'ApplyMetarhizium', block },
+      { type: 'ApplyTrichoderma', block },
+      { type: 'RemovePalm', block, slot: 0 },
+      { type: 'TrenchPalm', block, slot: 0 },
+      { type: 'ReplantBlock', block },
     ];
     for (const command of all) {
       const result = sim.validate(command);
@@ -403,6 +409,9 @@ describe('determinism (§4.3)', () => {
           'fertilizer' as const,
           'forestSapling' as const,
           'sanitationCrew' as const,
+          'pheromoneTrap' as const,
+          'metarhizium' as const,
+          'trichoderma' as const,
         ),
         quantity: fc.integer({ min: 1, max: 300 }),
       }),
@@ -414,6 +423,26 @@ describe('determinism (§4.3)', () => {
       fc.record({ type: fc.constant('SanitizeBlock' as const), block: fc.constantFrom(...blocks) }),
       fc.record({ type: fc.constant('IrrigateBlock' as const), block: fc.constantFrom(...blocks) }),
       fc.record({ type: fc.constant('DrainBlock' as const), block: fc.constantFrom(...blocks) }),
+      fc.record({ type: fc.constant('SetTrap' as const), block: fc.constantFrom(...blocks) }),
+      fc.record({
+        type: fc.constant('ApplyMetarhizium' as const),
+        block: fc.constantFrom(...blocks),
+      }),
+      fc.record({
+        type: fc.constant('ApplyTrichoderma' as const),
+        block: fc.constantFrom(...blocks),
+      }),
+      fc.record({
+        type: fc.constant('RemovePalm' as const),
+        block: fc.constantFrom(...blocks),
+        slot: fc.integer({ min: 0, max: 150 }),
+      }),
+      fc.record({
+        type: fc.constant('TrenchPalm' as const),
+        block: fc.constantFrom(...blocks),
+        slot: fc.integer({ min: 0, max: 150 }),
+      }),
+      fc.record({ type: fc.constant('ReplantBlock' as const), block: fc.constantFrom(...blocks) }),
     );
 
   function fingerprint(sim: Sim): string {

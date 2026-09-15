@@ -19,6 +19,7 @@ import {
   MOISTURE_CURVE,
   YIELD_CURVE,
 } from '../balance/growth.ts';
+import { GANODERMA } from '../balance/pests.ts';
 import { ageInYears, isBearing, stageOf } from '../palms.ts';
 import type { SimContext } from '../state.ts';
 import type { Block, SimState } from '../types.ts';
@@ -72,7 +73,13 @@ export function growth(ctx: SimContext): void {
       const before = stageOf(species, palms.growth[slot]!, ageDays, health, ganoderma);
       if (before === 'dead') continue;
 
-      const stress = clamp(health / 255, GROWTH_FACTORS.stress.min, GROWTH_FACTORS.stress.max);
+      // Symptomatic Ganoderma caps stress (§3.6.1); beetle damage shows in health.
+      const sickCap = ganoderma === 2 ? GANODERMA.stressCap : 1;
+      const stress = clamp(
+        Math.min(health / 255, sickCap),
+        GROWTH_FACTORS.stress.min,
+        GROWTH_FACTORS.stress.max,
+      );
       const g = blockG * stress;
       palms.growth[slot] = palms.growth[slot]! + g;
 

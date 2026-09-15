@@ -38,8 +38,9 @@ export const KEY_PREFIX = 'accursed-forest';
  * 2 — M1b: economy gains tbsPriceHistory, tbsPending, soldKgTotal.
  *     M1c added command variants (burn, sanitize, irrigate, drain) without a
  *     bump: a v2 save's command log only ever holds commands that existed.
+ * 3 — M1d: palm arrays gain ganodermaSince and trenched.
  */
-export const CURRENT_SCHEMA = 2;
+export const CURRENT_SCHEMA = 3;
 
 export type SaveErrorCode = 'missing' | 'corrupt' | 'newerSchema' | 'quota';
 
@@ -122,6 +123,8 @@ const PalmArraysSchema = z.object({
   health: Base64,
   ganoderma: Base64,
   yieldAcc: Base64,
+  ganodermaSince: Base64,
+  trenched: Base64,
 });
 
 export type SerializedPalmArrays = z.infer<typeof PalmArraysSchema>;
@@ -217,6 +220,12 @@ const CommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('PlaceKopdes'), block: Id }),
   z.object({ type: z.literal('UpgradeKopdes') }),
   z.object({ type: z.literal('BuyItem'), item: ItemIdSchema, quantity: z.int().positive() }),
+  z.object({ type: z.literal('SetTrap'), block: Id }),
+  z.object({ type: z.literal('ApplyMetarhizium'), block: Id }),
+  z.object({ type: z.literal('ApplyTrichoderma'), block: Id }),
+  z.object({ type: z.literal('RemovePalm'), block: Id, slot: z.int().nonnegative() }),
+  z.object({ type: z.literal('TrenchPalm'), block: Id, slot: z.int().nonnegative() }),
+  z.object({ type: z.literal('ReplantBlock'), block: Id }),
 ]);
 
 export type AssertCommandSchemaMatches = [Command] extends [z.infer<typeof CommandSchema>]
@@ -295,6 +304,8 @@ export function encodePalms(palms: PalmArrays): SerializedPalmArrays {
     health: encodeTypedArray(palms.health),
     ganoderma: encodeTypedArray(palms.ganoderma),
     yieldAcc: encodeTypedArray(palms.yieldAcc),
+    ganodermaSince: encodeTypedArray(palms.ganodermaSince),
+    trenched: encodeTypedArray(palms.trenched),
   };
 }
 
@@ -371,6 +382,8 @@ function decodePalms(block: BlockId, data: SerializedPalmArrays): PalmArrays {
     health: decodeUint8(data.health),
     ganoderma: decodeUint8(data.ganoderma),
     yieldAcc: decodeFloat32(data.yieldAcc),
+    ganodermaSince: decodeInt32(data.ganodermaSince),
+    trenched: decodeUint8(data.trenched),
   };
   for (const [name, array] of Object.entries(palms)) {
     if (array.length !== SLOTS_PER_BLOCK) {

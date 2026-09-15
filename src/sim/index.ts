@@ -21,6 +21,7 @@ import { createInitialState, type SimContext } from './state.ts';
 import { economy } from './systems/economy.ts';
 import { growth } from './systems/growth.ts';
 import { harvest } from './systems/harvest.ts';
+import { pest } from './systems/pest.ts';
 import { terrain } from './systems/terrain.ts';
 import { weather } from './systems/weather.ts';
 import { worldEvents } from './systems/worldEvents.ts';
@@ -94,7 +95,7 @@ class SimImpl implements Sim {
     worldEvents(this.ctx);
     terrain(this.ctx);
     growth(this.ctx);
-    // pest (M1d)
+    pest(this.ctx);
     harvest(this.ctx);
     economy(this.ctx);
     // endings — yearly (M1g)

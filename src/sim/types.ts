@@ -97,6 +97,10 @@ export interface PalmArrays {
   ganoderma: Uint8Array;
   /** Kilograms accumulated since the last harvest. */
   yieldAcc: Float32Array;
+  /** Tick the slot was infected; -1 when clean. Drives latent → symptomatic → dead. */
+  ganodermaSince: Int32Array;
+  /** 1 when an isolation trench cuts this slot's root links (§3.4). */
+  trenched: Uint8Array;
 }
 
 export type GrowthStage = 'empty' | 'seedling' | 'immature' | 'mature' | 'senile' | 'dead';
@@ -258,7 +262,13 @@ export type Command =
   | { type: 'FertilizeBlock'; block: BlockId }
   | { type: 'PlaceKopdes'; block: BlockId }
   | { type: 'UpgradeKopdes' }
-  | { type: 'BuyItem'; item: ItemId; quantity: number };
+  | { type: 'BuyItem'; item: ItemId; quantity: number }
+  | { type: 'SetTrap'; block: BlockId }
+  | { type: 'ApplyMetarhizium'; block: BlockId }
+  | { type: 'ApplyTrichoderma'; block: BlockId }
+  | { type: 'RemovePalm'; block: BlockId; slot: number }
+  | { type: 'TrenchPalm'; block: BlockId; slot: number }
+  | { type: 'ReplantBlock'; block: BlockId };
 
 export type CommandType = Command['type'];
 
@@ -287,6 +297,7 @@ export interface Rejection {
     | 'badQuantity'
     | 'burning'
     | 'noFuel'
+    | 'badSlot'
     | 'unknownBlock'
     | 'notImplemented';
   reason: string;

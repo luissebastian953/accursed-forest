@@ -15,7 +15,15 @@ export type SimEvent =
   | { type: 'BlockBought'; block: BlockId }
   | { type: 'KopdesPlaced'; block: BlockId }
   | { type: 'PalmStageChanged'; block: BlockId; slot: number; from: GrowthStage; to: GrowthStage }
-  | { type: 'PalmDied'; block: BlockId; slot: number }
+  | { type: 'PalmDied'; block: BlockId; slot: number; cause: 'ganoderma' | 'beetles' | 'age' }
+  | { type: 'PalmSick'; block: BlockId; slot: number }
+  | { type: 'PalmRemoved'; block: BlockId; slot: number }
+  | { type: 'PalmTrenched'; block: BlockId; slot: number }
+  | { type: 'BlockReplanted'; block: BlockId; count: number }
+  | { type: 'TrapSet'; block: BlockId }
+  | { type: 'BlockTreated'; block: BlockId; treatment: 'metarhizium' | 'trichoderma' }
+  | { type: 'PlagueStarted'; block: BlockId }
+  | { type: 'PlagueEnded'; block: BlockId }
   | { type: 'BlockRipe'; block: BlockId }
   | { type: 'Harvested'; block: BlockId; kilograms: number }
   | { type: 'TbsSold'; kilograms: number; price: number; revenue: number }
