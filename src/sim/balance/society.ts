@@ -45,8 +45,8 @@ export const AUTHORITY = {
   letterChopCostFactor: 1.5,
   /** Warning 2: police at the gate. */
   investigationAt: 70,
-  /** A two-year ban on chopping and burning; sales continue. */
-  investigationDays: 720,
+  /** Six months' ban on chopping and burning; sales continue. (Was two years: too long to sit out.) */
+  investigationDays: 180,
   /** Game over. */
   arrestAt: 100,
   /** "Settle the matter": only available while integrity is low. */

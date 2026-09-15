@@ -135,7 +135,7 @@ export const GOVERNMENT: Record<string, NewsTemplate> = {
     severity: 'info',
     cooldownDays: 30,
     titles: ['Clearing ban on {estate} expires'],
-    bodies: ['The two-year ban has run its course. Officials say they will keep watching.'],
+    bodies: ['The ban has run its course. Officials say they will keep watching.'],
     effects: ['Chopping and burning allowed again'],
   },
   'authority.arrested': {

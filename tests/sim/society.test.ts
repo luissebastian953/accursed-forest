@@ -328,7 +328,7 @@ describe('authority (§3.9)', () => {
     expect(chopCost(biome, sim.state)).toBe(base);
   });
 
-  it('Warning 2: at 70 the police ban chopping and burning for two years; the harvest carries on', () => {
+  it('Warning 2: at 70 the police ban chopping and burning for six months; the harvest carries on', () => {
     const sim = createSim(42);
     sim.state.society.attention = AUTHORITY.investigationAt + 1;
     const opened = tickFor(sim, 'InvestigationOpened', 2);
