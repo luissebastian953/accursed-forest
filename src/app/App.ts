@@ -25,12 +25,21 @@ import { Sky } from '@render/scene/Sky';
 import { digestEvents } from '@render/sync';
 import { FIRE } from '@sim/balance/fire';
 import { WORLD } from '@sim/balance/world';
-import { HAZE_EVENT, activeEvent, burningBlocks, isWildfire } from '@sim/fire';
+import {
+  ASH_EVENT,
+  DROUGHT_EVENT,
+  FLOOD_EVENT,
+  HAZE_EVENT,
+  activeEvent,
+  burningBlocks,
+  isWildfire,
+} from '@sim/fire';
 import { createSim, restoreSim, type Sim } from '@sim/index';
+import { estateForestCover } from '@sim/landscape';
 import type { BlockId, Command } from '@sim/types';
 import { BlockPanel } from '@ui/BlockPanel';
 import { formatKg, formatRp } from '@ui/format';
-import { Hud } from '@ui/Hud';
+import { Hud, type EventChip } from '@ui/Hud';
 import { KopdesShop } from '@ui/KopdesShop';
 import { Menu } from '@ui/Menu';
 import { Toasts } from '@ui/Toasts';
@@ -97,6 +106,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       material,
       getDiverged: () => sim.state.blocks.values(),
       getTick: () => sim.state.tick,
+      getFlooded: () => floodedNow(),
     });
 
   const rig = new MapRig({ domElement: handle.canvas, bounds: worldUnits() });
@@ -228,6 +238,65 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   }
 
   let burningCount = 0;
+  let forestCover = 0;
+
+  /** Blocks under water in the flood that is running, if any. */
+  function floodedNow(): ReadonlySet<BlockId> {
+    return new Set(activeEvent(sim.state, FLOOD_EVENT)?.blocks ?? []);
+  }
+
+  /** The active-events strip (§8 panel 6): what is happening, and for how long. */
+  function eventChips(): EventChip[] {
+    const { state } = sim;
+    const left = (id: string): number | null => {
+      const e = activeEvent(state, id);
+      return e ? Math.max(0, e.endsAt - state.tick) : null;
+    };
+    const chips: EventChip[] = [];
+    if (isWildfire(state))
+      chips.push({ id: 'wildfire', label: 'Wildfire', daysLeft: null, tone: 'fire' });
+    if (activeEvent(state, HAZE_EVENT)) {
+      chips.push({
+        id: 'haze',
+        label: isWildfire(state) ? 'Smoke' : 'Haze',
+        daysLeft: isWildfire(state) ? null : left(HAZE_EVENT),
+        tone: 'smoke',
+      });
+    }
+    if (activeEvent(state, ASH_EVENT))
+      chips.push({
+        id: 'ash',
+        label: 'Ash fall — harvest halted',
+        daysLeft: left(ASH_EVENT),
+        tone: 'ash',
+      });
+    if (activeEvent(state, FLOOD_EVENT)) {
+      const n = activeEvent(state, FLOOD_EVENT)!.blocks?.length ?? 0;
+      chips.push({
+        id: 'flood',
+        label: `Flood · ${n} block${n === 1 ? '' : 's'}`,
+        daysLeft: left(FLOOD_EVENT),
+        tone: 'water',
+      });
+    }
+    if (activeEvent(state, DROUGHT_EVENT)) {
+      chips.push({
+        id: 'drought',
+        label: `Drought · ${state.weather.dryStreak} dry days`,
+        daysLeft: null,
+        tone: 'dry',
+      });
+    }
+    const plagued = plaguedCount();
+    if (plagued > 0)
+      chips.push({
+        id: 'plague',
+        label: `Plague · ${plagued} block${plagued === 1 ? '' : 's'}`,
+        daysLeft: null,
+        tone: 'pest',
+      });
+    return chips;
+  }
 
   function plaguedCount(): number {
     let n = 0;
@@ -253,8 +322,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       fireThreshold: FIRE.wildfireThreshold,
       burningCount,
       wildfire: isWildfire(sim.state),
-      haze: activeEvent(sim.state, HAZE_EVENT) !== undefined,
-      plagueCount: plaguedCount(),
+      forestCover,
+      events: eventChips(),
     });
   }
 
@@ -281,6 +350,13 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       if (command.type === 'PlantBlock') {
         palmsDirty = true;
         animateBlocks.add(command.block);
+      }
+      if (
+        command.type === 'ChopBlock' ||
+        command.type === 'PlantBlock' ||
+        command.type === 'BurnBlock'
+      ) {
+        forestCover = estateForestCover(sim.state, sim.world);
       }
       if (
         command.type === 'HarvestBlock' ||
@@ -347,6 +423,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     animateBlocks = new Set();
     kopdes.sync(sim.state, sim.world);
     syncFireState();
+    forestCover = estateForestCover(sim.state, sim.world);
+    lastFlooded = new Set();
     dirty.take();
     focusStart();
     refreshHud();
@@ -408,6 +486,45 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       );
     else if (burnedClear.length > 1) toasts.push(`${burnedClear.length} blocks burned clear.`);
 
+    // Weather news.
+    for (const started of d.weatherStarted)
+      toasts.push(
+        weatherStartLine(started.id, started.days),
+        started.id === 'haze' ? 'warn' : 'error',
+      );
+    for (const ended of d.weatherEnded) {
+      const line = weatherEndLine(ended);
+      if (line) toasts.push(line);
+    }
+    if (d.flooded.size > 0) {
+      for (const block of d.flooded) chunks.markBlockDirty(block);
+    }
+    if (d.weatherEnded.includes(FLOOD_EVENT)) {
+      // The water goes down: every block that was under it needs its ground back.
+      for (const block of lastFlooded) chunks.markBlockDirty(block);
+    }
+    lastFlooded = floodedNow();
+    for (const slide of d.landslides) {
+      toasts.push(
+        slide.palmsLost > 0
+          ? `Landslide on ${blockName(slide.block)} — ${slide.palmsLost} palms buried. Bare slopes do not hold in the rains.`
+          : `Landslide on ${blockName(slide.block)}. Bare slopes do not hold in the rains.`,
+        'error',
+      );
+    }
+    if (d.ashSettled) toasts.push('The ash has settled. It will feed the soil for a season.');
+    if (d.sparks.size > 0) toasts.push('Drought: a spark caught a debris pile.', 'error');
+    const drowned = d.palmsDied.filter((p) => p.cause === 'flood').length;
+    if (drowned > 0)
+      toasts.push(
+        `${drowned} young palm${drowned === 1 ? '' : 's'} drowned in the flood.`,
+        'error',
+      );
+    const ashed = d.palmsDied.filter((p) => p.cause === 'ash').length;
+    if (ashed > 0)
+      toasts.push(`${ashed} young palm${ashed === 1 ? '' : 's'} lost to the ash.`, 'error');
+    forestCover = estateForestCover(sim.state, sim.world);
+
     // Pest news, aggregated per tick.
     for (const [block, count] of d.palmSick) {
       toasts.push(
@@ -455,6 +572,15 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     autosave.onTick(sim.state.tick);
   }
 
+  let lastFlooded: ReadonlySet<BlockId> = new Set();
+
+  /** Smoke and ash for the sky: your own wildfire is thicker than regional haze. */
+  function atmosphere(): { smoke: number; ash: number } {
+    const { state } = sim;
+    const smoke = isWildfire(state) ? 1 : activeEvent(state, HAZE_EVENT) ? 0.6 : 0;
+    return { smoke, ash: activeEvent(state, ASH_EVENT) ? 1 : 0 };
+  }
+
   function onFrame(dt: number, nowMs: number): void {
     rig.update(dt, nowMs);
     rig.visibleGround(visible);
@@ -468,7 +594,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     palms.update(nowMs);
     ring.update(nowMs);
     fires.update(nowMs);
-    sky.update(sim.state.weather, uniforms);
+    sky.update(sim.state.weather, uniforms, atmosphere(), dt);
 
     refreshHud();
     if (panel.selected !== null) panel.refresh();
@@ -521,10 +647,22 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   kopdes.sync(sim.state, sim.world);
   syncFireState();
+  forestCover = estateForestCover(sim.state, sim.world);
   focusStart();
   refreshHud();
   refreshMenu();
   time.subscribe(() => refreshHud());
+  // `?debug` exposes the running sim for the browser suite and for poking at
+  // events by hand. Single-player and local, so this is a console, not a cheat.
+  if (params.has('debug')) {
+    (window as unknown as { __sawit: unknown }).__sawit = {
+      sim: () => sim,
+      redrawTerrain: (blocks: BlockId[]) => {
+        for (const block of blocks) chunks.markBlockDirty(block);
+      },
+    };
+  }
+
   loop.start();
 
   if (!slot.exists() && !params.has('seed')) {
@@ -566,5 +704,33 @@ function regimeLine(regime: 'normal' | 'elNino' | 'laNina'): string {
       return 'a La Niña year: expect a wet one.';
     case 'normal':
       return 'an ordinary year, as far as anyone can tell.';
+  }
+}
+
+function weatherStartLine(id: string, days: number): string {
+  switch (id) {
+    case 'haze':
+      return `Haze has drifted over the province — less sun and lower prices for about ${days} days.`;
+    case 'ash':
+      return `Ash is falling from a distant eruption. Harvest is halted for about ${days} days.`;
+    case 'flood':
+      return `The river is up. Low ground by the water is flooding for about ${days} days.`;
+    case 'drought':
+      return 'Drought. Unirrigated land is drying out, and debris piles will catch.';
+    default:
+      return `${id} has begun.`;
+  }
+}
+
+function weatherEndLine(id: string): string | null {
+  switch (id) {
+    case 'haze':
+      return 'The haze has cleared.';
+    case 'flood':
+      return 'The flood water has gone down.';
+    case 'drought':
+      return 'The rain has come back. The drought is over.';
+    default:
+      return null;
   }
 }

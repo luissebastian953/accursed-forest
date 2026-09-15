@@ -88,6 +88,29 @@ describe('event deck (§3.6)', () => {
     expect(perYear('ash')).toBeLessThan(0.25);
   });
 
+  it('an event that cannot be drawn does not hand its share to the rare ones', () => {
+    // With a flood held open all year, wet-season draws must not become ash falls.
+    let ash = 0;
+    const years = 40;
+    for (let seed = 1; seed <= years; seed++) {
+      const sim = createSim(seed);
+      for (let i = 0; i < GROWTH.daysPerYear; i++) {
+        const s = sim.state;
+        if (!activeEvent(s, FLOOD_EVENT)) {
+          s.weather.activeEvents.push({
+            id: FLOOD_EVENT,
+            startedAt: s.tick,
+            endsAt: s.tick + 1000,
+            blocks: [],
+          });
+        }
+        for (const e of sim.tick())
+          if (e.type === 'WeatherEventStarted' && e.id === ASH_EVENT) ash += 1;
+      }
+    }
+    expect(ash / years).toBeLessThan(0.3);
+  });
+
   it('is deterministic per seed', () => {
     const run = (): string[] => {
       const sim = createSim(5);

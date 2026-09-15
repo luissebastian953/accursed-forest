@@ -43,6 +43,12 @@ export interface EventDigest {
   plagueStarted: Set<BlockId>;
   plagueEnded: Set<BlockId>;
   replanted: { block: BlockId; count: number }[];
+  weatherStarted: { id: string; days: number }[];
+  weatherEnded: string[];
+  landslides: { block: BlockId; below: BlockId | null; palmsLost: number }[];
+  flooded: Set<BlockId>;
+  ashSettled: boolean;
+  sparks: Set<BlockId>;
 }
 
 export function digestEvents(events: readonly SimEvent[]): EventDigest {
@@ -75,6 +81,12 @@ export function digestEvents(events: readonly SimEvent[]): EventDigest {
     plagueStarted: new Set(),
     plagueEnded: new Set(),
     replanted: [],
+    weatherStarted: [],
+    weatherEnded: [],
+    landslides: [],
+    flooded: new Set(),
+    ashSettled: false,
+    sparks: new Set(),
   };
 
   for (const event of events) {
@@ -181,6 +193,32 @@ export function digestEvents(events: readonly SimEvent[]): EventDigest {
         break;
       case 'BlockDrained':
         d.drained.add(event.block);
+        break;
+      case 'WeatherEventStarted':
+        d.weatherStarted.push({ id: event.id, days: event.days });
+        break;
+      case 'WeatherEventEnded':
+        d.weatherEnded.push(event.id);
+        break;
+      case 'Landslide':
+        d.landslides.push({ block: event.block, below: event.below, palmsLost: event.palmsLost });
+        d.palmBlocks.add(event.block);
+        d.terrainBlocks.add(event.block);
+        if (event.below !== null) d.terrainBlocks.add(event.below);
+        break;
+      case 'BlockFlooded':
+        d.flooded.add(event.block);
+        d.terrainBlocks.add(event.block);
+        break;
+      case 'AshSettled':
+        d.ashSettled = true;
+        break;
+      case 'SparkCaught':
+        d.sparks.add(event.block);
+        d.burnStarted.add(event.block);
+        d.terrainBlocks.add(event.block);
+        break;
+      case 'CoverCropSown':
         break;
       case 'YearPassed':
         d.yearPassed = event.year;

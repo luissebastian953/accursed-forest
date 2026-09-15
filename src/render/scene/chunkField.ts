@@ -40,9 +40,11 @@ export interface DivergedBlockLite {
   burning: boolean;
   /** Inside the post-burn ash window: the ground is grey, not laterite. */
   ashy: boolean;
+  /** Under flood water right now: the top reads as shallow water. */
+  flooded: boolean;
 }
 
-export function toLite(block: Readonly<Block>, tick: number): DivergedBlockLite {
+export function toLite(block: Readonly<Block>, tick: number, flooded = false): DivergedBlockLite {
   return {
     id: block.id,
     biome: block.biome,
@@ -50,6 +52,7 @@ export function toLite(block: Readonly<Block>, tick: number): DivergedBlockLite 
     elevation: block.elevation,
     burning: block.burning,
     ashy: block.ashUntil > tick,
+    flooded,
   };
 }
 
@@ -67,8 +70,15 @@ function continuousHeight(world: World, bx: number, by: number): number {
   return world.generated(x, y).height01 * (WORLD.maxElevation + 1) * ELEVATION_STEP;
 }
 
-function topSlot(biome: Biome, phase: BlockPhase, burning: boolean, ashy: boolean): number {
+function topSlot(
+  biome: Biome,
+  phase: BlockPhase,
+  burning: boolean,
+  ashy: boolean,
+  flooded: boolean,
+): number {
   if (burning) return Palette.Charcoal;
+  if (flooded) return Palette.WaterShallow;
   switch (phase) {
     case 'planted':
     case 'reforesting':
@@ -148,6 +158,7 @@ export function buildChunkField(
       const phase = lite?.phase ?? 'wild';
       const burning = lite?.burning ?? false;
       const ashy = lite?.ashy ?? false;
+      const flooded = lite?.flooded ?? false;
 
       if (TERRACED.has(phase)) {
         heights[i] = terraceHeight(generated.elevation);
@@ -170,7 +181,7 @@ export function buildChunkField(
         heights[i] = Math.max(FLOOR_Y + HEIGHT_QUANTUM, quantise(h, HEIGHT_QUANTUM));
       }
 
-      topSlots[i] = topSlot(biome, phase, burning, ashy);
+      topSlots[i] = topSlot(biome, phase, burning, ashy, flooded);
     }
   }
 

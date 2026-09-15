@@ -30,6 +30,8 @@ export interface ChunkManagerOptions {
   getDiverged: () => Iterable<Readonly<Block>>;
   /** Current sim tick, so the worker can paint ash windows. */
   getTick: () => number;
+  /** Blocks under flood water right now. */
+  getFlooded?: () => ReadonlySet<number>;
   createWorker?: () => Worker;
   maxInFlight?: number;
   lruSize?: number;
@@ -52,6 +54,7 @@ export class ChunkManager {
   private readonly material: Material;
   private readonly getDiverged: () => Iterable<Readonly<Block>>;
   private readonly getTick: () => number;
+  private readonly getFlooded: () => ReadonlySet<number>;
   private readonly worker: Worker;
   private readonly maxInFlight: number;
   private readonly lruSize: number;
@@ -73,6 +76,7 @@ export class ChunkManager {
     this.material = options.material;
     this.getDiverged = options.getDiverged;
     this.getTick = options.getTick;
+    this.getFlooded = options.getFlooded ?? (() => new Set());
     this.maxInFlight = options.maxInFlight ?? 2;
     this.lruSize = options.lruSize ?? 64;
     this.unloadDelayMs = options.unloadDelayMs ?? 2000;
@@ -198,7 +202,10 @@ export class ChunkManager {
     this.inFlight.set(requestId, key);
 
     const diverged = [];
-    for (const block of this.getDiverged()) diverged.push(toLite(block, this.getTick()));
+    const tick = this.getTick();
+    const flooded = this.getFlooded();
+    for (const block of this.getDiverged())
+      diverged.push(toLite(block, tick, flooded.has(block.id)));
 
     const request: BuildChunkRequest = {
       type: 'build',

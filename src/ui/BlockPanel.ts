@@ -10,10 +10,12 @@
 import { html, nothing, render, type TemplateResult } from 'lit-html';
 
 import { BIOMES } from '@sim/balance/biomes';
+import { COVER_CROP } from '@sim/balance/events';
 import { FIRE } from '@sim/balance/fire';
 import { GROWTH } from '@sim/balance/growth';
 import { PEST_LABOUR, PLAGUE } from '@sim/balance/pests';
 import { DRAINAGE_COST, IRRIGATION_COST, KOPDES_BUILD_COST } from '@sim/balance/prices';
+import { isWetSeason } from '@sim/balance/seasons';
 import { landPrice } from '@sim/commands/buyBlock';
 import { itemPrice } from '@sim/commands/buyItem';
 import { chopCost } from '@sim/commands/chopBlock';
@@ -22,6 +24,7 @@ import { kopdesUpgradeCost } from '@sim/commands/upgradeKopdes';
 import { isFuel, isWildfire } from '@sim/fire';
 import type { Sim } from '@sim/index';
 import { distanceToKopdes, inKopdesRange, kopdesRange } from '@sim/kopdes';
+import { coverCropEstablished, forestCoverAround, landslideChance } from '@sim/landscape';
 import { slotCol, slotRow, slotStage } from '@sim/palms';
 import { neighbourIds, readBlock } from '@sim/state';
 import { daysUntilRipe, harvestableKg } from '@sim/systems/harvest';
@@ -217,6 +220,15 @@ export class BlockPanel {
         });
       }
       if (block.phase !== 'kopdes' && block.biome !== 'river') {
+        if (block.slope && (block.phase === 'planted' || block.phase === 'cleared')) {
+          actions.push({
+            label: block.coverCropUntil > state.tick ? 'Cover crop ✓' : 'Cover crop',
+            command: { type: 'CoverCropBlock', block: id },
+            cost: COVER_CROP.cost,
+            testId: 'action-CoverCropBlock',
+            minor: true,
+          });
+        }
         if (!block.irrigated) {
           actions.push({
             label: 'Irrigate',
@@ -268,6 +280,12 @@ export class BlockPanel {
           <dd>${block.owned ? 'Yours' : block.forSale ? 'For sale' : 'Not for sale'}</dd>
           <dt class="opacity-60">Elevation</dt>
           <dd>${block.elevation}${block.slope ? ' · slope' : ''}</dd>
+          ${
+            block.slope
+              ? html`<dt class="opacity-60">Slope</dt>
+                  <dd data-testid="block-slope">${slopeLine(sim, id)}</dd>`
+              : nothing
+          }
           <dt class="opacity-60">Moisture</dt>
           <dd>
             ${formatPercent(block.moisture)}${block.irrigated ? ' · irrigated' : ''}${block.drained ? ' · drained' : ''}
@@ -695,4 +713,23 @@ function phaseLabel(phase: string, progress: number, burning: boolean, intensity
     default:
       return phase;
   }
+}
+
+/** Forest cover around a slope and what the next wet season risks there (§3.6.2). */
+function slopeLine(sim: Sim, id: BlockId): string {
+  const { state, world } = sim;
+  const block = readBlock(state, world, id);
+  const cover = Math.round(forestCoverAround(state, world, id) * 100);
+  const crop = coverCropEstablished(block, state.tick)
+    ? ' · cover crop holding'
+    : block.coverCropUntil > state.tick
+      ? ' · cover crop establishing'
+      : '';
+  // Risk over a wet season at an ordinary wet streak, so the number is stable to read.
+  const probe = { ...state, weather: { ...state.weather, wetStreak: 3 } };
+  const daily = landslideChance(probe, world, block, true);
+  const season = 1 - Math.pow(1 - daily, 150);
+  const risk = season > 0.3 ? 'high' : season > 0.1 ? 'moderate' : 'low';
+  const now = isWetSeason(state.weather.dayOfYear) ? ' — wet season now' : '';
+  return `${cover}% forest around · landslide risk ${risk} (${Math.round(season * 100)}%/wet season)${crop}${now}`;
 }

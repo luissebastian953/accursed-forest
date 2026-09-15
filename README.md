@@ -13,14 +13,14 @@ Section references in the code (`§6.5`, `§4.1`, …) point into it.
 
 ## Status
 
-**M1a–M1d done: skeleton, loop, terrain & expansion, pests.** Place the
-Kopdes, stock its shop, buy or chop or burn land, plant palms or forest,
-harvest and sell, sanitize, irrigate, drain. Leave forest debris under your
-seedlings and the beetles will have them; let Ganoderma go unnoticed and it
-walks the lattice palm by palm. Traps, Metarhizium, Trichoderma, removal,
-trenches and replanting are all on the block panel, with a clickable slot
-grid for the per-palm work. M1e (weather events: haze, ash, flood, drought,
-landslides, forest cover) is next.
+**M1a–M1e done: skeleton, loop, terrain & expansion, pests, weather &
+events.** The world now fights back on its own schedule: El Niño dry seasons
+bring drought and haze, La Niña wet seasons bring floods over the low river
+ground, and once in a long while ash falls from a distant eruption, halts the
+harvest, and leaves the soil fertile. Clear the forest off a hillside and the
+rains take the slope, palms and all; forest cover, shown in the HUD and on
+every slope's panel, is what holds it. M1f (news feed, government integrity,
+the authority meter) is next.
 
 | Area                                                                           | State                    |
 | ------------------------------------------------------------------------------ | ------------------------ |
@@ -43,7 +43,7 @@ landslides, forest cover) is next.
 | Weather event deck, landslides, forest cover, news, authority, endings         | **M1e–M1g**              |
 | Far-LOD heatmap tiles, GPU per-instance animation, forest box-trees            | deferred until they bite |
 
-Tests: 199 unit (Vitest) and 9 browser (Playwright, WebGL fallback) — the
+Tests: 215 unit (Vitest) and 10 browser (Playwright, WebGL fallback) — the
 browser suite plays the loop end to end, lights a wildfire on purpose, and
 lets beetles loose on an unsanitized block.
 
@@ -56,7 +56,8 @@ pnpm dev            # http://localhost:5173
 
 URL flags: `?webgl` forces the WebGL 2 fallback CI uses; `?seed=42` picks a
 world; `?fresh` ignores the save in this browser; `?spike` opens the §6.9 art
-spike instead of the game.
+spike instead of the game; `?debug` exposes the running sim as
+`window.__sawit` for the browser suite and for poking at events by hand.
 
 Controls: drag to pan, wheel to zoom, **Q/E** rotate a quarter turn, click a
 block, double-click to focus it, **space** pauses, **1/2/3** set speed,

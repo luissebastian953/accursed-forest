@@ -2,8 +2,10 @@
  * Sky, fog and lights driven by weather (§6.4). Built before anything else
  * because it carries the game's atmosphere.
  *
- * M1a: the season lerp and the rain darkening. Haze and ash tints wire in
- * with the event deck (M1e); the uniforms they need already exist.
+ * The season lerps the palette and the sky; rain darkens both; smoke and ash
+ * wash the world toward amber-grey or neutral grey and close the fog in. The
+ * smoke and ash amounts ease toward their targets, so a haze season settles
+ * over the estate rather than switching on.
  */
 
 import {
@@ -15,7 +17,7 @@ import {
   type Scene,
 } from 'three/webgpu';
 
-import { lerp } from '@shared/math';
+import { clamp01, lerp } from '@shared/math';
 import { SEASONS } from '@sim/balance/seasons';
 import type { Weather } from '@sim/types';
 
@@ -28,12 +30,25 @@ const SKY_RAIN = new Color(0x7d96a6);
 /** Fog distances relative to the camera distance (see MapRig). */
 const CAMERA_DISTANCE = 120;
 
+/** How fast smoke and ash ease toward their targets, per second. */
+const EASE_PER_SECOND = 0.8;
+
+export interface Atmosphere {
+  /** 0 clear, ~0.6 regional haze, 1 your own wildfire's smoke. */
+  smoke: number;
+  /** 0 clear, 1 ash falling. */
+  ash: number;
+}
+
 export class Sky {
   private readonly fog: Fog;
   private readonly hemi: HemisphereLight;
   private readonly sun: DirectionalLight;
   private readonly ambient: AmbientLight;
   private readonly sky = new Color();
+  private readonly tint = new Color();
+  private smoke = 0;
+  private ash = 0;
 
   constructor(private readonly scene: Scene) {
     this.fog = new Fog(SKY_WET.clone(), CAMERA_DISTANCE + 40, CAMERA_DISTANCE + 200);
@@ -58,26 +73,39 @@ export class Sky {
     return 0.5 - 0.5 * Math.cos(phase);
   }
 
-  update(weather: Weather, uniforms: PaletteUniforms): void {
+  /** Current eased amounts, for tests and the HUD. */
+  get amounts(): Atmosphere {
+    return { smoke: this.smoke, ash: this.ash };
+  }
+
+  update(weather: Weather, uniforms: PaletteUniforms, target: Atmosphere, dtSeconds: number): void {
+    const step = clamp01(dtSeconds * EASE_PER_SECOND);
+    this.smoke = lerp(this.smoke, target.smoke, step);
+    this.ash = lerp(this.ash, target.ash, step);
+
     const season = Sky.seasonAmount(weather.dayOfYear);
     const rain = weather.rain;
-    const haze = 0; // §3.6 events, M1e
+    const murk = Math.max(this.smoke, this.ash);
 
     uniforms.season.value = season;
-    uniforms.tintAmount.value = haze * 0.55;
-    uniforms.tintColor.value.copy(TINT.haze);
+    // Ash reads grey, smoke amber; whichever is thicker leads the colour.
+    const ashShare = this.smoke + this.ash > 0 ? this.ash / (this.smoke + this.ash) : 0;
+    this.tint.copy(TINT.haze).lerp(TINT.ash, ashShare);
+    uniforms.tintColor.value.copy(this.tint);
+    uniforms.tintAmount.value = murk * 0.55;
 
     this.sky
       .copy(SKY_WET)
       .lerp(SKY_DRY, season)
-      .lerp(SKY_RAIN, rain * 0.45);
+      .lerp(SKY_RAIN, rain * 0.45)
+      .lerp(this.tint, murk * 0.8);
     (this.scene.background as Color).copy(this.sky);
     this.fog.color.copy(this.sky);
-    this.fog.near = lerp(CAMERA_DISTANCE + 40, CAMERA_DISTANCE - 30, haze);
-    this.fog.far = lerp(CAMERA_DISTANCE + 200, CAMERA_DISTANCE + 20, haze);
+    this.fog.near = lerp(CAMERA_DISTANCE + 40, CAMERA_DISTANCE - 30, murk);
+    this.fog.far = lerp(CAMERA_DISTANCE + 200, CAMERA_DISTANCE + 20, murk);
 
-    this.sun.intensity = lerp(1.9, 1.1, rain * 0.6) * lerp(1, 0.3, haze);
-    this.hemi.intensity = lerp(1.05, 0.85, rain * 0.5);
+    this.sun.intensity = lerp(1.9, 1.1, rain * 0.6) * lerp(1, 0.3, murk);
+    this.hemi.intensity = lerp(1.05, 0.85, rain * 0.5) * lerp(1, 0.75, murk);
   }
 
   dispose(): void {

@@ -87,7 +87,8 @@ function drawFromDeck(ctx: SimContext): void {
     return w;
   });
 
-  const index = pickWeighted(state.rng, weights);
+  const claimed = weights.reduce((a, b) => a + b, 0);
+  const index = pickWeighted(state.rng, [...weights, Math.max(0, DECK.referenceWeight - claimed)]);
   const id = DECK_IDS[index];
   if (id === undefined) return;
 

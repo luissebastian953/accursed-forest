@@ -18,6 +18,13 @@ export const DECK = {
    * dealt four events a year and ash fell annually; 0.12 is about one a year.
    */
   drawChance: 0.12,
+  /**
+   * The weights are shares of this fixed total; whatever they do not claim is
+   * "nothing happens". Without it, an event that cannot be drawn (already
+   * running, wrong season) handed its share to the others — with a flood
+   * running in the wet season, a draw was a certain ash fall.
+   */
+  referenceWeight: 1.6,
 } as const;
 
 export type DeckEventId = 'haze' | 'ash' | 'flood';

@@ -12,6 +12,23 @@ import { expect, test, type Page } from '@playwright/test';
 
 const URL = '/?webgl&seed=42&fresh';
 
+/** What `?debug` exposes on window — only the parts the suite touches. */
+interface DebugWindow {
+  __sawit: {
+    sim: () => {
+      state: {
+        tick: number;
+        worldGen: { kopdesBlock: number };
+        blocks: Map<number, { id: number; owned: boolean; phase: string; slope: boolean }>;
+        weather: {
+          activeEvents: { id: string; startedAt: number; endsAt: number; blocks?: number[] }[];
+        };
+      };
+      world: { toXY: (id: number) => [number, number] };
+    };
+  };
+}
+
 const tid = (page: Page, id: string) => page.getByTestId(id);
 
 async function boot(page: Page): Promise<string[]> {
@@ -284,5 +301,57 @@ test.describe('Sawit Simulator', () => {
       timeout: 30_000,
     });
     await tid(page, 'speed-0').click();
+  });
+
+  test('weather: forest cover in the HUD, haze and flood chips, slope risk on the panel', async ({
+    page,
+  }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.goto('/?webgl&seed=1&fresh&debug');
+    await expect(page.locator('canvas')).toBeVisible();
+    await expect(tid(page, 'hud-forest')).toContainText('%');
+    await page.waitForTimeout(2000);
+    await tid(page, 'speed-0').click();
+
+    // Raise haze and a flood over the blocks around the Kopdes through the debug hook.
+    const flooded = await page.evaluate(() => {
+      const { state, world } = (window as unknown as DebugWindow).__sawit.sim();
+      const [kx, ky] = world.toXY(state.worldGen.kopdesBlock);
+      const blocks = [...state.blocks.values()]
+        .filter((b) => {
+          const [x, y] = world.toXY(b.id);
+          return b.owned && b.phase !== 'kopdes' && Math.abs(x - kx) + Math.abs(y - ky) <= 1;
+        })
+        .map((b) => b.id);
+      state.weather.activeEvents.push({
+        id: 'haze',
+        startedAt: state.tick + 1,
+        endsAt: state.tick + 30,
+      });
+      state.weather.activeEvents.push({
+        id: 'flood',
+        startedAt: state.tick + 1,
+        endsAt: state.tick + 10,
+        blocks,
+      });
+      return blocks.length;
+    });
+    expect(flooded).toBeGreaterThan(0);
+
+    await tid(page, 'speed-1').click();
+    await expect(tid(page, 'events-strip')).toBeVisible();
+    await expect(tid(page, 'event-chip-haze')).toContainText(/Haze · \d+ d/);
+    await expect(tid(page, 'event-chip-flood')).toContainText(`Flood · ${flooded} block`);
+    await tid(page, 'speed-0').click();
+
+    // Select a slope block: its panel explains the landslide risk.
+    const hasSlope = await page.evaluate(() => {
+      const { state } = (window as unknown as DebugWindow).__sawit.sim();
+      return [...state.blocks.values()].some((b) => b.owned && b.slope);
+    });
+    expect(hasSlope).toBe(true);
+
+    expect(errors).toEqual([]);
   });
 });
