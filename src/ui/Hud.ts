@@ -47,11 +47,14 @@ export interface HudView {
   forestCover: number;
   /** §8 panel 6: haze, ash, flood, drought, wildfire, plague. */
   events: EventChip[];
+  /** §8 panel 19: ISPO conditions met, from Year 3; null hides the button. */
+  ispoMet: number | null;
 }
 
 export interface HudHandlers {
   setSpeed(speed: Speed): void;
   openMenu(): void;
+  openCertificate(): void;
 }
 
 const REGIME_LABEL: Record<ClimateRegime, string> = {
@@ -196,6 +199,18 @@ export class Hud {
                 >
                   burning: ${view.burningCount} block${view.burningCount === 1 ? '' : 's'}
                 </span>`
+              : nothing
+          }
+          ${
+            view.ispoMet !== null
+              ? html`<button
+                  class=${`rounded px-2 py-0.5 text-xs font-medium ${view.ispoMet === 5 ? 'bg-emerald-700' : 'bg-white/10 hover:bg-white/20'}`}
+                  title="ISPO certificate progress"
+                  data-testid="hud-ispo"
+                  @click=${() => this.handlers.openCertificate()}
+                >
+                  📜 ISPO ${view.ispoMet}/5
+                </button>`
               : nothing
           }
 

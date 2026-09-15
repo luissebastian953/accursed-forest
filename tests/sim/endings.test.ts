@@ -108,13 +108,13 @@ describe('the books (§3.8)', () => {
   it('closes each year with a summary and rolls the profit into the total', () => {
     const sim = createSim(42);
     sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
-    sim.dispatch({ type: 'BuyItem', item: 'bibit', quantity: 10 });
+    sim.dispatch({ type: 'BuyItem', item: 'bibit', quantity: 100 });
     const closed = tickFor(sim, 'YearClosed', YEAR + 1);
     expect(closed?.summary.year).toBe(1);
-    expect(closed?.summary.profit).toBe(-10 * ITEM_PRICES.bibit);
+    expect(closed?.summary.profit).toBe(-100 * ITEM_PRICES.bibit);
     expect(sim.state.run.years).toHaveLength(1);
     expect(sim.state.run.yearProfit).toBe(0);
-    expect(sim.state.run.profitTotal).toBe(-10 * ITEM_PRICES.bibit);
+    expect(sim.state.run.profitTotal).toBe(-100 * ITEM_PRICES.bibit);
     expect(sim.state.run.chronicle.some((c) => /^Year 1 closed: loss/.test(c.title))).toBe(true);
   });
 

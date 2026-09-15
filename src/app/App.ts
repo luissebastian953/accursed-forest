@@ -9,13 +9,14 @@ import { attachKeys } from '@input/keys';
 import { attachPointer } from '@input/pointer';
 import { Autosave } from '@persistence/autosave';
 import { DirtyChunks, SaveSlot } from '@persistence/chunks';
-import { SaveError } from '@persistence/schema';
-import { localStorageAdapter } from '@persistence/storage';
+import { KEY_PREFIX, SaveError } from '@persistence/schema';
+import { QuotaError, localStorageAdapter } from '@persistence/storage';
 import { MapRig, type GroundRect } from '@render/camera/MapRig';
 import { createPaletteTexture } from '@render/materials/palette';
 import { createPaletteMaterial } from '@render/materials/paletteMaterial';
 import { Picker } from '@render/picking';
 import { createRenderer } from '@render/Renderer';
+import { Ceremony } from '@render/scene/Ceremony';
 import { ChunkManager } from '@render/scene/ChunkManager';
 import { Fires } from '@render/scene/Fires';
 import { KopdesMesh } from '@render/scene/Kopdes';
@@ -24,7 +25,9 @@ import { Palms } from '@render/scene/Palms';
 import { Police } from '@render/scene/Police';
 import { Sky } from '@render/scene/Sky';
 import { digestEvents } from '@render/sync';
+import { BANKRUPTCY, ISPO } from '@sim/balance/endings';
 import { FIRE } from '@sim/balance/fire';
+import { GROWTH } from '@sim/balance/growth';
 import { MACRO_PREFIX } from '@sim/balance/society';
 import { WORLD } from '@sim/balance/world';
 import { settleCost } from '@sim/commands/settleInvestigation';
@@ -39,9 +42,13 @@ import {
 } from '@sim/fire';
 import { createSim, restoreSim, type Sim } from '@sim/index';
 import { estateForestCover } from '@sim/landscape';
+import { runOver } from '@sim/run';
+import { creditLine, ispoConditions, matureHectares } from '@sim/systems/endings';
 import type { BlockId, Command } from '@sim/types';
 import { AuthorityCards, type CardKind } from '@ui/AuthorityCards';
 import { BlockPanel } from '@ui/BlockPanel';
+import { CertificatePanel, YearEndCard } from '@ui/Certificate';
+import { Epilogue } from '@ui/Epilogue';
 import { formatKg, formatRp } from '@ui/format';
 import { Hud, type EventChip } from '@ui/Hud';
 import { KopdesShop } from '@ui/KopdesShop';
@@ -54,6 +61,11 @@ import { GameLoop } from './loop.ts';
 import { TimeControl } from './timeControl.ts';
 
 const SLOT = 'slot0';
+/** Start-of-year snapshots kept for the rewind (§7: the last 25). */
+const SNAPSHOTS_KEPT = 25;
+/** How long the certificate ceremony plays before the epilogue covers it. */
+const CEREMONY_MS = 4_500;
+const SNAPSHOT_KEY = new RegExp(`^${KEY_PREFIX}:save:year:(\\d+)$`);
 
 function randomSeed(): number {
   const buffer = new Uint32Array(1);
@@ -80,14 +92,59 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   function bootSim(): Sim {
     const seedParam = params.get('seed');
-    if (seedParam !== null) return createSim(Number(seedParam) >>> 0);
-    if (params.has('fresh') || !slot.exists()) return createSim(randomSeed());
+    if (seedParam !== null) return freshSim(Number(seedParam) >>> 0);
+    if (params.has('fresh') || !slot.exists()) return freshSim(randomSeed());
     try {
       return restoreSim(slot.load());
     } catch (error) {
       const message = error instanceof SaveError ? error.message : String(error);
       toasts.push(`Could not load the save: ${message}. Starting a new estate.`, 'error');
-      return createSim(randomSeed());
+      return freshSim(randomSeed());
+    }
+  }
+
+  /** A new run: the old run's year snapshots would rewind into someone else's estate. */
+  function freshSim(seed: number): Sim {
+    clearSnapshots();
+    return createSim(seed);
+  }
+
+  // ── Year snapshots (§3.8 rewind, §7) ───────────────────────────────────
+  function snapshotSlot(year: number): SaveSlot {
+    return new SaveSlot({ storage, slot: `year:${year}`, appVersion: __APP_VERSION__ });
+  }
+
+  /** Years with a snapshot, newest first. */
+  function snapshotYears(): number[] {
+    const years: number[] = [];
+    for (const key of storage.keys()) {
+      const match = SNAPSHOT_KEY.exec(key);
+      if (match) years.push(Number(match[1]));
+    }
+    return years.sort((a, b) => b - a);
+  }
+
+  function clearSnapshots(after = 0): void {
+    for (const year of snapshotYears()) if (year > after) snapshotSlot(year).delete();
+  }
+
+  /** Snapshot the start of `year`. On a full disk the oldest snapshots make room. */
+  function writeSnapshot(year: number): void {
+    const years = snapshotYears();
+    for (const old of years.slice(SNAPSHOTS_KEPT - 1)) snapshotSlot(old).delete();
+    for (let attempt = 0; attempt < SNAPSHOTS_KEPT; attempt++) {
+      try {
+        snapshotSlot(year).save(sim.state);
+        return;
+      } catch (error) {
+        snapshotSlot(year).delete();
+        const oldest = snapshotYears().at(-1);
+        if (!(error instanceof QuotaError) || oldest === undefined) {
+          toasts.push(`Could not keep a snapshot of Year ${year}: storage is full.`, 'warn');
+          return;
+        }
+        snapshotSlot(oldest).delete();
+      }
     }
   }
 
@@ -135,7 +192,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   let picker = new Picker(rig.camera, chunks.group, sim.world);
   const police = new Police(material);
-  scene.add(police.group);
+  const ceremony = new Ceremony(material);
+  scene.add(police.group, ceremony.group);
   const visible: GroundRect = { minX: 0, maxX: 0, minZ: 0, maxZ: 0 };
 
   // Edge vignette while anything burns (§8 panel 7).
@@ -170,6 +228,10 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     openMenu: () => {
       menu.show();
       refreshMenu();
+    },
+    openCertificate: () => {
+      if (certificate.isOpen) certificate.hide();
+      else certificate.show(ispoConditions(sim.state, sim.world));
     },
   });
 
@@ -241,11 +303,75 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         cards.hide();
       }
     },
-    newEstate: () => {
-      cards.hide();
-      switchSim(createSim(randomSeed()));
-    },
   });
+
+  const certificate = new CertificatePanel(root, { close: () => certificate.hide() });
+  const yearEnd = new YearEndCard(root);
+
+  const epilogue = new Epilogue(root, {
+    rewind: (year) => rewindTo(year),
+    keepPlaying: () => {
+      if (dispatch({ type: 'KeepPlaying' }).ok) {
+        epilogue.hide();
+        toasts.push('Playing on in sandbox. Nothing ends the run from here.');
+        time.set(1);
+      }
+    },
+    newEstate: () => switchSim(freshSim(randomSeed())),
+  });
+
+  let epilogueTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function showEpilogue(): void {
+    if (epilogueTimer !== null) clearTimeout(epilogueTimer);
+    epilogueTimer = null;
+    const { state } = sim;
+    const ending = state.run.ending;
+    if (!ending) return;
+    const keys: Record<typeof ending, string[]> = {
+      clean: ['ispo.clean'],
+      dirty: ['ispo.dirty'],
+      fade: ['ending.fade'],
+      bankrupt: ['ending.bankrupt'],
+      banned: ['ending.banned'],
+      arrested: ['authority.arrested'],
+    };
+    epilogue.show({
+      ending,
+      endedAt: state.run.endedAt ?? state.tick,
+      estateCode: sim.world.estateCode,
+      headline: state.society.news.findLast((n) => keys[ending].includes(n.key)) ?? null,
+      stats: state.run.stats,
+      cash: state.economy.cash,
+      profitTotal: state.run.profitTotal + state.run.yearProfit,
+      years: state.run.years,
+      forestCover: estateForestCover(state, sim.world),
+      matureHectares: matureHectares(state),
+      letters: state.society.lettersReceived,
+      insolventFor: state.run.insolventFor,
+      chronicle: state.run.chronicle,
+      rewindYears: snapshotYears(),
+    });
+    certificate.hide();
+    yearEnd.hide();
+    time.set(0);
+  }
+
+  function rewindTo(year: number): void {
+    try {
+      const next = restoreSim(snapshotSlot(year).load());
+      // The future after this year belongs to the timeline being abandoned.
+      clearSnapshots(year);
+      switchSim(next);
+      autosave.saveNow();
+      toasts.push(`Back to the start of Year ${year}. Same seed, same weather ahead.`);
+    } catch (error) {
+      toasts.push(
+        `Could not return to Year ${year}: ${error instanceof Error ? error.message : String(error)}`,
+        'error',
+      );
+    }
+  }
 
   function showCard(kind: CardKind): void {
     const { state } = sim;
@@ -254,8 +380,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       latest.find((n) =>
         kind === 'letter'
           ? n.key === 'authority.letter'
-          : kind === 'arrest'
-            ? n.key === 'authority.arrested'
+          : kind === 'ban'
+            ? n.key === 'authority.operatingBan'
             : n.key.startsWith('authority.investigation'),
       ) ?? null;
     const settle = { type: 'SettleInvestigation' } as const;
@@ -263,18 +389,21 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       kind,
       tick: state.tick,
       headline,
-      until: kind === 'investigation' ? state.society.investigationUntil : null,
+      until:
+        kind === 'investigation'
+          ? state.society.investigationUntil
+          : kind === 'ban'
+            ? state.society.operatingBanUntil
+            : null,
       settleCost: kind === 'investigation' ? settleCost(state) : null,
       settleRejection: kind === 'investigation' ? sim.validate(settle) : null,
-      letters: state.society.lettersReceived,
-      recent: latest.slice(0, 12).reverse(),
     });
     // Paperwork stops the clock so it gets read.
     time.set(0);
   }
 
   const menu = new Menu(root, {
-    newGame: (seed) => switchSim(createSim(seed)),
+    newGame: (seed) => switchSim(freshSim(seed)),
     save: () => {
       if (autosave.saveNow()) toasts.push('Saved.');
       refreshMenu();
@@ -404,6 +533,25 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         tone: 'econ',
       });
     }
+    if (state.society.operatingBanUntil > state.tick) {
+      chips.push({
+        id: 'ban',
+        label: 'Operating licence suspended',
+        daysLeft: state.society.operatingBanUntil - state.tick,
+        tone: 'pest',
+      });
+    }
+    if (state.run.insolventFor > 0 && !runOver(state)) {
+      chips.push({
+        id: 'insolvent',
+        label:
+          creditLine(state, sim.world) > 0
+            ? 'Past the credit line — the bank calls the loans'
+            : 'In the red with nothing to lend against — the bank calls the loans',
+        daysLeft: BANKRUPTCY.daysInRed - state.run.insolventFor,
+        tone: 'pest',
+      });
+    }
     if (state.society.investigationUntil > state.tick) {
       chips.push({
         id: 'investigation',
@@ -443,6 +591,10 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       events: eventChips(),
       attention: sim.state.society.lettersReceived > 0 ? sim.state.society.attention : null,
       inputIndex: sim.state.economy.inputPriceIndex,
+      ispoMet:
+        sim.state.tick >= (ISPO.progressFromYear - 1) * GROWTH.daysPerYear
+          ? (sim.state.run.years.at(-1)?.conditionsMet ?? 0)
+          : null,
     });
   }
 
@@ -538,9 +690,13 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     chunks = makeChunks();
     scene.add(chunks.group);
     police.sync(sim.state, sim.world, performance.now());
+    ceremony.sync(sim.state, sim.world, performance.now());
     cards.hide();
     newsPanel.hide();
-    newsReadTick = loadReadTick();
+    epilogue.hide();
+    certificate.hide();
+    yearEnd.hide();
+    newsReadTick = Math.min(loadReadTick(), sim.state.tick);
     picker = new Picker(rig.camera, chunks.group, sim.world);
     palmsDirty = true;
     animateBlocks = new Set();
@@ -612,7 +768,31 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     // The authorities.
     if (d.investigationOpened || d.investigationEnded || d.arrested)
       police.sync(sim.state, sim.world, performance.now());
-    if (d.arrested) showCard('arrest');
+    if (d.operatingBanLifted) toasts.push('The operating licence is restored. Crews may return.');
+
+    // The year, and how the run ends (§3.8).
+    if (d.yearClosed && !runOver(sim.state)) {
+      writeSnapshot(d.yearClosed.year + 1);
+      const years = sim.state.run.years;
+      yearEnd.show({
+        summary: d.yearClosed,
+        previous: years.at(-2) ?? null,
+        conditionsMet:
+          d.yearClosed.year + 1 >= ISPO.progressFromYear ? d.yearClosed.conditionsMet : null,
+      });
+    }
+    if (d.certified) {
+      // The ceremony first, then the epilogue over it.
+      ceremony.sync(sim.state, sim.world, performance.now(), true);
+      if (sim.state.kopdes) focusBlock(sim.state.kopdes.blockId);
+      toasts.push('The Ministry has sent a banner. ISPO certified.');
+      time.set(0);
+      const run = sim;
+      epilogueTimer = setTimeout(() => {
+        if (sim === run && runOver(sim.state)) showEpilogue();
+      }, CEREMONY_MS);
+    } else if (d.runEnded) showEpilogue();
+    else if (d.operatingBanned) showCard('ban');
     else if (d.investigationOpened) showCard('investigation');
     else if (d.letter) showCard('letter');
 
@@ -739,6 +919,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     palms.update(nowMs);
     ring.update(nowMs);
     police.update(nowMs);
+    ceremony.update(nowMs);
     ticker.update(sim.state.society.news, unreadWarnings());
     newsPanel.update(sim.state.society.news);
     fires.update(nowMs);
@@ -781,7 +962,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       else openShop();
     },
     escape: () => {
-      if (cards.showing && cards.showing !== 'arrest') cards.hide();
+      if (epilogue.isOpen) return;
+      if (cards.showing) cards.hide();
+      else if (certificate.isOpen) certificate.hide();
       else if (newsPanel.isOpen) newsPanel.hide();
       else if (menu.isOpen) menu.hide();
       else if (shop.isOpen) closeShop();
@@ -806,7 +989,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   refreshHud();
   refreshMenu();
   police.sync(sim.state, sim.world, performance.now());
-  if (sim.state.run.ending === 'arrested') showCard('arrest');
+  ceremony.sync(sim.state, sim.world, performance.now());
+  if (runOver(sim.state)) showEpilogue();
   time.subscribe(() => refreshHud());
   // `?debug` exposes the running sim for the browser suite and for poking at
   // events by hand. Single-player and local, so this is a console, not a cheat.
@@ -826,6 +1010,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   }
 
   return () => {
+    if (epilogueTimer !== null) clearTimeout(epilogueTimer);
     loop.stop();
     detachAutosave();
     detachKeys();
@@ -839,6 +1024,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     ticker.dispose();
     newsPanel.dispose();
     cards.dispose();
+    epilogue.dispose();
+    certificate.dispose();
+    yearEnd.dispose();
     vignette.remove();
     chunks.dispose();
     palms.dispose();
@@ -848,6 +1036,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     hazardRing.dispose();
     fires.dispose();
     police.dispose();
+    ceremony.dispose();
     sky.dispose();
     rig.dispose();
     material.dispose();

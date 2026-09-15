@@ -7,7 +7,7 @@
  */
 
 import type { SimEvent } from '@sim/events';
-import type { BlockId, ItemId } from '@sim/types';
+import type { BlockId, Ending, ItemId, YearSummary } from '@sim/types';
 
 export interface EventDigest {
   /** Blocks whose terrain look changed: rebuild their chunks. */
@@ -53,6 +53,12 @@ export interface EventDigest {
   investigationOpened: boolean;
   investigationEnded: boolean;
   arrested: boolean;
+  operatingBanned: boolean;
+  operatingBanLifted: boolean;
+  /** The year that closed this tick, for the year-end card and the snapshot. */
+  yearClosed: YearSummary | null;
+  certified: { clean: boolean } | null;
+  runEnded: Ending | null;
   news: { key: string; lane: string; severity: string }[];
 }
 
@@ -96,6 +102,11 @@ export function digestEvents(events: readonly SimEvent[]): EventDigest {
     investigationOpened: false,
     investigationEnded: false,
     arrested: false,
+    operatingBanned: false,
+    operatingBanLifted: false,
+    yearClosed: null,
+    certified: null,
+    runEnded: null,
     news: [],
   };
 
@@ -240,6 +251,22 @@ export function digestEvents(events: readonly SimEvent[]): EventDigest {
         break;
       case 'Arrested':
         d.arrested = true;
+        d.runEnded = 'arrested';
+        break;
+      case 'OperatingBanned':
+        d.operatingBanned = true;
+        break;
+      case 'OperatingBanLifted':
+        d.operatingBanLifted = true;
+        break;
+      case 'YearClosed':
+        d.yearClosed = event.summary;
+        break;
+      case 'Certified':
+        d.certified = { clean: event.clean };
+        break;
+      case 'RunEnded':
+        d.runEnded = event.ending;
         break;
       case 'NewsPublished':
         d.news.push({ key: event.key, lane: event.lane, severity: event.severity });

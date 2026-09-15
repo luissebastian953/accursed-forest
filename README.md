@@ -13,15 +13,18 @@ Section references in the code (`§6.5`, `§4.1`, …) point into it.
 
 ## Status
 
-**M1a–M1f done: skeleton, loop, terrain & expansion, pests, weather & events,
-news & authority.** A news feed now explains every price move and disaster
-across natural, economic and government lanes, and the government's promises
-are only as good as a hidden integrity stat. Clear forest too fast or burn
-too often and the district office writes; keep going and the police park at
-the Kopdes for two years; while integrity is low, a "coordination fee" makes
-them leave, and the papers notice. At 100 attention, or a second wildfire
-under investigation, the run ends in handcuffs. M1g (endings: ISPO
-certification clean or dirty, bankruptcy, the epilogue and rewind) is next.
+**M1a–M1g done: skeleton, loop, terrain & expansion, pests, weather & events,
+news & authority, endings.** A run now has an end. Meet the five ISPO
+conditions — profit, bearing hectares, no burns, forest on the slopes, a
+full Kopdes — and the Ministry sends a banner; with low integrity the burn
+and forest conditions can be waived, and the epilogue tells that dirty win
+plainly. Fall below the bank's credit line (Rp 20M per planted hectare in
+Kopdes range) for 90 days and the loans are called; burn while an honest
+enforcement team is in office and the estate can be shut for two years.
+Twenty-five years without a certificate is the fade. Every ending replays
+the run as a chain of headlines, and losses offer "Return to Year N" from
+start-of-year snapshots. M1h (polish: toasts, block panel rejections, the stats
+panel, the balance sweep, README) is next.
 
 | Area                                                                           | State                    |
 | ------------------------------------------------------------------------------ | ------------------------ |
@@ -37,16 +40,16 @@ certification clean or dirty, bankruptcy, the epilogue and rewind) is next.
 | Per-block upgrades: irrigation, drainage; reforestation planting               | done                     |
 | Kopdes: placement, shop, upgrades, range, same-day sales; price walk           | done                     |
 | Scripted autoplayer (with a careful-player mode) and `pnpm sweep`              | done                     |
-| Chunked, validated, migratable `localStorage` saves; autosave                  | done (schema v4)         |
+| Chunked, validated, migratable `localStorage` saves; autosave                  | done (schema v5)         |
 | Column terrain via mesher worker + chunk streaming; ash and char tops          | done                     |
 | Instanced palms, Kopdes, flames, selection / range / hazard rings              | done                     |
 | Map camera, picking, keyboard, HUD (price, fire, plague), panels, shop         | done                     |
 | Weather deck: haze, ash, flood, drought; forest cover and landslides           | done                     |
 | News feed (3 lanes), integrity, macro economy, authority ladder                | done                     |
-| Endings: ISPO clean/dirty, bankruptcy, epilogue, rewind                        | **M1g**                  |
+| Endings: ISPO clean/dirty, bankruptcy, ban, fade, epilogue, rewind, sandbox    | done                     |
 | Far-LOD heatmap tiles, GPU per-instance animation, forest box-trees            | deferred until they bite |
 
-Tests: 254 unit (Vitest) and 11 browser (Playwright, WebGL fallback) — the
+Tests: 274 unit (Vitest) and 12 browser (Playwright, WebGL fallback) — the
 browser suite plays the loop end to end, lights a wildfire on purpose, and
 lets beetles loose on an unsanitized block.
 

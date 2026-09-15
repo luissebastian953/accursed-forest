@@ -304,11 +304,14 @@ function closeYear(ctx: SimContext, year: number): void {
   const closed = ispoConditions(state, world);
   summary.conditionsMet = closed.filter((c) => c.met).length;
   events.push({ type: 'YearClosed', summary });
-  chronicle(state, {
-    lane: 'estate',
-    severity: 'notice',
-    title: `Year ${year} closed: ${summary.profit >= 0 ? 'profit' : 'loss'} Rp ${Math.abs(Math.round(summary.profit / 1_000_000))}M, ${summary.matureHectares} ha bearing`,
-  });
+  // Quiet years before the first harvest are not part of the story.
+  if (summary.matureHectares > 0 || Math.abs(profit) >= 1_000_000) {
+    chronicle(state, {
+      lane: 'estate',
+      severity: 'notice',
+      title: `Year ${year} closed: ${summary.profit >= 0 ? 'profit' : 'loss'} Rp ${Math.abs(Math.round(summary.profit / 1_000_000))}M, ${summary.matureHectares} ha bearing`,
+    });
+  }
 
   const met = (id: IspoConditionId): boolean => closed.find((c) => c.id === id)!.met;
   if (met('profit') && met('hectares') && met('kopdes')) {

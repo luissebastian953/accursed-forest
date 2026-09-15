@@ -21,6 +21,7 @@ interface DebugWindow {
         worldGen: { kopdesBlock: number };
         society: { attention: number; news: { key: string }[] };
         economy: { cash: number };
+        run: { ending?: string; endedAt?: number; insolventFor: number };
         blocks: Map<number, { id: number; owned: boolean; phase: string; slope: boolean }>;
         weather: {
           activeEvents: { id: string; startedAt: number; endsAt: number; blocks?: number[] }[];
@@ -406,11 +407,85 @@ test.describe('Sawit Simulator', () => {
 
     await setState(100);
     await tid(page, 'speed-1').click();
-    await expect(tid(page, 'card-arrest')).toBeVisible({ timeout: 5_000 });
-    await expect(page.locator('[data-testid="card-timeline"] li').first()).toBeVisible();
-    await tid(page, 'card-new-estate').click();
-    await expect(tid(page, 'card-arrest')).toHaveCount(0);
+    await expect(page.locator('[data-testid="epilogue"][data-ending="arrested"]')).toBeVisible({
+      timeout: 5_000,
+    });
+    await expect(page.locator('[data-testid="epilogue-timeline"] li').first()).toBeVisible();
+    await expect(tid(page, 'epilogue-keep-playing')).toHaveCount(0);
+    await tid(page, 'epilogue-new-estate').click();
+    await expect(tid(page, 'epilogue')).toHaveCount(0);
     await expect(tid(page, 'hud-date')).toContainText('Year 1');
+
+    expect(errors).toEqual([]);
+  });
+
+  test('endings: year-end card, bankruptcy, rewind, certificate and sandbox', async ({ page }) => {
+    test.setTimeout(90_000);
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.goto('/?webgl&seed=42&fresh&debug');
+    await expect(page.locator('canvas')).toBeVisible();
+    await page.waitForTimeout(1500);
+
+    // Close year 2 by jumping to its last days: a year-end card, a snapshot, the ISPO button.
+    await page.evaluate(() => {
+      const { state } = (window as unknown as DebugWindow).__sawit.sim();
+      state.tick = 2 * 360 - 3;
+    });
+    await tid(page, 'speed-1').click();
+    await expect(tid(page, 'year-end-card')).toBeVisible({ timeout: 10_000 });
+    await expect(tid(page, 'year-end-card')).toContainText('Year 2 closed');
+    await expect(tid(page, 'hud-ispo')).toBeVisible();
+    await tid(page, 'hud-ispo').click();
+    await expect(tid(page, 'certificate-panel')).toBeVisible();
+    await expect(page.getByTestId(/^certificate-condition-/)).toHaveCount(5);
+    await tid(page, 'certificate-close').click();
+
+    // Deep in the red with nothing to lend against: the bank calls the loans.
+    await page.evaluate(() => {
+      const { state } = (window as unknown as DebugWindow).__sawit.sim();
+      state.economy.cash = -1_000_000;
+      state.run.insolventFor = 85;
+    });
+    await expect(tid(page, 'event-chip-insolvent')).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator('[data-testid="epilogue"][data-ending="bankrupt"]')).toBeVisible({
+      timeout: 10_000,
+    });
+    await expect(tid(page, 'epilogue-keep-playing')).toHaveCount(0);
+
+    // Rewind to the start of Year 3: same seed, cash back, the run alive.
+    await tid(page, 'epilogue-rewind-3').click();
+    await expect(tid(page, 'epilogue')).toHaveCount(0);
+    await expect(tid(page, 'hud-date')).toContainText('Year 3');
+    const after = await page.evaluate(() => {
+      const { state } = (window as unknown as DebugWindow).__sawit.sim();
+      return { ending: state.run.ending ?? null, cash: state.economy.cash };
+    });
+    expect(after.ending).toBeNull();
+    expect(after.cash).toBeGreaterThan(0);
+
+    // A certified estate: the ceremony, the epilogue, and sandbox.
+    await page.evaluate(() => {
+      const { state } = (window as unknown as DebugWindow).__sawit.sim();
+      state.run.ending = 'clean';
+      state.run.endedAt = state.tick;
+    });
+    // Leaving saves the estate; opening the game without a seed loads it, epilogue and all.
+    await page.goto('/?webgl&debug');
+    await expect(page.locator('[data-testid="epilogue"][data-ending="clean"]')).toBeVisible({
+      timeout: 15_000,
+    });
+    await tid(page, 'epilogue-keep-playing').click();
+    await expect(tid(page, 'epilogue')).toHaveCount(0);
+    await tid(page, 'speed-20').click();
+    const tickA = await page.evaluate(
+      () => (window as unknown as DebugWindow).__sawit.sim().state.tick,
+    );
+    await page.waitForTimeout(800);
+    const tickB = await page.evaluate(
+      () => (window as unknown as DebugWindow).__sawit.sim().state.tick,
+    );
+    expect(tickB).toBeGreaterThan(tickA);
 
     expect(errors).toEqual([]);
   });

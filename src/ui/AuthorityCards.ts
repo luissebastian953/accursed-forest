@@ -1,7 +1,7 @@
 /**
- * The authorities' paperwork (§8 panel 17b) and the end of the road (§3.9):
- * the letter, the investigation notice with its "settle the matter" option
- * when integrity allows, and the arrest card.
+ * The authorities' paperwork (§8 panel 17b): the letter, the investigation
+ * notice with its "settle the matter" option when integrity allows, and the
+ * operating ban (§3.8). The arrest is an ending; the epilogue tells it.
  */
 
 import { html, nothing, render } from 'lit-html';
@@ -10,25 +10,21 @@ import type { NewsItem, Rejection } from '@sim/types';
 
 import { formatDate, formatRp } from './format.ts';
 
-export type CardKind = 'letter' | 'investigation' | 'arrest';
+export type CardKind = 'letter' | 'investigation' | 'ban';
 
 export interface CardView {
   kind: CardKind;
   tick: number;
   headline: NewsItem | null;
-  /** Investigation only: when the ban lifts. */
+  /** Investigation and operating ban: when it lifts. */
   until: number | null;
   settleCost: number | null;
   settleRejection: Rejection | null;
-  /** Arrest only: the run's paper trail. */
-  letters: number;
-  recent: readonly NewsItem[];
 }
 
 export interface CardHandlers {
   dismiss(): void;
   settle(): void;
-  newEstate(): void;
 }
 
 export class AuthorityCards {
@@ -71,10 +67,10 @@ export class AuthorityCards {
       html`
         <div class="absolute inset-0 z-40 flex items-center justify-center bg-black/55 p-4">
           <div
-            class=${`w-full max-w-lg rounded-2xl p-6 text-white shadow-2xl ${v.kind === 'arrest' ? 'bg-neutral-950' : 'bg-stone-900'}`}
+            class=${`w-full max-w-lg rounded-2xl p-6 text-white shadow-2xl ${v.kind === 'ban' ? 'bg-neutral-950' : 'bg-stone-900'}`}
             data-testid=${`card-${v.kind}`}
           >
-            ${v.kind === 'letter' ? this.letter(v) : v.kind === 'investigation' ? this.investigation(v) : this.arrest(v)}
+            ${v.kind === 'letter' ? this.letter(v) : v.kind === 'investigation' ? this.investigation(v) : this.ban(v)}
           </div>
         </div>
       `,
@@ -162,29 +158,29 @@ export class AuthorityCards {
     `;
   }
 
-  private arrest(v: CardView) {
+  private ban(v: CardView) {
     return html`
-      <div class="mb-1 text-xs uppercase tracking-widest text-red-400">${formatDate(v.tick)}</div>
-      <div class="mb-2 text-2xl font-bold">Under arrest</div>
-      <p class="mb-4 text-sm leading-relaxed opacity-85">
-        ${v.headline?.body ?? 'The fires were set on purpose, and the letters were ignored.'}
-        ${v.letters > 0 ? html` The file holds ${v.letters} notice${v.letters === 1 ? '' : 's'} from the authorities.` : nothing}
-      </p>
-      <div
-        class="mb-5 max-h-56 overflow-y-auto rounded-lg bg-white/5 p-3"
-        data-testid="card-timeline"
-      >
-        <div class="mb-1 text-xs uppercase tracking-wide opacity-60">How it went</div>
-        <ol class="space-y-1 text-xs">
-          ${v.recent.map((n) => html`<li><span class="tabular-nums opacity-60">${formatDate(n.tick)}</span> — ${n.title}</li>`)}
-        </ol>
+      <div class="mb-1 text-xs uppercase tracking-widest text-red-300">
+        Ministry enforcement team · ${formatDate(v.tick)}
       </div>
+      <div class="mb-3 text-lg font-semibold">
+        ${v.headline?.title ?? 'Operating licence suspended'}
+      </div>
+      <p class="mb-3 text-sm leading-relaxed opacity-85">${v.headline?.body ?? ''}</p>
+      <ul class="mb-4 space-y-1 text-sm">
+        <li>
+          🚫 No clearing, palm planting or harvest until
+          <strong>${v.until !== null ? formatDate(v.until) : '—'}</strong>.
+        </li>
+        <li>🌱 Planting forest back is allowed.</li>
+        <li>💸 Upkeep runs at half, and the bank will not lend against a shut estate.</li>
+      </ul>
       <button
-        class="w-full rounded bg-white/15 px-3 py-2 font-medium hover:bg-white/25"
-        data-testid="card-new-estate"
-        @click=${() => this.handlers.newEstate()}
+        class="w-full rounded bg-red-700 px-3 py-2 font-medium hover:bg-red-600"
+        data-testid="card-dismiss"
+        @click=${() => this.handlers.dismiss()}
       >
-        New estate
+        Understood
       </button>
     `;
   }

@@ -52,6 +52,11 @@ export function render(text: string, state: SimState, vars: NewsVars): string {
   return text.replace(/\{(\w+)\}/g, (match, name: string) => values[name] ?? match);
 }
 
+/** A headline that opens on a slot ("{estate} folds…") still starts with a capital. */
+function capitalise(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 /**
  * Headlines draw from their own stream, forked from the seed and the tick.
  * The words of the news must never change the world's future: drawing a
@@ -86,7 +91,7 @@ export function publish(
     key,
     lane: template.lane,
     severity: template.severity,
-    title: render(pick(rng, template.titles) ?? key, state, vars),
+    title: capitalise(render(pick(rng, template.titles) ?? key, state, vars)),
     body: render(pick(rng, template.bodies) ?? '', state, vars),
     effects: template.effects.map((e) => render(e, state, vars)).filter((e) => e.trim().length > 0),
   };
