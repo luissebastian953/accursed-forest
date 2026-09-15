@@ -17,7 +17,7 @@ export interface EventChip {
   label: string;
   /** Days left, or null for events that last as long as their cause. */
   daysLeft: number | null;
-  tone: 'fire' | 'smoke' | 'ash' | 'water' | 'dry' | 'pest';
+  tone: 'fire' | 'smoke' | 'ash' | 'water' | 'dry' | 'pest' | 'econ';
 }
 
 export interface HudView {
@@ -39,6 +39,10 @@ export interface HudView {
   fireThreshold: number;
   burningCount: number;
   wildfire: boolean;
+  /** §8 panel 5b: shown only once the first letter has arrived (§3.9); null hides it. */
+  attention: number | null;
+  /** §8 panel 1: the input price index, shown once it moves off 1. */
+  inputIndex: number;
   /** §8 panel 1: share of forest across the estate's neighbourhood, 0..1. */
   forestCover: number;
   /** §8 panel 6: haze, ash, flood, drought, wildfire, plague. */
@@ -65,6 +69,7 @@ const TONE: Record<EventChip['tone'], string> = {
   water: 'bg-sky-800/80',
   dry: 'bg-yellow-800/75',
   pest: 'bg-red-800/80',
+  econ: 'bg-sky-800/80',
 };
 
 export class Hud {
@@ -110,7 +115,41 @@ export class Hud {
           >
             🌳 ${cover}%
           </div>
-
+          ${
+            view.inputIndex > 1.005
+              ? html`<div
+                  class="tabular-nums text-sky-200/90"
+                  title="Input prices against the start of the run"
+                  data-testid="hud-inputs"
+                >
+                  inputs ×${view.inputIndex.toFixed(2)}
+                </div>`
+              : nothing
+          }
+          ${
+            view.attention !== null
+              ? html`
+                  <div
+                    class="flex items-center gap-2"
+                    title="Attention from the authorities — a letter at 40, police at 70, arrest at 100"
+                    data-testid="attention-gauge"
+                  >
+                    <span>👁</span>
+                    <div class="relative h-2 w-20 overflow-hidden rounded bg-white/15">
+                      <div
+                        class=${view.attention >= 70 ? 'h-full bg-red-500' : view.attention >= 40 ? 'h-full bg-amber-400' : 'h-full bg-slate-300'}
+                        style=${`width: ${Math.min(100, view.attention)}%`}
+                      ></div>
+                      <div class="absolute inset-y-0 left-[40%] w-px bg-white/60"></div>
+                      <div class="absolute inset-y-0 left-[70%] w-px bg-white/60"></div>
+                    </div>
+                    <span class="text-xs tabular-nums opacity-80"
+                      >${Math.round(view.attention)}</span
+                    >
+                  </div>
+                `
+              : nothing
+          }
           ${
             view.firePressure > 0.01 || view.wildfire
               ? html`

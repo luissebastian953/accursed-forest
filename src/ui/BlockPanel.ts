@@ -138,7 +138,7 @@ export class BlockPanel {
           actions.push({
             label: 'Chop',
             command: { type: 'ChopBlock', block: id },
-            cost: chopCost(block.biome),
+            cost: chopCost(block.biome, state),
             testId: 'action-ChopBlock',
           });
           burnable = isFuel(block, false);

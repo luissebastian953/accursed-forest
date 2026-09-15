@@ -21,7 +21,7 @@ export class Toasts {
   ) {
     this.root = document.createElement('div');
     this.root.className =
-      'pointer-events-none absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-2';
+      'pointer-events-none absolute bottom-14 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-2';
     parent.appendChild(this.root);
   }
 

@@ -19,6 +19,8 @@ interface DebugWindow {
       state: {
         tick: number;
         worldGen: { kopdesBlock: number };
+        society: { attention: number; news: { key: string }[] };
+        economy: { cash: number };
         blocks: Map<number, { id: number; owned: boolean; phase: string; slope: boolean }>;
         weather: {
           activeEvents: { id: string; startedAt: number; endsAt: number; blocks?: number[] }[];
@@ -351,6 +353,64 @@ test.describe('Sawit Simulator', () => {
       return [...state.blocks.values()].some((b) => b.owned && b.slope);
     });
     expect(hasSlope).toBe(true);
+
+    expect(errors).toEqual([]);
+  });
+
+  test('news and the authorities: ticker, feed, letter, police, settle, arrest', async ({
+    page,
+  }) => {
+    test.setTimeout(90_000);
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.goto('/?webgl&seed=42&fresh&debug');
+    await expect(page.locator('canvas')).toBeVisible();
+    await page.waitForTimeout(2000);
+
+    const setState = (attention: number, cash?: number) =>
+      page.evaluate(
+        ([a, c]) => {
+          const { state } = (window as unknown as DebugWindow).__sawit.sim();
+          state.society.attention = a as number;
+          if (c !== null) state.economy.cash = c as number;
+        },
+        [attention, cash ?? null] as const,
+      );
+
+    // A year at 20× fills the feed.
+    await tid(page, 'speed-20').click();
+    await expect(tid(page, 'news-ticker')).toBeVisible({ timeout: 30_000 });
+    await tid(page, 'speed-0').click();
+    await page.keyboard.press('n');
+    await expect(tid(page, 'news-panel')).toBeVisible();
+    await expect(page.getByTestId('news-item').first()).toBeVisible();
+    await tid(page, 'news-filter-economic').click();
+    await page.keyboard.press('Escape');
+    await expect(tid(page, 'news-panel')).toHaveCount(0);
+
+    // No gauge until the first letter.
+    await expect(tid(page, 'attention-gauge')).toHaveCount(0);
+    await setState(41);
+    await tid(page, 'speed-1').click();
+    await expect(tid(page, 'card-letter')).toBeVisible({ timeout: 5_000 });
+    await tid(page, 'card-dismiss').click();
+    await expect(tid(page, 'attention-gauge')).toBeVisible();
+
+    await setState(71, 500_000_000);
+    await tid(page, 'speed-1').click();
+    await expect(tid(page, 'card-investigation')).toBeVisible({ timeout: 5_000 });
+    await expect(tid(page, 'event-chip-investigation')).toBeVisible();
+    await tid(page, 'card-settle').click();
+    await expect(tid(page, 'card-investigation')).toHaveCount(0);
+    await expect(tid(page, 'event-chip-investigation')).toHaveCount(0);
+
+    await setState(100);
+    await tid(page, 'speed-1').click();
+    await expect(tid(page, 'card-arrest')).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator('[data-testid="card-timeline"] li').first()).toBeVisible();
+    await tid(page, 'card-new-estate').click();
+    await expect(tid(page, 'card-arrest')).toHaveCount(0);
+    await expect(tid(page, 'hud-date')).toContainText('Year 1');
 
     expect(errors).toEqual([]);
   });

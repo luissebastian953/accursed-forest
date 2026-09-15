@@ -35,6 +35,19 @@ export const NATURAL: Record<string, NewsTemplate> = {
       'Fertile soil for a season afterwards',
     ],
   },
+  'flood.regional': {
+    lane: 'natural',
+    severity: 'notice',
+    cooldownDays: 30,
+    titles: [
+      'River bursts its banks downstream in {region}',
+      'Floods cut roads in the lowlands of {region}',
+    ],
+    bodies: [
+      'Villages along the river are under water for about {days} days. Your land sits above it this time.',
+    ],
+    effects: ['Not on your land this time'],
+  },
   'flood.start': {
     lane: 'natural',
     severity: 'warning',

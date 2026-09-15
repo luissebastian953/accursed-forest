@@ -12,6 +12,7 @@ export interface KeyHandlers {
   rotate(direction: 1 | -1): void;
   focusKopdes(): void;
   openShop(): void;
+  openNews(): void;
   escape(): void;
 }
 
@@ -46,6 +47,10 @@ export function attachKeys(handlers: KeyHandlers, target: Window = window): () =
       case 'f':
       case 'F':
         handlers.focusKopdes();
+        break;
+      case 'n':
+      case 'N':
+        handlers.openNews();
         break;
       case 'k':
       case 'K':

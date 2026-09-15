@@ -90,7 +90,7 @@ describe('news system (§3.7)', () => {
     ['wildfire', [{ type: 'WildfireStarted' }], 'wildfire.start'],
     ['haze', [{ type: 'WeatherEventStarted', id: 'haze', days: 20 }], 'haze.start'],
     ['ash', [{ type: 'WeatherEventStarted', id: 'ash', days: 5 }], 'ash.start'],
-    ['flood', [{ type: 'WeatherEventStarted', id: 'flood', days: 8 }], 'flood.start'],
+    ['flood elsewhere', [{ type: 'WeatherEventStarted', id: 'flood', days: 8 }], 'flood.regional'],
     ['drought', [{ type: 'WeatherEventStarted', id: 'drought', days: 0 }], 'drought.start'],
     ['drought ends', [{ type: 'WeatherEventEnded', id: 'drought' }], 'drought.end'],
     ['landslide', [{ type: 'Landslide', block: 0, below: null, palmsLost: 144 }], 'landslide'],

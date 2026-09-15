@@ -49,6 +49,11 @@ export interface EventDigest {
   flooded: Set<BlockId>;
   ashSettled: boolean;
   sparks: Set<BlockId>;
+  letter: boolean;
+  investigationOpened: boolean;
+  investigationEnded: boolean;
+  arrested: boolean;
+  news: { key: string; lane: string; severity: string }[];
 }
 
 export function digestEvents(events: readonly SimEvent[]): EventDigest {
@@ -87,6 +92,11 @@ export function digestEvents(events: readonly SimEvent[]): EventDigest {
     flooded: new Set(),
     ashSettled: false,
     sparks: new Set(),
+    letter: false,
+    investigationOpened: false,
+    investigationEnded: false,
+    arrested: false,
+    news: [],
   };
 
   for (const event of events) {
@@ -217,6 +227,22 @@ export function digestEvents(events: readonly SimEvent[]): EventDigest {
         d.sparks.add(event.block);
         d.burnStarted.add(event.block);
         d.terrainBlocks.add(event.block);
+        break;
+      case 'LetterReceived':
+        d.letter = true;
+        break;
+      case 'InvestigationOpened':
+        d.investigationOpened = true;
+        break;
+      case 'InvestigationSettled':
+      case 'InvestigationClosed':
+        d.investigationEnded = true;
+        break;
+      case 'Arrested':
+        d.arrested = true;
+        break;
+      case 'NewsPublished':
+        d.news.push({ key: event.key, lane: event.lane, severity: event.severity });
         break;
       case 'CoverCropSown':
         break;

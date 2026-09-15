@@ -13,14 +13,15 @@ Section references in the code (`§6.5`, `§4.1`, …) point into it.
 
 ## Status
 
-**M1a–M1e done: skeleton, loop, terrain & expansion, pests, weather &
-events.** The world now fights back on its own schedule: El Niño dry seasons
-bring drought and haze, La Niña wet seasons bring floods over the low river
-ground, and once in a long while ash falls from a distant eruption, halts the
-harvest, and leaves the soil fertile. Clear the forest off a hillside and the
-rains take the slope, palms and all; forest cover, shown in the HUD and on
-every slope's panel, is what holds it. M1f (news feed, government integrity,
-the authority meter) is next.
+**M1a–M1f done: skeleton, loop, terrain & expansion, pests, weather & events,
+news & authority.** A news feed now explains every price move and disaster
+across natural, economic and government lanes, and the government's promises
+are only as good as a hidden integrity stat. Clear forest too fast or burn
+too often and the district office writes; keep going and the police park at
+the Kopdes for two years; while integrity is low, a "coordination fee" makes
+them leave, and the papers notice. At 100 attention, or a second wildfire
+under investigation, the run ends in handcuffs. M1g (endings: ISPO
+certification clean or dirty, bankruptcy, the epilogue and rewind) is next.
 
 | Area                                                                           | State                    |
 | ------------------------------------------------------------------------------ | ------------------------ |
@@ -36,15 +37,16 @@ the authority meter) is next.
 | Per-block upgrades: irrigation, drainage; reforestation planting               | done                     |
 | Kopdes: placement, shop, upgrades, range, same-day sales; price walk           | done                     |
 | Scripted autoplayer (with a careful-player mode) and `pnpm sweep`              | done                     |
-| Chunked, validated, migratable `localStorage` saves; autosave                  | done (schema v3)         |
+| Chunked, validated, migratable `localStorage` saves; autosave                  | done (schema v4)         |
 | Column terrain via mesher worker + chunk streaming; ash and char tops          | done                     |
 | Instanced palms, Kopdes, flames, selection / range / hazard rings              | done                     |
 | Map camera, picking, keyboard, HUD (price, fire, plague), panels, shop         | done                     |
 | Weather deck: haze, ash, flood, drought; forest cover and landslides           | done                     |
-| News feed, integrity, authority meter, endings                                 | **M1f–M1g**              |
+| News feed (3 lanes), integrity, macro economy, authority ladder                | done                     |
+| Endings: ISPO clean/dirty, bankruptcy, epilogue, rewind                        | **M1g**                  |
 | Far-LOD heatmap tiles, GPU per-instance animation, forest box-trees            | deferred until they bite |
 
-Tests: 215 unit (Vitest) and 10 browser (Playwright, WebGL fallback) — the
+Tests: 254 unit (Vitest) and 11 browser (Playwright, WebGL fallback) — the
 browser suite plays the loop end to end, lights a wildfire on purpose, and
 lets beetles loose on an unsanitized block.
 
@@ -62,7 +64,7 @@ spike instead of the game; `?debug` exposes the running sim as
 
 Controls: drag to pan, wheel to zoom, **Q/E** rotate a quarter turn, click a
 block, double-click to focus it, **space** pauses, **1/2/3** set speed,
-**F** jumps to the Kopdes, **K** opens its shop, **Esc** closes panels.
+**F** jumps to the Kopdes, **K** opens its shop, **N** opens the news, **Esc** closes panels.
 
 ## Scripts
 

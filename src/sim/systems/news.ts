@@ -7,6 +7,7 @@
 
 import { GROWTH } from '../balance/growth.ts';
 import { NEWS, NEWS_TEMPLATES, regionName, type NewsTemplate } from '../balance/news/index.ts';
+import { MACRO } from '../balance/society.ts';
 import { forestCoverAround } from '../landscape.ts';
 import { chance, forkRng, pick, type RngState } from '../rng.ts';
 import type { SimContext } from '../state.ts';
@@ -123,7 +124,7 @@ export function newsSystem(ctx: SimContext): void {
         else if (event.id === 'ash') add('ash.start', { days: event.days });
         else if (event.id === 'flood')
           add(
-            'flood.start',
+            (active?.blocks?.length ?? 0) > 0 ? 'flood.start' : 'flood.regional',
             { days: event.days, n: active?.blocks?.length ?? 0 },
             active?.blocks ?? [],
           );
@@ -149,7 +150,7 @@ export function newsSystem(ctx: SimContext): void {
       case 'MacroEventStarted':
         add(`macro.${event.id}`, {
           days: event.days,
-          pct: `${(1 + (event.id === 'rupiahSlide' ? 0.07 : 0.04)).toFixed(2)}`,
+          pct: `${(1 + ((MACRO.events as Record<string, { inputRise?: number }>)[event.id]?.inputRise ?? 0)).toFixed(2)}`,
         });
         break;
       case 'TbsSold':
@@ -206,10 +207,13 @@ export function newsSystem(ctx: SimContext): void {
     // The government reacts to the big natural stories; integrity decides whether it means it.
     if (
       published &&
-      (item.key === 'wildfire.start' || item.key === 'haze.start' || item.key === 'flood.start')
+      (item.key === 'wildfire.start' ||
+        item.key === 'haze.start' ||
+        item.key === 'flood.start' ||
+        item.key === 'flood.regional')
     ) {
       if (chance(rng, NEWS.governmentReactionChance)) {
-        const topic = item.key === 'flood.start' ? 'gov.floodRelief' : 'gov.fireResponse';
+        const topic = item.key.startsWith('flood.') ? 'gov.floodRelief' : 'gov.fireResponse';
         const tone = state.society.integrity >= NEWS.realResponseIntegrity ? 'real' : 'hollow';
         publish(ctx, `${topic}.${tone}`, {}, [], rng);
       }

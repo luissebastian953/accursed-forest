@@ -78,8 +78,10 @@ export const MACRO = {
   /** CPO is priced in USD: a weaker rupiah lifts TBS by only this share of the input rise. */
   tbsPassThrough: 0.5,
   events: {
-    rupiahSlide: { weight: 3, inputRise: 0.07 },
-    fertilizerSpike: { weight: 2, inputRise: 0.04 },
+    // ~3.5% a year on average: close to recent Indonesian inflation. At 7%/4%
+    // the index was already ×1.19 by year 2.
+    rupiahSlide: { weight: 3, inputRise: 0.05 },
+    fertilizerSpike: { weight: 2, inputRise: 0.03 },
     biodieselMandate: { weight: 1.5, tbsFactor: 1.1, days: { min: 150, max: 240 } },
     euRestriction: { weight: 1, tbsFactor: 0.88, days: { min: 180, max: 300 } },
     millStrike: { weight: 1.5, tbsFactor: 0.85, days: { min: 10, max: 25 } },

@@ -21,10 +21,13 @@ import { Fires } from '@render/scene/Fires';
 import { KopdesMesh } from '@render/scene/Kopdes';
 import { HazardRing, RangeRing, SelectionRing } from '@render/scene/Overlays';
 import { Palms } from '@render/scene/Palms';
+import { Police } from '@render/scene/Police';
 import { Sky } from '@render/scene/Sky';
 import { digestEvents } from '@render/sync';
 import { FIRE } from '@sim/balance/fire';
+import { MACRO_PREFIX } from '@sim/balance/society';
 import { WORLD } from '@sim/balance/world';
+import { settleCost } from '@sim/commands/settleInvestigation';
 import {
   ASH_EVENT,
   DROUGHT_EVENT,
@@ -37,11 +40,14 @@ import {
 import { createSim, restoreSim, type Sim } from '@sim/index';
 import { estateForestCover } from '@sim/landscape';
 import type { BlockId, Command } from '@sim/types';
+import { AuthorityCards, type CardKind } from '@ui/AuthorityCards';
 import { BlockPanel } from '@ui/BlockPanel';
 import { formatKg, formatRp } from '@ui/format';
 import { Hud, type EventChip } from '@ui/Hud';
 import { KopdesShop } from '@ui/KopdesShop';
 import { Menu } from '@ui/Menu';
+import { NewsPanel } from '@ui/NewsPanel';
+import { NewsTicker } from '@ui/NewsTicker';
 import { Toasts } from '@ui/Toasts';
 
 import { GameLoop } from './loop.ts';
@@ -128,6 +134,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   );
 
   let picker = new Picker(rig.camera, chunks.group, sim.world);
+  const police = new Police(material);
+  scene.add(police.group);
   const visible: GroundRect = { minX: 0, maxX: 0, minZ: 0, maxZ: 0 };
 
   // Edge vignette while anything burns (§8 panel 7).
@@ -179,6 +187,91 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       else hazardRing.hide();
     },
   });
+
+  // ── News and the authorities ────────────────────────────────────────────
+  const readKey = (): string => `accursed-forest:news-read:${sim.world.estateCode}`;
+  let newsReadTick = loadReadTick();
+
+  function loadReadTick(): number {
+    try {
+      return Number(localStorage.getItem(readKey()) ?? -1);
+    } catch {
+      return -1;
+    }
+  }
+
+  function markNewsRead(): void {
+    newsReadTick = sim.state.tick;
+    try {
+      localStorage.setItem(readKey(), String(newsReadTick));
+    } catch {
+      // Storage off: read state lasts for the session.
+    }
+  }
+
+  function unreadWarnings(): number {
+    let n = 0;
+    for (const item of sim.state.society.news) {
+      if (item.tick > newsReadTick && (item.severity === 'warning' || item.severity === 'critical'))
+        n += 1;
+    }
+    return n;
+  }
+
+  const ticker = new NewsTicker(root, { open: () => openNews() });
+  const newsPanel = new NewsPanel(root, {
+    focus: (block) => {
+      select(block);
+      focusBlock(block);
+    },
+    close: () => newsPanel.hide(),
+  });
+
+  function openNews(): void {
+    newsPanel.show(sim.state.society.news);
+    markNewsRead();
+  }
+
+  const cards = new AuthorityCards(root, {
+    dismiss: () => cards.hide(),
+    settle: () => {
+      const result = dispatch({ type: 'SettleInvestigation' });
+      if (result.ok) {
+        police.sync(sim.state, sim.world, performance.now());
+        cards.hide();
+      }
+    },
+    newEstate: () => {
+      cards.hide();
+      switchSim(createSim(randomSeed()));
+    },
+  });
+
+  function showCard(kind: CardKind): void {
+    const { state } = sim;
+    const latest = [...state.society.news].reverse();
+    const headline =
+      latest.find((n) =>
+        kind === 'letter'
+          ? n.key === 'authority.letter'
+          : kind === 'arrest'
+            ? n.key === 'authority.arrested'
+            : n.key.startsWith('authority.investigation'),
+      ) ?? null;
+    const settle = { type: 'SettleInvestigation' } as const;
+    cards.show({
+      kind,
+      tick: state.tick,
+      headline,
+      until: kind === 'investigation' ? state.society.investigationUntil : null,
+      settleCost: kind === 'investigation' ? settleCost(state) : null,
+      settleRejection: kind === 'investigation' ? sim.validate(settle) : null,
+      letters: state.society.lettersReceived,
+      recent: latest.slice(0, 12).reverse(),
+    });
+    // Paperwork stops the clock so it gets read.
+    time.set(0);
+  }
 
   const menu = new Menu(root, {
     newGame: (seed) => switchSim(createSim(seed)),
@@ -274,7 +367,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       const n = activeEvent(state, FLOOD_EVENT)!.blocks?.length ?? 0;
       chips.push({
         id: 'flood',
-        label: `Flood · ${n} block${n === 1 ? '' : 's'}`,
+        label: n > 0 ? `Flood · ${n} block${n === 1 ? '' : 's'}` : 'Flood downstream',
         daysLeft: left(FLOOD_EVENT),
         tone: 'water',
       });
@@ -295,6 +388,30 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         daysLeft: null,
         tone: 'pest',
       });
+    for (const event of state.weather.activeEvents) {
+      if (!event.id.startsWith(MACRO_PREFIX)) continue;
+      const id = event.id.slice(MACRO_PREFIX.length);
+      const label: Record<string, string> = {
+        biodieselMandate: 'Biodiesel mandate',
+        euRestriction: 'EU import rules',
+        millStrike: 'Mill strike',
+        exportLevy: 'Export levy',
+      };
+      chips.push({
+        id,
+        label: label[id] ?? id,
+        daysLeft: Math.max(0, event.endsAt - state.tick),
+        tone: 'econ',
+      });
+    }
+    if (state.society.investigationUntil > state.tick) {
+      chips.push({
+        id: 'investigation',
+        label: 'Police investigation',
+        daysLeft: state.society.investigationUntil - state.tick,
+        tone: 'pest',
+      });
+    }
     return chips;
   }
 
@@ -324,6 +441,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       wildfire: isWildfire(sim.state),
       forestCover,
       events: eventChips(),
+      attention: sim.state.society.lettersReceived > 0 ? sim.state.society.attention : null,
+      inputIndex: sim.state.economy.inputPriceIndex,
     });
   }
 
@@ -418,6 +537,10 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     chunks.dispose();
     chunks = makeChunks();
     scene.add(chunks.group);
+    police.sync(sim.state, sim.world, performance.now());
+    cards.hide();
+    newsPanel.hide();
+    newsReadTick = loadReadTick();
     picker = new Picker(rig.camera, chunks.group, sim.world);
     palmsDirty = true;
     animateBlocks = new Set();
@@ -485,6 +608,28 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         `${blockName(burnedClear[0]!)} burned clear — the ash will feed it for a season.`,
       );
     else if (burnedClear.length > 1) toasts.push(`${burnedClear.length} blocks burned clear.`);
+
+    // The authorities.
+    if (d.investigationOpened || d.investigationEnded || d.arrested)
+      police.sync(sim.state, sim.world, performance.now());
+    if (d.arrested) showCard('arrest');
+    else if (d.investigationOpened) showCard('investigation');
+    else if (d.letter) showCard('letter');
+
+    // Economic and government news that has no card or toast of its own.
+    for (const item of d.news) {
+      if (item.lane === 'natural' || item.key.startsWith('authority.')) continue;
+      if (item.severity === 'info') continue;
+
+      const match = sim.state.society.news.findLast(
+        (n) => n.key === item.key && n.tick === sim.state.tick,
+      );
+      if (match)
+        toasts.push(
+          `📰 ${match.title}`,
+          item.severity === 'warning' || item.severity === 'critical' ? 'warn' : 'info',
+        );
+    }
 
     // Weather news.
     for (const started of d.weatherStarted)
@@ -593,6 +738,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     }
     palms.update(nowMs);
     ring.update(nowMs);
+    police.update(nowMs);
+    ticker.update(sim.state.society.news, unreadWarnings());
+    newsPanel.update(sim.state.society.news);
     fires.update(nowMs);
     sky.update(sim.state.weather, uniforms, atmosphere(), dt);
 
@@ -624,12 +772,18 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     setSpeed: (speed) => time.set(speed),
     rotate: (direction) => rig.rotate(direction, performance.now()),
     focusKopdes: () => focusBlock(sim.state.kopdes?.blockId ?? sim.state.worldGen.kopdesBlock),
+    openNews: () => {
+      if (newsPanel.isOpen) newsPanel.hide();
+      else openNews();
+    },
     openShop: () => {
       if (shop.isOpen) closeShop();
       else openShop();
     },
     escape: () => {
-      if (menu.isOpen) menu.hide();
+      if (cards.showing && cards.showing !== 'arrest') cards.hide();
+      else if (newsPanel.isOpen) newsPanel.hide();
+      else if (menu.isOpen) menu.hide();
       else if (shop.isOpen) closeShop();
       else select(null);
     },
@@ -651,6 +805,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   focusStart();
   refreshHud();
   refreshMenu();
+  police.sync(sim.state, sim.world, performance.now());
+  if (sim.state.run.ending === 'arrested') showCard('arrest');
   time.subscribe(() => refreshHud());
   // `?debug` exposes the running sim for the browser suite and for poking at
   // events by hand. Single-player and local, so this is a console, not a cheat.
@@ -680,6 +836,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     shop.dispose();
     menu.dispose();
     toasts.dispose();
+    ticker.dispose();
+    newsPanel.dispose();
+    cards.dispose();
     vignette.remove();
     chunks.dispose();
     palms.dispose();
@@ -688,6 +847,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     rangeRing.dispose();
     hazardRing.dispose();
     fires.dispose();
+    police.dispose();
     sky.dispose();
     rig.dispose();
     material.dispose();
