@@ -403,6 +403,27 @@ describe('migrations (§7)', () => {
     }
   });
 
+  it('a v3 save (M1d/M1e) opens in the current build with an empty letter count', () => {
+    const sim = workedEstate();
+    for (let i = 0; i < 200; i++) sim.tick();
+    const storage = memoryStorage();
+    slotFor(storage).save(sim.state);
+    const key = `${KEY_PREFIX}:save:slot0`;
+    const manifest = JSON.parse(storage.get(key)!) as {
+      schema: number;
+      head: { society: { lettersReceived?: number; news: { key?: string }[] } };
+    };
+    manifest.schema = 3;
+    delete manifest.head.society.lettersReceived;
+    for (const item of manifest.head.society.news) delete item.key;
+    storage.map.set(key, JSON.stringify(manifest));
+
+    const loaded = slotFor(storage).load();
+    expect(loaded.society.lettersReceived).toBe(0);
+    expect(loaded.society.news.length).toBe(sim.state.society.news.length);
+    expect(loaded.society.news.every((n) => n.key === 'legacy')).toBe(true);
+  });
+
   it('the real migration list covers every schema from 1 to current', () => {
     const covered = new Set(MIGRATIONS.map((m) => m.from));
     for (let schema = 1; schema < CURRENT_SCHEMA; schema++) expect(covered.has(schema)).toBe(true);

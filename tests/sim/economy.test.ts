@@ -14,6 +14,7 @@ import { SLOTS_PER_BLOCK } from '@sim/balance/world.ts';
 import { createSim, type Sim } from '@sim/index.ts';
 import { distanceToKopdes, inKopdesRange, kopdesRange } from '@sim/kopdes.ts';
 import { slotStage } from '@sim/palms.ts';
+import { tbsMeanFactor } from '@sim/systems/society.ts';
 import type { BlockId } from '@sim/types.ts';
 
 /** The owned, wild, clearable block nearest the Kopdes — inside its range. */
@@ -274,19 +275,20 @@ describe('fertilizer (§3.5)', () => {
 });
 
 describe('price walk (§3.3)', () => {
-  it('stays inside its bounds and near its mean over 20 years', () => {
+  it('stays inside a band that moves with inflation and macro events, and tracks its mean', () => {
     const sim = createSim(7);
-    let sum = 0;
+    let sumRatio = 0;
     const n = 20 * GROWTH.daysPerYear;
     for (let i = 0; i < n; i++) {
       sim.tick();
+      const factor = tbsMeanFactor(sim.state);
       const p = sim.state.economy.tbsPrice;
-      expect(p).toBeGreaterThanOrEqual(ECONOMY.tbsPriceMin);
-      expect(p).toBeLessThanOrEqual(ECONOMY.tbsPriceMax);
-      sum += p;
+      expect(p).toBeGreaterThanOrEqual(Math.floor(ECONOMY.tbsPriceMin * factor) - 1);
+      expect(p).toBeLessThanOrEqual(Math.ceil(ECONOMY.tbsPriceMax * factor) + 1);
+      sumRatio += p / (ECONOMY.tbsPriceMean * factor);
     }
-    const mean = sum / n;
-    expect(Math.abs(mean - ECONOMY.tbsPriceMean) / ECONOMY.tbsPriceMean).toBeLessThan(0.1);
+    // Averaged against its own moving mean, the walk stays near 1.
+    expect(Math.abs(sumRatio / n - 1)).toBeLessThan(0.1);
     expect(sim.state.economy.tbsPriceHistory.length).toBe(ECONOMY.priceHistoryCap);
   });
 

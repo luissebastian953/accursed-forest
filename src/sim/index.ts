@@ -21,7 +21,9 @@ import { createInitialState, type SimContext } from './state.ts';
 import { economy } from './systems/economy.ts';
 import { growth } from './systems/growth.ts';
 import { harvest } from './systems/harvest.ts';
+import { newsSystem } from './systems/news.ts';
 import { pest } from './systems/pest.ts';
+import { society } from './systems/society.ts';
 import { terrain } from './systems/terrain.ts';
 import { weather } from './systems/weather.ts';
 import { worldEvents } from './systems/worldEvents.ts';
@@ -65,6 +67,9 @@ class SimImpl implements Sim {
   }
 
   validate(command: Command): Rejection | null {
+    if (this.state.run.ending) {
+      return { ok: false, code: 'gameOver', reason: 'The run is over.' };
+    }
     const handler = handlerFor(command);
     if (!handler) {
       return { ok: false, code: 'notImplemented', reason: `${command.type} is not available yet.` };
@@ -98,8 +103,9 @@ class SimImpl implements Sim {
     pest(this.ctx);
     harvest(this.ctx);
     economy(this.ctx);
+    society(this.ctx);
+    newsSystem(this.ctx);
     // endings — yearly (M1g)
-    // news (M1f)
 
     return this.ctx.events.drain();
   }

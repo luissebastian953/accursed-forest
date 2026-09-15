@@ -18,6 +18,7 @@ import {
 } from '../balance/events.ts';
 import { FIRE } from '../balance/fire.ts';
 import { isWetSeason } from '../balance/seasons.ts';
+import { MACRO_PREFIX } from '../balance/society.ts';
 import {
   ASH_EVENT,
   DROUGHT_EVENT,
@@ -59,12 +60,21 @@ export function worldEvents(ctx: SimContext): void {
   fire(ctx);
 
   // ── Expire what has run its course, with its after-effects ─────────────
+  // Macro-economic events share the list; the society system expires and announces those.
   const ending = weather.activeEvents.filter(
-    (e) => e.id !== WILDFIRE_EVENT && e.id !== DROUGHT_EVENT && e.endsAt <= tick,
+    (e) =>
+      e.id !== WILDFIRE_EVENT &&
+      e.id !== DROUGHT_EVENT &&
+      !e.id.startsWith(MACRO_PREFIX) &&
+      e.endsAt <= tick,
   );
   for (const event of ending) endEvent(ctx, event);
   weather.activeEvents = weather.activeEvents.filter(
-    (e) => e.id === WILDFIRE_EVENT || e.id === DROUGHT_EVENT || e.endsAt > tick,
+    (e) =>
+      e.id === WILDFIRE_EVENT ||
+      e.id === DROUGHT_EVENT ||
+      e.id.startsWith(MACRO_PREFIX) ||
+      e.endsAt > tick,
   );
 }
 

@@ -19,6 +19,7 @@ import { removePalm, replantBlock, trenchPalm } from './palmSlots.ts';
 import { placeKopdes } from './placeKopdes.ts';
 import { plantBlock } from './plantBlock.ts';
 import { sanitizeBlock } from './sanitizeBlock.ts';
+import { settleInvestigation } from './settleInvestigation.ts';
 import { applyMetarhizium, applyTrichoderma, setTrap } from './treatments.ts';
 import { upgradeKopdes } from './upgradeKopdes.ts';
 
@@ -44,6 +45,7 @@ const registry: Partial<Record<CommandType, CommandHandler>> = {
   TrenchPalm: trenchPalm as CommandHandler,
   ReplantBlock: replantBlock as CommandHandler,
   CoverCropBlock: coverCropBlock as CommandHandler,
+  SettleInvestigation: settleInvestigation as CommandHandler,
 };
 
 export function handlerFor(command: Command): CommandHandler | undefined {

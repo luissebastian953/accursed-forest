@@ -33,6 +33,7 @@ export function terrain(ctx: SimContext): void {
         block.phase = 'cleared';
         block.debris = Math.min(100, block.debris + spec.chopDebris);
         events.push({ type: 'BlockCleared', block: block.id });
+        if (spec.forestCover) events.push({ type: 'ForestChopped', block: block.id });
 
         // The timber partly offsets the crew's wages (§3.1.1).
         const revenue = TIMBER_VALUE[block.biome];

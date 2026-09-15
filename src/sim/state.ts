@@ -71,6 +71,7 @@ export function createInitialState(world: World): SimState {
       attention: 0,
       warningLevel: 0,
       investigationUntil: -1,
+      lettersReceived: 0,
       news: [],
       unreadSince: 0,
     },

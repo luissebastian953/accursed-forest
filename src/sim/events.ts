@@ -53,6 +53,26 @@ export type SimEvent =
   | { type: 'AshSettled'; blocks: number }
   | { type: 'SparkCaught'; block: BlockId }
   | { type: 'CoverCropSown'; block: BlockId }
+  | { type: 'ForestChopped'; block: BlockId }
+  | { type: 'MacroEventStarted'; id: string; days: number }
+  | { type: 'MacroEventEnded'; id: string }
+  | { type: 'InputPricesRose'; index: number }
+  | { type: 'IntegrityScandal'; integrity: number }
+  | { type: 'LetterReceived' }
+  | {
+      type: 'InvestigationOpened';
+      until: number;
+      reason: 'attention' | 'wildfire' | 'protectedForest';
+    }
+  | { type: 'InvestigationSettled'; cost: number }
+  | { type: 'InvestigationClosed' }
+  | { type: 'Arrested'; reason: 'attention' | 'secondWildfire' }
+  | {
+      type: 'NewsPublished';
+      key: string;
+      lane: 'natural' | 'economic' | 'government';
+      severity: 'info' | 'notice' | 'warning' | 'critical';
+    }
   | { type: 'YearPassed'; year: number }
   | { type: 'CashChanged'; cash: number };
 
@@ -64,6 +84,11 @@ export class EventSink {
 
   push(event: SimEvent): void {
     this.events.push(event);
+  }
+
+  /** This tick's events so far, without taking them. Later systems read earlier ones. */
+  peek(): readonly SimEvent[] {
+    return this.events;
   }
 
   /** Hand over this tick's events and start a fresh list. */

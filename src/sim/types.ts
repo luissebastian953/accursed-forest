@@ -131,6 +131,8 @@ export type NewsLane = 'natural' | 'economic' | 'government';
 export type NewsSeverity = 'info' | 'notice' | 'warning' | 'critical';
 
 export interface NewsItem {
+  /** Template key: cooldowns and tests look headlines up by it. */
+  key: string;
   tick: Tick;
   lane: NewsLane;
   severity: NewsSeverity;
@@ -149,6 +151,8 @@ export interface Society {
   attention: number;
   warningLevel: 0 | 1 | 2;
   investigationUntil: Tick;
+  /** Letters and notices from the authorities so far; the attention gauge appears after the first (§3.9). */
+  lettersReceived: number;
   /** Capped ring buffer, newest last. */
   news: NewsItem[];
   unreadSince: Tick;
@@ -269,7 +273,8 @@ export type Command =
   | { type: 'RemovePalm'; block: BlockId; slot: number }
   | { type: 'TrenchPalm'; block: BlockId; slot: number }
   | { type: 'ReplantBlock'; block: BlockId }
-  | { type: 'CoverCropBlock'; block: BlockId };
+  | { type: 'CoverCropBlock'; block: BlockId }
+  | { type: 'SettleInvestigation' };
 
 export type CommandType = Command['type'];
 
@@ -300,6 +305,7 @@ export interface Rejection {
     | 'noFuel'
     | 'badSlot'
     | 'halted'
+    | 'gameOver'
     | 'unknownBlock'
     | 'notImplemented';
   reason: string;

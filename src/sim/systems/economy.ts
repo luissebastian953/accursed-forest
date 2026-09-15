@@ -14,6 +14,8 @@ import { HAZE_EVENT, activeEvent } from '../fire.ts';
 import { nextGaussian } from '../rng.ts';
 import { earn, spend, type SimContext } from '../state.ts';
 
+import { tbsMeanFactor } from './society.ts';
+
 export function economy(ctx: SimContext): void {
   const { state, events } = ctx;
   const e = state.economy;
@@ -42,11 +44,13 @@ export function economy(ctx: SimContext): void {
 
   // ── Price walk ─────────────────────────────────────────────────────────
   // Regional haze: crews stay home across the province and buyers pay less (§3.6).
-  const mean = ECONOMY.tbsPriceMean * (activeEvent(state, HAZE_EVENT) ? 1 - HAZE.priceDip : 1);
+  const macro = tbsMeanFactor(state);
+  const mean =
+    ECONOMY.tbsPriceMean * macro * (activeEvent(state, HAZE_EVENT) ? 1 - HAZE.priceDip : 1);
   const pull = ECONOMY.tbsPriceMeanReversion * (mean - e.tbsPrice);
   const noise = nextGaussian(state.rng) * ECONOMY.tbsPriceDrift;
   e.tbsPrice = Math.round(
-    clamp(e.tbsPrice + pull + noise, ECONOMY.tbsPriceMin, ECONOMY.tbsPriceMax),
+    clamp(e.tbsPrice + pull + noise, ECONOMY.tbsPriceMin * macro, ECONOMY.tbsPriceMax * macro),
   );
   e.tbsPriceHistory.push(e.tbsPrice);
   if (e.tbsPriceHistory.length > ECONOMY.priceHistoryCap) {

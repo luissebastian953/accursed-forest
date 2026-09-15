@@ -52,6 +52,23 @@ export const MIGRATIONS: readonly Migration[] = [
       }
     },
   },
+  {
+    // M1f: news and authority. No v3 save ever published a headline or received a letter.
+    from: 3,
+    up(save) {
+      const head = save.manifest['head'] as { society?: Record<string, unknown> } | undefined;
+      const society = head?.society;
+      if (!society) throw new SaveError('corrupt', 'v3 manifest has no society');
+      society['lettersReceived'] ??= 0;
+      const news = society['news'];
+      if (Array.isArray(news)) {
+        for (const item of news) {
+          if (item && typeof item === 'object')
+            (item as Record<string, unknown>)['key'] ??= 'legacy';
+        }
+      }
+    },
+  },
 ];
 
 /**

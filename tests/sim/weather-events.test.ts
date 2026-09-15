@@ -362,9 +362,10 @@ describe('landslides (§3.6.2)', () => {
   });
 
   it('a wet year on a bare hillside costs you a block; a forested one usually does not (M1e done-criterion)', () => {
+    const SEEDS = 40;
     const runs = (forested: boolean): number => {
       let slid = 0;
-      for (const seed of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
+      for (let seed = 1; seed <= SEEDS; seed++) {
         const sim = createSim(seed);
         const block = ownedWild(sim)[0]!;
         const [x, y] = sim.world.toXY(block);
@@ -391,7 +392,11 @@ describe('landslides (§3.6.2)', () => {
       }
       return slid;
     };
-    expect(runs(false)).toBeGreaterThanOrEqual(5);
-    expect(runs(true)).toBeLessThanOrEqual(2);
+    // Statistical, so over 40 seeds: measured ~75% bare against ~15% forested.
+    const bare = runs(false);
+    const forested = runs(true);
+    expect(bare).toBeGreaterThanOrEqual(SEEDS * 0.55);
+    expect(forested).toBeLessThanOrEqual(SEEDS * 0.3);
+    expect(bare).toBeGreaterThanOrEqual(forested * 3);
   });
 });

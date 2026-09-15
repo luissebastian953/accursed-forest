@@ -8,8 +8,10 @@
 import { FIRE } from '../balance/fire.ts';
 import { ignite, isFuel, isWildfire, startWildfire } from '../fire.ts';
 import { readBlock, spend } from '../state.ts';
+import { underInvestigation } from '../systems/society.ts';
 import type { Command } from '../types.ts';
 
+import { investigationReason } from './chopBlock.ts';
 import { reject, type CommandHandler } from './handler.ts';
 
 type BurnBlock = Extract<Command, { type: 'BurnBlock' }>;
@@ -25,6 +27,7 @@ export const burnBlock: CommandHandler<BurnBlock> = {
     if (block.bannedUntil > state.tick) {
       return reject('banned', `Clearing is banned here until day ${block.bannedUntil}.`);
     }
+    if (underInvestigation(state)) return reject('banned', investigationReason(state));
     if (block.burning) return reject('burning', 'This block is already burning.');
     if (!isFuel(block, false)) {
       return reject(

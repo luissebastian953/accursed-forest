@@ -39,8 +39,9 @@ export const KEY_PREFIX = 'accursed-forest';
  *     M1c added command variants (burn, sanitize, irrigate, drain) without a
  *     bump: a v2 save's command log only ever holds commands that existed.
  * 3 — M1d: palm arrays gain ganodermaSince and trenched.
+ * 4 — M1f: news items gain a template key; society gains lettersReceived.
  */
-export const CURRENT_SCHEMA = 3;
+export const CURRENT_SCHEMA = 4;
 
 export type SaveErrorCode = 'missing' | 'corrupt' | 'newerSchema' | 'quota';
 
@@ -150,6 +151,7 @@ const WeatherSchema = z.object({
 
 const NewsItemSchema = z.object({
   tick: Tick,
+  key: z.string(),
   lane: z.enum(['natural', 'economic', 'government']),
   severity: z.enum(['info', 'notice', 'warning', 'critical']),
   title: z.string(),
@@ -164,6 +166,7 @@ const SocietySchema = z.object({
   attention: z.number(),
   warningLevel: z.union([z.literal(0), z.literal(1), z.literal(2)]),
   investigationUntil: Tick,
+  lettersReceived: z.int().nonnegative(),
   news: z.array(NewsItemSchema),
   unreadSince: Tick,
 });
@@ -227,6 +230,7 @@ const CommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('TrenchPalm'), block: Id, slot: z.int().nonnegative() }),
   z.object({ type: z.literal('ReplantBlock'), block: Id }),
   z.object({ type: z.literal('CoverCropBlock'), block: Id }),
+  z.object({ type: z.literal('SettleInvestigation') }),
 ]);
 
 export type AssertCommandSchemaMatches = [Command] extends [z.infer<typeof CommandSchema>]
@@ -406,6 +410,7 @@ function decodeActiveEvent(e: z.infer<typeof ActiveEventSchema>): ActiveEvent {
 function decodeNews(n: z.infer<typeof NewsItemSchema>): NewsItem {
   const out: NewsItem = {
     tick: n.tick,
+    key: n.key,
     lane: n.lane,
     severity: n.severity,
     title: n.title,
@@ -491,7 +496,16 @@ export function deserializeState(manifestJson: unknown, chunkJsons: Iterable<unk
     },
     inventory: { ...h.inventory },
     weather: { ...h.weather, activeEvents: h.weather.activeEvents.map(decodeActiveEvent) },
-    society: { ...h.society, news: h.society.news.map(decodeNews) },
+    society: {
+      integrity: h.society.integrity,
+      firePressure: h.society.firePressure,
+      attention: h.society.attention,
+      warningLevel: h.society.warningLevel,
+      investigationUntil: h.society.investigationUntil,
+      lettersReceived: h.society.lettersReceived,
+      news: h.society.news.map(decodeNews),
+      unreadSince: h.society.unreadSince,
+    },
     run: decodeRun(h.run),
     commandLog: decodeCommandLog(h.commandLog),
   };
