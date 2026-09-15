@@ -18,4 +18,9 @@ export interface NewsTemplate {
   bodies: readonly string[];
   /** The "what this does to you" line (§3.7). */
   effects: readonly string[];
+  /**
+   * Whether the headline goes into the run's chronicle for the epilogue
+   * (§3.8). Defaults to warnings and above.
+   */
+  chronicle?: boolean;
 }

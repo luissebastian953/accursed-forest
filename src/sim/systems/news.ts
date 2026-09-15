@@ -10,6 +10,7 @@ import { NEWS, NEWS_TEMPLATES, regionName, type NewsTemplate } from '../balance/
 import { MACRO } from '../balance/society.ts';
 import { forestCoverAround } from '../landscape.ts';
 import { chance, forkRng, pick, type RngState } from '../rng.ts';
+import { chronicle } from '../run.ts';
 import type { SimContext } from '../state.ts';
 import type { BlockId, NewsItem, SimState } from '../types.ts';
 import { estateCodeFor } from '../worldgen/index.ts';
@@ -93,6 +94,9 @@ export function publish(
 
   news.push(item);
   if (news.length > NEWS.cap) news.splice(0, news.length - NEWS.cap);
+  if (template.chronicle ?? (item.severity === 'warning' || item.severity === 'critical')) {
+    chronicle(state, { lane: item.lane, severity: item.severity, title: item.title });
+  }
   events.push({ type: 'NewsPublished', key, lane: item.lane, severity: item.severity });
   return item;
 }
@@ -178,6 +182,20 @@ export function newsSystem(ctx: SimContext): void {
         break;
       case 'Arrested':
         add('authority.arrested');
+        break;
+      case 'OperatingBanned':
+        add('authority.operatingBan', { until: dateLabel(event.until) });
+        break;
+      case 'OperatingBanLifted':
+        add('authority.banLifted');
+        break;
+      case 'Certified':
+        add(event.clean ? 'ispo.clean' : 'ispo.dirty');
+        if (!event.clean) add('ispo.dirtyHaze');
+        break;
+      case 'RunEnded':
+        if (event.ending === 'fade' || event.ending === 'bankrupt' || event.ending === 'banned')
+          add(`ending.${event.ending}`, { days: state.run.insolventFor });
         break;
       default:
         break;

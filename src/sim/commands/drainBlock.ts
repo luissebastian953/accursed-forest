@@ -32,7 +32,7 @@ export const drainBlock: CommandHandler<DrainBlock> = {
   apply(ctx, command) {
     const { state, world, events } = ctx;
     const block = writeBlock(state, world, command.block);
-    spend(state, DRAINAGE_COST, 'purchase', `drainage: block ${command.block}`);
+    spend(state, DRAINAGE_COST, 'capital', `drainage: block ${command.block}`);
     block.drained = true;
     events.push({ type: 'BlockDrained', block: command.block });
     events.push({ type: 'CashChanged', cash: state.economy.cash });

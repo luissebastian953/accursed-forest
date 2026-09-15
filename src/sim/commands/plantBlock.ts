@@ -7,6 +7,7 @@
 import { BIOMES } from '../balance/biomes.ts';
 import { createPalmArrays, plantSlots } from '../palms.ts';
 import { readBlock, writeBlock } from '../state.ts';
+import { operatingBanReason, operatingBanned } from '../systems/society.ts';
 import type { Command, ItemId, Species } from '../types.ts';
 
 import { itemPrice } from './buyItem.ts';
@@ -42,6 +43,9 @@ export const plantBlock: CommandHandler<PlantBlock> = {
     const block = readBlock(state, world, command.block);
     if (!block.owned) return reject('notOwned', 'You do not own this block.');
     if (block.burning) return reject('burning', 'This block is on fire.');
+    // Planting forest back is what the ban is asking for.
+    if (command.species === 'palm' && operatingBanned(state))
+      return reject('banned', operatingBanReason(state));
     if (block.bannedUntil > state.tick) {
       return reject('banned', `Planting is banned here until day ${block.bannedUntil}.`);
     }

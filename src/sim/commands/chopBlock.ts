@@ -8,7 +8,12 @@
 import { BIOMES } from '../balance/biomes.ts';
 import { CREW_WAGE_PER_DAY } from '../balance/prices.ts';
 import { readBlock, spend, writeBlock } from '../state.ts';
-import { clearingCostFactor, underInvestigation } from '../systems/society.ts';
+import {
+  clearingCostFactor,
+  operatingBanReason,
+  operatingBanned,
+  underInvestigation,
+} from '../systems/society.ts';
 import type { Command, SimState } from '../types.ts';
 
 import { reject, type CommandHandler } from './handler.ts';
@@ -35,6 +40,7 @@ export const chopBlock: CommandHandler<ChopBlock> = {
 
     const block = readBlock(state, world, command.block);
     if (!block.owned) return reject('notOwned', 'You do not own this block.');
+    if (operatingBanned(state)) return reject('banned', operatingBanReason(state));
     if (underInvestigation(state)) return reject('banned', investigationReason(state));
     if (block.bannedUntil > state.tick) {
       return reject('banned', `Clearing is banned here until day ${block.bannedUntil}.`);

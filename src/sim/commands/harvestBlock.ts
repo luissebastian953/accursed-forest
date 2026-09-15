@@ -19,6 +19,7 @@ import { distanceToKopdes, inKopdesRange, kopdesRange } from '../kopdes.ts';
 import { isBearing, slotStage } from '../palms.ts';
 import { readBlock, spend, writeBlock } from '../state.ts';
 import { bearingCount, daysUntilRipe, harvestableKg, isRipe } from '../systems/harvest.ts';
+import { operatingBanReason, operatingBanned } from '../systems/society.ts';
 import type { Command } from '../types.ts';
 
 import { reject, type CommandHandler } from './handler.ts';
@@ -34,6 +35,7 @@ export const harvestBlock: CommandHandler<HarvestBlock> = {
     const block = readBlock(state, world, command.block);
     if (!block.owned) return reject('notOwned', 'You do not own this block.');
     if (block.burning) return reject('burning', 'This block is on fire.');
+    if (operatingBanned(state)) return reject('banned', operatingBanReason(state));
     if (block.phase !== 'planted' || block.species !== 'palm') {
       return reject('wrongPhase', 'Nothing to harvest here.');
     }

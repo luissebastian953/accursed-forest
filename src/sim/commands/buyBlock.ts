@@ -66,7 +66,7 @@ export const buyBlock: CommandHandler<BuyBlock> = {
     const price = landPrice(state, world, command.block);
     const block = writeBlock(state, world, command.block);
     block.owned = true;
-    spend(state, price, 'purchase', `land: block ${command.block}`);
+    spend(state, price, 'capital', `land: block ${command.block}`);
     events.push({ type: 'BlockBought', block: command.block });
     events.push({ type: 'CashChanged', cash: state.economy.cash });
   },

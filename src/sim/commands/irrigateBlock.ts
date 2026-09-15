@@ -31,7 +31,7 @@ export const irrigateBlock: CommandHandler<IrrigateBlock> = {
   apply(ctx, command) {
     const { state, world, events } = ctx;
     const block = writeBlock(state, world, command.block);
-    spend(state, IRRIGATION_COST, 'purchase', `irrigation: block ${command.block}`);
+    spend(state, IRRIGATION_COST, 'capital', `irrigation: block ${command.block}`);
     block.irrigated = true;
     events.push({ type: 'BlockIrrigated', block: command.block });
     events.push({ type: 'CashChanged', cash: state.economy.cash });

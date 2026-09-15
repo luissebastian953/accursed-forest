@@ -8,7 +8,7 @@
 import { FIRE } from '../balance/fire.ts';
 import { ignite, isFuel, isWildfire, startWildfire } from '../fire.ts';
 import { readBlock, spend } from '../state.ts';
-import { underInvestigation } from '../systems/society.ts';
+import { operatingBanReason, operatingBanned, underInvestigation } from '../systems/society.ts';
 import type { Command } from '../types.ts';
 
 import { investigationReason } from './chopBlock.ts';
@@ -27,6 +27,7 @@ export const burnBlock: CommandHandler<BurnBlock> = {
     if (block.bannedUntil > state.tick) {
       return reject('banned', `Clearing is banned here until day ${block.bannedUntil}.`);
     }
+    if (operatingBanned(state)) return reject('banned', operatingBanReason(state));
     if (underInvestigation(state)) return reject('banned', investigationReason(state));
     if (block.burning) return reject('burning', 'This block is already burning.');
     if (!isFuel(block, false)) {
@@ -53,6 +54,7 @@ export const burnBlock: CommandHandler<BurnBlock> = {
     spend(state, FIRE.burnCost, 'wages', `burn: block ${command.block}`);
 
     state.society.firePressure += FIRE.pressure[command.intensity];
+    state.run.lastBurnAt = state.tick;
     events.push({ type: 'BurnStarted', block: command.block, intensity });
     events.push({ type: 'BlockChanged', block: command.block });
     events.push({ type: 'CashChanged', cash: state.economy.cash });

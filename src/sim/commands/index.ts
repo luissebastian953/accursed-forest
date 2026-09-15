@@ -15,6 +15,7 @@ import { fertilizeBlock } from './fertilizeBlock.ts';
 import type { CommandHandler } from './handler.ts';
 import { harvestBlock } from './harvestBlock.ts';
 import { irrigateBlock } from './irrigateBlock.ts';
+import { keepPlaying } from './keepPlaying.ts';
 import { removePalm, replantBlock, trenchPalm } from './palmSlots.ts';
 import { placeKopdes } from './placeKopdes.ts';
 import { plantBlock } from './plantBlock.ts';
@@ -46,6 +47,7 @@ const registry: Partial<Record<CommandType, CommandHandler>> = {
   ReplantBlock: replantBlock as CommandHandler,
   CoverCropBlock: coverCropBlock as CommandHandler,
   SettleInvestigation: settleInvestigation as CommandHandler,
+  KeepPlaying: keepPlaying as CommandHandler,
 };
 
 export function handlerFor(command: Command): CommandHandler | undefined {

@@ -71,14 +71,31 @@ export function createInitialState(world: World): SimState {
       attention: 0,
       warningLevel: 0,
       investigationUntil: -1,
+      operatingBanUntil: -1,
       lettersReceived: 0,
       news: [],
       unreadSince: 0,
     },
     run: {
       startedAt: 0,
-      yearSnapshots: [],
       insolventFor: 0,
+      yearProfit: 0,
+      profitTotal: 0,
+      lastBurnAt: -1,
+      stats: {
+        burns: 0,
+        blocksBurned: 0,
+        neighbourBlocksBurned: 0,
+        palmsLost: 0,
+        disasters: 0,
+        forestChopped: 0,
+        forestPlanted: 0,
+        settled: 0,
+        lowestCash: ECONOMY.startingCash,
+      },
+      years: [],
+      chronicle: [],
+      sandbox: false,
     },
     commandLog: [],
   };
@@ -147,6 +164,7 @@ export function countOwned(state: SimState): number {
 // ── Ledger ────────────────────────────────────────────────────────────────
 
 function record(state: SimState, entry: LedgerEntry): void {
+  if (entry.kind !== 'capital') state.run.yearProfit += entry.amount;
   state.economy.ledger.push(entry);
   if (state.economy.ledger.length > ECONOMY.ledgerCap) {
     state.economy.ledger.splice(0, state.economy.ledger.length - ECONOMY.ledgerCap);

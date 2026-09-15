@@ -5,6 +5,7 @@
  */
 
 import { encodeTypedArray } from '@shared/base64';
+import { ECONOMY } from '@sim/balance/prices';
 import { SLOTS_PER_BLOCK } from '@sim/balance/world';
 
 import { CURRENT_SCHEMA, SaveError } from './schema.ts';
@@ -67,6 +68,80 @@ export const MIGRATIONS: readonly Migration[] = [
             (item as Record<string, unknown>)['key'] ??= 'legacy';
         }
       }
+    },
+  },
+  {
+    // M1g: endings. Rebuild what the books can from what a v4 save kept: the
+    // ledger (capped, so profit is a floor), the command log's last burn, and
+    // the warnings in the news for the chronicle.
+    from: 4,
+    up(save) {
+      const head = save.manifest['head'] as
+        | {
+            tick?: number;
+            society?: Record<string, unknown>;
+            run?: Record<string, unknown>;
+            economy?: Record<string, unknown>;
+            commandLog?: { tick: number; command: { type: string } }[];
+          }
+        | undefined;
+      const run = head?.run;
+      const society = head?.society;
+      if (!head || !run || !society) throw new SaveError('corrupt', 'v4 manifest has no run');
+
+      const tick = head.tick ?? 0;
+      const yearStart = tick - (tick % 360);
+      let yearProfit = 0;
+      let profitTotal = 0;
+      const ledger = (head.economy?.['ledger'] ?? []) as {
+        tick: number;
+        kind: string;
+        amount: number;
+      }[];
+      for (const entry of ledger) {
+        if (
+          entry.kind === 'purchase' &&
+          /^(land|Kopdes|irrigation|drainage)/.test(String((entry as { note?: string }).note ?? ''))
+        ) {
+          entry.kind = 'capital';
+          continue;
+        }
+        if (entry.tick > yearStart) yearProfit += entry.amount;
+        else profitTotal += entry.amount;
+      }
+      const burns = (head.commandLog ?? []).filter((r) => r.command.type === 'BurnBlock');
+      const news = (society['news'] ?? []) as {
+        tick: number;
+        lane: string;
+        severity: string;
+        title: string;
+      }[];
+      const cash = Number(head.economy?.['cash'] ?? 0);
+
+      delete run['yearSnapshots'];
+      Object.assign(run, {
+        insolventFor: run['insolventFor'] ?? 0,
+        yearProfit,
+        profitTotal,
+        lastBurnAt: burns.at(-1)?.tick ?? -1,
+        stats: {
+          burns: burns.length,
+          blocksBurned: burns.length,
+          neighbourBlocksBurned: 0,
+          palmsLost: 0,
+          disasters: 0,
+          forestChopped: 0,
+          forestPlanted: 0,
+          settled: 0,
+          lowestCash: Math.min(cash, ECONOMY.startingCash),
+        },
+        years: [],
+        chronicle: news
+          .filter((n) => n.severity === 'warning' || n.severity === 'critical')
+          .map((n) => ({ tick: n.tick, lane: n.lane, severity: n.severity, title: n.title })),
+        sandbox: false,
+      });
+      society['operatingBanUntil'] ??= -1;
     },
   },
 ];

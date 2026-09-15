@@ -31,7 +31,7 @@ export const upgradeKopdes: CommandHandler<UpgradeKopdes> = {
   apply(ctx) {
     const { state, events } = ctx;
     const kopdes = state.kopdes!;
-    spend(state, kopdesUpgradeCost(kopdes.level)!, 'purchase', `Kopdes level ${kopdes.level + 1}`);
+    spend(state, kopdesUpgradeCost(kopdes.level)!, 'capital', `Kopdes level ${kopdes.level + 1}`);
     kopdes.level += 1;
     events.push({ type: 'KopdesUpgraded', level: kopdes.level });
     events.push({ type: 'CashChanged', cash: state.economy.cash });

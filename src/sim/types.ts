@@ -151,6 +151,8 @@ export interface Society {
   attention: number;
   warningLevel: 0 | 1 | 2;
   investigationUntil: Tick;
+  /** Estate-wide operating ban from an enforcement roll: no clearing, planting or harvest (§3.8). */
+  operatingBanUntil: Tick;
   /** Letters and notices from the authorities so far; the attention gauge appears after the first (§3.9). */
   lettersReceived: number;
   /** Capped ring buffer, newest last. */
@@ -160,7 +162,8 @@ export interface Society {
 
 export interface LedgerEntry {
   tick: Tick;
-  kind: 'sale' | 'upkeep' | 'purchase' | 'wages' | 'fine';
+  /** `capital` is land and buildings: it is not counted against operating profit (§3.8). */
+  kind: 'sale' | 'upkeep' | 'purchase' | 'wages' | 'fine' | 'capital';
   amount: number;
   note?: string;
 }
@@ -194,14 +197,62 @@ export type ItemId =
 
 export type Ending = 'clean' | 'dirty' | 'fade' | 'bankrupt' | 'banned' | 'arrested';
 
+/** What the epilogue counts (§3.8). Accumulated by the endings system from events. */
+export interface RunStats {
+  /** Burns the player lit. */
+  burns: number;
+  /** Blocks that burned, the player's own fires and their spread. */
+  blocksBurned: number;
+  /** Blocks a fire reached that were not yours. */
+  neighbourBlocksBurned: number;
+  palmsLost: number;
+  /** Weather and world events weathered: haze, ash, floods, droughts, wildfires, landslides. */
+  disasters: number;
+  forestChopped: number;
+  forestPlanted: number;
+  /** Rupiah paid to make investigations go away. */
+  settled: number;
+  lowestCash: number;
+}
+
+/** One closed year, for the year-end card and the certificate's profit history. */
+export interface YearSummary {
+  /** 1-based: the year that just ended. */
+  year: number;
+  /** Operating profit: everything in the ledger but land and buildings. */
+  profit: number;
+  cash: number;
+  matureHectares: number;
+  forestCover: number;
+  /** ISPO conditions met at the close of the year, 0..5. */
+  conditionsMet: number;
+}
+
+/** A line in the epilogue timeline. */
+export interface ChronicleEntry {
+  tick: Tick;
+  lane: NewsLane | 'estate';
+  severity: NewsSeverity;
+  title: string;
+}
+
 export interface RunState {
   startedAt: Tick;
+  /** Consecutive ticks below the bank's credit line, for the bankruptcy check (§3.8). */
+  insolventFor: number;
+  /** Operating profit so far this year. */
+  yearProfit: number;
+  /** Operating profit over every closed year. */
+  profitTotal: number;
+  /** The last burn-to-clear, or -1 (§3.8: no burn in five years). */
+  lastBurnAt: Tick;
+  stats: RunStats;
+  years: YearSummary[];
+  chronicle: ChronicleEntry[];
+  /** "Keep playing" after a win or the fade: no further end checks. */
+  sandbox: boolean;
   endedAt?: Tick;
   ending?: Ending;
-  /** Ticks at which a year snapshot was written, for rewind (§3.8). */
-  yearSnapshots: number[];
-  /** Consecutive ticks with negative cash, for the bankruptcy check. */
-  insolventFor: number;
 }
 
 /** Seed-derived world generation inputs. Saved so a world regenerates exactly. */
@@ -274,7 +325,8 @@ export type Command =
   | { type: 'TrenchPalm'; block: BlockId; slot: number }
   | { type: 'ReplantBlock'; block: BlockId }
   | { type: 'CoverCropBlock'; block: BlockId }
-  | { type: 'SettleInvestigation' };
+  | { type: 'SettleInvestigation' }
+  | { type: 'KeepPlaying' };
 
 export type CommandType = Command['type'];
 

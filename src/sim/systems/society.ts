@@ -7,6 +7,7 @@
 
 import { clamp } from '@shared/math';
 
+import { OPERATING_BAN } from '../balance/endings.ts';
 import {
   ATTENTION,
   AUTHORITY,
@@ -18,13 +19,14 @@ import {
 } from '../balance/society.ts';
 import { activeEvent } from '../fire.ts';
 import { chance, nextGaussian, nextInt, pickWeighted } from '../rng.ts';
+import { endRun, runOver } from '../run.ts';
 import { neighbourIds, readBlock, type SimContext } from '../state.ts';
 import type { BlockId, SimState } from '../types.ts';
 
 const MACRO_IDS = Object.keys(MACRO.events) as MacroEventId[];
 
 export function society(ctx: SimContext): void {
-  if (ctx.state.run.ending) return;
+  if (runOver(ctx.state)) return;
   macroEconomy(ctx);
   integrity(ctx);
   authority(ctx);
@@ -130,6 +132,7 @@ function authority(ctx: SimContext): void {
   let raise = 0;
   let openFor: 'wildfire' | 'protectedForest' | null = null;
   let secondWildfire = false;
+  let burned = false;
 
   for (const event of events.peek()) {
     switch (event.type) {
@@ -138,6 +141,7 @@ function authority(ctx: SimContext): void {
         break;
       case 'BurnStarted':
         raise += ATTENTION.burn[event.intensity];
+        burned = true;
         if (nextToProtected(ctx, event.block)) openFor ??= 'protectedForest';
         break;
       case 'FireSpread': {
@@ -167,10 +171,23 @@ function authority(ctx: SimContext): void {
 
   // ── Arrest ─────────────────────────────────────────────────────────────
   if (secondWildfire || s.attention >= AUTHORITY.arrestAt) {
-    state.run.ending = 'arrested';
-    state.run.endedAt = state.tick;
+    endRun(state, 'arrested');
     events.push({ type: 'Arrested', reason: secondWildfire ? 'secondWildfire' : 'attention' });
     return;
+  }
+
+  // ── The enforcement roll (§3.8) ────────────────────────────────────────
+  if (s.operatingBanUntil === state.tick) events.push({ type: 'OperatingBanLifted' });
+  // Only an honest office rolls, so the ban is rare and a scandal headline
+  // always came first. The roll draws from the stream only when it can land.
+  if (
+    burned &&
+    !operatingBanned(state) &&
+    s.integrity >= OPERATING_BAN.minIntegrity &&
+    chance(state.rng, OPERATING_BAN.chance)
+  ) {
+    s.operatingBanUntil = state.tick + OPERATING_BAN.days;
+    events.push({ type: 'OperatingBanned', until: s.operatingBanUntil });
   }
 
   // ── Warning 2: police at the gate ──────────────────────────────────────
@@ -209,6 +226,16 @@ function authority(ctx: SimContext): void {
 /** Is chopping and burning banned right now? */
 export function underInvestigation(state: SimState): boolean {
   return state.society.investigationUntil > state.tick;
+}
+
+/** Is the whole estate shut by an operating ban? */
+export function operatingBanned(state: SimState): boolean {
+  return state.society.operatingBanUntil > state.tick;
+}
+
+export function operatingBanReason(state: SimState): string {
+  const until = state.society.operatingBanUntil;
+  return `Operating licence suspended — no clearing, palm planting or harvest until year ${Math.floor(until / 360) + 1}, day ${(until % 360) + 1}.`;
 }
 
 /** Clearing costs while a letter or investigation stands (§3.9). */

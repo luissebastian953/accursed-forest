@@ -40,8 +40,11 @@ export const KEY_PREFIX = 'accursed-forest';
  *     bump: a v2 save's command log only ever holds commands that existed.
  * 3 — M1d: palm arrays gain ganodermaSince and trenched.
  * 4 — M1f: news items gain a template key; society gains lettersReceived.
+ * 5 — M1g: run gains profit books, stats, year summaries, the chronicle and
+ *     sandbox, and loses yearSnapshots (the snapshots are storage keys);
+ *     society gains operatingBanUntil; the ledger gains the `capital` kind.
  */
-export const CURRENT_SCHEMA = 4;
+export const CURRENT_SCHEMA = 5;
 
 export type SaveErrorCode = 'missing' | 'corrupt' | 'newerSchema' | 'quota';
 
@@ -166,6 +169,7 @@ const SocietySchema = z.object({
   attention: z.number(),
   warningLevel: z.union([z.literal(0), z.literal(1), z.literal(2)]),
   investigationUntil: Tick,
+  operatingBanUntil: Tick,
   lettersReceived: z.int().nonnegative(),
   news: z.array(NewsItemSchema),
   unreadSince: Tick,
@@ -183,7 +187,7 @@ const ItemIdSchema = z.enum([
 
 const LedgerEntrySchema = z.object({
   tick: Tick,
-  kind: z.enum(['sale', 'upkeep', 'purchase', 'wages', 'fine']),
+  kind: z.enum(['sale', 'upkeep', 'purchase', 'wages', 'fine', 'capital']),
   amount: z.number(),
   note: z.string().optional(),
 });
@@ -198,12 +202,46 @@ const EconomySchema = z.object({
   soldKgTotal: z.number(),
 });
 
+const RunStatsSchema = z.object({
+  burns: z.number(),
+  blocksBurned: z.number(),
+  neighbourBlocksBurned: z.number(),
+  palmsLost: z.number(),
+  disasters: z.number(),
+  forestChopped: z.number(),
+  forestPlanted: z.number(),
+  settled: z.number(),
+  lowestCash: z.number(),
+});
+
+const YearSummarySchema = z.object({
+  year: z.int().positive(),
+  profit: z.number(),
+  cash: z.number(),
+  matureHectares: z.number(),
+  forestCover: z.number(),
+  conditionsMet: z.int().nonnegative(),
+});
+
+const ChronicleEntrySchema = z.object({
+  tick: Tick,
+  lane: z.enum(['natural', 'economic', 'government', 'estate']),
+  severity: z.enum(['info', 'notice', 'warning', 'critical']),
+  title: z.string(),
+});
+
 const RunSchema = z.object({
   startedAt: Tick,
+  insolventFor: z.number(),
+  yearProfit: z.number(),
+  profitTotal: z.number(),
+  lastBurnAt: Tick,
+  stats: RunStatsSchema,
+  years: z.array(YearSummarySchema),
+  chronicle: z.array(ChronicleEntrySchema),
+  sandbox: z.boolean(),
   endedAt: Tick.optional(),
   ending: z.enum(['clean', 'dirty', 'fade', 'bankrupt', 'banned', 'arrested']).optional(),
-  yearSnapshots: z.array(z.number()),
-  insolventFor: z.number(),
 });
 
 const CommandSchema = z.discriminatedUnion('type', [
@@ -231,6 +269,7 @@ const CommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('ReplantBlock'), block: Id }),
   z.object({ type: z.literal('CoverCropBlock'), block: Id }),
   z.object({ type: z.literal('SettleInvestigation') }),
+  z.object({ type: z.literal('KeepPlaying') }),
 ]);
 
 export type AssertCommandSchemaMatches = [Command] extends [z.infer<typeof CommandSchema>]
@@ -367,7 +406,12 @@ export function serializeState(
         ...state.society,
         news: state.society.news.map((n) => ({ ...n })),
       },
-      run: { ...state.run, yearSnapshots: [...state.run.yearSnapshots] },
+      run: {
+        ...state.run,
+        stats: { ...state.run.stats },
+        years: state.run.years.map((y) => ({ ...y })),
+        chronicle: state.run.chronicle.map((c) => ({ ...c })),
+      },
       kopdes: state.kopdes ? { ...state.kopdes } : null,
       inventory: { ...state.inventory },
       commandLog: state.commandLog.map((r) => ({ tick: r.tick, command: { ...r.command } })),
@@ -430,8 +474,14 @@ function decodeLedger(e: z.infer<typeof LedgerEntrySchema>): LedgerEntry {
 function decodeRun(r: z.infer<typeof RunSchema>): RunState {
   const out: RunState = {
     startedAt: r.startedAt,
-    yearSnapshots: r.yearSnapshots,
     insolventFor: r.insolventFor,
+    yearProfit: r.yearProfit,
+    profitTotal: r.profitTotal,
+    lastBurnAt: r.lastBurnAt,
+    stats: { ...r.stats },
+    years: r.years.map((y) => ({ ...y })),
+    chronicle: r.chronicle.map((c) => ({ ...c })),
+    sandbox: r.sandbox,
   };
   if (r.endedAt !== undefined) out.endedAt = r.endedAt;
   if (r.ending !== undefined) out.ending = r.ending;
@@ -502,6 +552,7 @@ export function deserializeState(manifestJson: unknown, chunkJsons: Iterable<unk
       attention: h.society.attention,
       warningLevel: h.society.warningLevel,
       investigationUntil: h.society.investigationUntil,
+      operatingBanUntil: h.society.operatingBanUntil,
       lettersReceived: h.society.lettersReceived,
       news: h.society.news.map(decodeNews),
       unreadSince: h.society.unreadSince,

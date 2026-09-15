@@ -424,6 +424,55 @@ describe('migrations (§7)', () => {
     expect(loaded.society.news.every((n) => n.key === 'legacy')).toBe(true);
   });
 
+  it('a v4 save (M1f) opens with its books rebuilt from the ledger and the news', () => {
+    const sim = workedEstate();
+    const storage = memoryStorage();
+    slotFor(storage).save(sim.state);
+    const key = `${KEY_PREFIX}:save:slot0`;
+    const manifest = JSON.parse(storage.get(key)!) as {
+      schema: number;
+      head: {
+        society: Record<string, unknown>;
+        run: Record<string, unknown>;
+        economy: { ledger: { kind: string; note?: string }[] };
+      };
+    };
+    manifest.schema = 4;
+    delete manifest.head.society['operatingBanUntil'];
+    manifest.head.run = { startedAt: 0, yearSnapshots: [], insolventFor: 0 };
+    for (const entry of manifest.head.economy.ledger)
+      if (entry.kind === 'capital') entry.kind = 'purchase';
+    storage.map.set(key, JSON.stringify(manifest));
+
+    const loaded = slotFor(storage).load();
+    expect(loaded.society.operatingBanUntil).toBe(-1);
+    expect(loaded.run.sandbox).toBe(false);
+    expect(loaded.run.lastBurnAt).toBe(-1);
+    expect('yearSnapshots' in loaded.run).toBe(false);
+    // Land and the Kopdes go back to being capital, and do not count against profit.
+    expect(loaded.economy.ledger.map((e) => e.kind)).toEqual(
+      sim.state.economy.ledger.map((e) => e.kind),
+    );
+    expect(loaded.run.yearProfit + loaded.run.profitTotal).toBe(
+      sim.state.economy.ledger
+        .filter((e) => e.kind !== 'capital')
+        .reduce((a, e) => a + e.amount, 0),
+    );
+  });
+
+  it('an ended run survives the trip: ending, chronicle, year summaries', () => {
+    const sim = workedEstate();
+    for (let i = 0; i < 400; i++) sim.tick();
+    sim.state.economy.cash = -1;
+    for (let i = 0; i < 100 && !sim.state.run.ending; i++) sim.tick();
+    expect(sim.state.run.ending).toBe('bankrupt');
+    expect(sim.state.run.years.length).toBeGreaterThan(0);
+
+    const slot = slotFor();
+    slot.save(sim.state);
+    expect(fingerprint(slot.load())).toBe(fingerprint(sim.state));
+  });
+
   it('the real migration list covers every schema from 1 to current', () => {
     const covered = new Set(MIGRATIONS.map((m) => m.from));
     for (let schema = 1; schema < CURRENT_SCHEMA; schema++) expect(covered.has(schema)).toBe(true);

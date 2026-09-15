@@ -35,7 +35,7 @@ export const placeKopdes: CommandHandler<PlaceKopdes> = {
   apply(ctx, command) {
     const { state, world, events } = ctx;
     const block = writeBlock(state, world, command.block);
-    spend(state, KOPDES_BUILD_COST, 'purchase', 'Kopdes');
+    spend(state, KOPDES_BUILD_COST, 'capital', 'Kopdes');
     block.phase = 'kopdes';
     state.kopdes = { blockId: command.block, level: 1 };
     events.push({ type: 'KopdesPlaced', block: command.block });

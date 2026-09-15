@@ -82,6 +82,7 @@ export const ECONOMIC: Record<string, NewsTemplate> = {
   },
   'estate.firstSale': {
     lane: 'economic',
+    chronicle: true,
     severity: 'info',
     cooldownDays: 99_999,
     titles: ['A new estate in {region} sells its first harvest'],

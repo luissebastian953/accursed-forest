@@ -8,17 +8,20 @@
  * Pure TypeScript: nothing here knows about Three.js, the DOM or the clock.
  * The systems run in a fixed order each tick. The full chain from §4.2 is
  *
- *   weather → worldEvents → terrain → growth → pest → harvest → economy → endings → news
+ *   weather → worldEvents → terrain → growth → pest → harvest → economy → society → endings → news
  *
- * The systems that exist run in that order; the others slot in where the comments say.
+ * Once the run is over (and not continued in sandbox) the world stops: `tick()`
+ * does nothing and every command but `KeepPlaying` is refused.
  */
 
 import { rebuildActiveSet } from './activeSet.ts';
 import { ECONOMY } from './balance/prices.ts';
 import { handlerFor } from './commands/index.ts';
 import { EventSink, type SimEvent } from './events.ts';
+import { runOver } from './run.ts';
 import { createInitialState, type SimContext } from './state.ts';
 import { economy } from './systems/economy.ts';
+import { endings } from './systems/endings.ts';
 import { growth } from './systems/growth.ts';
 import { harvest } from './systems/harvest.ts';
 import { newsSystem } from './systems/news.ts';
@@ -67,7 +70,7 @@ class SimImpl implements Sim {
   }
 
   validate(command: Command): Rejection | null {
-    if (this.state.run.ending) {
+    if (runOver(this.state) && command.type !== 'KeepPlaying') {
       return { ok: false, code: 'gameOver', reason: 'The run is over.' };
     }
     const handler = handlerFor(command);
@@ -93,6 +96,7 @@ class SimImpl implements Sim {
 
   tick(): SimEvent[] {
     const { state, world } = this.ctx;
+    if (runOver(state)) return this.ctx.events.drain();
     state.tick += 1;
     rebuildActiveSet(state, world);
 
@@ -104,8 +108,8 @@ class SimImpl implements Sim {
     harvest(this.ctx);
     economy(this.ctx);
     society(this.ctx);
+    endings(this.ctx);
     newsSystem(this.ctx);
-    // endings — yearly (M1g)
 
     return this.ctx.events.drain();
   }

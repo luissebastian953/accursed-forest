@@ -10,12 +10,13 @@
 
 import { BIOMES } from './balance/biomes.ts';
 import { GROWTH } from './balance/growth.ts';
+import { KOPDES_UPGRADE_COST } from './balance/prices.ts';
 import { seedlingsNeeded } from './commands/plantBlock.ts';
 import { createSim, type Sim } from './index.ts';
-import { distanceToKopdes } from './kopdes.ts';
+import { distanceToKopdes, inKopdesRange } from './kopdes.ts';
 import { isBearing, slotStage } from './palms.ts';
 import { ganodermaCounts } from './systems/pest.ts';
-import type { BlockId, Command, ItemId } from './types.ts';
+import type { BlockId, Command, Ending, ItemId } from './types.ts';
 
 export interface AutoplayOptions {
   seed: number;
@@ -30,6 +31,14 @@ export interface AutoplayOptions {
    * visibly sick palms, replant the gaps.
    */
   managePests?: boolean;
+  /**
+   * Keep expanding: each month, while cash stays above `reserve`, chop and
+   * plant the next owned block in Kopdes range, up to `maxBlocks`, and
+   * upgrade the Kopdes whenever it can be afforded on top of the reserve.
+   */
+  expand?: { reserve: number; maxBlocks: number };
+  /** Leave forest standing: never chop a block that counts as forest cover (§3.6.2). */
+  spareForest?: boolean;
 }
 
 export interface YearRow {
@@ -45,6 +54,10 @@ export interface YearRow {
   palmsLost: number;
   /** Palms visibly infected or dead right now. */
   sick: number;
+  /** Operating profit for the year, from the endings system's books. */
+  profit: number;
+  /** ISPO conditions met at the close of the year. */
+  conditions: number;
 }
 
 export interface AutoplayResult {
@@ -52,6 +65,9 @@ export interface AutoplayResult {
   rows: YearRow[];
   /** Lowest cash seen at any tick — the reserve a player needed to survive. */
   lowestCash: number;
+  /** How the run ended, if it did, and in which year. */
+  ending: Ending | null;
+  endedYear: number | null;
 }
 
 export function autoplay(options: AutoplayOptions): AutoplayResult {
@@ -63,13 +79,15 @@ export function autoplay(options: AutoplayOptions): AutoplayResult {
   // Candidate blocks: owned, wild, clearable, nearest to the Kopdes.
   const candidates: BlockId[] = [];
   for (const block of state.blocks.values()) {
-    if (block.owned && block.phase === 'wild' && BIOMES[block.biome].clearable)
-      candidates.push(block.id);
+    if (!block.owned || block.phase !== 'wild' || !BIOMES[block.biome].clearable) continue;
+    if (options.spareForest && BIOMES[block.biome].forestCover) continue;
+    candidates.push(block.id);
   }
   candidates.sort(
     (a, b) => (distanceToKopdes(state, world, a) ?? 99) - (distanceToKopdes(state, world, b) ?? 99),
   );
   const targets = candidates.slice(0, options.blocks);
+  let nextCandidate = targets.length;
   for (const block of targets) sim.dispatch({ type: 'ChopBlock', block });
 
   const buyAnd = (item: ItemId, command: Command): void => {
@@ -85,8 +103,30 @@ export function autoplay(options: AutoplayOptions): AutoplayResult {
   const totalTicks = options.years * GROWTH.daysPerYear;
 
   for (let t = 0; t < totalTicks; t++) {
+    if (state.run.ending) break;
     for (const e of sim.tick()) if (e.type === 'PalmDied') palmsLost += 1;
     lowestCash = Math.min(lowestCash, state.economy.cash);
+
+    if (options.expand && state.tick % 30 === 0) {
+      const { reserve, maxBlocks } = options.expand;
+      if (sim.validate({ type: 'UpgradeKopdes' }) === null) {
+        const level = state.kopdes?.level ?? 1;
+        if (state.economy.cash - (KOPDES_UPGRADE_COST[level] ?? 0) > reserve) {
+          sim.dispatch({ type: 'UpgradeKopdes' });
+        }
+      }
+      const next = candidates[nextCandidate];
+      if (
+        next !== undefined &&
+        targets.length < maxBlocks &&
+        state.economy.cash > reserve &&
+        inKopdesRange(state, world, next) &&
+        sim.dispatch({ type: 'ChopBlock', block: next }).ok
+      ) {
+        targets.push(next);
+        nextCandidate += 1;
+      }
+    }
 
     for (const block of targets) {
       const b = state.blocks.get(block)!;
@@ -132,13 +172,18 @@ export function autoplay(options: AutoplayOptions): AutoplayResult {
         tbsPrice: state.economy.tbsPrice,
         palmsLost,
         sick,
+        profit: state.run.years.at(-1)?.profit ?? 0,
+        conditions: state.run.years.at(-1)?.conditionsMet ?? 0,
       });
       cashAtYearStart = state.economy.cash;
       soldAtYearStart = state.economy.soldKgTotal;
     }
   }
 
-  return { sim, rows, lowestCash };
+  const ending = state.run.ending ?? null;
+  const endedYear =
+    state.run.endedAt === undefined ? null : Math.ceil(state.run.endedAt / GROWTH.daysPerYear);
+  return { sim, rows, lowestCash, ending, endedYear };
 }
 
 /**

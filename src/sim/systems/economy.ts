@@ -8,13 +8,14 @@
 
 import { clamp } from '@shared/math';
 
+import { OPERATING_BAN } from '../balance/endings.ts';
 import { HAZE } from '../balance/events.ts';
 import { ECONOMY } from '../balance/prices.ts';
 import { HAZE_EVENT, activeEvent } from '../fire.ts';
 import { nextGaussian } from '../rng.ts';
 import { earn, spend, type SimContext } from '../state.ts';
 
-import { tbsMeanFactor } from './society.ts';
+import { operatingBanned, tbsMeanFactor } from './society.ts';
 
 export function economy(ctx: SimContext): void {
   const { state, events } = ctx;
@@ -38,8 +39,10 @@ export function economy(ctx: SimContext): void {
     if (block.phase === 'planted') planted += 1;
     if (block.irrigated && block.owned) irrigated += 1;
   }
-  const upkeep =
-    planted * ECONOMY.upkeepPerPlantedBlock + irrigated * ECONOMY.irrigationUpkeepPerDay;
+  const upkeep = Math.round(
+    (planted * ECONOMY.upkeepPerPlantedBlock + irrigated * ECONOMY.irrigationUpkeepPerDay) *
+      (operatingBanned(state) ? OPERATING_BAN.upkeepFactor : 1),
+  );
   if (upkeep > 0) spend(state, upkeep, 'upkeep');
 
   // ── Price walk ─────────────────────────────────────────────────────────

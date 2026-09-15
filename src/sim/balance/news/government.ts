@@ -117,6 +117,7 @@ export const GOVERNMENT: Record<string, NewsTemplate> = {
   },
   'authority.settled': {
     lane: 'government',
+    chronicle: true,
     severity: 'notice',
     cooldownDays: 30,
     titles: [
@@ -130,6 +131,7 @@ export const GOVERNMENT: Record<string, NewsTemplate> = {
   },
   'authority.closed': {
     lane: 'government',
+    chronicle: true,
     severity: 'info',
     cooldownDays: 30,
     titles: ['Clearing ban on {estate} expires'],
