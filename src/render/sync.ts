@@ -36,6 +36,13 @@ export interface EventDigest {
   sanitized: Set<BlockId>;
   irrigated: Set<BlockId>;
   drained: Set<BlockId>;
+  /** Palms that turned visibly sick this tick, by block. */
+  palmSick: Map<BlockId, number>;
+  /** Palms that died this tick, by block and cause. */
+  palmsDied: { block: BlockId; cause: 'ganoderma' | 'beetles' | 'age' }[];
+  plagueStarted: Set<BlockId>;
+  plagueEnded: Set<BlockId>;
+  replanted: { block: BlockId; count: number }[];
 }
 
 export function digestEvents(events: readonly SimEvent[]): EventDigest {
@@ -63,6 +70,11 @@ export function digestEvents(events: readonly SimEvent[]): EventDigest {
     sanitized: new Set(),
     irrigated: new Set(),
     drained: new Set(),
+    palmSick: new Map(),
+    palmsDied: [],
+    plagueStarted: new Set(),
+    plagueEnded: new Set(),
+    replanted: [],
   };
 
   for (const event of events) {
@@ -87,6 +99,29 @@ export function digestEvents(events: readonly SimEvent[]): EventDigest {
         break;
       case 'PalmDied':
         d.palmBlocks.add(event.block);
+        d.palmsDied.push({ block: event.block, cause: event.cause });
+        break;
+      case 'PalmSick':
+        d.palmBlocks.add(event.block);
+        d.palmSick.set(event.block, (d.palmSick.get(event.block) ?? 0) + 1);
+        break;
+      case 'PalmRemoved':
+      case 'PalmTrenched':
+        d.palmBlocks.add(event.block);
+        break;
+      case 'BlockReplanted':
+        d.palmBlocks.add(event.block);
+        d.animateBlocks.add(event.block);
+        d.replanted.push({ block: event.block, count: event.count });
+        break;
+      case 'TrapSet':
+      case 'BlockTreated':
+        break;
+      case 'PlagueStarted':
+        d.plagueStarted.add(event.block);
+        break;
+      case 'PlagueEnded':
+        d.plagueEnded.add(event.block);
         break;
       case 'BlockRipe':
         d.ripeBlocks.add(event.block);

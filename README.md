@@ -13,34 +13,39 @@ Section references in the code (`§6.5`, `§4.1`, …) point into it.
 
 ## Status
 
-**M1a Skeleton, M1b Loop and M1c Terrain & expansion: done.** Place the
+**M1a–M1d done: skeleton, loop, terrain & expansion, pests.** Place the
 Kopdes, stock its shop, buy or chop or burn land, plant palms or forest,
-harvest ripe rounds and sell them, sanitize debris, irrigate and drain. Burn
-carefully and the ash feeds your block for a season; burn twice in a row and
-the fire stops being yours. M1d (pests: Ganoderma, rhinoceros beetle,
-treatments) is next.
+harvest and sell, sanitize, irrigate, drain. Leave forest debris under your
+seedlings and the beetles will have them; let Ganoderma go unnoticed and it
+walks the lattice palm by palm. Traps, Metarhizium, Trichoderma, removal,
+trenches and replanting are all on the block panel, with a clickable slot
+grid for the per-palm work. M1e (weather events: haze, ash, flood, drought,
+landslides, forest cover) is next.
 
-| Area                                                                     | State                    |
-| ------------------------------------------------------------------------ | ------------------------ |
-| Repo, tooling, CI, ADRs, layer-boundary lint                             | done                     |
-| Seeded RNG, easing + spring, base64 codec                                | done                     |
-| World generation: elevation, moisture, biomes, rivers, start             | done                     |
-| Sparse block map, active set, pure `tick()` and `dispatch()`             | done                     |
-| Systems: weather, world events (fire), terrain, growth, harvest, economy | done                     |
-| Land: buy, chop (with timber), burn at three intensities, sanitize       | done                     |
-| Fire: spread, rain, pressure meter, wildfire threshold, haze, 1× lock    | done                     |
-| Per-block upgrades: irrigation, drainage; reforestation planting         | done                     |
-| Kopdes: placement, shop, upgrades, range, same-day sales; price walk     | done                     |
-| Scripted autoplayer and `pnpm sweep` balance tool                        | done                     |
-| Chunked, validated, migratable `localStorage` saves; autosave            | done (schema v2)         |
-| Column terrain via mesher worker + chunk streaming; ash and char tops    | done                     |
-| Instanced palms, Kopdes, flames, selection / range / hazard rings        | done                     |
-| Map camera, picking, keyboard, HUD (price, fire gauge), panels, shop     | done                     |
-| Pests, weather event deck, landslides, news, authority, endings          | **M1d–M1g**              |
-| Far-LOD heatmap tiles, GPU per-instance animation, forest box-trees      | deferred until they bite |
+| Area                                                                           | State                    |
+| ------------------------------------------------------------------------------ | ------------------------ |
+| Repo, tooling, CI, ADRs, layer-boundary lint                                   | done                     |
+| Seeded RNG, easing + spring, base64 codec                                      | done                     |
+| World generation: elevation, moisture, biomes, rivers, start                   | done                     |
+| Sparse block map, active set, pure `tick()` and `dispatch()`                   | done                     |
+| Systems: weather, world events (fire), terrain, growth, pest, harvest, economy | done                     |
+| Land: buy, chop (with timber), burn at three intensities, sanitize             | done                     |
+| Fire: spread, rain, pressure meter, wildfire threshold, haze, 1× lock          | done                     |
+| Pests: Ganoderma on the lattice, beetles in debris, plague, treatments         | done                     |
+| Per-palm: remove, trench, replant gaps; sick palms and stumps rendered         | done                     |
+| Per-block upgrades: irrigation, drainage; reforestation planting               | done                     |
+| Kopdes: placement, shop, upgrades, range, same-day sales; price walk           | done                     |
+| Scripted autoplayer (with a careful-player mode) and `pnpm sweep`              | done                     |
+| Chunked, validated, migratable `localStorage` saves; autosave                  | done (schema v3)         |
+| Column terrain via mesher worker + chunk streaming; ash and char tops          | done                     |
+| Instanced palms, Kopdes, flames, selection / range / hazard rings              | done                     |
+| Map camera, picking, keyboard, HUD (price, fire, plague), panels, shop         | done                     |
+| Weather event deck, landslides, forest cover, news, authority, endings         | **M1e–M1g**              |
+| Far-LOD heatmap tiles, GPU per-instance animation, forest box-trees            | deferred until they bite |
 
-Tests: 181 unit (Vitest) and 8 browser (Playwright, WebGL fallback) — the
-browser suite plays the loop end to end and lights a wildfire on purpose.
+Tests: 199 unit (Vitest) and 9 browser (Playwright, WebGL fallback) — the
+browser suite plays the loop end to end, lights a wildfire on purpose, and
+lets beetles loose on an unsanitized block.
 
 ## Getting started
 

@@ -39,8 +39,8 @@ async function selectCentreBlock(page: Page): Promise<void> {
   await expect(tid(page, 'block-panel')).toBeVisible();
 }
 
-/** Select a wild block next to the centre by probing screen offsets. */
-async function selectWildNeighbour(page: Page): Promise<void> {
+/** Select a wild block next to the centre by probing screen offsets, optionally of one biome. */
+async function selectWildNeighbour(page: Page, biome?: RegExp): Promise<void> {
   const c = await canvasCentre(page);
   const offsets: readonly (readonly [number, number])[] = [
     [78, 45],
@@ -49,6 +49,8 @@ async function selectWildNeighbour(page: Page): Promise<void> {
     [-78, -45],
     [156, 0],
     [-156, 0],
+    [0, 90],
+    [0, -90],
   ];
   for (const [dx, dy] of offsets) {
     await page.mouse.click(c.x + dx, c.y + dy);
@@ -58,9 +60,11 @@ async function selectWildNeighbour(page: Page): Promise<void> {
         .textContent()
         .catch(() => '')
     )?.trim();
-    if (phase === 'Wild') return;
+    if (phase !== 'Wild') continue;
+    if (biome && !biome.test((await tid(page, 'block-panel').textContent()) ?? '')) continue;
+    return;
   }
-  throw new Error('no wild neighbour found around the Kopdes');
+  throw new Error(`no wild${biome ? ` ${biome.source}` : ''} neighbour found around the Kopdes`);
 }
 
 test.describe('Sawit Simulator', () => {
@@ -233,5 +237,52 @@ test.describe('Sawit Simulator', () => {
     ).toBeVisible();
 
     expect(errors).toEqual([]);
+  });
+
+  test('pests: the panel shows beetles, the slot grid, per-palm actions and the shop kits', async ({
+    page,
+  }) => {
+    test.setTimeout(90_000);
+    // Seed 1 starts in forest: the chopped neighbour comes with 55 debris.
+    await page.goto('/?webgl&seed=1&fresh');
+    await expect(page.locator('canvas')).toBeVisible();
+    await expect(tid(page, 'hud-cash')).toContainText('Rp');
+    await page.waitForTimeout(2500);
+
+    await selectCentreBlock(page);
+    await tid(page, 'action-PlaceKopdes').click();
+    await tid(page, 'action-OpenShop').click();
+    await expect(tid(page, 'buy-pheromoneTrap-1')).toBeVisible();
+    await expect(tid(page, 'buy-metarhizium-1')).toBeVisible();
+    await expect(tid(page, 'buy-trichoderma-1')).toBeVisible();
+    await tid(page, 'buy-bibit-144').click();
+    await page.keyboard.press('Escape');
+
+    await selectWildNeighbour(page, /Wild forest/);
+    await tid(page, 'action-ChopBlock').click();
+    await tid(page, 'speed-20').click();
+    await expect(tid(page, 'block-phase')).toHaveText('Cleared', { timeout: 20_000 });
+    await tid(page, 'action-PlantBlock-palm').click();
+    await expect(tid(page, 'block-phase')).toHaveText('Planted');
+
+    const section = tid(page, 'pest-section');
+    await expect(section).toBeVisible();
+    await expect(page.locator('[data-testid^="slot-cell-"]')).toHaveCount(144);
+    await expect(tid(page, 'action-SetTrap')).toBeDisabled();
+    await expect(tid(page, 'action-SetTrap')).toHaveAttribute('title', /buy a kit at the Kopdes/);
+
+    await tid(page, 'slot-cell-60').click();
+    await expect(tid(page, 'slot-detail')).toContainText('Slot 5,0');
+    await expect(tid(page, 'action-RemovePalm')).toBeEnabled();
+    await tid(page, 'action-RemovePalm').click();
+    await expect(tid(page, 'slot-detail')).toContainText('empty');
+    await expect(tid(page, 'action-ReplantBlock')).toBeDisabled();
+    await expect(tid(page, 'action-ReplantBlock')).toHaveAttribute('title', /Needs 1 bibit/);
+
+    // Beetles breed in the debris if the block was not sanitized.
+    await expect(tid(page, 'pest-beetles')).toContainText(/beetles:\s*[1-9]\d+\s*\//, {
+      timeout: 30_000,
+    });
+    await tid(page, 'speed-0').click();
   });
 });

@@ -51,6 +51,24 @@ const ROWS: ShopRow[] = [
     note: 'clears 60 debris from one block — the only real fix for beetles',
     bundles: [1],
   },
+  {
+    item: 'pheromoneTrap',
+    label: 'Pheromone trap kit',
+    note: 'kills beetles on one block for 120 days',
+    bundles: [1, 3],
+  },
+  {
+    item: 'metarhizium',
+    label: 'Metarhizium',
+    note: 'a fungus that slows beetle breeding for 90 days',
+    bundles: [1],
+  },
+  {
+    item: 'trichoderma',
+    label: 'Trichoderma',
+    note: 'halves Ganoderma spread on one block for 120 days',
+    bundles: [1],
+  },
 ];
 
 type Tab = 'buy' | 'sell';

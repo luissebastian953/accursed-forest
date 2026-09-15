@@ -31,6 +31,8 @@ export interface HudView {
   burningCount: number;
   wildfire: boolean;
   haze: boolean;
+  /** §8 panel 6: plagued blocks right now. */
+  plagueCount: number;
 }
 
 export interface HudHandlers {
@@ -104,6 +106,16 @@ export class Hud {
                     ${view.wildfire ? html`<span class="rounded bg-red-600 px-1.5 py-0.5 text-xs font-semibold" data-testid="wildfire-badge">WILDFIRE</span>` : nothing}
                   </div>
                 `
+              : nothing
+          }
+          ${
+            view.plagueCount > 0
+              ? html`<span
+                  class="rounded bg-red-800/80 px-2 py-0.5 text-xs font-medium"
+                  title="Blocks under pest plague"
+                  data-testid="plague-chip"
+                  >plague: ${view.plagueCount} block${view.plagueCount === 1 ? '' : 's'}</span
+                >`
               : nothing
           }
           ${

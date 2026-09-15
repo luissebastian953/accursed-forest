@@ -229,6 +229,12 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   let burningCount = 0;
 
+  function plaguedCount(): number {
+    let n = 0;
+    for (const block of sim.state.blocks.values()) if (block.plagued) n += 1;
+    return n;
+  }
+
   function refreshHud(): void {
     hud.update({
       cash: sim.state.economy.cash,
@@ -248,6 +254,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       burningCount,
       wildfire: isWildfire(sim.state),
       haze: activeEvent(sim.state, HAZE_EVENT) !== undefined,
+      plagueCount: plaguedCount(),
     });
   }
 
@@ -275,7 +282,14 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         palmsDirty = true;
         animateBlocks.add(command.block);
       }
-      if (command.type === 'HarvestBlock') palmsDirty = true;
+      if (
+        command.type === 'HarvestBlock' ||
+        command.type === 'RemovePalm' ||
+        command.type === 'TrenchPalm' ||
+        command.type === 'ReplantBlock'
+      ) {
+        palmsDirty = true;
+      }
       if (command.type === 'BurnBlock') {
         syncFireState();
         hazardRing.hide();
@@ -393,6 +407,34 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         `${blockName(burnedClear[0]!)} burned clear — the ash will feed it for a season.`,
       );
     else if (burnedClear.length > 1) toasts.push(`${burnedClear.length} blocks burned clear.`);
+
+    // Pest news, aggregated per tick.
+    for (const [block, count] of d.palmSick) {
+      toasts.push(
+        `Ganoderma: ${count} palm${count === 1 ? '' : 's'} on ${blockName(block)} turned visibly sick. Remove them before it spreads.`,
+        'warn',
+      );
+    }
+    const byBeetles = d.palmsDied.filter((p) => p.cause === 'beetles').length;
+    const byGanoderma = d.palmsDied.filter((p) => p.cause === 'ganoderma').length;
+    if (byBeetles > 0) {
+      toasts.push(
+        `${byBeetles} young palm${byBeetles === 1 ? '' : 's'} killed by beetles — sanitize the debris.`,
+        'error',
+      );
+    }
+    if (byGanoderma > 0) {
+      toasts.push(
+        `${byGanoderma} palm${byGanoderma === 1 ? '' : 's'} died of Ganoderma. The stumps are still infectious.`,
+        'error',
+      );
+    }
+    for (const block of d.plagueStarted)
+      toasts.push(`Plague on ${blockName(block)} — pests are out of hand there.`, 'error');
+    for (const block of d.plagueEnded)
+      toasts.push(`The plague on ${blockName(block)} has been pushed back.`);
+    for (const r of d.replanted)
+      toasts.push(`${r.count} gap${r.count === 1 ? '' : 's'} replanted on ${blockName(r.block)}.`);
 
     if (
       d.burnStarted.size ||

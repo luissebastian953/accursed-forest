@@ -100,9 +100,23 @@ function place(pos: Vector3, euler: Euler, scale: Vector3): Matrix4 {
   return _m.compose(pos, _quat.setFromEuler(euler), scale);
 }
 
-export function buildPalmGeometry(stage: PalmStage): BufferGeometry {
+/** Healthy, or visibly sick with Ganoderma: yellowed fronds, a dark rot band at the base (§6.4). */
+export type PalmVariant = 'healthy' | 'sick';
+
+export function buildPalmGeometry(
+  stage: PalmStage,
+  variant: PalmVariant = 'healthy',
+): BufferGeometry {
   const p = PARAMS[stage];
   const b = new BoxBuilder();
+  const frondSlot = variant === 'sick' ? Palette.PalmFrondSenile : p.frondSlot;
+
+  if (variant === 'sick' && p.trunkHeight > 0) {
+    // Basal stem rot: a dark collar where the trunk meets the ground.
+    b.addAABox(0, 0.06, 0, p.trunkRadius * 2.6, 0.12, p.trunkRadius * 2.6, {
+      side: Palette.Charcoal,
+    });
+  }
 
   // ── Trunk: tapered boxes with a subtle S-bend ────────────────────────────
   if (p.trunkHeight > 0 && p.trunkSegments > 0) {
@@ -144,7 +158,7 @@ export function buildPalmGeometry(stage: PalmStage): BufferGeometry {
       _pos.set(Math.cos(yaw) * horizontal, y, Math.sin(yaw) * horizontal);
       _euler.set(0, -yaw, -localDroop, 'YZX');
       _scale.set(segLen * 1.05, p.frondWidth * 0.22, width * 2);
-      b.addBox(place(_pos, _euler, _scale), { side: p.frondSlot });
+      b.addBox(place(_pos, _euler, _scale), { side: frondSlot });
     }
   }
 
@@ -158,5 +172,12 @@ export function buildPalmGeometry(stage: PalmStage): BufferGeometry {
     b.addBox(place(_pos, _euler, _scale), { side: Palette.PalmBunch });
   }
 
+  return b.build();
+}
+
+/** What a dead or removed palm leaves behind until the ground is cleared. */
+export function buildStumpGeometry(): BufferGeometry {
+  const b = new BoxBuilder();
+  b.addAABox(0, 0.13, 0, 0.16, 0.26, 0.16, { side: Palette.Stump });
   return b.build();
 }

@@ -2,13 +2,17 @@
  * The block panel (§8 panel 9): what the selected block is, and what you can
  * do with it. Invalid actions stay visible with the sim's own rejection
  * reason, so the player learns the rules by reading, not by guessing.
+ *
+ * Planted blocks get a pest section with a clickable 12×12 slot grid — the
+ * per-palm panel of §8 #10 without needing per-palm 3D picking.
  */
 
-import { html, nothing, render } from 'lit-html';
+import { html, nothing, render, type TemplateResult } from 'lit-html';
 
 import { BIOMES } from '@sim/balance/biomes';
 import { FIRE } from '@sim/balance/fire';
 import { GROWTH } from '@sim/balance/growth';
+import { PEST_LABOUR, PLAGUE } from '@sim/balance/pests';
 import { DRAINAGE_COST, IRRIGATION_COST, KOPDES_BUILD_COST } from '@sim/balance/prices';
 import { landPrice } from '@sim/commands/buyBlock';
 import { itemPrice } from '@sim/commands/buyItem';
@@ -18,9 +22,10 @@ import { kopdesUpgradeCost } from '@sim/commands/upgradeKopdes';
 import { isFuel, isWildfire } from '@sim/fire';
 import type { Sim } from '@sim/index';
 import { distanceToKopdes, inKopdesRange, kopdesRange } from '@sim/kopdes';
-import { slotStage } from '@sim/palms';
+import { slotCol, slotRow, slotStage } from '@sim/palms';
 import { neighbourIds, readBlock } from '@sim/state';
 import { daysUntilRipe, harvestableKg } from '@sim/systems/harvest';
+import { beetleCapacity, ganodermaCounts, pestPressure } from '@sim/systems/pest';
 import type {
   Biome,
   BlockId,
@@ -70,13 +75,15 @@ export class BlockPanel {
   private readonly root: HTMLElement;
   private sim: Sim | null = null;
   private block: BlockId | null = null;
+  private slot: number | null = null;
 
   constructor(
     parent: HTMLElement,
     private readonly handlers: BlockPanelHandlers,
   ) {
     this.root = document.createElement('div');
-    this.root.className = 'absolute top-20 right-3 z-10 w-80 max-w-[calc(100vw-1.5rem)]';
+    this.root.className =
+      'absolute top-20 right-3 z-10 max-h-[calc(100vh-6rem)] w-80 max-w-[calc(100vw-1.5rem)] overflow-y-auto';
     parent.appendChild(this.root);
   }
 
@@ -86,6 +93,7 @@ export class BlockPanel {
 
   show(sim: Sim, block: BlockId | null): void {
     this.sim = sim;
+    if (block !== this.block) this.slot = null;
     this.block = block;
     if (block === null) this.handlers.hoverBurn(null);
     this.refresh();
@@ -304,6 +312,7 @@ export class BlockPanel {
 
         ${block.phase === 'kopdes' && state.kopdes ? this.kopdesSection(sim) : nothing}
         ${state.palms.has(id) ? this.palmsSection(sim, id) : nothing}
+        ${block.owned && (state.palms.has(id) || block.debris > 0 || block.beetles > 0) ? this.pestSection(sim, id) : nothing}
 
         <div class="flex flex-col gap-1.5">
           ${actions.filter((a) => !a.minor).map((action) => this.actionButton(sim, action))}
@@ -326,7 +335,7 @@ export class BlockPanel {
       ? 'rounded px-2.5 py-1 text-left text-xs'
       : 'w-full rounded px-3 py-1.5 text-left';
     return html`
-      <div class=${action.minor ? '' : ''}>
+      <div>
         <button
           class=${
             rejection
@@ -404,7 +413,7 @@ export class BlockPanel {
           ${
             fuel.length === 0
               ? 'Nothing next door will catch.'
-              : `Could spread to ${fuel.length} neighbour${fuel.length === 1 ? '' : 's'} — ${Math.round(FIRE.spreadPerDay[1] * 100)}–${Math.round(FIRE.spreadPerDay[3] * 100)}% per day by intensity${state.weather.regime === 'elNino' ? ', doubled this El Niño year' : ''}.`
+              : `Could spread to ${fuel.length} neighbour${fuel.length === 1 ? '' : 's'}${state.weather.regime === 'elNino' ? ' — doubled this El Niño year' : ''}.`
           }
           ${wildfire ? html`<span class="text-red-300"> A wildfire is burning: any new fire joins it.</span>` : nothing}
         </div>
@@ -485,6 +494,178 @@ export class BlockPanel {
               `
             : nothing
         }
+      </div>
+    `;
+  }
+
+  /** Beetles, Ganoderma, treatments, the slot grid and per-palm actions (§3.4). */
+  private pestSection(sim: Sim, id: BlockId) {
+    const { state } = sim;
+    const block = state.blocks.get(id)!;
+    const palms = state.palms.get(id);
+    const tick = state.tick;
+    const capacity = beetleCapacity(block.debris);
+    const pressure = pestPressure(block, palms);
+    const counts = palms ? ganodermaCounts(palms) : null;
+
+    const treatments: Action[] = [
+      {
+        label: 'Set traps',
+        command: { type: 'SetTrap', block: id },
+        testId: 'action-SetTrap',
+        minor: true,
+      },
+      {
+        label: 'Metarhizium',
+        command: { type: 'ApplyMetarhizium', block: id },
+        testId: 'action-ApplyMetarhizium',
+        minor: true,
+      },
+    ];
+    if (palms) {
+      treatments.push({
+        label: 'Trichoderma',
+        command: { type: 'ApplyTrichoderma', block: id },
+        testId: 'action-ApplyTrichoderma',
+        minor: true,
+      });
+      treatments.push({
+        label: 'Replant gaps',
+        command: { type: 'ReplantBlock', block: id },
+        testId: 'action-ReplantBlock',
+        minor: true,
+      });
+    }
+
+    const windows: string[] = [];
+    if (block.trapsUntil > tick) windows.push(`traps ${block.trapsUntil - tick} d`);
+    if (block.metarhiziumUntil > tick)
+      windows.push(`Metarhizium ${block.metarhiziumUntil - tick} d`);
+    if (block.trichodermaUntil > tick)
+      windows.push(`Trichoderma ${block.trichodermaUntil - tick} d`);
+
+    return html`
+      <div class="mb-3 rounded bg-white/5 p-2 text-xs" data-testid="pest-section">
+        <div class="mb-1 flex items-baseline justify-between">
+          <span class="font-medium">Pests</span>
+          ${
+            block.plagued
+              ? html`<span
+                  class="rounded bg-red-700 px-1.5 py-0.5 font-semibold"
+                  data-testid="plague-badge"
+                  >PLAGUE</span
+                >`
+              : html`<span class="opacity-60"
+                  >pressure ${pressure.toFixed(2)} / ${PLAGUE.onAt}</span
+                >`
+          }
+        </div>
+        <div class="flex flex-wrap gap-x-3">
+          <span data-testid="pest-beetles"
+            >beetles:
+            ${Math.round(block.beetles)}${capacity > 0 ? ` / ${Math.round(capacity)} room` : ''}</span
+          >
+          ${
+            counts
+              ? html`<span data-testid="pest-ganoderma"
+                  >Ganoderma: ${counts.symptomatic} sick · ${counts.dead} dead</span
+                >`
+              : nothing
+          }
+        </div>
+        ${windows.length > 0 ? html`<div class="mt-0.5 opacity-70">${windows.join(' · ')}</div>` : nothing}
+        ${
+          block.debris > 0 && block.beetles > 5
+            ? html`<div class="mt-0.5 text-amber-200/90">
+                Debris is breeding beetles — sanitize it.
+              </div>`
+            : nothing
+        }
+
+        <div class="mt-2 flex flex-wrap gap-1.5">
+          ${treatments.map((a) => this.actionButton(sim, a))}
+        </div>
+
+        ${palms ? this.slotGrid(sim, id) : nothing}
+      </div>
+    `;
+  }
+
+  private slotGrid(sim: Sim, id: BlockId) {
+    const { state } = sim;
+    const block = state.blocks.get(id)!;
+    const palms = state.palms.get(id)!;
+    const cells = [];
+    for (let slot = 0; slot < palms.plantedAt.length; slot++) {
+      const stage = slotStage(palms, slot, block.species, state.tick);
+      const g = palms.ganoderma[slot]!;
+      let cls = 'bg-white/5';
+      if (stage === 'dead') cls = 'bg-neutral-700';
+      else if (g === 2) cls = 'bg-amber-400';
+      else if (stage === 'mature' || stage === 'senile') cls = 'bg-emerald-500';
+      else if (stage === 'immature') cls = 'bg-lime-400';
+      else if (stage === 'seedling') cls = 'bg-lime-200';
+      const health = palms.health[slot]!;
+      if (stage !== 'empty' && stage !== 'dead' && health < 128) cls += ' opacity-60';
+      const ring = palms.trenched[slot] === 1 ? ' ring-1 ring-sky-300' : '';
+      const selected = this.slot === slot ? ' outline outline-2 outline-white' : '';
+      cells.push(html`
+        <button
+          class=${`h-3 w-3 rounded-[2px] ${cls}${ring}${selected}`}
+          title=${`slot ${slotRow(slot)},${slotCol(slot)} · ${stage}${g === 2 ? ' · sick' : ''}`}
+          data-testid=${`slot-cell-${slot}`}
+          @click=${() => {
+            this.slot = this.slot === slot ? null : slot;
+            this.refresh();
+          }}
+        ></button>
+      `);
+    }
+
+    const slot = this.slot;
+    let detail: TemplateResult | typeof nothing = nothing;
+    if (slot !== null && palms.plantedAt[slot]! >= 0) {
+      const stage = slotStage(palms, slot, block.species, state.tick);
+      const g = palms.ganoderma[slot]!;
+      const remove: Action = {
+        label: 'Remove palm',
+        command: { type: 'RemovePalm', block: id, slot },
+        cost: PEST_LABOUR.removePalm,
+        testId: 'action-RemovePalm',
+        minor: true,
+      };
+      const trench: Action = {
+        label: 'Trench',
+        command: { type: 'TrenchPalm', block: id, slot },
+        cost: PEST_LABOUR.trenchPalm,
+        testId: 'action-TrenchPalm',
+        minor: true,
+      };
+      detail = html`
+        <div class="mt-2 rounded bg-black/30 p-2" data-testid="slot-detail">
+          <div class="flex justify-between">
+            <span>Slot ${slotRow(slot)},${slotCol(slot)} · ${stage}</span>
+            <span class="opacity-70">health ${Math.round((palms.health[slot]! / 255) * 100)}%</span>
+          </div>
+          ${g === 2 ? html`<div class="text-amber-200">Ganoderma — visibly sick. Remove it before it spreads.</div>` : nothing}
+          ${g === 3 ? html`<div class="text-amber-200">Dead stump — still infectious until removed.</div>` : nothing}
+          ${palms.trenched[slot] === 1 ? html`<div class="text-sky-200">Trenched: root links cut.</div>` : nothing}
+          <div class="mt-1.5 flex flex-wrap gap-1.5">
+            ${[remove, trench].map((a) => this.actionButton(sim, a))}
+          </div>
+        </div>
+      `;
+    } else if (slot !== null) {
+      detail = html`<div class="mt-2 rounded bg-black/30 p-2 opacity-70" data-testid="slot-detail">
+        Slot ${slotRow(slot)},${slotCol(slot)} is empty — Replant gaps fills it.
+      </div>`;
+    }
+
+    return html`
+      <div class="mt-2">
+        <div class="mb-1 opacity-60">Palms by slot — click one</div>
+        <div class="grid grid-cols-12 gap-[2px]" data-testid="slot-grid">${cells}</div>
+        ${detail}
       </div>
     `;
   }
