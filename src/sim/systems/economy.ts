@@ -8,7 +8,9 @@
 
 import { clamp } from '@shared/math';
 
+import { HAZE } from '../balance/events.ts';
 import { ECONOMY } from '../balance/prices.ts';
+import { HAZE_EVENT, activeEvent } from '../fire.ts';
 import { nextGaussian } from '../rng.ts';
 import { earn, spend, type SimContext } from '../state.ts';
 
@@ -39,7 +41,9 @@ export function economy(ctx: SimContext): void {
   if (upkeep > 0) spend(state, upkeep, 'upkeep');
 
   // ── Price walk ─────────────────────────────────────────────────────────
-  const pull = ECONOMY.tbsPriceMeanReversion * (ECONOMY.tbsPriceMean - e.tbsPrice);
+  // Regional haze: crews stay home across the province and buyers pay less (§3.6).
+  const mean = ECONOMY.tbsPriceMean * (activeEvent(state, HAZE_EVENT) ? 1 - HAZE.priceDip : 1);
+  const pull = ECONOMY.tbsPriceMeanReversion * (mean - e.tbsPrice);
   const noise = nextGaussian(state.rng) * ECONOMY.tbsPriceDrift;
   e.tbsPrice = Math.round(
     clamp(e.tbsPrice + pull + noise, ECONOMY.tbsPriceMin, ECONOMY.tbsPriceMax),

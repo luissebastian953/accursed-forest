@@ -9,9 +9,10 @@
 
 import { clamp01, mod } from '@shared/math';
 
+import { ASH, HAZE } from '../balance/events.ts';
 import { FIRE } from '../balance/fire.ts';
 import { SEASONS, isWetSeason } from '../balance/seasons.ts';
-import { HAZE_EVENT, activeEvent } from '../fire.ts';
+import { ASH_EVENT, HAZE_EVENT, activeEvent, isWildfire } from '../fire.ts';
 import { nextGaussian, pickWeighted, type RngState } from '../rng.ts';
 import type { SimContext } from '../state.ts';
 import type { ClimateRegime } from '../types.ts';
@@ -34,7 +35,8 @@ export function weather(ctx: SimContext): void {
   w.rain = clamp01(season.mean * multiplier + nextGaussian(state.rng) * season.sd);
 
   let sun = 1 - SEASONS.cloudPerRain * w.rain;
-  if (activeEvent(state, HAZE_EVENT)) sun *= FIRE.hazeLight;
+  if (activeEvent(state, HAZE_EVENT)) sun *= isWildfire(state) ? FIRE.hazeLight : HAZE.light;
+  if (activeEvent(state, ASH_EVENT)) sun *= ASH.light;
   w.sun = clamp01(sun);
 
   w.dryStreak = w.rain < SEASONS.dryStreakBelow ? w.dryStreak + 1 : 0;

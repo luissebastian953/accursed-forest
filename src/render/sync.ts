@@ -39,7 +39,7 @@ export interface EventDigest {
   /** Palms that turned visibly sick this tick, by block. */
   palmSick: Map<BlockId, number>;
   /** Palms that died this tick, by block and cause. */
-  palmsDied: { block: BlockId; cause: 'ganoderma' | 'beetles' | 'age' }[];
+  palmsDied: { block: BlockId; cause: 'ganoderma' | 'beetles' | 'age' | 'flood' | 'ash' }[];
   plagueStarted: Set<BlockId>;
   plagueEnded: Set<BlockId>;
   replanted: { block: BlockId; count: number }[];

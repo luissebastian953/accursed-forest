@@ -268,7 +268,8 @@ export type Command =
   | { type: 'ApplyTrichoderma'; block: BlockId }
   | { type: 'RemovePalm'; block: BlockId; slot: number }
   | { type: 'TrenchPalm'; block: BlockId; slot: number }
-  | { type: 'ReplantBlock'; block: BlockId };
+  | { type: 'ReplantBlock'; block: BlockId }
+  | { type: 'CoverCropBlock'; block: BlockId };
 
 export type CommandType = Command['type'];
 
@@ -298,6 +299,7 @@ export interface Rejection {
     | 'burning'
     | 'noFuel'
     | 'badSlot'
+    | 'halted'
     | 'unknownBlock'
     | 'notImplemented';
   reason: string;

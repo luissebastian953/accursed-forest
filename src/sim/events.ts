@@ -15,7 +15,12 @@ export type SimEvent =
   | { type: 'BlockBought'; block: BlockId }
   | { type: 'KopdesPlaced'; block: BlockId }
   | { type: 'PalmStageChanged'; block: BlockId; slot: number; from: GrowthStage; to: GrowthStage }
-  | { type: 'PalmDied'; block: BlockId; slot: number; cause: 'ganoderma' | 'beetles' | 'age' }
+  | {
+      type: 'PalmDied';
+      block: BlockId;
+      slot: number;
+      cause: 'ganoderma' | 'beetles' | 'age' | 'flood' | 'ash';
+    }
   | { type: 'PalmSick'; block: BlockId; slot: number }
   | { type: 'PalmRemoved'; block: BlockId; slot: number }
   | { type: 'PalmTrenched'; block: BlockId; slot: number }
@@ -41,6 +46,13 @@ export type SimEvent =
   | { type: 'BlockSanitized'; block: BlockId; debris: number }
   | { type: 'BlockIrrigated'; block: BlockId }
   | { type: 'BlockDrained'; block: BlockId }
+  | { type: 'WeatherEventStarted'; id: string; days: number }
+  | { type: 'WeatherEventEnded'; id: string }
+  | { type: 'Landslide'; block: BlockId; below: BlockId | null; palmsLost: number }
+  | { type: 'BlockFlooded'; block: BlockId }
+  | { type: 'AshSettled'; blocks: number }
+  | { type: 'SparkCaught'; block: BlockId }
+  | { type: 'CoverCropSown'; block: BlockId }
   | { type: 'YearPassed'; year: number }
   | { type: 'CashChanged'; cash: number };
 

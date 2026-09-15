@@ -268,6 +268,7 @@ describe('commands (§4.2)', () => {
       { type: 'RemovePalm', block, slot: 0 },
       { type: 'TrenchPalm', block, slot: 0 },
       { type: 'ReplantBlock', block },
+      { type: 'CoverCropBlock', block },
     ];
     for (const command of all) {
       const result = sim.validate(command);
@@ -443,6 +444,10 @@ describe('determinism (§4.3)', () => {
         slot: fc.integer({ min: 0, max: 150 }),
       }),
       fc.record({ type: fc.constant('ReplantBlock' as const), block: fc.constantFrom(...blocks) }),
+      fc.record({
+        type: fc.constant('CoverCropBlock' as const),
+        block: fc.constantFrom(...blocks),
+      }),
     );
 
   function fingerprint(sim: Sim): string {

@@ -17,7 +17,9 @@
 import { clamp } from '@shared/math';
 
 import { BIOMES } from '../balance/biomes.ts';
+import { FLOOD } from '../balance/events.ts';
 import { BEETLES, GANODERMA, PLAGUE } from '../balance/pests.ts';
+import { FLOOD_EVENT, activeEvent } from '../fire.ts';
 import { isYoung, slotNeighbours, slotStage } from '../palms.ts';
 import { chance, nextFloat } from '../rng.ts';
 import { neighbourIds, type SimContext } from '../state.ts';
@@ -99,6 +101,9 @@ export function pest(ctx: SimContext): void {
     if (target && beetleCapacity(target.debris) > 0) target.beetles += amount;
   }
 
+  const floodBlocks = activeEvent(state, FLOOD_EVENT)?.blocks;
+  const floodedNow = floodBlocks ? new Set(floodBlocks) : null;
+
   // ── Palms: beetle damage, Ganoderma seeding, progression, spread ────────
   for (const [id, palms] of state.palms) {
     const block = state.blocks.get(id);
@@ -129,7 +134,9 @@ export function pest(ctx: SimContext): void {
     if (species !== 'palm') continue;
 
     // Spontaneous infection: spores, worse with debris.
-    const seed = GANODERMA.baseSeedPerDay + block.debris * GANODERMA.seedPerDebrisPerDay;
+    const flooded = floodedNow?.has(id) ? FLOOD.ganodermaSeedFactor : 1;
+    const seed =
+      (GANODERMA.baseSeedPerDay + block.debris * GANODERMA.seedPerDebrisPerDay) * flooded;
     if (chance(state.rng, seed)) infectRandomHealthy(palms, tick, state.rng);
 
     // Progression and spread.

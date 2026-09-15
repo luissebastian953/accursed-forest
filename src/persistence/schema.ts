@@ -226,6 +226,7 @@ const CommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('RemovePalm'), block: Id, slot: z.int().nonnegative() }),
   z.object({ type: z.literal('TrenchPalm'), block: Id, slot: z.int().nonnegative() }),
   z.object({ type: z.literal('ReplantBlock'), block: Id }),
+  z.object({ type: z.literal('CoverCropBlock'), block: Id }),
 ]);
 
 export type AssertCommandSchemaMatches = [Command] extends [z.infer<typeof CommandSchema>]

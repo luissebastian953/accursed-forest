@@ -11,7 +11,11 @@ import { writeBlock, type SimContext } from './state.ts';
 import type { ActiveEvent, Block, BlockId, FireIntensity, SimState } from './types.ts';
 
 export const WILDFIRE_EVENT = 'wildfire';
+/** Smoke: from a wildfire of your own, or drawn from the deck as regional haze. */
 export const HAZE_EVENT = 'haze';
+export const ASH_EVENT = 'ash';
+export const FLOOD_EVENT = 'flood';
+export const DROUGHT_EVENT = 'drought';
 
 export function activeEvent(state: SimState, id: string): ActiveEvent | undefined {
   return state.weather.activeEvents.find((e) => e.id === id);

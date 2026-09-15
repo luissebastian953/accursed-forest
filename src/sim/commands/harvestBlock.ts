@@ -14,6 +14,7 @@
  */
 
 import { HARVEST } from '../balance/prices.ts';
+import { ASH_EVENT, activeEvent } from '../fire.ts';
 import { distanceToKopdes, inKopdesRange, kopdesRange } from '../kopdes.ts';
 import { isBearing, slotStage } from '../palms.ts';
 import { readBlock, spend, writeBlock } from '../state.ts';
@@ -52,6 +53,9 @@ export const harvestBlock: CommandHandler<HarvestBlock> = {
     if (!palms) return reject('nothingToHarvest', 'No palms on this block.');
     if (bearingCount(palms, 'palm', state.tick) === 0) {
       return reject('nothingToHarvest', 'No ripe fruit yet — the palms are still immature.');
+    }
+    if (activeEvent(state, ASH_EVENT)) {
+      return reject('halted', 'Ash is falling — crews cannot work until it stops.');
     }
     if (!isRipe(block, state.tick)) {
       const days = daysUntilRipe(block, state.tick) ?? 0;

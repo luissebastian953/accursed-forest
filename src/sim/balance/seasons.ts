@@ -36,8 +36,13 @@ export const SEASONS = {
     >,
   },
 
-  /** `dryStreak` counts consecutive ticks with rain below this. */
-  dryStreakBelow: 0.1,
+  /**
+   * `dryStreak` counts consecutive ticks with rain below this — a day drier
+   * than an ordinary dry-season day, not a day with no rain at all. Daily rain
+   * is drawn independently, so a strict "no rain" threshold (0.1) never
+   * produced a fortnight's streak even under El Niño.
+   */
+  dryStreakBelow: 0.3,
   /** `wetStreak` counts consecutive ticks with rain above this. */
   wetStreakAbove: 0.6,
 

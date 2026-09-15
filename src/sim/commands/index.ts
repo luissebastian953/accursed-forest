@@ -9,6 +9,7 @@ import { burnBlock } from './burnBlock.ts';
 import { buyBlock } from './buyBlock.ts';
 import { buyItem } from './buyItem.ts';
 import { chopBlock } from './chopBlock.ts';
+import { coverCropBlock } from './coverCropBlock.ts';
 import { drainBlock } from './drainBlock.ts';
 import { fertilizeBlock } from './fertilizeBlock.ts';
 import type { CommandHandler } from './handler.ts';
@@ -42,6 +43,7 @@ const registry: Partial<Record<CommandType, CommandHandler>> = {
   RemovePalm: removePalm as CommandHandler,
   TrenchPalm: trenchPalm as CommandHandler,
   ReplantBlock: replantBlock as CommandHandler,
+  CoverCropBlock: coverCropBlock as CommandHandler,
 };
 
 export function handlerFor(command: Command): CommandHandler | undefined {
