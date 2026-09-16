@@ -67,12 +67,20 @@ it cannot be fetched), and the 35 flat icons in `public/icons`. The tokens
 and the handful of component classes live in `src/ui/styles.css`.
 
 Mobs walk the estate: wild boar, pigs, mice, cows, a capybara by the river,
-monkeys and orangutans in the forest. A thief comes for ripe fruit now and
-then; a security guard from the Kopdes keeps most away and catches the rest.
-Rarer still, a pig walks up to the Kopdes, stands on two legs, and the cash
-box is lighter — the babi ngepet. Workers hired at the Kopdes (sanitation,
-plant doctor, security) cost a wage a day and find their own jobs; a crew
-stands on every block being chopped or burned. Every mob lives in the sim as
+monkeys and orangutans in the forest. They live on a small repertoire —
+stand about, mill around a spot, cross the estate or circle a patch, and
+sleep on their side with Zs drifting up — at a stroll, and pick the next
+thing when the last runs out. A thief comes for ripe fruit now and then:
+creeps to the trees by the block, waits a day or three crouched in the
+canopy, dashes in low, and dashes back with the sack. A security guard from
+the Kopdes gets a post hut on the corner of the block, patrols the estate at
+a walk between rests there, keeps most thieves away and catches the rest.
+Rarer still, a pig ambles up to the Kopdes, stands on two legs, the cash box
+is lighter — and the babi ngepet runs the estate upright for three days, then
+is simply gone. Workers hired at the Kopdes (sanitation, plant doctor,
+security) cost a wage a day and find their own jobs; a crew works every block
+being chopped or burned, swinging at a tree for a few days before moving to
+the next, and a forest block gives up a tree at each quarter of the chop. Every mob lives in the sim as
 data, drawn from its own random stream, so a save replays the same visitors.
 The renderer poses every body part on the CPU and skins the whole crowd into
 one merged mesh per material — two draw calls, no new shaders

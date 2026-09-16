@@ -47,8 +47,9 @@ export const KEY_PREFIX = 'accursed-forest';
  * 7 — M1 weather pass: the weather carries the day's sky.
  * 8 — Mobs: the head carries the mobs on the estate and the next mob id.
  * 9 — Weather spells: the weather carries how long the sky holds.
+ * 10 — Mob repertoire: mobs carry a behaviour timer, an anchor and a heading.
  */
-export const CURRENT_SCHEMA = 9;
+export const CURRENT_SCHEMA = 10;
 
 export type SaveErrorCode = 'missing' | 'corrupt' | 'newerSchema' | 'quota';
 
@@ -326,7 +327,19 @@ const MobSchema = z.object({
   z: z.number(),
   tx: z.number(),
   tz: z.number(),
-  intent: z.enum(['wander', 'travel', 'work', 'flee', 'leave']),
+  intent: z.enum([
+    'idle',
+    'pace',
+    'wander',
+    'circle',
+    'sleep',
+    'travel',
+    'hide',
+    'raid',
+    'work',
+    'flee',
+    'leave',
+  ]),
   target: Id.nullable(),
   born: Tick,
   /** `Infinity` does not survive JSON; a hired worker's `until` is stored as null. */
@@ -334,6 +347,10 @@ const MobSchema = z.object({
   phase: z.number(),
   standing: z.boolean(),
   hired: z.boolean(),
+  intentUntil: Tick,
+  ax: z.number(),
+  az: z.number(),
+  heading: z.number(),
 });
 
 const HeadSchema = z.object({

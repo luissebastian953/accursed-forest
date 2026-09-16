@@ -6,14 +6,18 @@
  * day's books and the news. Every roll comes from its own stream, forked
  * from the seed and the tick: a crowd of boars must never shift the weather.
  *
- * Positions are in block units. A mob walks toward its target a few blocks a
- * day; the renderer interpolates and animates between ticks.
+ * Positions are in block units. A mob walks toward its target a fraction of
+ * a block a day; the renderer walks it there between ticks. Animals live on
+ * a small repertoire — stand, mill about, cross the estate, circle, sleep —
+ * and pick the next thing when the current one runs out.
  */
 
 import { clamp } from '@shared/math';
 
+import { BIOMES } from '../balance/biomes.ts';
 import {
   BABI_NGEPET,
+  BEHAVIOUR,
   GHOST,
   MOB_STREAM,
   ROAM,
@@ -26,7 +30,7 @@ import {
 import { isBearing, slotStage } from '../palms.ts';
 import { chance, forkRng, nextFloat, nextInt, pickWeighted, type RngState } from '../rng.ts';
 import { readBlock, spend, writeBlock, type SimContext } from '../state.ts';
-import type { Block, BlockId, Mob, MobSpecies, SimState } from '../types.ts';
+import type { Block, BlockId, Mob, MobIntent, MobSpecies, SimState } from '../types.ts';
 import type { World } from '../worldgen/index.ts';
 
 import { ganodermaCounts } from './pest.ts';
@@ -41,16 +45,17 @@ export function mobs(ctx: SimContext): void {
   spawnWildlife(ctx, rng);
   spawnVisitors(ctx, rng);
   spawnGhost(ctx, rng);
-  spawnCrews(ctx);
+  spawnCrews(ctx, rng);
 
   for (const mob of state.mobs) step(ctx, mob, rng);
 
-  // Whoever has left, or run out of time, goes.
+  // Whoever has made it off the edge, or run out of time, goes.
   const staying: Mob[] = [];
   for (const mob of state.mobs) {
-    const gone = mob.intent === 'leave' && atTarget(mob);
-    const expired = !mob.hired && state.tick >= mob.until && mob.intent !== 'work';
-    if (gone || (expired && mob.species !== 'crew')) {
+    const leaving = mob.intent === 'leave';
+    const gone = leaving && (atTarget(mob) || state.tick >= mob.until + BEHAVIOUR.leaveGraceDays);
+    const faded = !leaving && !mob.hired && mob.species !== 'crew' && state.tick >= mob.until;
+    if (gone || faded) {
       ctx.events.push({ type: 'MobLeft', id: mob.id, species: mob.species });
     } else {
       staying.push(mob);
@@ -62,12 +67,16 @@ export function mobs(ctx: SimContext): void {
 // ── Helpers ───────────────────────────────────────────────────────────────
 
 function atTarget(mob: Mob): boolean {
-  return Math.hypot(mob.tx - mob.x, mob.tz - mob.z) < 0.15;
+  return Math.hypot(mob.tx - mob.x, mob.tz - mob.z) < 0.05;
 }
 
 function centre(world: World, id: BlockId): [number, number] {
   const [x, y] = world.toXY(id);
   return [x + 0.5, y + 0.5];
+}
+
+function days(rng: RngState, range: { min: number; max: number }): number {
+  return range.min + nextInt(rng, range.max - range.min + 1);
 }
 
 /** Move toward the target at `speed` blocks a day. */
@@ -82,6 +91,14 @@ function walk(mob: Mob, speed: number): void {
   }
   mob.x += (dx / d) * speed;
   mob.z += (dz / d) * speed;
+}
+
+function headTo(mob: Mob, world: World, block: BlockId, intent: MobIntent, jitter = 0): void {
+  const [x, z] = centre(world, block);
+  mob.tx = x + (jitter ? (Math.sin(mob.phase * 97) * jitter) / 2 : 0);
+  mob.tz = z + (jitter ? (Math.cos(mob.phase * 61) * jitter) / 2 : 0);
+  mob.target = block;
+  mob.intent = intent;
 }
 
 function estateBounds(state: SimState, world: World) {
@@ -130,12 +147,19 @@ function roamTarget(
   return null;
 }
 
+/** The estate's blocks, in id order, for anyone who walks it. */
+function ownedBlocks(state: SimState): BlockId[] {
+  const out: BlockId[] = [];
+  for (const block of state.blocks.values()) if (block.owned) out.push(block.id);
+  return out.sort((a, b) => a - b);
+}
+
 function spawn(
   ctx: SimContext,
   species: MobSpecies,
   at: BlockId,
   rng: RngState,
-  options: { until: number; hired?: boolean; intent?: Mob['intent']; target?: BlockId | null },
+  options: { until: number; hired?: boolean; intent?: MobIntent; target?: BlockId | null },
 ): Mob {
   const { state, world, events } = ctx;
   const [x, z] = centre(world, at);
@@ -146,13 +170,17 @@ function spawn(
     z,
     tx: x,
     tz: z,
-    intent: options.intent ?? 'wander',
+    intent: options.intent ?? 'idle',
     target: options.target ?? null,
     born: state.tick,
     until: options.until,
     phase: nextFloat(rng),
     standing: false,
     hired: options.hired ?? false,
+    intentUntil: state.tick,
+    ax: x,
+    az: z,
+    heading: 0,
   };
   state.mobs.push(mob);
   events.push({ type: 'MobArrived', id: mob.id, species, block: at });
@@ -178,6 +206,13 @@ function hasWorker(state: SimState, kind: WorkerKind): boolean {
   return state.mobs.some((m) => m.hired && m.species === kind);
 }
 
+/** Where the security guard stands when not on patrol. */
+export function guardPost(state: SimState, world: World): [number, number] | null {
+  if (!state.kopdes) return null;
+  const [x, z] = centre(world, state.kopdes.blockId);
+  return [x + WORKER_JOBS.guardPost.dx, z + WORKER_JOBS.guardPost.dz];
+}
+
 // ── Spawning ──────────────────────────────────────────────────────────────
 
 function spawnWildlife(ctx: SimContext, rng: RngState): void {
@@ -196,8 +231,9 @@ function spawnWildlife(ctx: SimContext, rng: RngState): void {
   const spec = WILDLIFE.kinds[kind];
   const at = roamTarget(ctx, rng, spec.biomes, 'onPlanted' in spec && spec.onPlanted);
   if (at === null) return;
-  const stay = WILDLIFE.stayDays.min + nextInt(rng, WILDLIFE.stayDays.max - WILDLIFE.stayDays.min);
-  spawn(ctx, kind, at, rng, { until: state.tick + stay });
+  const stay = days(rng, WILDLIFE.stayDays);
+  const mob = spawn(ctx, kind, at, rng, { until: state.tick + stay, target: at });
+  pickBehaviour(ctx, mob, rng, true);
 }
 
 function spawnVisitors(ctx: SimContext, rng: RngState): void {
@@ -217,7 +253,11 @@ function spawnVisitors(ctx: SimContext, rng: RngState): void {
         intent: 'travel',
         target,
       });
-      [thief.tx, thief.tz] = centre(world, target);
+      // First to the trees near the block, to hide; the dash comes later.
+      const hide = hidingTree(ctx, rng, target) ?? edge;
+      [thief.ax, thief.az] = centre(world, hide);
+      thief.tx = thief.ax;
+      thief.tz = thief.az;
     }
   }
 
@@ -250,6 +290,23 @@ function edgeNear(ctx: SimContext, rng: RngState, target: BlockId): BlockId {
   return world.toId(x, y);
 }
 
+/** A wild block with trees on it within reach of the target, for a thief to wait in. */
+function hidingTree(ctx: SimContext, rng: RngState, target: BlockId): BlockId | null {
+  const { state, world } = ctx;
+  const [tx, ty] = world.toXY(target);
+  const candidates: BlockId[] = [];
+  const r = THIEF.hideRadius;
+  for (let y = ty - r; y <= ty + r; y++) {
+    for (let x = tx - r; x <= tx + r; x++) {
+      if (!world.inBounds(x, y) || (x === tx && y === ty)) continue;
+      const block = readBlock(state, world, world.toId(x, y));
+      if (block.phase === 'wild' && BIOMES[block.biome].forestCover) candidates.push(block.id);
+    }
+  }
+  if (candidates.length === 0) return null;
+  return candidates.sort((a, b) => a - b)[nextInt(rng, candidates.length)]!;
+}
+
 function spawnGhost(ctx: SimContext, rng: RngState): void {
   const { state } = ctx;
   if (state.mobs.some((m) => m.species === 'ghost') || !chance(rng, GHOST.appearPerDay)) return;
@@ -270,13 +327,14 @@ function spawnGhost(ctx: SimContext, rng: RngState): void {
   });
   if (eligible.length === 0) return;
   const at = eligible.sort((a, b) => a - b)[nextInt(rng, eligible.length)]!;
-  const stay = GHOST.stayDays.min + nextInt(rng, GHOST.stayDays.max - GHOST.stayDays.min);
-  spawn(ctx, 'ghost', at, rng, { until: state.tick + stay });
+  const stay = days(rng, GHOST.stayDays);
+  const ghost = spawn(ctx, 'ghost', at, rng, { until: state.tick + stay, target: at });
+  pickBehaviour(ctx, ghost, rng, false);
 }
 
 /** A crew stands on every block being chopped or burned. */
-function spawnCrews(ctx: SimContext): void {
-  const { state, world, events } = ctx;
+function spawnCrews(ctx: SimContext, rng: RngState): void {
+  const { state } = ctx;
   const working = new Set<BlockId>();
   for (const block of state.blocks.values()) {
     if (block.phase === 'clearing' || block.burning) working.add(block.id);
@@ -287,24 +345,8 @@ function spawnCrews(ctx: SimContext): void {
   }
   for (const id of [...working].sort((a, b) => a - b)) {
     if (present.has(id)) continue;
-    const [x, z] = centre(world, id);
-    const mob: Mob = {
-      id: state.nextMobId++,
-      species: 'crew',
-      x: x + 0.3,
-      z: z + 0.3,
-      tx: x - 0.3,
-      tz: z - 0.3,
-      intent: 'work',
-      target: id,
-      born: state.tick,
-      until: Infinity,
-      phase: (id % 97) / 97,
-      standing: false,
-      hired: false,
-    };
-    state.mobs.push(mob);
-    events.push({ type: 'MobArrived', id: mob.id, species: 'crew', block: id });
+    const crew = spawn(ctx, 'crew', id, rng, { until: Infinity, intent: 'work', target: id });
+    workSpot(crew, rng);
   }
 }
 
@@ -326,9 +368,9 @@ function step(ctx: SimContext, mob: Mob, rng: RngState): void {
     case 'thief':
       return stepThief(ctx, mob, rng);
     case 'babiNgepet':
-      return stepBabi(ctx, mob);
+      return stepBabi(ctx, mob, rng);
     case 'crew':
-      return stepCrew(ctx, mob);
+      return stepCrew(ctx, mob, rng);
     case 'sanitizer':
       return stepSanitizer(ctx, mob, rng);
     case 'plantDoctor':
@@ -342,35 +384,142 @@ function step(ctx: SimContext, mob: Mob, rng: RngState): void {
   }
 }
 
+const REPERTOIRE = ['idle', 'pace', 'wander', 'circle', 'sleep'] as const;
+
+/** Choose what an animal does next, and for how long. */
+function pickBehaviour(ctx: SimContext, mob: Mob, rng: RngState, canSleep: boolean): void {
+  const { state } = ctx;
+  const weights = REPERTOIRE.map((k) => (k === 'sleep' && !canSleep ? 0 : BEHAVIOUR.weights[k]));
+  const next = REPERTOIRE[pickWeighted(rng, weights)] ?? 'idle';
+  mob.standing = false;
+  mob.tx = mob.x;
+  mob.tz = mob.z;
+  switch (next) {
+    case 'idle':
+      mob.intent = 'idle';
+      mob.intentUntil = state.tick + days(rng, BEHAVIOUR.idleDays);
+      break;
+    case 'sleep':
+      mob.intent = 'sleep';
+      mob.intentUntil = state.tick + days(rng, BEHAVIOUR.sleepDays);
+      break;
+    case 'pace':
+      mob.intent = 'pace';
+      mob.ax = mob.x;
+      mob.az = mob.z;
+      mob.intentUntil = state.tick + days(rng, BEHAVIOUR.paceDays);
+      paceTarget(mob, rng, BEHAVIOUR.paceRadius);
+      break;
+    case 'circle': {
+      // The centre sits off to one side; the mob starts on the rim.
+      const r = BEHAVIOUR.circleRadius.min + nextFloat(rng) * (BEHAVIOUR.circleRadius.max - 1);
+      const a = nextFloat(rng) * Math.PI * 2;
+      mob.ax = mob.x - Math.cos(a) * r;
+      mob.az = mob.z - Math.sin(a) * r;
+      mob.heading = a;
+      mob.intent = 'circle';
+      mob.intentUntil = state.tick + days(rng, BEHAVIOUR.wanderDays);
+      break;
+    }
+    case 'wander': {
+      const spec = WILDLIFE.kinds[mob.species as keyof typeof WILDLIFE.kinds];
+      const to = roamTarget(
+        ctx,
+        rng,
+        spec?.biomes ?? null,
+        spec !== undefined && 'onPlanted' in spec,
+      );
+      if (to === null) {
+        mob.intent = 'idle';
+        mob.intentUntil = state.tick + days(rng, BEHAVIOUR.idleDays);
+        break;
+      }
+      headTo(mob, ctx.world, to, 'wander', 0.8);
+      mob.intentUntil = state.tick + days(rng, BEHAVIOUR.wanderDays);
+      break;
+    }
+  }
+}
+
+function paceTarget(mob: Mob, rng: RngState, radius: number): void {
+  const a = nextFloat(rng) * Math.PI * 2;
+  const r = radius * (0.4 + nextFloat(rng) * 0.6);
+  mob.tx = mob.ax + Math.cos(a) * r;
+  mob.tz = mob.az + Math.sin(a) * r;
+}
+
+/** One day of the animal repertoire; returns false once the mob is leaving. */
+function stepRepertoire(
+  ctx: SimContext,
+  mob: Mob,
+  rng: RngState,
+  speeds: { pace: number; wander: number },
+  canSleep: boolean,
+): void {
+  const { state } = ctx;
+  if (state.tick >= mob.intentUntil) pickBehaviour(ctx, mob, rng, canSleep);
+  switch (mob.intent) {
+    case 'idle':
+    case 'sleep':
+      return;
+    case 'pace':
+      if (atTarget(mob)) {
+        // A pause at each turn, now and then a longer one.
+        if (chance(rng, 0.3)) mob.intentUntil = Math.min(mob.intentUntil, state.tick + 1);
+        paceTarget(mob, rng, BEHAVIOUR.paceRadius);
+      }
+      walk(mob, speeds.pace);
+      return;
+    case 'circle': {
+      const r = Math.hypot(mob.x - mob.ax, mob.z - mob.az) || BEHAVIOUR.circleRadius.min;
+      mob.heading += (mob.phase < 0.5 ? 1 : -1) * BEHAVIOUR.circleTurn * (speeds.wander / 0.28);
+      mob.tx = mob.ax + Math.cos(mob.heading) * r;
+      mob.tz = mob.az + Math.sin(mob.heading) * r;
+      walk(mob, speeds.wander);
+      return;
+    }
+    case 'wander':
+      walk(mob, speeds.wander);
+      if (atTarget(mob)) pickBehaviour(ctx, mob, rng, canSleep);
+      return;
+    default:
+      // Anything else (an old save's `travel`) settles into the repertoire.
+      pickBehaviour(ctx, mob, rng, canSleep);
+  }
+}
+
 function stepWild(ctx: SimContext, mob: Mob, rng: RngState): void {
   const { state, world } = ctx;
-  if (state.tick >= mob.until && mob.intent !== 'leave') {
+  if (mob.intent === 'leave') {
+    walk(mob, WILDLIFE.wanderSpeed);
+    return;
+  }
+  if (state.tick >= mob.until) {
     // Time to go: walk off the edge of the ring.
     const away = edgeNear(ctx, rng, mob.target ?? world.toId(Math.floor(mob.x), Math.floor(mob.z)));
     [mob.tx, mob.tz] = centre(world, away);
     mob.intent = 'leave';
-  } else if (atTarget(mob) && chance(rng, 0.35)) {
-    const spec = WILDLIFE.kinds[mob.species as keyof typeof WILDLIFE.kinds];
-    const next = roamTarget(
-      ctx,
-      rng,
-      spec?.biomes ?? null,
-      spec !== undefined && 'onPlanted' in spec,
-    );
-    if (next !== null) {
-      const [x, z] = centre(world, next);
-      mob.tx = x + (nextFloat(rng) - 0.5) * 0.8;
-      mob.tz = z + (nextFloat(rng) - 0.5) * 0.8;
-      mob.target = next;
-    }
+    return;
   }
-  walk(mob, WILDLIFE.speed);
+  stepRepertoire(ctx, mob, rng, { pace: WILDLIFE.paceSpeed, wander: WILDLIFE.wanderSpeed }, true);
+}
+
+function stepGhost(ctx: SimContext, mob: Mob, rng: RngState): void {
+  // Drifts through the same repertoire, slowly, never sleeps, and fades when its time is up.
+  if (mob.intent === 'wander') {
+    // Never far from its block: a wander is just a longer pace.
+    mob.intent = 'pace';
+    mob.ax = mob.x;
+    mob.az = mob.z;
+    paceTarget(mob, rng, BEHAVIOUR.paceRadius * 1.5);
+  }
+  stepRepertoire(ctx, mob, rng, { pace: GHOST.speed, wander: GHOST.speed * 1.5 }, false);
 }
 
 function stepThief(ctx: SimContext, mob: Mob, rng: RngState): void {
   const { state, world, events } = ctx;
   if (mob.intent === 'leave') {
-    walk(mob, THIEF.speed);
+    walk(mob, THIEF.sneakSpeed);
     return;
   }
   const guard = state.mobs.find((m) => m.hired && m.species === 'security');
@@ -383,10 +532,35 @@ function stepThief(ctx: SimContext, mob: Mob, rng: RngState): void {
     leave(ctx, mob, rng);
     return;
   }
-  walk(mob, THIEF.speed);
-  if (!atTarget(mob) || mob.target === null) return;
+  switch (mob.intent) {
+    case 'travel':
+      // Creeping to the trees by the block.
+      walk(mob, THIEF.sneakSpeed);
+      if (atTarget(mob)) {
+        mob.intent = 'hide';
+        mob.intentUntil = state.tick + days(rng, THIEF.hideDays);
+      }
+      return;
+    case 'hide':
+      if (state.tick >= mob.intentUntil && mob.target !== null) {
+        headTo(mob, world, mob.target, 'raid');
+      }
+      return;
+    case 'raid':
+      walk(mob, THIEF.raidSpeed);
+      if (!atTarget(mob) || mob.target === null) return;
+      break;
+    case 'flee':
+      // Back to the trees with the sack, then away.
+      walk(mob, THIEF.raidSpeed);
+      if (atTarget(mob)) leave(ctx, mob, rng);
+      return;
+    default:
+      headTo(mob, world, mob.target ?? world.toId(Math.floor(mob.x), Math.floor(mob.z)), 'raid');
+      return;
+  }
 
-  // At the block: take a share of what is on the trees, then slip away.
+  // At the block: take a share of what is on the trees, then dash back to the trees.
   const palms = state.palms.get(mob.target);
   let taken = 0;
   if (palms) {
@@ -397,27 +571,49 @@ function stepThief(ctx: SimContext, mob: Mob, rng: RngState): void {
       taken += share;
     }
   }
-  if (taken > 0.5) events.push({ type: 'HarvestStolen', block: mob.target, kilograms: taken });
-  else {
-    // Nothing worth taking here; try another ripe block if there is one.
-    const ripe = bearingBlocks(state).filter((id) => id !== mob.target);
-    if (ripe.length > 0 && state.tick < mob.until) {
-      mob.target = ripe[nextInt(rng, ripe.length)]!;
-      [mob.tx, mob.tz] = centre(world, mob.target);
-      return;
-    }
+  if (taken > 0.5) {
+    events.push({ type: 'HarvestStolen', block: mob.target, kilograms: taken });
+    mob.tx = mob.ax;
+    mob.tz = mob.az;
+    mob.intent = 'flee';
+    return;
+  }
+  // Nothing worth taking here; try another ripe block if there is one.
+  const ripe = bearingBlocks(state).filter((id) => id !== mob.target);
+  if (ripe.length > 0 && state.tick < mob.until) {
+    headTo(mob, world, ripe[nextInt(rng, ripe.length)]!, 'raid');
+    return;
   }
   leave(ctx, mob, rng);
 }
 
-function stepBabi(ctx: SimContext, mob: Mob): void {
+function stepBabi(ctx: SimContext, mob: Mob, rng: RngState): void {
   const { state, world, events } = ctx;
-  if (mob.intent === 'leave') {
-    walk(mob, BABI_NGEPET.speed);
-    return;
+  switch (mob.intent) {
+    case 'leave':
+      walk(mob, BABI_NGEPET.raidSpeed);
+      return;
+    case 'raid': {
+      // Upright, it runs the estate for a few days, then is simply gone.
+      if (state.tick >= mob.intentUntil) {
+        mob.until = state.tick;
+        mob.intent = 'leave';
+        mob.tx = mob.x;
+        mob.tz = mob.z;
+        return;
+      }
+      if (atTarget(mob)) {
+        const owned = ownedBlocks(state);
+        if (owned.length > 0) headTo(mob, world, owned[nextInt(rng, owned.length)]!, 'raid', 0.8);
+      }
+      walk(mob, BABI_NGEPET.raidSpeed);
+      return;
+    }
+    default:
+      // Ambling in as a pig.
+      walk(mob, BABI_NGEPET.pigSpeed);
+      if (!atTarget(mob)) return;
   }
-  walk(mob, BABI_NGEPET.speed);
-  if (!atTarget(mob)) return;
   // At the Kopdes it stands up, and the cash box is lighter.
   mob.standing = true;
   const take = Math.min(
@@ -429,10 +625,8 @@ function stepBabi(ctx: SimContext, mob: Mob): void {
     events.push({ type: 'CashStolen', amount: take });
     events.push({ type: 'CashChanged', cash: state.economy.cash });
   }
-  const b = estateBounds(state, world);
-  mob.tx = clamp(b.minX - ROAM, 0, world.width - 1) + 0.5;
-  mob.tz = mob.z;
-  mob.intent = 'leave';
+  mob.intent = 'raid';
+  mob.intentUntil = state.tick + BABI_NGEPET.raidDays;
 }
 
 function leave(ctx: SimContext, mob: Mob, rng: RngState): void {
@@ -442,8 +636,15 @@ function leave(ctx: SimContext, mob: Mob, rng: RngState): void {
   mob.intent = 'leave';
 }
 
-function stepCrew(ctx: SimContext, mob: Mob): void {
-  const { state, world } = ctx;
+/** A spot on the crew's block to work from, for a few days. */
+function workSpot(mob: Mob, rng: RngState): void {
+  mob.tx = mob.ax + (nextFloat(rng) - 0.5) * 0.7;
+  mob.tz = mob.az + (nextFloat(rng) - 0.5) * 0.7;
+  mob.intentUntil = mob.born + days(rng, WORKER_JOBS.crewSpotDays);
+}
+
+function stepCrew(ctx: SimContext, mob: Mob, rng: RngState): void {
+  const { state } = ctx;
   const block = mob.target === null ? null : state.blocks.get(mob.target);
   const stillWorking =
     block !== null && block !== undefined && (block.phase === 'clearing' || block.burning);
@@ -455,13 +656,12 @@ function stepCrew(ctx: SimContext, mob: Mob): void {
     mob.tz = mob.z;
     return;
   }
-  // Pace about the block.
-  if (atTarget(mob)) {
-    const [cx, cz] = centre(world, mob.target!);
-    mob.tx = cx + (mob.tx > cx ? -0.3 : 0.3);
-    mob.tz = cz + (mob.tz > cz ? -0.3 : 0.3);
+  // Work a spot for a few days, then walk to the next tree.
+  if (atTarget(mob) && state.tick >= mob.intentUntil) {
+    workSpot(mob, rng);
+    mob.intentUntil = state.tick + days(rng, WORKER_JOBS.crewSpotDays);
   }
-  walk(mob, WORKER_JOBS.crewSpeed * 0.5);
+  walk(mob, WORKER_JOBS.crewSpeed);
 }
 
 /** Where a hired worker idles when there is nothing to do: the Kopdes. */
@@ -472,7 +672,7 @@ function idleAtKopdes(ctx: SimContext, mob: Mob): void {
   mob.tx = x + 0.6;
   mob.tz = z + 0.6;
   mob.target = null;
-  mob.intent = 'wander';
+  mob.intent = 'idle';
 }
 
 function stepSanitizer(ctx: SimContext, mob: Mob, rng: RngState): void {
@@ -488,11 +688,8 @@ function stepSanitizer(ctx: SimContext, mob: Mob, rng: RngState): void {
       )
         best = block;
     }
-    if (best) {
-      mob.target = best.id;
-      [mob.tx, mob.tz] = centre(world, best.id);
-      mob.intent = 'travel';
-    } else idleAtKopdes(ctx, mob);
+    if (best) headTo(mob, world, best.id, 'travel');
+    else idleAtKopdes(ctx, mob);
   }
   walk(mob, WORKERS.sanitizer.speed);
   if (mob.target === null || !atTarget(mob)) return;
@@ -521,11 +718,8 @@ function stepDoctor(ctx: SimContext, mob: Mob, rng: RngState): void {
         bestId = id;
       }
     }
-    if (bestId !== null) {
-      mob.target = bestId;
-      [mob.tx, mob.tz] = centre(world, bestId);
-      mob.intent = 'travel';
-    } else idleAtKopdes(ctx, mob);
+    if (bestId !== null) headTo(mob, world, bestId, 'travel');
+    else idleAtKopdes(ctx, mob);
   }
   walk(mob, WORKERS.plantDoctor.speed);
   if (mob.target === null || !atTarget(mob)) return;
@@ -566,29 +760,35 @@ function stepSecurity(ctx: SimContext, mob: Mob, rng: RngState): void {
   const { state, world } = ctx;
   const thief = state.mobs.find((m) => m.species === 'thief' && m.intent !== 'leave');
   if (thief) {
-    // Head for the thief.
+    // Head for the thief, at a run.
     mob.tx = thief.x;
     mob.tz = thief.z;
+    mob.target = null;
     mob.intent = 'travel';
-  } else if (atTarget(mob) || mob.target === null) {
-    // Patrol the ripe blocks.
-    const ripe = bearingBlocks(state);
-    if (ripe.length > 0) {
-      mob.target = ripe[nextInt(rng, ripe.length)]!;
-      [mob.tx, mob.tz] = centre(world, mob.target);
+    walk(mob, WORKER_JOBS.chaseSpeed);
+    return;
+  }
+  if (mob.intent === 'idle' && state.tick < mob.intentUntil) return;
+  if (atTarget(mob)) {
+    const post = guardPost(state, world);
+    if (mob.intent === 'travel' && mob.target === null && post) {
+      // Arrived back at the post: rest a day or two.
+      mob.intent = 'idle';
+      mob.intentUntil = state.tick + days(rng, WORKER_JOBS.postDays);
+      return;
+    }
+    if (mob.intent !== 'idle' && post && chance(rng, 0.5)) {
+      [mob.tx, mob.tz] = post;
+      mob.target = null;
       mob.intent = 'travel';
-    } else idleAtKopdes(ctx, mob);
+    } else {
+      // Patrol: a random block of the estate, at a walk.
+      const owned = ownedBlocks(state);
+      if (owned.length > 0) headTo(mob, world, owned[nextInt(rng, owned.length)]!, 'travel', 0.6);
+      else idleAtKopdes(ctx, mob);
+    }
   }
   walk(mob, WORKERS.security.speed);
-}
-
-function stepGhost(_ctx: SimContext, mob: Mob, rng: RngState): void {
-  // Drifts a little, never far, and fades when its time is up.
-  if (atTarget(mob)) {
-    mob.tx = mob.x + (nextFloat(rng) - 0.5) * 0.6;
-    mob.tz = mob.z + (nextFloat(rng) - 0.5) * 0.6;
-  }
-  walk(mob, 0.2);
 }
 
 /** The wild kinds, for the renderer and the tests. */

@@ -29,8 +29,9 @@ import { Palms } from '@render/scene/Palms';
 import { Police } from '@render/scene/Police';
 import { Rain } from '@render/scene/Rain';
 import { Sky } from '@render/scene/Sky';
-import { Timber } from '@render/scene/Timber';
+import { TREES_PER_BLOCK, Timber } from '@render/scene/Timber';
 import { digestEvents } from '@render/sync';
+import { BIOMES } from '@sim/balance/biomes';
 import { BANKRUPTCY, ISPO } from '@sim/balance/endings';
 import { FIRE } from '@sim/balance/fire';
 import { GROWTH } from '@sim/balance/growth';
@@ -208,6 +209,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     chunks.group,
     palms.group,
     kopdes.mesh,
+    kopdes.post,
     ring.group,
     rangeRing.mesh,
     hazardRing.mesh,
@@ -715,6 +717,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       }
       if (command.type === 'HireWorker' || command.type === 'DismissWorker') {
         mobField.syncSim(sim.state);
+        kopdes.sync(sim.state, sim.world);
       }
       if (command.type === 'PlaceKopdes' || command.type === 'UpgradeKopdes') {
         kopdes.sync(sim.state, sim.world);
@@ -921,7 +924,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     if (d.lightning.some((b) => b.ignited)) syncFireState();
 
     // Trees down, thieves, and the people on the estate.
-    for (const block of d.felled) timber.fell(sim.world, block, performance.now());
+    fellChoppedTrees(d.felled);
     for (const theft of d.stolen) {
       toasts.push(
         `Thieves took ${formatKg(theft.kilograms)} of fruit from ${blockName(theft.block)}. A security guard would have stopped them.`,
@@ -1004,6 +1007,27 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   }
 
   let lastUiMs = -1;
+
+  /**
+   * A forest block gives up a tree at each quarter of the chop, and whatever
+   * is left when the block clears; a block that clears while unwatched (a
+   * loaded save, a 20× skip) just drops what remains.
+   */
+  const treesFelled = new Map<BlockId, number>();
+  function fellChoppedTrees(cleared: ReadonlySet<BlockId>): void {
+    const now = performance.now();
+    for (const block of sim.state.blocks.values()) {
+      if (block.phase !== 'clearing' || !BIOMES[block.biome].forestCover) continue;
+      const due = Math.min(TREES_PER_BLOCK - 1, Math.floor(block.clearProgress * TREES_PER_BLOCK));
+      const done = treesFelled.get(block.id) ?? 0;
+      for (let i = done; i < due; i++) timber.fell(sim.world, block.id, now + (i - done) * 600, i);
+      if (due > done) treesFelled.set(block.id, due);
+    }
+    for (const block of cleared) {
+      timber.fellAll(sim.world, block, now, treesFelled.get(block) ?? 0);
+      treesFelled.delete(block);
+    }
+  }
 
   function onFrame(dt: number, nowMs: number): void {
     rig.update(dt, nowMs);

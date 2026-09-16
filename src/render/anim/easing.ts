@@ -24,6 +24,10 @@ export function easeInQuad(t: number): number {
   return x * x;
 }
 
+export function easeInCubic(t: number): number {
+  return t * t * t;
+}
+
 export function easeOutCubic(t: number): number {
   const x = clamp01(t);
   const u = 1 - x;

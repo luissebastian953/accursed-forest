@@ -21,18 +21,24 @@
  */
 
 import {
+  BufferAttribute,
   BufferGeometry,
   DynamicDrawUsage,
-  Float32BufferAttribute,
+  Euler,
   Group,
   Matrix4,
   Mesh,
+  Quaternion,
+  Vector3,
   type Material,
   type Object3D,
 } from 'three/webgpu';
 
 import { WORLD } from '@sim/balance/world';
 import type { Mob as SimMob, SimState } from '@sim/types';
+
+import { BoxBuilder } from '../geometry/boxBuilder.ts';
+import { Palette } from '../materials/paletteSlots.ts';
 
 import { partGeometry, partOrder, pose, type PoseInput, type SpeciesSpec } from './rig.ts';
 import { SPECIES, type SpeciesId } from './species.ts';
@@ -68,6 +74,13 @@ interface Mob {
   stand: number;
   /** Sim-driven mobs glide; POC mobs walk at their species' speed. */
   glide: boolean;
+  /** What the sim says it is doing, and how far the body has got there (0..1 each). */
+  wants: { sleep: number; crouch: number; work: number };
+  sleep: number;
+  crouch: number;
+  work: number;
+  /** World-unit height of the body's top, for the Zs. */
+  crown: number;
   /** `nodes` mode only: the part nodes, parent-first. */
   nodes?: Object3D[];
 }
@@ -107,8 +120,10 @@ class Sheet {
     const geometry = this.mesh.geometry;
     geometry.dispose();
     const next = new BufferGeometry();
+    // `BufferAttribute`, not `Float32BufferAttribute`: the latter copies the
+    // array it is given, and these must stay the very arrays `append` writes.
     const attribute = (array: Float32Array, itemSize: number) => {
-      const a = new Float32BufferAttribute(array, itemSize);
+      const a = new BufferAttribute(array, itemSize);
       a.setUsage(DynamicDrawUsage);
       return a;
     };
@@ -124,6 +139,7 @@ class Sheet {
 
   /** Append a part's box under a world matrix. */
   append(part: PartArrays, m: Matrix4): void {
+    if ((this.used + part.vertices) * 3 > this.positions.length) return;
     const e = m.elements;
     const p = this.positions;
     const n = this.normals;
@@ -163,7 +179,7 @@ class Sheet {
     this.mesh.visible = this.used > 0;
     if (this.used === 0) return;
     for (const name of ['position', 'normal', 'paletteU'] as const) {
-      const attribute = geometry.getAttribute(name) as Float32BufferAttribute;
+      const attribute = geometry.getAttribute(name) as BufferAttribute;
       attribute.clearUpdateRanges();
       attribute.addUpdateRange(0, this.used * attribute.itemSize);
       attribute.needsUpdate = true;
@@ -188,6 +204,56 @@ function drawnAs(mob: SimMob): SpeciesId {
   return mob.species;
 }
 
+/** What the body should be doing for a sim intent. */
+function wantsFor(mob: SimMob): Mob['wants'] {
+  const thief = mob.species === 'thief';
+  return {
+    sleep: mob.intent === 'sleep' ? 1 : 0,
+    crouch:
+      thief && (mob.intent === 'hide' || mob.intent === 'raid' || mob.intent === 'flee') ? 1 : 0,
+    work: mob.intent === 'work' ? (mob.species === 'crew' ? 1 : 0.6) : 0,
+  };
+}
+
+/** How tall a species stands, for floating things above it. */
+function crownOf(spec: SpeciesSpec): number {
+  let top = 0;
+  for (const part of spec.parts) {
+    if (part.parent !== undefined && part.parent !== 'body') continue;
+    top = Math.max(
+      top,
+      part.at[1] + part.size[1] / 2 + (part.parent === 'body' ? spec.parts[0]!.at[1] : 0),
+    );
+  }
+  return top;
+}
+
+/** A "Z", three thin bars, about 0.5 units tall; three of them drift up from a sleeper. */
+function zGeometry(): PartArrays {
+  const b = new BoxBuilder();
+  const slot = Palette.Ghost;
+  b.addAABox(0, 0.42, 0, 0.36, 0.08, 0.08, { side: slot });
+  b.addAABox(0, 0, 0, 0.36, 0.08, 0.08, { side: slot });
+  const m = new Matrix4().makeRotationZ(0.86).setPosition(0, 0.21, 0);
+  b.addBox(m.multiply(new Matrix4().makeScale(0.08, 0.5, 0.08)), { side: slot });
+  const geometry = b.build();
+  const positions = geometry.getAttribute('position').array as Float32Array;
+  return {
+    positions,
+    normals: geometry.getAttribute('normal').array as Float32Array,
+    paletteU: geometry.getAttribute('paletteU').array as Float32Array,
+    vertices: positions.length / 3,
+  };
+}
+
+const Z_COUNT = 3;
+const Z_PERIOD = 2.4;
+const _zMatrix = new Matrix4();
+const _zScale = new Vector3();
+const _zPos = new Vector3();
+const _zQuat = new Quaternion();
+const _zEuler = new Euler();
+
 export class MobField {
   readonly group = new Group();
   private readonly mobs: Mob[] = [];
@@ -197,6 +263,7 @@ export class MobField {
   private readonly orders = new Map<string, ReturnType<typeof partOrder>>();
   private readonly solid: Sheet;
   private readonly spectral: Sheet;
+  private readonly z = zGeometry();
   private mode: MobMode = 'merged';
   private nextPocId = -1;
   /** Milliseconds the last update spent posing mobs. */
@@ -312,6 +379,11 @@ export class MobField {
       gait: 0,
       stand: 0,
       glide: false,
+      wants: { sleep: 0, crouch: 0, work: 0 },
+      sleep: 0,
+      crouch: 0,
+      work: 0,
+      crown: crownOf(spec),
     });
   }
 
@@ -349,12 +421,18 @@ export class MobField {
           gait: 0,
           stand: sim.standing ? 1 : 0,
           glide: true,
+          wants: wantsFor(sim),
+          sleep: 0,
+          crouch: 0,
+          work: 0,
+          crown: crownOf(spec),
         };
         this.attach(mob);
       }
       mob.targetX = sim.x * side;
       mob.targetZ = sim.z * side;
       mob.stand = sim.standing ? 1 : 0;
+      mob.wants = wantsFor(sim);
     }
     for (const mob of [...this.mobs]) {
       if (mob.id > 0 && !seen.has(mob.id)) this.detach(mob);
@@ -374,6 +452,7 @@ export class MobField {
         const vertices = this.arraysOf(mob.species).reduce((sum, p) => sum + p.vertices, 0);
         if (mob.species.spectral) spectral += vertices;
         else solid += vertices;
+        if (mob.sleep > 0 || mob.wants.sleep > 0) spectral += this.z.vertices * Z_COUNT;
       }
       this.solid.reserve(solid);
       this.spectral.reserve(spectral);
@@ -388,11 +467,17 @@ export class MobField {
       const dz = mob.targetZ - mob.z;
       const distance = Math.hypot(dx, dz);
 
+      // Ease the body into what the sim says it is doing: lying down takes a
+      // moment, standing up from a crouch is quicker.
+      mob.sleep += (mob.wants.sleep - mob.sleep) * Math.min(1, dtSeconds * 1.5);
+      mob.crouch += (mob.wants.crouch - mob.crouch) * Math.min(1, dtSeconds * 4);
+      mob.work += (mob.wants.work - mob.work) * Math.min(1, dtSeconds * 3);
+
       if (mob.glide) {
-        // Sim-driven: close the gap to the latest sim position over about a
-        // second, and walk while there is a gap to close.
-        if (distance > 0.05) {
-          const step = Math.min(distance, Math.max(distance * 3, mob.species.speed) * dtSeconds);
+        // Sim-driven: walk to the latest sim position at the species' own pace,
+        // faster only when the clock has run ahead of the legs.
+        if (distance > 0.05 && mob.wants.sleep === 0) {
+          const step = Math.min(distance, Math.max(distance * 1.5, mob.species.speed) * dtSeconds);
           mob.x += (dx / distance) * step;
           mob.z += (dz / distance) * step;
           mob.facing = Math.atan2(dx, dz);
@@ -426,6 +511,9 @@ export class MobField {
         gait: mob.gait,
         phase: mob.phase,
         stand: mob.stand,
+        sleep: mob.sleep,
+        crouch: mob.crouch,
+        work: mob.work,
       };
       _facing.makeRotationY(mob.facing);
       _facing.setPosition(mob.x, y, mob.z);
@@ -455,6 +543,7 @@ export class MobField {
         else world.multiplyMatrices(_worlds[parent]!, _local);
         sheet.append(arrays[i]!, world);
       }
+      if (mob.sleep > 0.5) this.appendZs(mob, y);
     }
 
     if (this.mode === 'merged') {
@@ -462,6 +551,22 @@ export class MobField {
       this.spectral.end();
     }
     this.lastUpdateMs = performance.now() - started;
+  }
+
+  /** Three Zs rising and growing from the sleeper's head, staggered, on a loop. */
+  private appendZs(mob: Mob, groundY: number): void {
+    const base = groundY + mob.species.parts[0]!.size[0] / 2 + 0.3;
+    for (let i = 0; i < Z_COUNT; i++) {
+      const t = (((mob.age / Z_PERIOD + i / Z_COUNT + mob.phase) % 1) + 1) % 1;
+      const scale = (0.35 + t * 0.9) * mob.sleep;
+      const drift = Math.sin(t * Math.PI * 2 + i) * 0.25;
+      _zPos.set(mob.x + 0.4 + drift, base + t * 1.6, mob.z + 0.2 + i * 0.12);
+      _zEuler.set(0, mob.facing + 0.8 + t * 0.6, 0);
+      _zQuat.setFromEuler(_zEuler);
+      _zScale.set(scale, scale, scale);
+      _zMatrix.compose(_zPos, _zQuat, _zScale);
+      this.spectral.append(this.z, _zMatrix);
+    }
   }
 
   dispose(): void {

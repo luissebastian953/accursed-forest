@@ -8,12 +8,10 @@
  * head that sways and a tail that wags.
  *
  * Nothing here touches the scene graph, so the same rig drives both ways of
- * drawing a crowd:
- *
- *   - `MobNodes`: one `Object3D` per part, three.js composes the matrices.
- *   - `MobInstances`: one `InstancedMesh` per part, matrices composed here.
- *
+ * drawing a crowd — a node per part, or every part skinned into one mesh.
  * `MobField` measures the two against each other; see `app/MobPoc.ts`.
+ * Beyond the walk it knows how to sleep (rolled on one side), crouch (the
+ * thief) and work (a two-armed swing at whatever is in front of it).
  */
 
 import type { Matrix4 } from 'three';
@@ -34,6 +32,7 @@ export type PartRole =
   | 'tail'
   | 'ear'
   | 'prop'
+  | 'zzz'
   | 'still';
 
 export interface PartSpec {
@@ -79,6 +78,20 @@ export interface PoseInput {
   phase: number;
   /** 0 on all fours, 1 reared up on the hind legs (the babi ngepet's trick). */
   stand?: number;
+  /** 0 up, 1 lying on its side asleep. */
+  sleep?: number;
+  /** 0 upright, 1 crouched low (the thief in the trees and on the dash). */
+  crouch?: number;
+  /** 0 hands down, 1 swinging an axe or a torch at the block. */
+  work?: number;
+}
+
+/** The chop cycle: a slow lift, a fast drop, 0..1 raised. */
+function chopLift(time: number, phase: number): number {
+  const w = (((time * 1.1 + phase) % 1) + 1) % 1;
+  return w < 0.7
+    ? (1 - Math.cos((w / 0.7) * Math.PI)) / 2
+    : (1 + Math.cos(((w - 0.7) / 0.3) * Math.PI)) / 2;
 }
 
 const LEG_PHASE: Partial<Record<PartRole, number>> = {
@@ -105,9 +118,13 @@ export function pose(spec: SpeciesSpec, part: PartSpec, input: PoseInput, out: M
   let pz = z;
   let rx = tx;
   let ry = ty;
-  const rz = tz;
 
   const stand = input.stand ?? 0;
+  const sleep = input.sleep ?? 0;
+  const crouch = input.crouch ?? 0;
+  const work = input.work ?? 0;
+  const breath = Math.sin(input.time * 1.3 + input.phase);
+  let rz = tz;
 
   switch (part.role) {
     case 'body':
@@ -121,13 +138,27 @@ export function pose(spec: SpeciesSpec, part: PartSpec, input: PoseInput, out: M
         py += stand * part.size[2] * 0.45;
         pz -= stand * part.size[2] * 0.25;
       }
+      // Asleep: rolled onto one side on the ground, the flank rising with each breath.
+      if (sleep > 0) {
+        rz += sleep * 1.45;
+        py += sleep * (part.size[0] / 2 + 0.02 - y) + sleep * breath * 0.015;
+      }
+      // Crouched: sunk at the knees and bent forward.
+      if (crouch > 0) {
+        py -= crouch * part.size[1] * 0.45;
+        rx += crouch * 0.55;
+      }
+      // Working: leans into each swing.
+      if (work > 0) rx += work * (0.1 + (1 - chopLift(input.time, input.phase)) * 0.25);
       break;
     case 'head':
       ry += Math.sin(input.time * 0.7 + input.phase) * 0.35 * (1 - input.gait * 0.6);
       rx += Math.sin(step) * 0.05 * input.gait;
+      // Asleep the head rests down; crouched it looks up from under the brim.
+      rx += sleep * 0.4 - crouch * 0.35;
       break;
     case 'tail':
-      ry += Math.sin(step * 1.5) * 0.5 * (0.35 + input.gait);
+      ry += Math.sin(step * 1.5) * 0.5 * (0.35 + input.gait) * (1 - sleep);
       break;
     case 'ear':
       rx += Math.sin(step * 2 + 1) * 0.25 * input.gait;
@@ -137,19 +168,30 @@ export function pose(spec: SpeciesSpec, part: PartSpec, input: PoseInput, out: M
       rx += Math.sin(step + (LEG_PHASE[part.role] ?? 0)) * spec.swing * input.gait;
       // Standing, the forelegs hang like arms and swing against the stride.
       rx += stand * 0.9;
+      // Asleep the legs tuck in; crouched (a biped's legs) they fold.
+      rx += sleep * 1.3 - crouch * 0.9;
       break;
     case 'legBL':
     case 'legBR':
       rx += Math.sin(step + (LEG_PHASE[part.role] ?? 0)) * spec.swing * input.gait;
       // ...and the hind legs straighten under the body.
-      rx += stand * 1.25;
+      rx += stand * 1.25 + sleep * 1.3;
       break;
     case 'armL':
-    case 'armR':
-      rx += Math.sin(step + (LEG_PHASE[part.role] ?? 0)) * spec.swing * input.gait;
+    case 'armR': {
+      rx += Math.sin(step + (LEG_PHASE[part.role] ?? 0)) * spec.swing * input.gait * (1 - work);
+      // Crouched, the arms come forward to steady; working, both swing the tool.
+      rx -= crouch * 0.6;
+      if (work > 0) {
+        const lift = chopLift(input.time, input.phase);
+        rx -= work * (0.5 + lift * 2.1) * (part.role === 'armR' ? 1 : 0.85);
+      }
       break;
+    }
     case 'prop':
       py += Math.sin(step + 0.5) * 0.04 * input.gait;
+      break;
+    case 'zzz':
       break;
     default:
       break;

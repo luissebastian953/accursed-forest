@@ -223,7 +223,23 @@ export type MobSpecies =
   | 'crew';
 
 /** What a mob is up to. */
-export type MobIntent = 'wander' | 'travel' | 'work' | 'flee' | 'leave';
+/**
+ * What a mob is doing. Animals and ghosts cycle through `idle`, `pace`,
+ * `wander`, `circle` and (animals only) `sleep`; visitors `travel`, `hide`,
+ * `raid` and `flee`; workers `travel` and `work`; everyone eventually `leave`s.
+ */
+export type MobIntent =
+  | 'idle'
+  | 'pace'
+  | 'wander'
+  | 'circle'
+  | 'sleep'
+  | 'travel'
+  | 'hide'
+  | 'raid'
+  | 'work'
+  | 'flee'
+  | 'leave';
 
 /**
  * Someone or something walking the estate (§POC → M2). Positions are in block
@@ -250,6 +266,13 @@ export interface Mob {
   standing: boolean;
   /** Hired workers stay until dismissed and are paid daily. */
   hired: boolean;
+  /** Tick the current behaviour runs out and a new one is picked. */
+  intentUntil: Tick;
+  /** Anchor of a pace, or centre of a circle, in block units. */
+  ax: number;
+  az: number;
+  /** Angle around the circle's centre, radians; the sign of `phase - 0.5` picks the direction. */
+  heading: number;
 }
 
 /** What the epilogue counts (§3.8). Accumulated by the endings system from events. */

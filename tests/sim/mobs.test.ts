@@ -2,13 +2,13 @@ import { describe, expect, it } from 'vitest';
 
 import { BIOMES } from '@sim/balance/biomes.ts';
 import { GROWTH } from '@sim/balance/growth.ts';
-import { BABI_NGEPET, THIEF, WILDLIFE, WORKERS } from '@sim/balance/mobs.ts';
+import { BABI_NGEPET, BEHAVIOUR, THIEF, WILDLIFE, WORKERS } from '@sim/balance/mobs.ts';
 import { SLOTS_PER_BLOCK } from '@sim/balance/world.ts';
 import { createSim, type Sim } from '@sim/index.ts';
 import { distanceToKopdes } from '@sim/kopdes.ts';
 import { createPalmArrays, plantSlots } from '@sim/palms.ts';
 import { writeBlock } from '@sim/state.ts';
-import { wildKinds } from '@sim/systems/mobs.ts';
+import { guardPost, wildKinds } from '@sim/systems/mobs.ts';
 import type { BlockId, Mob } from '@sim/types.ts';
 
 const YEAR = GROWTH.daysPerYear;
@@ -64,9 +64,47 @@ describe('wildlife (mobs)', () => {
     expect(most).toBeLessThanOrEqual(WILDLIFE.cap);
     expect(seen.has('wildBoar') || seen.has('pig')).toBe(true);
     // Everyone who came has also had time to leave: the field turns over.
-    expect(sim.state.mobs.every((m) => sim.state.tick - m.born < WILDLIFE.stayDays.max + 30)).toBe(
-      true,
-    );
+    const longest = WILDLIFE.stayDays.max + BEHAVIOUR.leaveGraceDays + 1;
+    expect(sim.state.mobs.every((m) => sim.state.tick - m.born < longest)).toBe(true);
+  });
+
+  it('animals live on a repertoire — stand, mill about, cross, circle, sleep — at a walk', () => {
+    const sim = createSim(42);
+    sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
+    const seen = new Set<string>();
+    let fastest = 0;
+    const last = new Map<number, [number, number]>();
+    run(sim, 2 * YEAR, (mob) => {
+      if (!wildKinds().includes(mob.species)) return;
+      seen.add(mob.intent);
+      const was = last.get(mob.id);
+      if (was) fastest = Math.max(fastest, Math.hypot(mob.x - was[0], mob.z - was[1]));
+      last.set(mob.id, [mob.x, mob.z]);
+    });
+    for (const intent of ['idle', 'pace', 'wander', 'circle', 'sleep'])
+      expect(seen).toContain(intent);
+    // Nobody covers more than a third of a block in a day: a stroll, not a teleport.
+    expect(fastest).toBeLessThanOrEqual(WILDLIFE.wanderSpeed + 1e-9);
+  });
+
+  it('the ghost drifts through the same repertoire but never sleeps', () => {
+    const sim = createSim(42);
+    sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
+    const block = [...sim.state.blocks.values()].find((b) => b.owned && b.phase === 'wild')!;
+    block.phase = 'cleared';
+    block.clearProgress = 1;
+    block.debris = 0;
+    sim.state.tick = 3 * YEAR;
+    const intents = new Set<string>();
+    let ghosts = 0;
+    run(sim, YEAR, (mob) => {
+      if (mob.species !== 'ghost') return;
+      ghosts += 1;
+      intents.add(mob.intent);
+    });
+    expect(ghosts).toBeGreaterThan(0);
+    expect(intents.has('sleep')).toBe(false);
+    expect(intents.size).toBeGreaterThan(1);
   });
 
   it('monkeys and orangutans spawn only on forest', () => {
@@ -124,6 +162,22 @@ describe('the thief (mobs)', () => {
     expect(sim.state.society.news.some((n) => n.key === 'estate.theft')).toBe(true);
   });
 
+  it('waits in the trees before the dash, and runs back to them with the sack', () => {
+    const sim = bearingEstate(42);
+    const order: string[] = [];
+    for (let i = 0; i < 2 * YEAR; i++) {
+      sim.tick();
+      const thief = sim.state.mobs.find((m) => m.species === 'thief');
+      if (thief && order[order.length - 1] !== thief.intent) order.push(thief.intent);
+      if (thief?.intent === 'leave') break;
+      for (const p of sim.state.palms.values())
+        for (let s = 0; s < p.yieldAcc.length; s++) p.yieldAcc[s] = Math.max(p.yieldAcc[s]!, 2);
+    }
+    expect(order.indexOf('hide')).toBeGreaterThan(-1);
+    expect(order.indexOf('raid')).toBeGreaterThan(order.indexOf('hide'));
+    expect(order.indexOf('flee')).toBeGreaterThan(order.indexOf('raid'));
+  });
+
   it('a security guard makes thieves rarer and catches the ones who come', () => {
     const attempts = (guarded: boolean): { arrivals: number; thefts: number; caught: number } => {
       let arrivals = 0;
@@ -173,6 +227,25 @@ describe('the babi ngepet (mobs)', () => {
     expect(taken).toBeLessThanOrEqual(BABI_NGEPET.maxTake);
     expect(stoodUp).toBe(true);
     expect(sim.state.society.news.some((n) => n.key === 'estate.babiNgepet')).toBe(true);
+    // Upright, it runs the estate for a few days, then is simply gone.
+    let raidDays = 0;
+    let fastest = 0;
+    let was: [number, number] | null = null;
+    for (let i = 0; i < BABI_NGEPET.raidDays + 5; i++) {
+      sim.tick();
+      const babi = sim.state.mobs.find((m) => m.species === 'babiNgepet');
+      if (!babi) break;
+      if (babi.intent === 'raid') {
+        raidDays += 1;
+        expect(babi.standing).toBe(true);
+        if (was) fastest = Math.max(fastest, Math.hypot(babi.x - was[0], babi.z - was[1]));
+        was = [babi.x, babi.z];
+      }
+    }
+    expect(raidDays).toBeGreaterThan(0);
+    expect(raidDays).toBeLessThanOrEqual(BABI_NGEPET.raidDays + 1);
+    expect(fastest).toBeGreaterThan(WILDLIFE.wanderSpeed);
+    expect(sim.state.mobs.some((m) => m.species === 'babiNgepet')).toBe(false);
   });
 });
 
@@ -202,6 +275,29 @@ describe('workers (mobs)', () => {
     expect(
       sim.state.economy.ledger.slice(paid).some((e) => e.note === WORKERS.plantDoctor.label),
     ).toBe(false);
+  });
+
+  it('the security guard patrols the estate at a walk and rests at the post', () => {
+    const sim = bearingEstate(42);
+    sim.state.economy.cash = 5e9;
+    expect(sim.dispatch({ type: 'HireWorker', kind: 'security' })).toEqual({ ok: true });
+    const post = guardPost(sim.state, sim.world)!;
+    let atPost = 0;
+    let offEstate = 0;
+    let fastest = 0;
+    let was: [number, number] | null = null;
+    run(sim, 200, (mob) => {
+      if (mob.species !== 'security') return;
+      if (Math.hypot(mob.x - post[0], mob.z - post[1]) < 0.05) atPost += 1;
+      const block = sim.state.blocks.get(sim.world.toId(Math.floor(mob.x), Math.floor(mob.z)));
+      if (!block?.owned) offEstate += 1;
+      if (was) fastest = Math.max(fastest, Math.hypot(mob.x - was[0], mob.z - was[1]));
+      was = [mob.x, mob.z];
+    });
+    expect(atPost).toBeGreaterThan(5);
+    expect(atPost).toBeLessThan(180);
+    expect(offEstate).toBe(0);
+    expect(fastest).toBeLessThanOrEqual(WORKERS.security.speed + 1e-9);
   });
 
   it('a sanitizer walks to the messiest block and clears it', () => {

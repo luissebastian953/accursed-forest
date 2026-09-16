@@ -183,6 +183,20 @@ export const MIGRATIONS: readonly Migration[] = [
       head.weather['skyUntil'] ??= 0;
     },
   },
+  {
+    // Mob repertoire: old mobs pick something to do on their first tick back.
+    from: 9,
+    up(save) {
+      const head = save.manifest['head'] as { mobs?: Record<string, unknown>[] } | undefined;
+      if (!head?.mobs) throw new SaveError('corrupt', 'v9 manifest has no mobs');
+      for (const mob of head.mobs) {
+        mob['intentUntil'] ??= 0;
+        mob['ax'] ??= mob['x'];
+        mob['az'] ??= mob['z'];
+        mob['heading'] ??= 0;
+      }
+    },
+  },
 ];
 
 /**

@@ -41,13 +41,17 @@ export const hireWorker: CommandHandler<HireWorker> = {
       z: by + 0.9,
       tx: bx + 0.5,
       tz: by + 0.9,
-      intent: 'wander',
+      intent: 'idle',
       target: null,
       born: state.tick,
       until: Infinity,
       phase: (state.nextMobId % 13) / 13,
       standing: false,
       hired: true,
+      intentUntil: state.tick,
+      ax: bx + 0.5,
+      az: by + 0.9,
+      heading: 0,
     };
     state.mobs.push(mob);
     events.push({

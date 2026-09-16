@@ -241,8 +241,8 @@ export const SPECIES: Record<string, SpeciesSpec> = {
     headSize: 0.62,
     legLength: 0.5,
     tail: 0.35,
-    speed: 3.4,
-    cadence: 2.4,
+    speed: 2.2,
+    cadence: 2,
   }),
   pig: quadruped({
     id: 'pig',
@@ -254,7 +254,7 @@ export const SPECIES: Record<string, SpeciesSpec> = {
     headSize: 0.55,
     legLength: 0.4,
     tail: 0.25,
-    speed: 2.2,
+    speed: 1.6,
   }),
   mouse: quadruped({
     id: 'mouse',
@@ -266,8 +266,8 @@ export const SPECIES: Record<string, SpeciesSpec> = {
     headSize: 0.24,
     legLength: 0.12,
     tail: 0.5,
-    speed: 3,
-    cadence: 4,
+    speed: 2,
+    cadence: 3.6,
   }),
   cow: quadruped({
     id: 'cow',
@@ -280,8 +280,8 @@ export const SPECIES: Record<string, SpeciesSpec> = {
     headSize: 0.8,
     legLength: 0.95,
     tail: 0.7,
-    speed: 1.6,
-    cadence: 1.3,
+    speed: 1.3,
+    cadence: 1.2,
   }),
   capybara: quadruped({
     id: 'capybara',
@@ -293,8 +293,8 @@ export const SPECIES: Record<string, SpeciesSpec> = {
     headSize: 0.6,
     legLength: 0.32,
     tail: 0,
-    speed: 1.8,
-    cadence: 1.5,
+    speed: 1.4,
+    cadence: 1.4,
   }),
   monkey: quadruped({
     id: 'monkey',
@@ -306,8 +306,8 @@ export const SPECIES: Record<string, SpeciesSpec> = {
     headSize: 0.42,
     legLength: 0.35,
     tail: 1.1,
-    speed: 3.2,
-    cadence: 3,
+    speed: 2.2,
+    cadence: 2.6,
   }),
   orangutan: quadruped({
     id: 'orangutan',
@@ -319,8 +319,8 @@ export const SPECIES: Record<string, SpeciesSpec> = {
     width: 0.85,
     headSize: 0.62,
     legLength: 0.45,
-    speed: 1.4,
-    cadence: 1.2,
+    speed: 1.1,
+    cadence: 1.1,
     swing: 0.45,
   }),
   thief: biped({
@@ -329,7 +329,7 @@ export const SPECIES: Record<string, SpeciesSpec> = {
     cloth: Palette.ClothThief,
     hat: Palette.ClothThief,
     height: 1.7,
-    speed: 3.6,
+    speed: 2.6,
     carries: Palette.Sack,
   }),
   plantDoctor: biped({
@@ -338,7 +338,7 @@ export const SPECIES: Record<string, SpeciesSpec> = {
     cloth: Palette.ClothDoctor,
     hat: Palette.ClothDoctor,
     height: 1.7,
-    speed: 2,
+    speed: 1.6,
     carries: Palette.Steel,
   }),
   security: biped({
@@ -347,7 +347,7 @@ export const SPECIES: Record<string, SpeciesSpec> = {
     cloth: Palette.ClothSecurity,
     hat: Palette.HiVis,
     height: 1.75,
-    speed: 2.4,
+    speed: 1.5,
   }),
   sanitizer: biped({
     id: 'sanitizer',
@@ -355,7 +355,7 @@ export const SPECIES: Record<string, SpeciesSpec> = {
     cloth: Palette.HiVis,
     hat: Palette.ClothWorker,
     height: 1.7,
-    speed: 2.1,
+    speed: 1.6,
     carries: Palette.Sack,
   }),
   babiNgepet: quadruped({
@@ -370,7 +370,7 @@ export const SPECIES: Record<string, SpeciesSpec> = {
     headSize: 0.62,
     legLength: 0.55,
     tail: 0.3,
-    speed: 2.8,
+    speed: 2.4,
     cadence: 2,
   }),
   ghost: biped({
@@ -378,7 +378,7 @@ export const SPECIES: Record<string, SpeciesSpec> = {
     label: 'Ghost',
     cloth: Palette.Ghost,
     height: 1.6,
-    speed: 0.8,
+    speed: 0.5,
     spectral: true,
   }),
 };
