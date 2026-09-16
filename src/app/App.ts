@@ -24,6 +24,7 @@ import { ChunkManager } from '@render/scene/ChunkManager';
 import { Fires } from '@render/scene/Fires';
 import { KopdesMesh } from '@render/scene/Kopdes';
 import { Lightning } from '@render/scene/Lightning';
+import { MOTORCADE_MS, Motorcade } from '@render/scene/Motorcade';
 import { HazardRing, RangeRing, SelectionRing } from '@render/scene/Overlays';
 import { Palms } from '@render/scene/Palms';
 import { Police } from '@render/scene/Police';
@@ -71,8 +72,6 @@ import { TimeControl } from './timeControl.ts';
 const SLOT = 'slot0';
 /** Start-of-year snapshots kept for the rewind (§7: the last 25). */
 const SNAPSHOTS_KEPT = 25;
-/** How long the certificate ceremony plays before the epilogue covers it. */
-const CEREMONY_MS = 4_500;
 /** How often the DOM panels re-read the sim. */
 const UI_REFRESH_MS = 100;
 const SNAPSHOT_KEY = new RegExp(`^${KEY_PREFIX}:save:year:(\\d+)$`);
@@ -222,6 +221,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   const rain = new Rain(material);
   const lightning = new Lightning();
   const timber = new Timber(material);
+  const motorcade = new Motorcade(material);
   const spectral = createPaletteMaterial(paletteTexture, uniforms).material;
   spectral.transparent = true;
   spectral.opacity = 0.45;
@@ -242,7 +242,15 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     },
   });
   const glow = new Glow(handle.renderer, scene, rig.camera);
-  scene.add(police.group, ceremony.group, rain.mesh, lightning.group, timber.group, mobField.group);
+  scene.add(
+    police.group,
+    ceremony.group,
+    motorcade.group,
+    rain.mesh,
+    lightning.group,
+    timber.group,
+    mobField.group,
+  );
   const visible: GroundRect = { minX: 0, maxX: 0, minZ: 0, maxZ: 0 };
 
   // Edge vignette while anything burns (§8 panel 7).
@@ -763,6 +771,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     scene.add(chunks.group);
     police.sync(sim.state, sim.world, performance.now());
     ceremony.sync(sim.state, sim.world, performance.now());
+    motorcade.sync(sim.state, sim.world);
     cards.hide();
     newsPanel.hide();
     epilogue.hide();
@@ -855,16 +864,22 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
           d.yearClosed.year + 1 >= ISPO.progressFromYear ? d.yearClosed.conditionsMet : null,
       });
     }
-    if (d.certified) {
-      // The ceremony first, then the epilogue over it.
-      ceremony.sync(sim.state, sim.world, performance.now(), true);
-      if (sim.state.kopdes) focusBlock(sim.state.kopdes.blockId);
-      toasts.push('The Ministry has sent a banner. ISPO certified.');
+    if (d.runEnded && sim.state.run.ending !== 'arrested' && sim.state.kopdes) {
+      // The President's motorcade comes up to the Kopdes (with the Ministry's
+      // banner and fireworks when the estate certified), and the epilogue
+      // opens once he is at the door. An arrest keeps the police truck instead.
+      if (d.certified) {
+        ceremony.sync(sim.state, sim.world, performance.now(), true);
+        toasts.push('The Ministry has sent a banner. ISPO certified.');
+      }
+      motorcade.arrive(sim.state, sim.world, performance.now());
+      focusBlock(sim.state.kopdes.blockId);
+      toasts.push('A motorcade is coming up the road. The President is here.');
       time.set(0);
       const run = sim;
       epilogueTimer = setTimeout(() => {
         if (sim === run && runOver(sim.state)) showEpilogue();
-      }, CEREMONY_MS);
+      }, MOTORCADE_MS);
     } else if (d.runEnded) showEpilogue();
     else if (d.operatingBanned) showCard('ban');
     else if (d.investigationOpened) showCard('investigation');
@@ -1043,6 +1058,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     ring.update(nowMs);
     police.update(nowMs);
     ceremony.update(nowMs);
+    motorcade.update(nowMs);
     ticker.update(sim.state.society.news, unreadWarnings());
     newsPanel.update(sim.state.society.news);
     fires.update(nowMs);
@@ -1128,6 +1144,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   refreshMenu();
   police.sync(sim.state, sim.world, performance.now());
   ceremony.sync(sim.state, sim.world, performance.now());
+  motorcade.sync(sim.state, sim.world);
   if (runOver(sim.state)) showEpilogue();
   time.subscribe(() => refreshHud());
   // `?debug` exposes the running sim for the browser suite and for poking at
@@ -1180,6 +1197,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     fires.dispose();
     police.dispose();
     ceremony.dispose();
+    motorcade.dispose();
     rain.dispose();
     lightning.dispose();
     timber.dispose();
