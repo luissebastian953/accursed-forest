@@ -2,7 +2,14 @@ import { describe, expect, it } from 'vitest';
 
 import { BIOMES } from '@sim/balance/biomes.ts';
 import { GROWTH } from '@sim/balance/growth.ts';
-import { BABI_NGEPET, BEHAVIOUR, THIEF, WILDLIFE, WORKERS } from '@sim/balance/mobs.ts';
+import {
+  BABI_NGEPET,
+  BEHAVIOUR,
+  THIEF,
+  WILDLIFE,
+  WORKERS,
+  WORKER_JOBS,
+} from '@sim/balance/mobs.ts';
 import { SLOTS_PER_BLOCK } from '@sim/balance/world.ts';
 import { createSim, type Sim } from '@sim/index.ts';
 import { distanceToKopdes } from '@sim/kopdes.ts';
@@ -330,7 +337,7 @@ describe('workers (mobs)', () => {
     expect(sim.state.blocks.get(id)!.trichodermaUntil).toBeGreaterThan(sim.state.tick);
   });
 
-  it('a crew stands on a block while it is chopped, and leaves when it is cleared', () => {
+  it('a crew of four works a block while it is chopped, and leaves when it is cleared', () => {
     const sim = createSim(42);
     sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
     const block = [...sim.state.blocks.values()].find(
@@ -338,8 +345,15 @@ describe('workers (mobs)', () => {
     )!;
     expect(sim.dispatch({ type: 'ChopBlock', block: block.id })).toEqual({ ok: true });
     sim.tick();
-    expect(sim.state.mobs.some((m) => m.species === 'crew' && m.target === block.id)).toBe(true);
-    run(sim, BIOMES[block.biome].chopDays + 3);
+    const crew = () => sim.state.mobs.filter((m) => m.species === 'crew' && m.target === block.id);
+    expect(crew().length).toBe(WORKER_JOBS.crewSize);
+    expect(WORKER_JOBS.crewSize).toBeGreaterThanOrEqual(4);
+    // Four people, four spots: nobody starts on top of anybody.
+    const spots = new Set(crew().map((m) => `${m.x.toFixed(2)},${m.z.toFixed(2)}`));
+    expect(spots.size).toBe(WORKER_JOBS.crewSize);
+    run(sim, 3);
+    expect(crew().length).toBe(WORKER_JOBS.crewSize);
+    run(sim, BIOMES[block.biome].chopDays);
     expect(block.phase).toBe('cleared');
     expect(sim.state.mobs.some((m) => m.species === 'crew' && m.target === block.id)).toBe(false);
   });

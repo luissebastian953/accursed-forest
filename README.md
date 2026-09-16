@@ -78,9 +78,9 @@ a walk between rests there, keeps most thieves away and catches the rest.
 Rarer still, a pig ambles up to the Kopdes, stands on two legs, the cash box
 is lighter — and the babi ngepet runs the estate upright for three days, then
 is simply gone. Workers hired at the Kopdes (sanitation, plant doctor,
-security) cost a wage a day and find their own jobs; a crew works every block
-being chopped or burned, swinging at a tree for a few days before moving to
-the next, and a forest block gives up a tree at each quarter of the chop. Every mob lives in the sim as
+security) cost a wage a day and find their own jobs; a crew of four works
+every block being chopped or burned, each swinging at a tree for a few days
+before moving to the next, and a forest block gives up a tree at each quarter of the chop. Every mob lives in the sim as
 data, drawn from its own random stream, so a save replays the same visitors.
 The renderer poses every body part on the CPU and skins the whole crowd into
 one merged mesh per material — two draw calls, no new shaders

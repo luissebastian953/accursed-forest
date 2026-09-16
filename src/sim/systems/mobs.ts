@@ -332,21 +332,26 @@ function spawnGhost(ctx: SimContext, rng: RngState): void {
   pickBehaviour(ctx, ghost, rng, false);
 }
 
-/** A crew stands on every block being chopped or burned. */
+/** A crew of `crewSize` works every block being chopped or burned. */
 function spawnCrews(ctx: SimContext, rng: RngState): void {
   const { state } = ctx;
   const working = new Set<BlockId>();
   for (const block of state.blocks.values()) {
     if (block.phase === 'clearing' || block.burning) working.add(block.id);
   }
-  const present = new Set<BlockId>();
+  const present = new Map<BlockId, number>();
   for (const mob of state.mobs) {
-    if (mob.species === 'crew' && mob.target !== null) present.add(mob.target);
+    if (mob.species === 'crew' && mob.target !== null)
+      present.set(mob.target, (present.get(mob.target) ?? 0) + 1);
   }
   for (const id of [...working].sort((a, b) => a - b)) {
-    if (present.has(id)) continue;
-    const crew = spawn(ctx, 'crew', id, rng, { until: Infinity, intent: 'work', target: id });
-    workSpot(crew, rng);
+    for (let n = present.get(id) ?? 0; n < WORKER_JOBS.crewSize; n++) {
+      const crew = spawn(ctx, 'crew', id, rng, { until: Infinity, intent: 'work', target: id });
+      workSpot(crew, rng);
+      // Spread the first spots out so four people do not start on one tree.
+      crew.x = crew.tx;
+      crew.z = crew.tz;
+    }
   }
 }
 
