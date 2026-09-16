@@ -22,8 +22,8 @@ export const BEETLES = {
   capacityPerDebris: 2,
   /** Below this debris there is nothing to breed in. */
   minDebrisToBreed: 5,
-  /** Logistic growth per day; ~9 days to double when the pile is fresh. */
-  growthPerDay: 0.08,
+  /** Logistic growth per day; ~12 days to double when the pile is fresh. */
+  growthPerDay: 0.06,
   /** A pile always attracts a founding few. */
   seedPopulation: 2,
   /** Population shrinks by this factor per day once there is nothing to breed in. */
@@ -33,7 +33,7 @@ export const BEETLES = {
    * fresh forest debris (~110 beetles) a seedling loses ~0.7 hp/day and dies
    * inside a year if nothing is done; mature palms are not attacked (§2).
    */
-  damagePerBeetle: 0.0065,
+  damagePerBeetle: 0.005,
   /** Beetles killed per day while pheromone traps are up, and how long they last. */
   trapKillPerDay: 3,
   trapDays: 120,
@@ -48,24 +48,26 @@ export const GANODERMA = {
   /**
    * Chance per day that an infected palm infects each of its six lattice
    * neighbours, before debris, plague and Trichoderma. One symptomatic palm
-   * takes a neighbour roughly every couple of months.
+   * takes a neighbour roughly every four months: Ganoderma is the slow pest,
+   * and at 0.0025 an outbreak ran through a block faster than a careful
+   * player could answer it.
    */
-  spreadPerDay: 0.0025,
+  spreadPerDay: 0.0013,
   /** A dead palm's stump keeps spreading at this fraction until removed. */
   stumpSourceFactor: 0.5,
   /** Spontaneous infection per day: a floor for any planted block, plus debris. */
-  baseSeedPerDay: 0.00015,
-  seedPerDebrisPerDay: 0.00006,
+  baseSeedPerDay: 0.00008,
+  seedPerDebrisPerDay: 0.00003,
   /** Latent → symptomatic, then symptomatic → dead: young palms go fast (§2). */
-  latentDays: { immature: 180, mature: 360 },
-  symptomaticDays: { immature: 360, mature: 1080 },
+  latentDays: { immature: 240, mature: 480 },
+  symptomaticDays: { immature: 480, mature: 1440 },
   /** Symptomatic palms cap stress here (§3.6.1). */
   stressCap: 0.6,
   /** Trichoderma halves spread while active (§3.4). */
   trichodermaFactor: 0.5,
   trichodermaDays: 120,
-  /** A plagued block spreads at double rate (§3.4). */
-  plagueSpreadFactor: 2,
+  /** A plagued block spreads faster (§3.4). */
+  plagueSpreadFactor: 1.6,
   /** Debris a dead palm's stump adds, and a removed palm's remains. */
   debrisPerDeath: 3,
   debrisPerRemoval: 2,
@@ -78,8 +80,8 @@ export const GANODERMA = {
 export const PLAGUE = {
   beetleScale: 80,
   infectedScale: 5,
-  onAt: 1,
-  offAt: 0.5,
+  onAt: 1.25,
+  offAt: 0.6,
 } as const;
 
 /** Per-palm labour. */

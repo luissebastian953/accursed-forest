@@ -179,12 +179,12 @@ describe('Ganoderma (§3.4)', () => {
     infect(sim, block, 60);
     const debrisBefore = sim.state.blocks.get(block)!.debris;
 
-    const sick = tickUntil(sim, () => palms.ganoderma[60] === 2, 400);
+    const sick = tickUntil(sim, () => palms.ganoderma[60] === 2, GANODERMA.latentDays.mature + 40);
     expect(sick).toBe(GANODERMA.latentDays.mature);
     expect(ganodermaCounts(palms).symptomatic).toBeGreaterThanOrEqual(1);
 
     let died: number | null = null;
-    for (let i = 0; i < 1200 && died === null; i++) {
+    for (let i = 0; i < GANODERMA.symptomaticDays.mature + 60 && died === null; i++) {
       for (const e of sim.tick())
         if (e.type === 'PalmDied' && e.slot === 60 && e.cause === 'ganoderma') died = i + 1;
     }
