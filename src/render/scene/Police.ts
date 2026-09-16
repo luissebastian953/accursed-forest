@@ -4,7 +4,8 @@
  * SWAT-style truck joins them at the arrest.
  */
 
-import { Group, Mesh, type Material } from 'three/webgpu';
+import { uniform, vec3 } from 'three/tsl';
+import { Group, Mesh, MeshBasicNodeMaterial, type Material } from 'three/webgpu';
 
 import { clamp01 } from '@shared/math';
 import { WORLD } from '@sim/balance/world';
@@ -32,40 +33,70 @@ function carGeometry(truck: boolean) {
   return b.build();
 }
 
-function lightGeometry(truck: boolean) {
+/** Half a light bar: the blue side and the red side take turns. */
+function lightGeometry(truck: boolean, side: -1 | 1) {
   const b = new BoxBuilder();
-  b.addAABox(truck ? 0.9 : -0.1, 1.33, 0, 0.7, 0.14, 0.3, { side: Palette.Water });
+  const x = (truck ? 0.9 : -0.1) + side * 0.18;
+  b.addAABox(x, 1.33, 0, 0.34, 0.16, 0.34, { side: Palette.Water });
   return b.build();
 }
+
+/** An unlit, brighter-than-white material, so the bar glows (and blooms). */
+function sirenMaterial(colour: readonly [number, number, number]) {
+  const material = new MeshBasicNodeMaterial({ transparent: true, depthWrite: false });
+  const level = uniform(1);
+  material.colorNode = vec3(colour[0], colour[1], colour[2]).mul(level);
+  material.opacityNode = level.clamp(0.25, 1);
+  return { material, level };
+}
+
+const SIREN_BLUE = [0.3, 1.1, 3.4] as const;
+const SIREN_RED = [3.4, 0.5, 0.35] as const;
 
 export class Police {
   readonly group = new Group();
   private readonly cars: {
     body: Mesh;
-    light: Mesh;
+    blue: { mesh: Mesh; level: { value: number } };
+    red: { mesh: Mesh; level: { value: number } };
     parkedX: number;
     parkedZ: number;
     startX: number;
   }[] = [];
-  private readonly truck: { body: Mesh; light: Mesh };
+  private readonly truck: {
+    body: Mesh;
+    blue: { mesh: Mesh; level: { value: number } };
+    red: { mesh: Mesh; level: { value: number } };
+  };
   private arrivedAt = -1;
   private truckAt = -1;
 
   constructor(material: Material) {
     for (let i = 0; i < 2; i++) {
       const body = new Mesh(carGeometry(false), material);
-      const light = new Mesh(lightGeometry(false), material);
-      body.add(light);
+      const lights = this.sirens(body, false);
       body.visible = false;
       this.group.add(body);
-      this.cars.push({ body, light, parkedX: 0, parkedZ: 0, startX: 0 });
+      this.cars.push({ body, ...lights, parkedX: 0, parkedZ: 0, startX: 0 });
     }
     const body = new Mesh(carGeometry(true), material);
-    const light = new Mesh(lightGeometry(true), material);
-    body.add(light);
+    const lights = this.sirens(body, true);
     body.visible = false;
     this.group.add(body);
-    this.truck = { body, light };
+    this.truck = { body, ...lights };
+  }
+
+  /** Bolt a blue and a red lamp to a vehicle's roof. */
+  private sirens(body: Mesh, truck: boolean) {
+    const blue = sirenMaterial(SIREN_BLUE);
+    const red = sirenMaterial(SIREN_RED);
+    const blueMesh = new Mesh(lightGeometry(truck, -1), blue.material);
+    const redMesh = new Mesh(lightGeometry(truck, 1), red.material);
+    body.add(blueMesh, redMesh);
+    return {
+      blue: { mesh: blueMesh, level: blue.level },
+      red: { mesh: redMesh, level: red.level },
+    };
   }
 
   /** Place the cars for the current state. Call when the investigation or arrest changes. */
@@ -104,21 +135,34 @@ export class Police {
   update(nowMs: number): void {
     if (this.arrivedAt < 0) return;
     const t = easeOutCubic(clamp01((nowMs - this.arrivedAt) / DRIVE_MS));
-    const blink = Math.floor(nowMs / 250) % 2 === 0;
+    // Blue and red alternate, and neighbouring cars run out of phase.
+    const phase = Math.floor(nowMs / 220);
     for (const [i, car] of this.cars.entries()) {
       if (!car.body.visible) continue;
       car.body.position.x = car.startX + (car.parkedX - car.startX) * t;
-      car.light.visible = i % 2 === 0 ? blink : !blink;
+      const on = (phase + i) % 2 === 0;
+      car.blue.level.value = on ? 1 : 0.12;
+      car.red.level.value = on ? 0.12 : 1;
     }
-    if (this.truck.body.visible) this.truck.light.visible = blink;
+    if (this.truck.body.visible) {
+      const on = phase % 2 === 0;
+      this.truck.blue.level.value = on ? 1 : 0.12;
+      this.truck.red.level.value = on ? 0.12 : 1;
+    }
   }
 
   dispose(): void {
     for (const car of this.cars) {
       car.body.geometry.dispose();
-      car.light.geometry.dispose();
+      car.blue.mesh.geometry.dispose();
+      car.red.mesh.geometry.dispose();
+      (car.blue.mesh.material as Material).dispose();
+      (car.red.mesh.material as Material).dispose();
     }
     this.truck.body.geometry.dispose();
-    this.truck.light.geometry.dispose();
+    this.truck.blue.mesh.geometry.dispose();
+    this.truck.red.mesh.geometry.dispose();
+    (this.truck.blue.mesh.material as Material).dispose();
+    (this.truck.red.mesh.material as Material).dispose();
   }
 }

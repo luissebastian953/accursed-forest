@@ -64,7 +64,12 @@ const REGIME_LABEL: Record<ClimateRegime, string> = {
   laNina: 'La Niña',
 };
 
-const SPEED_LABEL: Record<Speed, string> = { 0: '‖', 1: '1×', 5: '5×', 20: '20×' };
+const SPEED_LABEL: Record<Speed, string> = {
+  0: 'Pause',
+  1: '1× Normal',
+  5: '5× Fast',
+  20: '20× Skip',
+};
 
 const CHIP_TONE: Record<EventChip['tone'], string> = {
   fire: 'chip-fire',
@@ -90,6 +95,32 @@ const CHIP_ICON: Record<string, IconName> = {
   millStrike: 'mill-strike',
 };
 
+interface Tile {
+  icon: IconName;
+  label: string;
+  value: unknown;
+  tone?: 'plain' | 'gold' | 'danger';
+  /** Pins a pinging ! to the tile: something needs the player now. */
+  alert?: boolean;
+  testId: string;
+  title?: string | undefined;
+}
+
+/** One read-out in the top bar: icon, label, value — and an alert when it bites. */
+function tile(t: Tile) {
+  const tone = t.tone === 'gold' ? 'hud-tile-gold' : t.tone === 'danger' ? 'hud-tile-danger' : '';
+  return html`
+    <div class=${`hud-tile ${tone}`} data-testid=${t.testId} title=${t.title ?? nothing}>
+      ${icon(t.icon)}
+      <div>
+        <div class="label">${t.label}</div>
+        <div class="hud-value">${t.value}</div>
+      </div>
+      ${t.alert ? html`<span class="ping" data-testid=${`${t.testId}-alert`}>!</span>` : nothing}
+    </div>
+  `;
+}
+
 export class Hud {
   private readonly root: HTMLElement;
 
@@ -106,174 +137,198 @@ export class Hud {
   update(view: HudView): void {
     const cover = Math.round(view.forestCover * 100);
     const rainy = view.rain > 0.45;
+    const inDebt = view.cash < 0;
+    const fireOver = view.wildfire || view.firePressure > view.fireThreshold;
+    const trendClass =
+      view.tbsTrend > 0 ? 'text-[#3faa4c]' : view.tbsTrend < 0 ? 'text-[#e04a3a]' : 'muted';
+
     render(
       html`
         <div
-          class="card pointer-events-auto flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5"
+          class="card pointer-events-auto flex flex-col items-center gap-2 px-5 py-3"
+          data-testid="hud"
         >
-          <div class="cash num" data-testid="hud-cash">
-            ${icon('coin')}<span>${formatRp(view.cash)}</span>
-          </div>
-
-          <div class="pill flex items-center gap-1.5" data-testid="hud-date">
-            ${icon('calendar')}<span class="num text-sm">${formatDate(view.tick)}</span>
-          </div>
-
-          <div
-            class="flex items-center gap-1.5 text-sm"
-            title="TBS price today"
-            data-testid="hud-price"
-          >
-            ${icon('tbs-fruit')}
-            <span class="num">${formatRp(view.tbsPrice)}/kg</span>
-            <span
-              class=${view.tbsTrend > 0 ? 'text-[#3faa4c]' : view.tbsTrend < 0 ? 'text-[#e04a3a]' : 'muted'}
-              >${view.tbsTrend > 0 ? '▲' : view.tbsTrend < 0 ? '▼' : '▬'}</span
-            >
-          </div>
-
-          <div class="flex items-center gap-1.5 text-sm" data-testid="hud-regime">
-            ${icon(rainy ? 'rain' : 'sun')}<span>${REGIME_LABEL[view.regime]}</span>
-          </div>
-
-          <div
-            class="flex items-center gap-1.5 text-sm"
-            title="Forest cover around the estate — forest holds the slopes when the rains come"
-            data-testid="hud-forest"
-          >
-            ${icon('forest-cover')}
-            <span class=${cover < 25 ? 'num text-[#b85e12]' : 'num'}>${cover}%</span>
-          </div>
-
-          ${
-            view.inputIndex > 1.005
-              ? html`<div
-                  class="pill-muted num text-xs"
-                  title="Input prices against the start of the run"
-                  data-testid="hud-inputs"
-                >
-                  inputs ×${view.inputIndex.toFixed(2)}
-                </div>`
-              : nothing
-          }
-          ${
-            view.attention !== null
-              ? html`
-                  <div
-                    class="flex items-center gap-2"
-                    title="Attention from the authorities — a letter at 40, police at 70, arrest at 100"
-                    data-testid="attention-gauge"
-                  >
-                    ${icon('eye-attention')}
-                    <span class="gauge">
-                      <i
-                        style=${`width: ${Math.min(100, view.attention)}%; --gauge-from: ${view.attention >= 70 ? '#ef6a58' : view.attention >= 40 ? '#ffb03a' : '#cbbb9a'}; --gauge-to: ${view.attention >= 70 ? '#e04a3a' : view.attention >= 40 ? '#f28b2b' : '#a08a5e'}`}
-                      ></i>
-                    </span>
-                    <span class="num text-xs muted">${Math.round(view.attention)}</span>
-                  </div>
-                `
-              : nothing
-          }
-          ${
-            view.firePressure > 0.01 || view.wildfire
-              ? html`
-                  <div
-                    class="flex items-center gap-2"
-                    title="Fire pressure — past the line the fire is no longer yours"
-                    data-testid="fire-gauge"
-                  >
-                    ${icon('fire')}
-                    <span class="gauge">
-                      <i
-                        style=${`width: ${Math.min(100, (view.firePressure / view.fireThreshold) * 100)}%; --gauge-from: ${view.wildfire || view.firePressure > view.fireThreshold ? '#ef6a58' : view.firePressure > view.fireThreshold * 0.6 ? '#ffb03a' : '#5fd06a'}; --gauge-to: ${view.wildfire || view.firePressure > view.fireThreshold ? '#e04a3a' : view.firePressure > view.fireThreshold * 0.6 ? '#f28b2b' : '#3faa4c'}`}
-                      ></i>
-                    </span>
-                    <span class="num text-xs muted">${view.firePressure.toFixed(1)}</span>
-                    ${
-                      view.wildfire
-                        ? html`<span class="chip chip-fire" data-testid="wildfire-badge"
-                            >WILDFIRE</span
-                          >`
-                        : nothing
-                    }
-                  </div>
-                `
-              : nothing
-          }
-          ${
-            view.burningCount > 0
-              ? html`<span class="chip chip-fire" data-testid="burning-chip">
-                  burning: ${view.burningCount} block${view.burningCount === 1 ? '' : 's'}
-                </span>`
-              : nothing
-          }
-          ${
-            view.ispoMet !== null
-              ? html`<button
-                  class=${`btn btn-sm ${view.ispoMet === 5 ? 'btn-green' : 'btn-ghost'}`}
-                  title="ISPO certificate progress"
-                  data-testid="hud-ispo"
-                  @click=${() => this.handlers.openCertificate()}
-                >
-                  ${icon('certificate-ispo')} ISPO ${view.ispoMet}/5
-                </button>`
-              : nothing
-          }
-
-          <div class="flex items-center gap-1" role="group" aria-label="Sim speed">
-            ${SPEEDS.map(
-              (speed) => html`
-                <button
-                  class=${`btn btn-sm ${view.speed === speed ? 'btn-green' : 'btn-ghost'}`}
-                  ?disabled=${view.locked && speed > FIRE_LOCK_SPEED}
-                  data-testid=${`speed-${speed}`}
-                  @click=${() => this.handlers.setSpeed(speed)}
-                >
-                  ${speed === 0 ? icon('pause') : SPEED_LABEL[speed]}
-                </button>
-              `,
-            )}
+          <div class="flex flex-wrap items-center justify-center gap-2.5">
+            ${tile({
+              icon: 'coin',
+              label: inDebt ? 'Cash · in debt' : 'Cash',
+              value: html`${formatRp(view.cash)}`,
+              tone: inDebt ? 'danger' : 'gold',
+              alert: inDebt,
+              testId: 'hud-cash',
+              title: inDebt
+                ? 'In the red. The bank calls the loans if it stays that way.'
+                : undefined,
+            })}
+            ${tile({
+              icon: 'calendar',
+              label: 'Date',
+              value: html`${formatDate(view.tick)}`,
+              testId: 'hud-date',
+            })}
+            ${tile({
+              icon: 'tbs-fruit',
+              label: 'TBS price',
+              value: html`${formatRp(view.tbsPrice)}<span class="text-sm">/kg</span>
+                <span class=${trendClass}
+                  >${view.tbsTrend > 0 ? '▲' : view.tbsTrend < 0 ? '▼' : '▬'}</span
+                >`,
+              testId: 'hud-price',
+              title: 'What the Kopdes pays for fresh fruit bunches today',
+            })}
+            ${tile({
+              icon: rainy ? 'rain' : 'sun',
+              label: 'Climate',
+              value: html`${REGIME_LABEL[view.regime]}`,
+              testId: 'hud-regime',
+            })}
+            ${tile({
+              icon: 'forest-cover',
+              label: 'Forest',
+              value: html`<span class=${cover < 25 ? 'text-[#b85e12]' : ''}>${cover}%</span>`,
+              testId: 'hud-forest',
+              title: 'Forest cover around the estate — forest holds the slopes when the rains come',
+            })}
             ${
-              view.locked
-                ? html`<span
-                    class="chip chip-fire"
-                    title=${`Speed capped at ${FIRE_LOCK_SPEED}× while anything burns`}
-                    >${icon('fire')} ${FIRE_LOCK_SPEED}×</span
-                  >`
+              view.inputIndex > 1.005
+                ? tile({
+                    icon: 'coin',
+                    label: 'Inputs',
+                    value: html`×${view.inputIndex.toFixed(2)}`,
+                    testId: 'hud-inputs',
+                    title: 'Shop prices against the start of the run',
+                  })
+                : nothing
+            }
+            ${
+              view.attention !== null
+                ? tile({
+                    icon: 'eye-attention',
+                    label: 'Attention',
+                    value: html`<span class="flex items-center gap-2">
+                      <span class="gauge w-20"
+                        ><i
+                          style=${`width: ${Math.min(100, view.attention)}%; --gauge-from: ${view.attention >= 70 ? '#ef6a58' : view.attention >= 40 ? '#ffb03a' : '#cbbb9a'}; --gauge-to: ${view.attention >= 70 ? '#e04a3a' : view.attention >= 40 ? '#f28b2b' : '#a08a5e'}`}
+                        ></i
+                      ></span>
+                      <span>${Math.round(view.attention)}</span>
+                    </span>`,
+                    tone: view.attention >= 70 ? 'danger' : 'plain',
+                    alert: view.attention >= 70,
+                    testId: 'attention-gauge',
+                    title:
+                      'Attention from the authorities — a letter at 40, police at 70, arrest at 100',
+                  })
+                : nothing
+            }
+            ${
+              view.firePressure > 0.01 || view.wildfire
+                ? tile({
+                    icon: 'fire',
+                    label: view.wildfire ? 'Fire · wildfire' : 'Fire',
+                    value: html`<span class="flex items-center gap-2">
+                      <span class="gauge w-20"
+                        ><i
+                          style=${`width: ${Math.min(100, (view.firePressure / view.fireThreshold) * 100)}%; --gauge-from: ${fireOver ? '#ef6a58' : view.firePressure > view.fireThreshold * 0.6 ? '#ffb03a' : '#5fd06a'}; --gauge-to: ${fireOver ? '#e04a3a' : view.firePressure > view.fireThreshold * 0.6 ? '#f28b2b' : '#3faa4c'}`}
+                        ></i
+                      ></span>
+                      <span>${view.firePressure.toFixed(1)} / ${view.fireThreshold}</span>
+                    </span>`,
+                    tone: fireOver ? 'danger' : 'plain',
+                    alert: fireOver,
+                    testId: 'fire-gauge',
+                    title: 'Fire pressure — past the line the fire is no longer yours',
+                  })
+                : nothing
+            }
+            ${
+              view.burningCount > 0
+                ? html`<span class="chip chip-fire" data-testid="burning-chip">
+                    ${icon('fire')} burning: ${view.burningCount}
+                    block${view.burningCount === 1 ? '' : 's'}
+                  </span>`
+                : nothing
+            }
+            ${
+              view.wildfire
+                ? html`<span class="chip chip-pest" data-testid="wildfire-badge">WILDFIRE</span>`
                 : nothing
             }
           </div>
 
-          <div class="label flex items-center gap-2">
-            <span title="Estate code — share it to replay this world">${view.estateCode}</span>
-            <span class="pill-muted px-1.5 py-0.5">${view.backend}</span>
-            ${
-              view.saveError
-                ? html`<span class="text-[#e04a3a]" title=${view.saveError}>save failed</span>`
-                : view.saveNote
-                  ? html`<span>${view.saveNote}</span>`
+          <div class="flex flex-wrap items-center justify-center gap-2">
+            <div
+              class="pill-muted flex items-center gap-1.5 p-1"
+              role="group"
+              aria-label="Sim speed"
+            >
+              <span class="label px-1.5">Speed</span>
+              ${SPEEDS.map(
+                (speed) => html`
+                  <button
+                    class=${`btn btn-sm ${view.speed === speed ? 'btn-green' : 'btn-ghost'}`}
+                    ?disabled=${view.locked && speed > FIRE_LOCK_SPEED}
+                    data-testid=${`speed-${speed}`}
+                    @click=${() => this.handlers.setSpeed(speed)}
+                  >
+                    ${speed === 0 ? icon('pause') : nothing}${SPEED_LABEL[speed]}
+                  </button>
+                `,
+              )}
+              ${
+                view.locked
+                  ? html`<span
+                      class="chip chip-fire"
+                      title=${`Speed capped at ${FIRE_LOCK_SPEED}× while anything burns`}
+                      >${icon('fire')} ${FIRE_LOCK_SPEED}×</span
+                    >`
                   : nothing
+              }
+            </div>
+
+            ${
+              view.ispoMet !== null
+                ? html`<button
+                    class=${`btn ${view.ispoMet === 5 ? 'btn-green' : 'btn-ghost'}`}
+                    title="ISPO certificate progress"
+                    data-testid="hud-ispo"
+                    @click=${() => this.handlers.openCertificate()}
+                  >
+                    ${icon('certificate-ispo')} ISPO ${view.ispoMet}/5
+                  </button>`
+                : nothing
             }
+
+            <button
+              class="btn btn-ghost"
+              title="Controls (H)"
+              aria-label="Controls"
+              data-testid="help-button"
+              @click=${() => this.handlers.openHelp()}
+            >
+              ? Help
+            </button>
+
+            <button
+              class="btn btn-coral"
+              data-testid="menu-button"
+              @click=${() => this.handlers.openMenu()}
+            >
+              MENU
+            </button>
+
+            <div class="label flex items-center gap-2">
+              <span title="Estate code — share it to replay this world">${view.estateCode}</span>
+              <span class="pill-muted px-1.5 py-0.5">${view.backend}</span>
+              ${
+                view.saveError
+                  ? html`<span class="text-[#e04a3a]" title=${view.saveError}>save failed</span>`
+                  : view.saveNote
+                    ? html`<span>${view.saveNote}</span>`
+                    : nothing
+              }
+            </div>
           </div>
-
-          <button
-            class="btn btn-sm btn-ghost"
-            title="Controls (H)"
-            aria-label="Controls"
-            data-testid="help-button"
-            @click=${() => this.handlers.openHelp()}
-          >
-            ?
-          </button>
-
-          <button
-            class="btn btn-sm btn-coral"
-            data-testid="menu-button"
-            @click=${() => this.handlers.openMenu()}
-          >
-            MENU
-          </button>
         </div>
 
         ${

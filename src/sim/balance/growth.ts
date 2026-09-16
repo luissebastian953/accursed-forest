@@ -53,18 +53,18 @@ export const MOISTURE_CURVE: readonly (readonly [moisture: number, factor: numbe
 /**
  * Kilograms of TBS per palm per 10-day round at peak health, by calendar age in
  * years: ramp from first fruit to year 8, plateau to 18, decline to 25, then
- * senile (§2). ~6.2 kg/palm/round at peak is ~32 t/ha/yr across 144 palms —
- * above a real estate's best, because a game year has to pay for itself.
+ * senile (§2). ~8.4 kg/palm/round at peak is ~43 t/ha/yr across 144 palms —
+ * well above a real estate's best: a good round should feel like a payday.
  */
 export const YIELD_CURVE: readonly (readonly [ageYears: number, kg: number])[] = [
   [0, 0],
-  [2.5, 0.7],
-  [4, 2.9],
-  [6, 4.9],
-  [8, 6.2],
-  [18, 6.2],
-  [25, 3.5],
-  [30, 1.3],
+  [2.5, 1],
+  [4, 4],
+  [6, 6.7],
+  [8, 8.4],
+  [18, 8.4],
+  [25, 4.8],
+  [30, 1.8],
 ];
 
 /** Days between harvest rounds on a block (§2). */

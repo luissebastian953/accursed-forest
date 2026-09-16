@@ -81,6 +81,16 @@ function randomSeed(): number {
 export async function startApp(root: HTMLElement): Promise<() => void> {
   const params = new URLSearchParams(location.search);
   root.style.position = 'relative';
+  // The world on the left, the block panel docked down the right (§8 panel 9).
+  // Modals mount on the root so they cover both; everything else lives on the
+  // stage, so the aside is never overlapped.
+  root.style.display = 'flex';
+  const stage = document.createElement('div');
+  stage.className = 'relative min-w-0 flex-1';
+  const aside = document.createElement('aside');
+  aside.className =
+    'z-10 flex w-[24rem] shrink-0 flex-col border-l-2 border-[#f2e0b0] bg-[#fff6e0] xl:w-[28rem]';
+  root.append(stage, aside);
 
   // ── Persistence ─────────────────────────────────────────────────────────
   const storage = localStorageAdapter();
@@ -88,7 +98,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   const dirty = new DirtyChunks();
 
   // ── UI shell (needed before the sim so load errors can be shown) ───────
-  const toasts = new Toasts(root);
+  const toasts = new Toasts(stage);
   let saveError: string | null = null;
   let saveNote: string | null = null;
 
@@ -159,7 +169,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   }
 
   // ── Renderer & scene ────────────────────────────────────────────────────
-  const handle = await createRenderer(root, { forceWebGL: params.has('webgl') });
+  const handle = await createRenderer(stage, { forceWebGL: params.has('webgl') });
   const scene = new Scene();
   const sky = new Sky(scene);
 
@@ -213,7 +223,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   vignette.className = 'pointer-events-none absolute inset-0 z-[5] transition-opacity duration-700';
   vignette.style.boxShadow = 'inset 0 0 140px 30px rgba(255, 96, 24, 0.55)';
   vignette.style.opacity = '0';
-  root.appendChild(vignette);
+  stage.appendChild(vignette);
 
   // ── Time ────────────────────────────────────────────────────────────────
   const time = new TimeControl();
@@ -242,7 +252,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   });
 
   // ── UI ──────────────────────────────────────────────────────────────────
-  const hud = new Hud(root, {
+  const hud = new Hud(stage, {
     setSpeed: (speed) => time.set(speed),
     openMenu: () => {
       menu.show();
@@ -255,12 +265,12 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     },
   });
 
-  const shop = new KopdesShop(root, {
+  const shop = new KopdesShop(stage, {
     dispatch: (command) => dispatch(command),
     close: () => closeShop(),
   });
 
-  const panel = new BlockPanel(root, {
+  const panel = new BlockPanel(aside, {
     dispatch: (command) => dispatch(command),
     close: () => select(null),
     openShop: () => openShop(),
@@ -300,8 +310,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     return n;
   }
 
-  const ticker = new NewsTicker(root, { open: () => openNews() });
-  const newsPanel = new NewsPanel(root, {
+  const ticker = new NewsTicker(stage, { open: () => openNews() });
+  const newsPanel = new NewsPanel(stage, {
     focus: (block) => {
       select(block);
       focusBlock(block);
@@ -325,9 +335,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     },
   });
 
-  const certificate = new CertificatePanel(root, { close: () => certificate.hide() });
-  const help = new ControlsHelp(root, { close: () => help.hide() });
-  const yearEnd = new YearEndCard(root);
+  const certificate = new CertificatePanel(stage, { close: () => certificate.hide() });
+  const help = new ControlsHelp(stage, { close: () => help.hide() });
+  const yearEnd = new YearEndCard(stage);
 
   const epilogue = new Epilogue(root, {
     rewind: (year) => rewindTo(year),
@@ -1011,7 +1021,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     rig.setAspect(width / height);
   };
   const observer = new ResizeObserver(resize);
-  observer.observe(root);
+  observer.observe(stage);
   resize();
 
   const detachAutosave = autosave.attach();
@@ -1019,6 +1029,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   kopdes.sync(sim.state, sim.world);
   syncFireState();
   forestCover = estateForestCover(sim.state, sim.world);
+  select(null);
   focusStart();
   refreshHud();
   refreshMenu();

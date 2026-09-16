@@ -9,7 +9,7 @@ export const ISPO = {
   /** The checklist shows from this year on (§8 panel 19). */
   progressFromYear: 3,
   /** Cumulative operating profit, land and buildings excluded. */
-  winProfit: 3_500_000_000,
+  winProfit: 6_000_000_000,
   /** Every one of the last this-many years must have been profitable. */
   profitableYears: 3,
   /** Hectares of palms bearing fruit. One block is one hectare. */

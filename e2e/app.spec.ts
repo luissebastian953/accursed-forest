@@ -141,13 +141,13 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'action-PlantBlock-palm')).toBeEnabled();
     await tid(page, 'action-PlantBlock-palm').click();
     await expect(tid(page, 'block-phase')).toHaveText('Planted');
-    await expect(tid(page, 'block-range')).toContainText('in range');
+    await expect(tid(page, 'block-range')).toContainText(/in range/i);
     await expect(tid(page, 'growth-progress')).toContainText(/\d+ \/ 180 growth-days/, {
       timeout: 10_000,
     });
 
     // ~900 growth-days at 40 ticks/s, then the first ripe round.
-    await expect(tid(page, 'harvest-info')).toContainText('ripe now', { timeout: 60_000 });
+    await expect(tid(page, 'harvest-info')).toContainText(/ripe now/i, { timeout: 60_000 });
     await tid(page, 'speed-0').click();
     await expect(tid(page, 'action-HarvestBlock')).toBeEnabled();
     const cashBeforeHarvest = await tid(page, 'hud-cash').textContent();
@@ -232,6 +232,8 @@ test.describe('Sawit Simulator', () => {
 
     await selectWildNeighbour(page);
     await expect(tid(page, 'burn-preview')).toContainText(/Could spread|Nothing next door/);
+    // Hold the clock first: a medium burn is over in four days.
+    await tid(page, 'speed-0').click();
     await tid(page, 'action-BurnBlock-2').click();
 
     await expect(tid(page, 'block-phase')).toContainText('Burning · medium');
@@ -243,6 +245,7 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'wildfire-badge')).toHaveCount(0);
 
     // A second medium burn: pressure 6 > 5.5.
+    await tid(page, 'speed-1').click();
     await page.keyboard.press('Escape');
     const c = await canvasCentre(page);
     const offsets: readonly (readonly [number, number])[] = [

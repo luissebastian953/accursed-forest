@@ -63,6 +63,17 @@ const BIOME_LABEL: Record<Biome, string> = {
   swamp: 'Swamp (rawa)',
 };
 
+/** One stat tile in the panel's grid: a label, a value, and an optional note. */
+function tile(label: string, value: unknown, note: string | null = null): TemplateResult {
+  return html`
+    <div class="pill">
+      <div class="label">${label}</div>
+      <div class="font-extrabold">${value}</div>
+      ${note ? html`<div class="muted text-xs">${note}</div>` : nothing}
+    </div>
+  `;
+}
+
 /**
  * The auto-harvest switch (§3.3): the Kopdes crew picks every ripe block in
  * range for a small surcharge, and the manual button steps aside.
@@ -124,6 +135,9 @@ interface Action {
   testId: string;
   /** Secondary actions render smaller and grey. */
   minor?: boolean;
+  icon?: IconName;
+  /** Shown in place of the cost, for actions whose reward is the point. */
+  badge?: string;
 }
 
 export class BlockPanel {
@@ -137,8 +151,7 @@ export class BlockPanel {
     private readonly handlers: BlockPanelHandlers,
   ) {
     this.root = document.createElement('div');
-    this.root.className =
-      'absolute top-20 right-3 z-10 max-h-[calc(100vh-6rem)] w-80 max-w-[calc(100vw-1.5rem)] overflow-y-auto';
+    this.root.className = 'flex h-full min-h-0 flex-col text-[0.95rem]';
     parent.appendChild(this.root);
   }
 
@@ -157,7 +170,18 @@ export class BlockPanel {
   /** Re-render the current selection against current state. */
   refresh(): void {
     if (!this.sim || this.block === null) {
-      render(nothing, this.root);
+      render(
+        html`<div class="flex h-full flex-col items-center justify-center gap-2 p-8 text-center">
+          <span class="pill flex h-14 w-14 items-center justify-center"
+            >${icon('biome-grassfield', 'icon-lg')}</span
+          >
+          <div class="text-lg font-extrabold">Nothing selected</div>
+          <p class="muted text-sm leading-snug">
+            Click a block to see what it is and what you can do with it.
+          </p>
+        </div>`,
+        this.root,
+      );
       return;
     }
     render(this.template(this.sim, this.block), this.root);
@@ -229,11 +253,16 @@ export class BlockPanel {
         }
         case 'planted':
           if (block.species === 'palm') {
-            actions.push({
+            const palms = state.palms.get(id);
+            const ready = palms ? harvestableKg(palms, 'palm', state.tick) : 0;
+            const harvest: Action = {
               label: 'Harvest',
               command: { type: 'HarvestBlock', block: id },
               testId: 'action-HarvestBlock',
-            });
+              icon: 'harvest-basket',
+            };
+            if (ready > 0) harvest.badge = formatKg(ready);
+            actions.push(harvest);
           }
           actions.push({
             label: 'Fertilize (90 days)',
@@ -302,16 +331,74 @@ export class BlockPanel {
       }
     }
 
+    const tiles: TemplateResult[] = [
+      tile('Title', block.owned ? 'Yours' : block.forSale ? 'For sale' : 'Not for sale'),
+      tile('Elevation', `${block.elevation}${block.slope ? ' · slope' : ''}`),
+      tile(
+        'Moisture',
+        html`<span class="flex items-center gap-2">
+          <span class="gauge w-16"
+            ><i
+              style=${`width: ${Math.round(block.moisture * 100)}%; --gauge-from: #7ba4ff; --gauge-to: #5a8bff`}
+            ></i
+          ></span>
+          <span class="num">${formatPercent(block.moisture)}</span>
+        </span>`,
+        block.irrigated || block.drained
+          ? `${block.irrigated ? 'irrigated' : ''}${block.irrigated && block.drained ? ' · ' : ''}${block.drained ? 'drained' : ''}`
+          : null,
+      ),
+    ];
+    if (block.owned && block.phase !== 'kopdes' && state.kopdes) {
+      const distance = distanceToKopdes(state, world, id) ?? 0;
+      tiles.push(
+        tile(
+          'Kopdes',
+          html`<span data-testid="block-range"
+            >${
+              inKopdesRange(state, world, id)
+                ? `In range · ${distance} block${distance === 1 ? '' : 's'}`
+                : `Out of range · ${distance} of ${kopdesRange(state.kopdes.level)}`
+            }</span
+          >`,
+          inKopdesRange(state, world, id) ? null : 'TBS would spoil on the road',
+        ),
+      );
+    }
+    if (block.phase === 'wild') tiles.push(tile('Plantable', `${spec.plantableSlots} / 144 slots`));
+    if (block.debris > 0) {
+      tiles.push(
+        tile(
+          'Debris',
+          html`<span data-testid="block-debris">${Math.round(block.debris)} / 100</span>`,
+        ),
+      );
+    }
+    if (block.ashUntil > state.tick) {
+      tiles.push(tile('Ash', `Fertile for ${block.ashUntil - state.tick} more days`));
+    }
+    if (block.fertilizedUntil > state.tick) {
+      tiles.push(tile('Fertilized', `${block.fertilizedUntil - state.tick} days left`));
+    }
+    if (block.slope) {
+      tiles.push(tile('Slope', html`<span data-testid="block-slope">${slopeLine(sim, id)}</span>`));
+    }
+
+    const major = actions.filter((a) => !a.minor);
+    const minor = actions.filter((a) => a.minor);
+
     return html`
-      <div class="card p-4 text-sm" data-testid="block-panel">
-        <div class="mb-3 flex items-start justify-between gap-2">
-          <div class="flex items-center gap-2.5">
-            <span class="pill flex h-10 w-10 items-center justify-center">
+      <div class="flex h-full flex-col" data-testid="block-panel">
+        <header
+          class="flex items-start justify-between gap-2 border-b-2 border-dashed border-[#f2e0b0] p-4"
+        >
+          <div class="flex items-center gap-3">
+            <span class="pill flex h-12 w-12 items-center justify-center">
               ${icon(blockIcon(block.biome, block.phase), 'icon-lg')}
             </span>
             <div>
               <div class="label">Block ${x}, ${y}</div>
-              <div class="text-base font-extrabold leading-tight">
+              <div class="text-xl font-extrabold leading-tight">
                 ${block.phase === 'kopdes' ? 'Kopdes' : BIOME_LABEL[block.biome]}
               </div>
               <div class="label" data-testid="block-phase">
@@ -322,88 +409,46 @@ export class BlockPanel {
           <button class="btn btn-close" aria-label="Close" @click=${() => this.handlers.close()}>
             ✕
           </button>
-        </div>
+        </header>
 
-        <dl class="pill mb-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
-          <dt class="label">Title</dt>
-          <dd>${block.owned ? 'Yours' : block.forSale ? 'For sale' : 'Not for sale'}</dd>
-          <dt class="label">Elevation</dt>
-          <dd>${block.elevation}${block.slope ? ' · slope' : ''}</dd>
-          ${
-            block.slope
-              ? html`<dt class="label">Slope</dt>
-                  <dd data-testid="block-slope">${slopeLine(sim, id)}</dd>`
-              : nothing
-          }
-          <dt class="label">Moisture</dt>
-          <dd>
-            ${formatPercent(block.moisture)}${block.irrigated ? ' · irrigated' : ''}${block.drained ? ' · drained' : ''}
-          </dd>
-          ${
-            block.debris > 0
-              ? html`<dt class="label">Debris</dt>
-                  <dd data-testid="block-debris">${Math.round(block.debris)} / 100</dd>`
-              : nothing
-          }
-          ${
-            block.ashUntil > state.tick
-              ? html`<dt class="label">Ash</dt>
-                  <dd>fertile for ${block.ashUntil - state.tick} more days</dd>`
-              : nothing
-          }
-          ${
-            block.phase === 'wild'
-              ? html`<dt class="label">Plantable</dt>
-                  <dd>${spec.plantableSlots} / 144 slots</dd>`
-              : nothing
-          }
-          ${
-            block.fertilizedUntil > state.tick
-              ? html`<dt class="label">Fertilized</dt>
-                  <dd>${block.fertilizedUntil - state.tick} days left</dd>`
-              : nothing
-          }
-          ${
-            block.owned && block.phase !== 'kopdes' && state.kopdes
-              ? html`<dt class="label">Kopdes</dt>
-                  <dd data-testid="block-range">
-                    ${
-                      inKopdesRange(state, world, id)
-                        ? `in range (${distanceToKopdes(state, world, id)} blocks)`
-                        : `out of range (${distanceToKopdes(state, world, id)} of ${kopdesRange(state.kopdes.level)}) — TBS would spoil`
-                    }
-                  </dd>`
-              : nothing
-          }
-        </dl>
+        <div class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
+          <div class="grid grid-cols-2 gap-2">${tiles}</div>
 
-        ${block.phase === 'kopdes' && state.kopdes ? this.kopdesSection(sim) : nothing}
-        ${state.palms.has(id) ? this.palmsSection(sim, id) : nothing}
-        ${block.owned && (state.palms.has(id) || block.debris > 0 || block.beetles > 0) ? this.pestSection(sim, id) : nothing}
-        ${
-          block.phase === 'planted' && block.species === 'palm' && state.kopdes
-            ? autoHarvestToggle(sim, (command) => this.act(command))
-            : nothing
-        }
-
-        <div class="flex flex-col gap-1.5">
-          ${actions.filter((a) => !a.minor).map((action) => this.actionButton(sim, action))}
+          ${block.phase === 'kopdes' && state.kopdes ? this.kopdesSection(sim) : nothing}
+          ${state.palms.has(id) ? this.palmsSection(sim, id) : nothing}
+          ${block.owned && (state.palms.has(id) || block.debris > 0 || block.beetles > 0) ? this.pestSection(sim, id) : nothing}
           ${burnable ? this.burnSection(sim, id) : nothing}
           ${
-            actions.some((a) => a.minor)
-              ? html`<div class="mt-1 flex flex-wrap gap-1.5">
-                  ${actions.filter((a) => a.minor).map((action) => this.actionButton(sim, action))}
+            minor.length > 0
+              ? html`<div class="flex flex-wrap gap-1.5">
+                  ${minor.map((action) => this.actionButton(sim, action))}
                 </div>`
               : nothing
           }
         </div>
+
+        ${
+          major.length > 0 ||
+          (block.phase === 'planted' && block.species === 'palm' && state.kopdes)
+            ? html`<footer
+                class="flex flex-col gap-2 border-t-2 border-dashed border-[#f2e0b0] p-4"
+              >
+                ${major.map((action) => this.actionButton(sim, action))}
+                ${
+                  block.phase === 'planted' && block.species === 'palm' && state.kopdes
+                    ? autoHarvestToggle(sim, (command) => this.act(command))
+                    : nothing
+                }
+              </footer>`
+            : nothing
+        }
       </div>
     `;
   }
 
   private actionButton(sim: Sim, action: Action) {
     const rejection = sim.validate(action.command);
-    const base = action.minor ? 'btn btn-sm' : 'btn w-full';
+    const base = action.minor ? 'btn btn-sm' : 'btn btn-lg w-full';
     return html`
       <div>
         <button
@@ -414,8 +459,20 @@ export class BlockPanel {
           @click=${() => this.act(action.command)}
         >
           <span class="flex w-full items-center justify-between gap-2">
-            <span>${action.label}</span>
-            ${action.cost !== undefined ? html`<span class="num rounded-lg bg-black/15 px-1.5 py-0.5 text-xs">${formatRp(action.cost)}</span>` : nothing}
+            <span class="flex items-center gap-2"
+              >${action.icon ? icon(action.icon) : nothing}${action.label}</span
+            >
+            ${
+              action.badge !== undefined
+                ? html`<span class="num rounded-lg bg-black/15 px-1.5 py-0.5 text-xs"
+                    >${action.badge}</span
+                  >`
+                : action.cost !== undefined
+                  ? html`<span class="num rounded-lg bg-black/15 px-1.5 py-0.5 text-xs"
+                      >${formatRp(action.cost)}</span
+                    >`
+                  : nothing
+            }
           </span>
         </button>
         ${rejection && !action.minor ? html`<div class="mt-0.5 px-1 text-xs font-bold text-[#b85e12]">${rejection.reason}</div>` : nothing}
@@ -527,16 +584,20 @@ export class BlockPanel {
     const days = daysUntilRipe(block, state.tick);
 
     return html`
-      <div class="pill mb-3 text-xs">
-        <div class="mb-1 font-medium">
-          ${block.species === 'forest' ? 'Forest' : 'Palms'} · ${growthN}
-        </div>
-        <div class="flex flex-wrap gap-x-3">
-          ${STAGE_ORDER.filter((s) => stageCounts.has(s)).map((s) => html`<span>${s}: ${stageCounts.get(s)}</span>`)}
+      <div class="rounded-2xl border-2 border-[#bfe3a8] bg-[#eaf7dd] p-3 text-xs">
+        <div class="mb-1 flex items-center justify-between gap-2">
+          <div class="text-base font-extrabold">
+            ${block.species === 'forest' ? 'Forest' : 'Palms'} · <span class="num">${growthN}</span>
+          </div>
+          <span class="chip chip-cream"
+            >${STAGE_ORDER.filter((s) => stageCounts.has(s))
+              .map((s) => `${stageCounts.get(s)} ${s}`)
+              .join(' · ')}</span
+          >
         </div>
         ${
           nextStage !== null
-            ? html`<div class="mt-1 opacity-70" data-testid="growth-progress">
+            ? html`<div class="muted mt-1 num" data-testid="growth-progress">
                 ${Math.round(meanGrowth)} / ${nextStage} growth-days
               </div>`
             : nothing
@@ -544,10 +605,13 @@ export class BlockPanel {
         ${
           bearing > 0
             ? html`
-                <div class="mt-1 flex justify-between opacity-90" data-testid="harvest-info">
-                  <span>On the trees: ${formatKg(kg)}</span>
-                  <span
-                    >${days === null ? '' : days === 0 ? 'ripe now' : `next round in ${days} d`}</span
+                <div
+                  class="mt-1.5 flex items-center justify-between text-sm font-extrabold"
+                  data-testid="harvest-info"
+                >
+                  <span>On the trees: <span class="num">${formatKg(kg)}</span></span>
+                  <span class=${days === 0 ? 'text-[#c94a30]' : 'muted'}
+                    >${days === null ? '' : days === 0 ? 'RIPE NOW' : `next round in ${days} d`}</span
                   >
                 </div>
               `
@@ -640,7 +704,7 @@ export class BlockPanel {
             : nothing
         }
 
-        <div class="mt-2 flex flex-wrap gap-1.5">
+        <div class="mt-2 grid grid-cols-2 gap-1.5">
           ${treatments.map((a) => this.actionButton(sim, a))}
         </div>
 
@@ -669,7 +733,7 @@ export class BlockPanel {
       const selected = this.slot === slot ? ' outline outline-2 outline-[#4a3320]' : '';
       cells.push(html`
         <button
-          class=${`h-3 w-3 rounded-[2px] ${cls}${ring}${selected}`}
+          class=${`h-4 w-4 rounded-[3px] ${cls}${ring}${selected}`}
           title=${`slot ${slotRow(slot)},${slotCol(slot)} · ${stage}${g === 2 ? ' · sick' : ''}`}
           data-testid=${`slot-cell-${slot}`}
           @click=${() => {
@@ -722,7 +786,7 @@ export class BlockPanel {
     return html`
       <div class="mt-2">
         <div class="label mb-1">Palms by slot — click one</div>
-        <div class="grid grid-cols-12 gap-[2px]" data-testid="slot-grid">${cells}</div>
+        <div class="grid grid-cols-12 gap-[3px]" data-testid="slot-grid">${cells}</div>
         ${detail}
       </div>
     `;
