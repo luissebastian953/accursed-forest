@@ -27,6 +27,7 @@ import {
   WORKER_JOBS,
   type WorkerKind,
 } from '../balance/mobs.ts';
+import { isWildfire } from '../fire.ts';
 import { isBearing, slotStage } from '../palms.ts';
 import { chance, forkRng, nextFloat, nextInt, pickWeighted, type RngState } from '../rng.ts';
 import { readBlock, spend, writeBlock, type SimContext } from '../state.ts';
@@ -332,14 +333,33 @@ function spawnGhost(ctx: SimContext, rng: RngState): void {
   pickBehaviour(ctx, ghost, rng, false);
 }
 
-/** A crew of `crewSize` works every block being chopped or burned. */
+/**
+ * Keep every worked block's crew topped up. A chop is always the player's
+ * order, so every clearing block is staffed. A fire is only the player's if
+ * the burn command staffed it: lightning, a drought spark and a fire that
+ * spread in from next door burn with nobody standing round them — and once
+ * the pressure tips into a wildfire, nobody works any fire at all.
+ */
 function spawnCrews(ctx: SimContext, rng: RngState): void {
   const { state } = ctx;
+  if (isWildfire(state)) return;
+  const staffed = new Set<BlockId>();
+  for (const mob of state.mobs)
+    if (mob.species === 'crew' && mob.target !== null) staffed.add(mob.target);
   const working: BlockId[] = [];
   for (const block of state.blocks.values()) {
-    if (block.phase === 'clearing' || block.burning) working.push(block.id);
+    if (block.phase === 'clearing' || (block.burning && staffed.has(block.id)))
+      working.push(block.id);
   }
   for (const id of working.sort((a, b) => a - b)) staffBlock(ctx, id, rng);
+}
+
+/** Blocks with a crew on them: the player's own jobs, for the scaffolding. */
+export function workedBlocks(state: SimState): Set<BlockId> {
+  const out = new Set<BlockId>();
+  for (const mob of state.mobs)
+    if (mob.species === 'crew' && mob.target !== null) out.add(mob.target);
+  return out;
 }
 
 /**
@@ -657,8 +677,11 @@ function workSpot(mob: Mob, rng: RngState): void {
 function stepCrew(ctx: SimContext, mob: Mob, rng: RngState): void {
   const { state } = ctx;
   const block = mob.target === null ? null : state.blocks.get(mob.target);
+  // A wildfire is nobody's job: the crews walk off it.
   const stillWorking =
-    block !== null && block !== undefined && (block.phase === 'clearing' || block.burning);
+    block !== null &&
+    block !== undefined &&
+    (block.phase === 'clearing' || (block.burning && !isWildfire(state)));
   if (!stillWorking) {
     // Job done: the crew is off the books next tick.
     mob.intent = 'leave';

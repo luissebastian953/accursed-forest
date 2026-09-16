@@ -1,13 +1,15 @@
 /**
- * The work site (§6.5): while a block is being chopped or burned, four
+ * The work site (§6.5): while a crew is chopping or burning a block, four
  * timber pillars go up at its corners with ropes strung between them — the
  * crew's scaffolding and cordon. Up when the work starts, gone when the block
- * clears. Purely visual; one mesh per working block.
+ * clears or the crew walks off. A fire with no crew (lightning, a spread, a
+ * wildfire) is just a fire. Purely visual; one mesh per worked block.
  */
 
 import { Group, Matrix4, Mesh, type Material } from 'three/webgpu';
 
 import { WORLD } from '@sim/balance/world';
+import { workedBlocks } from '@sim/systems/mobs';
 import type { BlockId, SimState } from '@sim/types';
 import type { World } from '@sim/worldgen/index';
 
@@ -67,12 +69,12 @@ export class WorkSite {
     private readonly groundAt: (x: number, z: number) => number,
   ) {}
 
-  /** Put a site on every block being worked, and take down the rest. */
+  /**
+   * Put a site on every block a crew is working, and take down the rest. A
+   * fire nobody ordered — lightning, a spark, a spread — gets no scaffolding.
+   */
   sync(state: SimState, world: World): void {
-    const working = new Set<BlockId>();
-    for (const block of state.blocks.values()) {
-      if (block.phase === 'clearing' || block.burning) working.add(block.id);
-    }
+    const working = workedBlocks(state);
     for (const [id, mesh] of this.sites) {
       if (working.has(id)) continue;
       this.group.remove(mesh);

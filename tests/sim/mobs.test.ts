@@ -15,7 +15,7 @@ import { createSim, type Sim } from '@sim/index.ts';
 import { distanceToKopdes } from '@sim/kopdes.ts';
 import { createPalmArrays, plantSlots } from '@sim/palms.ts';
 import { writeBlock } from '@sim/state.ts';
-import { guardPost, wildKinds } from '@sim/systems/mobs.ts';
+import { guardPost, wildKinds, workedBlocks } from '@sim/systems/mobs.ts';
 import type { BlockId, Mob } from '@sim/types.ts';
 
 const YEAR = GROWTH.daysPerYear;
@@ -358,5 +358,50 @@ describe('workers (mobs)', () => {
     run(sim, BIOMES[block.biome].chopDays);
     expect(block.phase).toBe('cleared');
     expect(sim.state.mobs.some((m) => m.species === 'crew' && m.target === block.id)).toBe(false);
+  });
+});
+
+describe('whose fire the crew works (mobs)', () => {
+  it('a burn the player ordered has a crew; lightning and a spread do not', () => {
+    const sim = createSim(42);
+    sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
+    sim.state.economy.cash = 5e9;
+    const wild = [...sim.state.blocks.values()].filter(
+      (b) => b.owned && b.phase === 'wild' && BIOMES[b.biome].clearable,
+    );
+    const ordered = wild[0]!;
+    const struck = wild[1]!;
+    const spread = wild[2]!;
+    expect(sim.dispatch({ type: 'BurnBlock', block: ordered.id, intensity: 1 })).toEqual({
+      ok: true,
+    });
+    // Lightning: burning, listed as natural. A spread: burning, listed nowhere.
+    struck.burning = true;
+    struck.fireIntensity = 1;
+    sim.state.weather.naturalFires.push(struck.id);
+    spread.burning = true;
+    spread.fireIntensity = 1;
+    sim.tick();
+    const crewOn = (id: number) =>
+      sim.state.mobs.filter((m) => m.species === 'crew' && m.target === id).length;
+    expect(crewOn(ordered.id)).toBe(WORKER_JOBS.crewSize);
+    expect(crewOn(struck.id)).toBe(0);
+    expect(crewOn(spread.id)).toBe(0);
+    expect([...workedBlocks(sim.state)]).toEqual([ordered.id]);
+  });
+
+  it('once it is a wildfire, the crews walk off every fire', () => {
+    const sim = createSim(42);
+    sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
+    sim.state.economy.cash = 5e9;
+    const [block, second] = [...sim.state.blocks.values()].filter(
+      (b) => b.owned && b.phase === 'wild' && BIOMES[b.biome].clearable,
+    );
+    sim.dispatch({ type: 'BurnBlock', block: block!.id, intensity: 1 });
+    expect(workedBlocks(sim.state).has(block!.id)).toBe(true);
+    // A high burn on top tips the pressure over the line: a wildfire now.
+    sim.dispatch({ type: 'BurnBlock', block: second!.id, intensity: 3 });
+    sim.tick();
+    expect(workedBlocks(sim.state).size).toBe(0);
   });
 });
