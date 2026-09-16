@@ -6,9 +6,9 @@
  * animals are set dressing with a population cap; the thief and the babi
  * ngepet take things; workers are hired at the Kopdes and cost a wage a day.
  *
- * Speeds are blocks per day. A tick is half a second at 1×, and a block is
- * twelve world units, so 0.12 blocks a day is a stroll and anything past 0.5
- * reads as running; the renderer walks each mob to where the sim put it.
+ * Speeds are blocks per day. A block is twelve world units and a day is ten
+ * seconds at 1×, so 0.12 blocks a day is a slow stroll and anything past 0.5
+ * reads as purposeful; the renderer spreads each day's walk over the day.
  */
 
 import type { MobSpecies } from '../types.ts';

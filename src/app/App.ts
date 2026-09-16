@@ -255,7 +255,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   stage.appendChild(vignette);
 
   // ── Time ────────────────────────────────────────────────────────────────
-  const time = new TimeControl();
+  const time = new TimeControl(params.has('turbo') ? 20 : 1);
   const autosave = new Autosave({
     slot,
     getState: () => sim.state,
@@ -1057,7 +1057,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     rain.update(dt, sim.state.weather.rain, visible, time.speed > 0);
     lightning.update(nowMs);
     timber.update(nowMs);
-    mobField.update(dt);
+    mobField.update(dt, time.secondsPerTick);
 
     // The panels are DOM: ten refreshes a second is plenty, and it leaves the
     // frame budget to the world. (Every frame cost the sim a third of its

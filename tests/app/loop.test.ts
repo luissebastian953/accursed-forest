@@ -34,20 +34,29 @@ function harness(rate: () => number, maxTicksPerFrame?: number) {
 }
 
 describe('game loop (§4.2)', () => {
-  it('runs 1× as one tick every 500 ms', () => {
+  it('runs 1× as one tick every ten seconds', () => {
     const h = harness(() => TICKS_PER_SECOND[1]);
     h.loop.step(0);
-    // 63 frames of 16 ms = 1008 ms: two 500 ms ticks, with 8 ms left over.
-    for (let t = 16; t <= 1008; t += 16) h.loop.step(t);
+    // 21 seconds of 16 ms frames: two ten-second ticks, with a second left over.
+    for (let t = 16; t <= 21_008; t += 16) h.loop.step(t);
     expect(h.ticks()).toBe(2);
   });
 
-  it('runs 20× as 40 ticks per second at a 60 Hz frame rate', () => {
+  it('runs 20× as two ticks per second at a 60 Hz frame rate', () => {
     const h = harness(() => TICKS_PER_SECOND[20]);
     h.loop.step(0);
-    for (let t = 1000 / 60; t <= 1000; t += 1000 / 60) h.loop.step(t);
-    expect(h.ticks()).toBeGreaterThanOrEqual(39);
-    expect(h.ticks()).toBeLessThanOrEqual(40);
+    for (let t = 1000 / 60; t <= 5000; t += 1000 / 60) h.loop.step(t);
+    expect(h.ticks()).toBeGreaterThanOrEqual(9);
+    expect(h.ticks()).toBeLessThanOrEqual(10);
+  });
+
+  it('a turbo scale multiplies every rate, for the browser suite', () => {
+    const turbo = new TimeControl(20);
+    turbo.set(20);
+    expect(turbo.ticksPerSecond).toBe(TICKS_PER_SECOND[20] * 20);
+    expect(turbo.secondsPerTick).toBeCloseTo(1 / (TICKS_PER_SECOND[20] * 20));
+    turbo.set(0);
+    expect(turbo.secondsPerTick).toBe(Infinity);
   });
 
   it('renders a frame every step, ticks or not', () => {
@@ -62,10 +71,10 @@ describe('game loop (§4.2)', () => {
   it('drops the backlog after a stall instead of catching up', () => {
     const h = harness(() => TICKS_PER_SECOND[20], 6);
     h.loop.step(0);
-    h.loop.step(5000); // five seconds hidden: would be 200 ticks
+    h.loop.step(100_000); // a hundred seconds hidden: would be 200 ticks
     expect(h.ticks()).toBe(6);
     // and the excess is gone, not queued
-    h.loop.step(5016);
+    h.loop.step(100_016);
     expect(h.ticks()).toBeLessThanOrEqual(7);
   });
 
@@ -73,9 +82,9 @@ describe('game loop (§4.2)', () => {
     let rate = TICKS_PER_SECOND[1];
     const h = harness(() => rate);
     h.loop.step(0);
-    h.loop.step(400); // 80% of the way to a 1× tick
+    h.loop.step(8000); // 80% of the way to a 1× tick
     rate = TICKS_PER_SECOND[20];
-    h.loop.step(401); // 1 ms at 20×: not enough for a tick
+    h.loop.step(8001); // 1 ms at 20×: not enough for a tick
     expect(h.ticks()).toBe(0);
   });
 
@@ -83,11 +92,11 @@ describe('game loop (§4.2)', () => {
     let rate = TICKS_PER_SECOND[1];
     const h = harness(() => rate);
     h.loop.step(0);
-    h.loop.step(499);
+    h.loop.step(9_990);
     rate = 0;
-    h.loop.step(600);
+    h.loop.step(12_000);
     rate = TICKS_PER_SECOND[1];
-    h.loop.step(700);
+    h.loop.step(14_000);
     expect(h.ticks()).toBe(0);
   });
 
@@ -155,7 +164,7 @@ describe('time control (§3.1.1, §8)', () => {
   it('defaults to 1× and reports ticks per second', () => {
     const tc = new TimeControl();
     expect(tc.speed).toBe(1);
-    expect(tc.ticksPerSecond).toBe(2);
+    expect(tc.ticksPerSecond).toBe(TICKS_PER_SECOND[1]);
   });
 
   it('toggles pause back to the last running speed', () => {

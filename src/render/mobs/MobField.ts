@@ -441,8 +441,14 @@ export class MobField {
 
   // ── Per frame ──────────────────────────────────────────────────────────
 
-  update(dtSeconds: number): void {
+  /**
+   * @param tickSeconds how long the sim's current day lasts in real time, so a
+   *   sim-driven mob spreads its day's walk over the day instead of dashing it
+   *   and then standing still.
+   */
+  update(dtSeconds: number, tickSeconds = 0.5): void {
     const started = performance.now();
+    const tick = Number.isFinite(tickSeconds) && tickSeconds > 0 ? tickSeconds : 10;
     const { bounds, groundAt } = this.options;
 
     if (this.mode === 'merged') {
@@ -474,14 +480,19 @@ export class MobField {
       mob.work += (mob.wants.work - mob.work) * Math.min(1, dtSeconds * 3);
 
       if (mob.glide) {
-        // Sim-driven: walk to the latest sim position at the species' own pace,
-        // faster only when the clock has run ahead of the legs.
+        // Sim-driven: spread the gap to the latest sim position over the rest
+        // of the day, so a slow day is a slow walk; never slower than a creep,
+        // and faster than the species' pace only when the clock has run ahead
+        // of the legs. The legs follow the actual speed.
         if (distance > 0.05 && mob.wants.sleep === 0) {
-          const step = Math.min(distance, Math.max(distance * 1.5, mob.species.speed) * dtSeconds);
+          const pace = mob.species.speed;
+          const speed = Math.max(pace * 0.15, Math.min(pace, (distance / tick) * 1.15));
+          const step = Math.min(distance, Math.max(speed, distance * 1.5) * dtSeconds);
           mob.x += (dx / distance) * step;
           mob.z += (dz / distance) * step;
           mob.facing = Math.atan2(dx, dz);
-          mob.gait += (1 - mob.gait) * Math.min(1, dtSeconds * 5);
+          const gait = Math.min(1, step / dtSeconds / pace);
+          mob.gait += (gait - mob.gait) * Math.min(1, dtSeconds * 5);
         } else {
           mob.gait += (0 - mob.gait) * Math.min(1, dtSeconds * 4);
         }

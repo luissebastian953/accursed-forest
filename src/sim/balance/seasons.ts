@@ -91,7 +91,7 @@ export const SKY = {
    * before it is read off the rain again, so a sunny week is a week. A storm
    * still breaks in whenever the rain calls for one.
    */
-  spellDays: { min: 3, max: 7 },
+  spellDays: { min: 6, max: 14 },
   /** Tag for the spell lengths' own random stream. */
   stream: 0x534b5920,
 } as const;

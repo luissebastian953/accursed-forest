@@ -7,10 +7,11 @@ import { expect, test, type Page } from '@playwright/test';
  * save, reload and continue.
  *
  * `?webgl` forces the fallback path CI can run; `?seed=42&fresh` makes the
- * world deterministic and ignores any save in this browser profile.
+ * world deterministic and ignores any save in this browser profile; `?turbo`
+ * runs the clock twenty times faster than a player's, so years pass in seconds.
  */
 
-const URL = '/?webgl&seed=42&fresh';
+const URL = '/?webgl&seed=42&fresh&turbo';
 
 /** What `?debug` exposes on window — only the parts the suite touches. */
 interface DebugWindow {
@@ -183,7 +184,7 @@ test.describe('Sawit Simulator', () => {
     await tid(page, 'menu-save').click();
     await expect(page.getByTestId('toast').filter({ hasText: 'Saved' })).toBeVisible();
 
-    await page.goto('/?webgl');
+    await page.goto('/?webgl&turbo');
     await expect(tid(page, 'hud-cash')).toContainText('Rp');
     await expect(tid(page, 'hud-date')).toHaveText(dateBefore!);
     await expect(tid(page, 'hud-cash')).toHaveText(cashBefore!);
@@ -293,7 +294,7 @@ test.describe('Sawit Simulator', () => {
   }) => {
     test.setTimeout(90_000);
     // Seed 1 starts in forest: the chopped neighbour comes with 55 debris.
-    await page.goto('/?webgl&seed=1&fresh');
+    await page.goto('/?webgl&seed=1&fresh&turbo');
     await expect(page.locator('canvas')).toBeVisible();
     await expect(tid(page, 'hud-cash')).toContainText('Rp');
     await page.waitForTimeout(2500);
@@ -340,7 +341,7 @@ test.describe('Sawit Simulator', () => {
   }) => {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
-    await page.goto('/?webgl&seed=1&fresh&debug');
+    await page.goto('/?webgl&seed=1&fresh&debug&turbo');
     await expect(page.locator('canvas')).toBeVisible();
     await expect(tid(page, 'hud-forest')).toContainText('%');
     await page.waitForTimeout(2000);
@@ -393,7 +394,7 @@ test.describe('Sawit Simulator', () => {
     test.setTimeout(90_000);
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
-    await page.goto('/?webgl&seed=42&fresh&debug');
+    await page.goto('/?webgl&seed=42&fresh&debug&turbo');
     await expect(page.locator('canvas')).toBeVisible();
     await page.waitForTimeout(2000);
 
@@ -454,7 +455,7 @@ test.describe('Sawit Simulator', () => {
     test.setTimeout(90_000);
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
-    await page.goto('/?webgl&seed=42&fresh&debug');
+    await page.goto('/?webgl&seed=42&fresh&debug&turbo');
     await expect(page.locator('canvas')).toBeVisible();
     await page.waitForTimeout(1500);
 
@@ -502,7 +503,7 @@ test.describe('Sawit Simulator', () => {
       state.run.endedAt = state.tick;
     });
     // Leaving saves the estate; opening the game without a seed loads it, epilogue and all.
-    await page.goto('/?webgl&debug');
+    await page.goto('/?webgl&debug&turbo');
     await expect(page.locator('[data-testid="epilogue"][data-ending="clean"]')).toBeVisible({
       timeout: 15_000,
     });

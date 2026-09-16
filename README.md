@@ -90,7 +90,9 @@ one merged mesh per material — two draw calls, no new shaders
 URL flags: `?webgl` forces the WebGL 2 fallback CI uses; `?seed=42` picks a
 world; `?fresh` ignores the save in this browser; `?spike` opens the §6.9 art
 spike instead of the game; `?models` lays out every scenery model (`src/render/models/`); `?mobs` is the mob proof of concept (`src/render/mobs/`), a rigged crowd with a cost readout; `?debug` exposes the running sim as
-`window.__sawit` for the browser suite and for poking at events by hand.
+`window.__sawit` for the browser suite and for poking at events by hand;
+`?turbo` runs the clock twenty times faster (a day is ten seconds at 1×, two
+at 5×, half a second at 20×) so the browser suite can skip years.
 
 Controls: drag to pan, wheel to zoom, **Q/E** rotate a quarter turn, click a
 block, double-click to focus it, **space** pauses, **1/2/3** set speed,

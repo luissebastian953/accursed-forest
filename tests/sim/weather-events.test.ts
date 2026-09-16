@@ -433,10 +433,12 @@ describe('the sky and its lightning (§3.6)', () => {
     expect(changes).toBeGreaterThan(40);
   });
 
-  it('a year has all four kinds of day, not just rain', () => {
+  it('a few years have all four kinds of day, not just rain', () => {
+    // Skies hold for spells of a week or two now, so a single year samples the
+    // rain only a few dozen times; three years is enough to see every kind.
     const sim = createSim(42);
     const seen = new Set<string>();
-    for (let i = 0; i < 720; i++) {
+    for (let i = 0; i < 1080; i++) {
       sim.tick();
       seen.add(sim.state.weather.sky);
     }

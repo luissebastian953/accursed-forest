@@ -10,11 +10,15 @@ export type Speed = 0 | 1 | 5 | 20;
 
 export const SPEEDS: readonly Speed[] = [0, 1, 5, 20];
 
-/** Ticks per real second at each speed. 1× is one sim day every 500 ms (§4.2). */
 /** The fastest the clock runs while anything is burning. */
 export const FIRE_LOCK_SPEED = 5 satisfies Speed;
 
-export const TICKS_PER_SECOND: Record<Speed, number> = { 0: 0, 1: 2, 5: 10, 20: 40 };
+/**
+ * Ticks per real second at each speed. 1× is one sim day every ten seconds
+ * (§4.2): long enough to watch a crew work a tree and a boar cross a block.
+ * 5× is a day every two seconds, 20× a day every half second.
+ */
+export const TICKS_PER_SECOND: Record<Speed, number> = { 0: 0, 1: 0.1, 5: 0.5, 20: 2 };
 
 export type SpeedListener = (speed: Speed, locked: boolean) => void;
 
@@ -23,6 +27,12 @@ export class TimeControl {
   private lastRunning: Speed = 1;
   private realtimeLock = false;
   private readonly listeners = new Set<SpeedListener>();
+
+  /**
+   * @param rateScale multiplies every rate; `?turbo` sets 20 so the browser
+   * suite can skip years in seconds. Never a gameplay setting.
+   */
+  constructor(private readonly rateScale = 1) {}
 
   /** What the player asked for, ignoring the fire lock. */
   get requestedSpeed(): Speed {
@@ -38,7 +48,13 @@ export class TimeControl {
   }
 
   get ticksPerSecond(): number {
-    return TICKS_PER_SECOND[this.speed];
+    return TICKS_PER_SECOND[this.speed] * this.rateScale;
+  }
+
+  /** Real seconds one sim day takes right now (Infinity while paused). */
+  get secondsPerTick(): number {
+    const rate = this.ticksPerSecond;
+    return rate > 0 ? 1 / rate : Infinity;
   }
 
   get locked(): boolean {
