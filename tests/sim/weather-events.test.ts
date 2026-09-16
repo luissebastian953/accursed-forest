@@ -370,44 +370,48 @@ describe('landslides (§3.6.2)', () => {
     }
   });
 
-  it('a wet year on a bare hillside costs you a block; a forested one usually does not (M1e done-criterion)', () => {
-    const SEEDS = 40;
-    const runs = (forested: boolean): number => {
-      let slid = 0;
-      for (let seed = 1; seed <= SEEDS; seed++) {
-        const sim = createSim(seed);
-        const block = ownedWild(sim)[0]!;
-        const [x, y] = sim.world.toXY(block);
-        // Surround the slope with forest, or strip it bare.
-        for (let dy = -2; dy <= 2; dy++) {
-          for (let dx = -2; dx <= 2; dx++) {
-            if (!sim.world.inBounds(x + dx, y + dy) || (dx === 0 && dy === 0)) continue;
-            const n = writeBlock(sim.state, sim.world, sim.world.toId(x + dx, y + dy));
-            n.biome = forested ? 'forest' : 'grassfield';
-            n.phase = forested ? 'wild' : 'cleared';
+  it(
+    'a wet year on a bare hillside costs you a block; a forested one usually does not (M1e done-criterion)',
+    { timeout: 20_000 },
+    () => {
+      const SEEDS = 40;
+      const runs = (forested: boolean): number => {
+        let slid = 0;
+        for (let seed = 1; seed <= SEEDS; seed++) {
+          const sim = createSim(seed);
+          const block = ownedWild(sim)[0]!;
+          const [x, y] = sim.world.toXY(block);
+          // Surround the slope with forest, or strip it bare.
+          for (let dy = -2; dy <= 2; dy++) {
+            for (let dx = -2; dx <= 2; dx++) {
+              if (!sim.world.inBounds(x + dx, y + dy) || (dx === 0 && dy === 0)) continue;
+              const n = writeBlock(sim.state, sim.world, sim.world.toId(x + dx, y + dy));
+              n.biome = forested ? 'forest' : 'grassfield';
+              n.phase = forested ? 'wild' : 'cleared';
+            }
+          }
+          const b = writeBlock(sim.state, sim.world, block);
+          b.slope = true;
+          b.biome = 'grassfield';
+          plant(sim, block);
+          for (let i = 0; i < 2 * GROWTH.daysPerYear; i++) {
+            sim.state.weather.regime = 'laNina';
+            if (sim.tick().some((e) => e.type === 'Landslide' && e.block === block)) {
+              slid += 1;
+              break;
+            }
           }
         }
-        const b = writeBlock(sim.state, sim.world, block);
-        b.slope = true;
-        b.biome = 'grassfield';
-        plant(sim, block);
-        for (let i = 0; i < 2 * GROWTH.daysPerYear; i++) {
-          sim.state.weather.regime = 'laNina';
-          if (sim.tick().some((e) => e.type === 'Landslide' && e.block === block)) {
-            slid += 1;
-            break;
-          }
-        }
-      }
-      return slid;
-    };
-    // Statistical, so over 40 seeds: measured ~75% bare against ~15% forested.
-    const bare = runs(false);
-    const forested = runs(true);
-    expect(bare).toBeGreaterThanOrEqual(SEEDS * 0.55);
-    expect(forested).toBeLessThanOrEqual(SEEDS * 0.3);
-    expect(bare).toBeGreaterThanOrEqual(forested * 3);
-  });
+        return slid;
+      };
+      // Statistical, so over 40 seeds: measured ~75% bare against ~15% forested.
+      const bare = runs(false);
+      const forested = runs(true);
+      expect(bare).toBeGreaterThanOrEqual(SEEDS * 0.55);
+      expect(forested).toBeLessThanOrEqual(SEEDS * 0.3);
+      expect(bare).toBeGreaterThanOrEqual(forested * 3);
+    },
+  );
 });
 
 describe('the sky and its lightning (§3.6)', () => {

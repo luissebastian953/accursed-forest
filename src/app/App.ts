@@ -31,6 +31,7 @@ import { Police } from '@render/scene/Police';
 import { Rain } from '@render/scene/Rain';
 import { Sky } from '@render/scene/Sky';
 import { TREES_PER_BLOCK, Timber } from '@render/scene/Timber';
+import { WorkSite } from '@render/scene/WorkSite';
 import { digestEvents } from '@render/sync';
 import { BIOMES } from '@sim/balance/biomes';
 import { BANKRUPTCY, ISPO } from '@sim/balance/endings';
@@ -67,7 +68,7 @@ import { NewsTicker } from '@ui/NewsTicker';
 import { Toasts } from '@ui/Toasts';
 
 import { GameLoop } from './loop.ts';
-import { TimeControl } from './timeControl.ts';
+import { FIRE_LOCK_SPEED, TimeControl } from './timeControl.ts';
 
 const SLOT = 'slot0';
 /** Start-of-year snapshots kept for the rewind (§7: the last 25). */
@@ -225,6 +226,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   const lightning = new Lightning();
   const timber = new Timber(material, groundAt);
   const motorcade = new Motorcade(material, groundAt);
+  const workSite = new WorkSite(material, groundAt);
   const spectral = createPaletteMaterial(paletteTexture, uniforms).material;
   spectral.transparent = true;
   spectral.opacity = 0.45;
@@ -240,6 +242,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     police.group,
     ceremony.group,
     motorcade.group,
+    workSite.group,
     rain.mesh,
     lightning.group,
     timber.group,
@@ -708,13 +711,18 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       ) {
         palmsDirty = true;
       }
+      if (command.type === 'ChopBlock' || command.type === 'BurnBlock') {
+        // The crew and their scaffolding are on the block before the next tick.
+        mobField.syncSim(sim.state);
+        workSite.sync(sim.state, sim.world);
+      }
       if (command.type === 'BurnBlock') {
         syncFireState();
         hazardRing.hide();
         toasts.push(
           isWildfire(sim.state)
             ? 'Fire pressure over the line — this is a wildfire now.'
-            : `${blockName(command.block)} burning — speed locked to 1×.`,
+            : `${blockName(command.block)} burning — speed capped at ${FIRE_LOCK_SPEED}×.`,
           isWildfire(sim.state) ? 'error' : 'warn',
         );
       }
@@ -776,6 +784,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     picker = new Picker(rig.camera, chunks.group, sim.world);
     mobField.clear();
     mobField.syncSim(sim.state);
+    workSite.sync(sim.state, sim.world);
     palmsDirty = true;
     animateBlocks = new Set();
     kopdes.sync(sim.state, sim.world);
@@ -946,6 +955,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     }
     if (d.thiefCaught) toasts.push('Security saw off a fruit thief.');
     mobField.syncSim(sim.state);
+    workSite.sync(sim.state, sim.world);
     const drowned = d.palmsDied.filter((p) => p.cause === 'flood').length;
     if (drowned > 0)
       toasts.push(
@@ -1137,6 +1147,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   police.sync(sim.state, sim.world, performance.now());
   ceremony.sync(sim.state, sim.world, performance.now());
   motorcade.sync(sim.state, sim.world);
+  workSite.sync(sim.state, sim.world);
   if (runOver(sim.state)) showEpilogue();
   time.subscribe(() => refreshHud());
   // `?debug` exposes the running sim for the browser suite and for poking at
@@ -1193,6 +1204,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     police.dispose();
     ceremony.dispose();
     motorcade.dispose();
+    workSite.dispose();
     rain.dispose();
     lightning.dispose();
     timber.dispose();

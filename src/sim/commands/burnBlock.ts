@@ -8,6 +8,7 @@
 import { FIRE } from '../balance/fire.ts';
 import { ignite, isFuel, isWildfire, startWildfire } from '../fire.ts';
 import { readBlock, spend } from '../state.ts';
+import { staffBlock } from '../systems/mobs.ts';
 import { operatingBanReason, operatingBanned, underInvestigation } from '../systems/society.ts';
 import type { Command } from '../types.ts';
 
@@ -51,6 +52,7 @@ export const burnBlock: CommandHandler<BurnBlock> = {
     // Under a wildfire every new fire is a wildfire.
     const intensity = isWildfire(state) ? 3 : command.intensity;
     ignite(ctx, command.block, intensity);
+    staffBlock(ctx, command.block);
     spend(state, FIRE.burnCost, 'wages', `burn: block ${command.block}`);
 
     state.society.firePressure += FIRE.pressure[command.intensity];

@@ -335,23 +335,29 @@ function spawnGhost(ctx: SimContext, rng: RngState): void {
 /** A crew of `crewSize` works every block being chopped or burned. */
 function spawnCrews(ctx: SimContext, rng: RngState): void {
   const { state } = ctx;
-  const working = new Set<BlockId>();
+  const working: BlockId[] = [];
   for (const block of state.blocks.values()) {
-    if (block.phase === 'clearing' || block.burning) working.add(block.id);
+    if (block.phase === 'clearing' || block.burning) working.push(block.id);
   }
-  const present = new Map<BlockId, number>();
-  for (const mob of state.mobs) {
-    if (mob.species === 'crew' && mob.target !== null)
-      present.set(mob.target, (present.get(mob.target) ?? 0) + 1);
-  }
-  for (const id of [...working].sort((a, b) => a - b)) {
-    for (let n = present.get(id) ?? 0; n < WORKER_JOBS.crewSize; n++) {
-      const crew = spawn(ctx, 'crew', id, rng, { until: Infinity, intent: 'work', target: id });
-      workSpot(crew, rng);
-      // Spread the first spots out so four people do not start on one tree.
-      crew.x = crew.tx;
-      crew.z = crew.tz;
-    }
+  for (const id of working.sort((a, b) => a - b)) staffBlock(ctx, id, rng);
+}
+
+/**
+ * Top a block's crew up to `crewSize`. The chop and burn commands call this
+ * the moment the order is given, so the crew is on the block before the
+ * next day's tick — at ten seconds a day, waiting for it read as a delay.
+ */
+export function staffBlock(ctx: SimContext, id: BlockId, rng?: RngState): void {
+  const { state } = ctx;
+  const draw = rng ?? forkRng(state.seed ^ MOB_STREAM ^ id, state.tick);
+  let present = 0;
+  for (const mob of state.mobs) if (mob.species === 'crew' && mob.target === id) present += 1;
+  for (let n = present; n < WORKER_JOBS.crewSize; n++) {
+    const crew = spawn(ctx, 'crew', id, draw, { until: Infinity, intent: 'work', target: id });
+    workSpot(crew, draw);
+    // Spread the first spots out so four people do not start on one tree.
+    crew.x = crew.tx;
+    crew.z = crew.tz;
   }
 }
 

@@ -8,6 +8,7 @@
 import { BIOMES } from '../balance/biomes.ts';
 import { CREW_WAGE_PER_DAY } from '../balance/prices.ts';
 import { readBlock, spend, writeBlock } from '../state.ts';
+import { staffBlock } from '../systems/mobs.ts';
 import {
   clearingCostFactor,
   operatingBanReason,
@@ -64,6 +65,7 @@ export const chopBlock: CommandHandler<ChopBlock> = {
     spend(state, chopCost(block.biome, state), 'wages', `chop: block ${command.block}`);
     block.phase = 'clearing';
     block.clearProgress = 0;
+    staffBlock(ctx, command.block);
     events.push({ type: 'BlockChanged', block: command.block });
     events.push({ type: 'CashChanged', cash: state.economy.cash });
   },

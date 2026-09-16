@@ -25,7 +25,29 @@ import { DURATION, easeOutBack } from '../anim/easing.ts';
 import { BoxBuilder } from '../geometry/boxBuilder.ts';
 import { Palette } from '../materials/paletteSlots.ts';
 
-import { ELEVATION_STEP, terraceHeight } from './chunkField.ts';
+import { landHeight } from './chunkField.ts';
+
+/**
+ * Where an overlay sits over a block: just above the highest point of the
+ * land the mesher draws there. Blended wild land (and a block being cleared)
+ * is not flat, so the terrace height alone buried the ring on the high side.
+ */
+function overlayHeight(state: SimState, world: World, block: BlockId, lift: number): number {
+  const [bx, by] = world.toXY(block);
+  const s = WORLD.blockSide;
+  const phaseOf = (id: BlockId) => state.blocks.get(id)?.phase ?? 'wild';
+  let top = -Infinity;
+  for (const [fx, fz] of [
+    [0.5, 0.5],
+    [0.08, 0.08],
+    [0.92, 0.08],
+    [0.08, 0.92],
+    [0.92, 0.92],
+  ] as const) {
+    top = Math.max(top, landHeight(world, phaseOf, (bx + fx) * s, (by + fz) * s));
+  }
+  return top + lift;
+}
 
 /** The flat frame that lies on the block: four thin bars, inset from the edge. */
 function buildSelectionFrame() {
@@ -97,12 +119,7 @@ export class SelectionRing {
 
   show(state: SimState, world: World, block: BlockId, nowMs: number): void {
     const [bx, by] = world.toXY(block);
-    const generated = world.generated(bx, by);
-    const diverged = state.blocks.get(block);
-    const terraced = diverged && diverged.phase !== 'wild';
-    const y = terraced
-      ? terraceHeight(generated.elevation) + 0.35
-      : terraceHeight(generated.elevation) + ELEVATION_STEP + 0.35;
+    const y = overlayHeight(state, world, block, 0.35);
 
     const half = WORLD.blockSide / 2;
     this.group.position.set(bx * WORLD.blockSide + half, y, by * WORLD.blockSide + half);
@@ -192,9 +209,7 @@ function buildRangeGeometry(state: SimState, world: World) {
       const generated = world.generated(bx, by);
       if (generated.biome === 'river') continue;
 
-      const diverged = state.blocks.get(id);
-      const terraced = diverged && diverged.phase !== 'wild';
-      const y = terraceHeight(generated.elevation) + (terraced ? 0.2 : ELEVATION_STEP + 0.2);
+      const y = overlayHeight(state, world, id, 0.2);
       const cx = bx * s + s / 2;
       const cz = by * s + s / 2;
       const inset = 0.6;
@@ -231,10 +246,7 @@ export class HazardRing {
     const h = 0.25;
     for (const id of blocks) {
       const [bx, by] = world.toXY(id);
-      const generated = world.generated(bx, by);
-      const diverged = state.blocks.get(id);
-      const terraced = diverged && diverged.phase !== 'wild';
-      const y = terraceHeight(generated.elevation) + (terraced ? 0.5 : ELEVATION_STEP + 0.5);
+      const y = overlayHeight(state, world, id, 0.5);
       const cx = bx * s + s / 2;
       const cz = by * s + s / 2;
       const len = s - 1;

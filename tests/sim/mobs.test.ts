@@ -344,8 +344,10 @@ describe('workers (mobs)', () => {
       (b) => b.owned && b.phase === 'wild' && BIOMES[b.biome].clearable,
     )!;
     expect(sim.dispatch({ type: 'ChopBlock', block: block.id })).toEqual({ ok: true });
-    sim.tick();
     const crew = () => sim.state.mobs.filter((m) => m.species === 'crew' && m.target === block.id);
+    // On the block the moment the order is given, not the next day.
+    expect(crew().length).toBe(WORKER_JOBS.crewSize);
+    sim.tick();
     expect(crew().length).toBe(WORKER_JOBS.crewSize);
     expect(WORKER_JOBS.crewSize).toBeGreaterThanOrEqual(4);
     // Four people, four spots: nobody starts on top of anybody.

@@ -36,7 +36,7 @@ export class NewsTicker {
   ) {
     this.root = document.createElement('div');
     this.root.className =
-      'pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-center p-2';
+      'pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-center px-[30px] py-2';
     parent.appendChild(this.root);
   }
 
@@ -51,7 +51,7 @@ export class NewsTicker {
         ? nothing
         : html`
             <button
-              class="card pointer-events-auto flex max-w-[min(64rem,calc(100vw-1rem))] items-center gap-2.5 overflow-hidden px-3 py-1.5 text-left text-xs hover:brightness-[1.03]"
+              class="card pointer-events-auto flex w-full items-center gap-2.5 overflow-hidden px-3 py-1.5 text-left text-xs hover:brightness-[1.03]"
               data-testid="news-ticker"
               @click=${() => this.handlers.open()}
             >

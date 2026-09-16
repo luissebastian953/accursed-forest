@@ -1,6 +1,7 @@
 /** Transient notices (§8 panel 17). Pop in, fade out after a few seconds. */
 
 import { html, render } from 'lit-html';
+import { repeat } from 'lit-html/directives/repeat.js';
 
 import { icon, type IconName } from './icons.ts';
 
@@ -35,7 +36,7 @@ export class Toasts {
   ) {
     this.root = document.createElement('div');
     this.root.className =
-      'pointer-events-none absolute bottom-16 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-2';
+      'pointer-events-none absolute bottom-16 left-[30px] z-20 flex flex-col items-start gap-2';
     parent.appendChild(this.root);
   }
 
@@ -54,10 +55,12 @@ export class Toasts {
   private render(): void {
     render(
       html`
-        ${this.items.map(
+        ${repeat(
+          this.items,
+          (toast) => toast.id,
           (toast) => html`
             <div
-              class=${`flex max-w-[min(34rem,calc(100vw-2rem))] items-center gap-2 rounded-2xl border-2 px-3.5 py-2 text-sm font-bold shadow-[0_3px_0_rgba(217,196,141,0.9)] ${TONE[toast.kind]}`}
+              class=${`toast-in flex max-w-[min(34rem,calc(100vw-4rem))] items-center gap-2 rounded-2xl border-2 px-3.5 py-2 text-sm font-bold shadow-[0_3px_0_rgba(217,196,141,0.9)] ${TONE[toast.kind]}`}
               data-testid="toast"
             >
               <span class="pill flex h-6 w-6 items-center justify-center">

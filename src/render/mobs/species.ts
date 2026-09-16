@@ -146,6 +146,8 @@ function biped(options: {
   height: number;
   speed: number;
   carries?: number;
+  /** What the right hand holds: an axe for the chop, a flamethrower for the burn. */
+  tool?: 'axe' | 'flamethrower';
   spectral?: boolean;
 }): SpeciesSpec {
   const skin = options.skin ?? Palette.Skin;
@@ -214,6 +216,58 @@ function biped(options: {
       slot: options.carries,
       role: 'prop',
     });
+  }
+
+  if (options.tool === 'axe') {
+    // Handle forward from the fist, head at its end; the arm's swing carries it.
+    parts.push(
+      {
+        name: 'axeHandle',
+        parent: 'armR',
+        at: [0, -h * 0.3, h * 0.2],
+        size: [h * 0.045, h * 0.045, h * 0.42],
+        slot: Palette.PalmTrunk,
+        role: 'still',
+      },
+      {
+        name: 'axeHead',
+        parent: 'armR',
+        at: [0, -h * 0.3 - h * 0.03, h * 0.38],
+        size: [h * 0.05, h * 0.16, h * 0.11],
+        slot: Palette.Steel,
+        role: 'still',
+      },
+    );
+  }
+
+  if (options.tool === 'flamethrower') {
+    // A tank on the back, a nozzle in the fist, and the tongue of flame at its end.
+    parts.push(
+      {
+        name: 'tank',
+        parent: 'body',
+        at: [0, 0, -width * 0.48],
+        size: [width * 0.75, torso * 0.85, width * 0.38],
+        slot: Palette.Steel,
+        role: 'still',
+      },
+      {
+        name: 'nozzle',
+        parent: 'armR',
+        at: [0, -h * 0.3, h * 0.22],
+        size: [h * 0.06, h * 0.06, h * 0.46],
+        slot: Palette.Charcoal,
+        role: 'still',
+      },
+      {
+        name: 'flame',
+        parent: 'armR',
+        at: [0, -h * 0.3, h * 0.55],
+        size: [h * 0.1, h * 0.1, h * 0.2],
+        slot: Palette.Fire,
+        role: 'prop',
+      },
+    );
   }
 
   return {
@@ -357,6 +411,24 @@ export const SPECIES: Record<string, SpeciesSpec> = {
     height: 1.7,
     speed: 1.6,
     carries: Palette.Sack,
+  }),
+  chopper: biped({
+    id: 'chopper',
+    label: 'Clearing crew',
+    cloth: Palette.HiVis,
+    hat: Palette.ClothWorker,
+    height: 1.7,
+    speed: 1.6,
+    tool: 'axe',
+  }),
+  burner: biped({
+    id: 'burner',
+    label: 'Burn crew',
+    cloth: Palette.HiVis,
+    hat: Palette.Charcoal,
+    height: 1.7,
+    speed: 1.6,
+    tool: 'flamethrower',
   }),
   babiNgepet: quadruped({
     id: 'babiNgepet',

@@ -197,10 +197,16 @@ const _root = new Matrix4();
 /** Scratch world matrices, one per part; no rig is anywhere near this deep. */
 const _worlds = Array.from({ length: 64 }, () => new Matrix4());
 
-/** How the sim's species are drawn; the babi ngepet passes for a pig on all fours. */
-function drawnAs(mob: SimMob): SpeciesId {
+/**
+ * How the sim's species are drawn: the babi ngepet passes for a pig on all
+ * fours, and a crew carries an axe on a chop and a flamethrower on a burn.
+ */
+function drawnAs(mob: SimMob, state: SimState): SpeciesId {
   if (mob.species === 'babiNgepet' && !mob.standing) return 'pig';
-  if (mob.species === 'crew') return 'sanitizer';
+  if (mob.species === 'crew') {
+    const block = mob.target === null ? undefined : state.blocks.get(mob.target);
+    return block?.burning ? 'burner' : 'chopper';
+  }
   return mob.species;
 }
 
@@ -399,7 +405,7 @@ export class MobField {
     const side = WORLD.blockSide;
     for (const sim of state.mobs) {
       seen.add(sim.id);
-      const spec = SPECIES[drawnAs(sim)]!;
+      const spec = SPECIES[drawnAs(sim, state)]!;
       let mob = this.byId.get(sim.id);
       if (mob && mob.species !== spec) {
         // The babi ngepet stood up: same mob, different body.
