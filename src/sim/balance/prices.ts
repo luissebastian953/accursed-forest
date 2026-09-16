@@ -3,8 +3,11 @@
 import type { Biome, ItemId } from '../types.ts';
 
 export const ECONOMY = {
-  /** Enough for roughly two grassfield blocks, the Kopdes and bibit — no more. */
-  startingCash: 95_000_000,
+  /**
+   * Enough to build the Kopdes and get five or six blocks planted before the
+   * first harvest — a start with room to make decisions, not just survive.
+   */
+  startingCash: 250_000_000,
 
   /** Rupiah per kg of TBS at the start. */
   startingTbsPrice: 2_650,
