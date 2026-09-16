@@ -194,7 +194,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     chunks.group,
     palms.group,
     kopdes.mesh,
-    ring.mesh,
+    ring.group,
     rangeRing.mesh,
     hazardRing.mesh,
     fires.group,

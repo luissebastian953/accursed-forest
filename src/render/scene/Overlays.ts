@@ -1,10 +1,19 @@
 /**
- * In-scene overlays (§8 #11, #21): the selection ring and the Kopdes range
- * ring. The selection ring pops in with `easeOutBack`; both float above the
- * block so they read on any terrain.
+ * In-scene overlays (§8 #11, #21): the selection ring, the Kopdes range ring
+ * and the fire-spread preview. The selection ring is a flat glowing frame
+ * that pops in with `easeOutBack`; the others float just above the block so
+ * they read on any terrain.
  */
 
-import { Mesh, type Material } from 'three/webgpu';
+import { float, min, smoothstep, uniform, uv, vec3 } from 'three/tsl';
+import {
+  AdditiveBlending,
+  Group,
+  Mesh,
+  MeshBasicNodeMaterial,
+  PlaneGeometry,
+  type Material,
+} from 'three/webgpu';
 
 import { clamp01 } from '@shared/math';
 import { WORLD } from '@sim/balance/world';
@@ -18,26 +27,68 @@ import { Palette } from '../materials/paletteSlots.ts';
 
 import { ELEVATION_STEP, terraceHeight } from './chunkField.ts';
 
-function buildRingGeometry() {
+/** The flat frame that lies on the block: four thin bars, inset from the edge. */
+function buildSelectionFrame() {
   const b = new BoxBuilder();
   const s = WORLD.blockSide;
-  const t = 0.35;
-  const h = 0.3;
-  b.addAABox(0, 0, -s / 2 + t / 2, s, h, t, { side: Palette.KopdesFlag });
-  b.addAABox(0, 0, s / 2 - t / 2, s, h, t, { side: Palette.KopdesFlag });
-  b.addAABox(-s / 2 + t / 2, 0, 0, t, h, s, { side: Palette.KopdesFlag });
-  b.addAABox(s / 2 - t / 2, 0, 0, t, h, s, { side: Palette.KopdesFlag });
+  const t = 0.34;
+  const h = 0.1;
+  const inset = 0.35;
+  const len = s - inset * 2;
+  b.addAABox(0, 0, -len / 2 + t / 2, len, h, t, { side: Palette.Water });
+  b.addAABox(0, 0, len / 2 - t / 2, len, h, t, { side: Palette.Water });
+  b.addAABox(-len / 2 + t / 2, 0, 0, t, h, len, { side: Palette.Water });
+  b.addAABox(len / 2 - t / 2, 0, 0, t, h, len, { side: Palette.Water });
+  // Corner ticks, so the frame still reads when the bars are edge-on.
+  for (const sx of [-1, 1]) {
+    for (const sz of [-1, 1]) {
+      b.addAABox((sx * len) / 2, 0.01, (sz * len) / 2, 0.95, h, 0.95, { side: Palette.Water });
+    }
+  }
   return b.build();
 }
 
+/** How far past the block the halo spills, as a share of the block side. */
+const HALO_SPILL = 0.35;
+
+/**
+ * The selection ring (§8 #11): a flat blue frame on the block with an
+ * additive halo glowing out of it, pulsing gently. Unlit and brighter than
+ * white, so it reads against any ground — and blooms when the glow pass is on.
+ */
 export class SelectionRing {
-  readonly mesh: Mesh;
+  readonly group = new Group();
+  private readonly frame: Mesh;
+  private readonly halo: Mesh;
+  private readonly pulse = uniform(1);
   private shownAt = -1;
   private selected: BlockId | null = null;
 
-  constructor(material: Material) {
-    this.mesh = new Mesh(buildRingGeometry(), material);
-    this.mesh.visible = false;
+  /** `_material` is the shared palette material; the ring lights itself. */
+  constructor(_material?: Material) {
+    const frameMaterial = new MeshBasicNodeMaterial({ transparent: true, depthWrite: false });
+    frameMaterial.colorNode = vec3(0.32, 1.25, 2.8).mul(this.pulse);
+    frameMaterial.opacityNode = float(0.85);
+    this.frame = new Mesh(buildSelectionFrame(), frameMaterial);
+
+    const haloMaterial = new MeshBasicNodeMaterial({
+      transparent: true,
+      depthWrite: false,
+      blending: AdditiveBlending,
+    });
+    haloMaterial.colorNode = vec3(0.12, 0.55, 1.35).mul(this.pulse);
+    // Distance from the plane's edge, in plane units; the glow sits on the
+    // block's boundary and falls off both ways.
+    const p = uv();
+    const edge = min(min(p.x, float(1).sub(p.x)), min(p.y, float(1).sub(p.y)));
+    const band = float(HALO_SPILL / (1 + HALO_SPILL * 2));
+    haloMaterial.opacityNode = smoothstep(float(0.13), float(0), edge.sub(band).abs()).mul(0.38);
+    const side = WORLD.blockSide * (1 + HALO_SPILL * 2);
+    this.halo = new Mesh(new PlaneGeometry(side, side).rotateX(-Math.PI / 2), haloMaterial);
+    this.halo.position.y = -0.05;
+
+    this.group.add(this.frame, this.halo);
+    this.group.visible = false;
   }
 
   get block(): BlockId | null {
@@ -50,31 +101,36 @@ export class SelectionRing {
     const diverged = state.blocks.get(block);
     const terraced = diverged && diverged.phase !== 'wild';
     const y = terraced
-      ? terraceHeight(generated.elevation) + 0.4
-      : terraceHeight(generated.elevation) + ELEVATION_STEP + 0.4;
+      ? terraceHeight(generated.elevation) + 0.35
+      : terraceHeight(generated.elevation) + ELEVATION_STEP + 0.35;
 
     const half = WORLD.blockSide / 2;
-    this.mesh.position.set(bx * WORLD.blockSide + half, y, by * WORLD.blockSide + half);
-    this.mesh.visible = true;
+    this.group.position.set(bx * WORLD.blockSide + half, y, by * WORLD.blockSide + half);
+    this.group.visible = true;
     if (this.selected !== block) this.shownAt = nowMs;
     this.selected = block;
   }
 
   hide(): void {
-    this.mesh.visible = false;
+    this.group.visible = false;
     this.selected = null;
   }
 
   update(nowMs: number): void {
-    if (!this.mesh.visible || this.shownAt < 0) return;
+    if (!this.group.visible) return;
+    this.pulse.value = 0.82 + 0.18 * Math.sin(nowMs * 0.004);
+    if (this.shownAt < 0) return;
     const t = clamp01((nowMs - this.shownAt) / DURATION.popIn);
     const s = Math.max(0.001, easeOutBack(t));
-    this.mesh.scale.set(s, 1, s);
+    this.group.scale.set(s, 1, s);
     if (t >= 1) this.shownAt = -1;
   }
 
   dispose(): void {
-    this.mesh.geometry.dispose();
+    this.frame.geometry.dispose();
+    this.halo.geometry.dispose();
+    (this.frame.material as Material).dispose();
+    (this.halo.material as Material).dispose();
   }
 }
 
