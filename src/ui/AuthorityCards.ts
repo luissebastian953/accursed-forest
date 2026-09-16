@@ -65,9 +65,11 @@ export class AuthorityCards {
     }
     render(
       html`
-        <div class="absolute inset-0 z-40 flex items-center justify-center bg-black/55 p-4">
+        <div
+          class="absolute inset-0 z-40 flex items-center justify-center bg-[rgba(74,51,32,0.5)] p-4"
+        >
           <div
-            class=${`w-full max-w-lg rounded-2xl p-6 text-white shadow-2xl ${v.kind === 'ban' ? 'bg-neutral-950' : 'bg-stone-900'}`}
+            class=${`w-full max-w-lg p-6 ${v.kind === 'ban' ? 'card-dark' : 'card'}`}
             data-testid=${`card-${v.kind}`}
           >
             ${v.kind === 'letter' ? this.letter(v) : v.kind === 'investigation' ? this.investigation(v) : this.ban(v)}
@@ -80,20 +82,18 @@ export class AuthorityCards {
 
   private letter(v: CardView) {
     return html`
-      <div class="mb-1 text-xs uppercase tracking-widest text-amber-300">
-        District office · ${formatDate(v.tick)}
-      </div>
-      <div class="mb-3 text-lg font-semibold">Summons: cease land clearing pending review</div>
-      <p class="mb-3 text-sm leading-relaxed opacity-85">
+      <div class="label mb-1 text-[#b85e12]">District office · ${formatDate(v.tick)}</div>
+      <div class="mb-3 text-xl font-extrabold">Summons: cease land clearing pending review</div>
+      <p class="mb-3 text-sm leading-relaxed">
         The office has taken note of clearing on your estate. Until the matter is reviewed, every
         clearing crew you hire will cost half again. Burn again, or reach into land that is not
         yours, and the police will be the next to call.
       </p>
-      <p class="mb-5 text-xs opacity-60">
+      <p class="muted mb-5 text-xs">
         Attention falls with quiet seasons, and faster if you plant forest back.
       </p>
       <button
-        class="w-full rounded bg-amber-600 px-3 py-2 font-medium hover:bg-amber-500"
+        class="btn btn-orange btn-lg w-full"
         data-testid="card-dismiss"
         @click=${() => this.handlers.dismiss()}
       >
@@ -104,13 +104,11 @@ export class AuthorityCards {
 
   private investigation(v: CardView) {
     return html`
-      <div class="mb-1 text-xs uppercase tracking-widest text-red-300">
-        Regional police · ${formatDate(v.tick)}
-      </div>
-      <div class="mb-3 text-lg font-semibold">
+      <div class="label mb-1 text-[#c94a30]">Regional police · ${formatDate(v.tick)}</div>
+      <div class="mb-3 text-xl font-extrabold">
         ${v.headline?.title ?? 'Police open an investigation'}
       </div>
-      <p class="mb-3 text-sm leading-relaxed opacity-85">${v.headline?.body ?? ''}</p>
+      <p class="mb-3 text-sm leading-relaxed">${v.headline?.body ?? ''}</p>
       <ul class="mb-4 space-y-1 text-sm">
         <li>
           🚫 No chopping or burning until
@@ -124,7 +122,7 @@ export class AuthorityCards {
           v.settleRejection === null && v.settleCost !== null
             ? html`
                 <button
-                  class="w-full rounded bg-neutral-700 px-3 py-2 text-left hover:bg-neutral-600"
+                  class="btn btn-ghost w-full flex-col items-start gap-0 text-left"
                   data-testid="card-settle"
                   @click=${() => this.handlers.settle()}
                 >
@@ -132,7 +130,7 @@ export class AuthorityCards {
                     <span>Settle the matter</span>
                     <span class="tabular-nums opacity-80">${formatRp(v.settleCost)}</span>
                   </span>
-                  <span class="block text-xs opacity-60"
+                  <span class="muted block text-xs"
                     >Someone at the district office can make this go away. The papers will
                     notice.</span
                   >
@@ -148,7 +146,7 @@ export class AuthorityCards {
               : nothing
         }
         <button
-          class="w-full rounded bg-red-700 px-3 py-2 font-medium hover:bg-red-600"
+          class="btn btn-red btn-lg w-full"
           data-testid="card-dismiss"
           @click=${() => this.handlers.dismiss()}
         >
@@ -160,13 +158,11 @@ export class AuthorityCards {
 
   private ban(v: CardView) {
     return html`
-      <div class="mb-1 text-xs uppercase tracking-widest text-red-300">
-        Ministry enforcement team · ${formatDate(v.tick)}
-      </div>
-      <div class="mb-3 text-lg font-semibold">
+      <div class="label mb-1 text-[#c94a30]">Ministry enforcement team · ${formatDate(v.tick)}</div>
+      <div class="mb-3 text-xl font-extrabold">
         ${v.headline?.title ?? 'Operating licence suspended'}
       </div>
-      <p class="mb-3 text-sm leading-relaxed opacity-85">${v.headline?.body ?? ''}</p>
+      <p class="mb-3 text-sm leading-relaxed">${v.headline?.body ?? ''}</p>
       <ul class="mb-4 space-y-1 text-sm">
         <li>
           🚫 No clearing, palm planting or harvest until
@@ -176,7 +172,7 @@ export class AuthorityCards {
         <li>💸 Upkeep runs at half, and the bank will not lend against a shut estate.</li>
       </ul>
       <button
-        class="w-full rounded bg-red-700 px-3 py-2 font-medium hover:bg-red-600"
+        class="btn btn-red btn-lg w-full"
         data-testid="card-dismiss"
         @click=${() => this.handlers.dismiss()}
       >

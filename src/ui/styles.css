@@ -1,8 +1,12 @@
 @import 'tailwindcss';
 
 /*
- * Game palette tokens (§6.1). Defined once here so the HUD and the 3D palette
- * strip stay in step; the numbers mirror `render/materials/palette.ts`.
+ * Cartoon UI kit (design kit, Sep 2026): cream cards with a hard bottom edge,
+ * inset pills, Baloo 2 throughout, and chunky buttons that press down.
+ *
+ * Tokens first, then the handful of component classes every panel builds
+ * from. The 3D palette lives in `render/materials/palette.ts`; the game
+ * colours below mirror it so the HUD and the world stay in step (§6.1).
  */
 @theme {
   --color-sawit: #2f7a2b;
@@ -14,7 +18,35 @@
   --color-ash: #9a9a9a;
   --color-sky-humid: #cddbe0;
 
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Baloo 2', ui-rounded, 'Segoe UI Rounded', system-ui, sans-serif;
+}
+
+:root {
+  --card: #fff6e0;
+  --card-edge: #f2e0b0;
+  --card-shadow: #d9c48d;
+  --pill: #f7ebc9;
+  --pill-muted: #efe1bf;
+  --ink: #4a3320;
+  --ink-2: #8f7a52;
+  --ink-3: #a08a5e;
+
+  --green: #5fd06a;
+  --green-2: #3faa4c;
+  --green-edge: #2f7a2b;
+  --coral: #ff8a70;
+  --coral-2: #ff6a4d;
+  --coral-edge: #c94a30;
+  --blue: #5a8bff;
+  --blue-edge: #2f56b8;
+  --orange: #ffb03a;
+  --orange-2: #f28b2b;
+  --orange-edge: #b85e12;
+  --red: #e04a3a;
+  --red-edge: #9e2e20;
+  --gold: #ffe9a8;
+  --gold-2: #f4b731;
+  --gold-edge: #d99a1a;
 }
 
 html,
@@ -24,10 +56,274 @@ body,
   margin: 0;
   overflow: hidden;
   background: #10151a;
-  color: #e8eef2;
+  color: var(--ink);
   font-family: var(--font-sans);
+  font-weight: 700;
 }
 
 canvas {
   display: block;
+}
+
+@layer components {
+  /* ── Surfaces ──────────────────────────────────────────────────────── */
+  .card {
+    background: var(--card);
+    border: 2px solid var(--card-edge);
+    border-radius: 18px;
+    box-shadow:
+      0 4px 0 var(--card-shadow),
+      0 10px 24px rgb(74 51 32 / 0.18);
+    color: var(--ink);
+  }
+
+  .card-dark {
+    background: #2c2118;
+    border: 2px solid #4a3320;
+    border-radius: 18px;
+    box-shadow:
+      0 4px 0 #1b140e,
+      0 10px 24px rgb(0 0 0 / 0.35);
+    color: #fff6e0;
+  }
+
+  .pill {
+    background: var(--pill);
+    border-radius: 12px;
+    padding: 0.35rem 0.6rem;
+  }
+
+  .pill-muted {
+    background: var(--pill-muted);
+    border-radius: 12px;
+    padding: 0.35rem 0.6rem;
+  }
+
+  .label {
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .muted {
+    color: var(--ink-2);
+  }
+
+  /* ── Buttons ───────────────────────────────────────────────────────── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border: none;
+    border-radius: 14px;
+    padding: 0.5rem 0.9rem;
+    font-weight: 800;
+    font-size: 0.92rem;
+    color: #fff;
+    cursor: pointer;
+    transition:
+      transform 90ms ease,
+      filter 120ms ease;
+    box-shadow: 0 3px 0 var(--btn-edge, #2f7a2b);
+    background: linear-gradient(180deg, var(--btn-from, #5fd06a), var(--btn-to, #3faa4c));
+  }
+
+  .btn:hover:not(:disabled) {
+    filter: brightness(1.06);
+  }
+
+  .btn:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--btn-edge, #2f7a2b);
+  }
+
+  .btn:disabled,
+  .btn[disabled] {
+    background: var(--pill-muted);
+    color: var(--ink-3);
+    box-shadow: 0 3px 0 #ddcba0;
+    cursor: not-allowed;
+  }
+
+  .btn-sm {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+    border-radius: 11px;
+  }
+
+  .btn-lg {
+    padding: 0.7rem 1.1rem;
+    font-size: 1.05rem;
+    border-radius: 16px;
+  }
+
+  .btn-green {
+    --btn-from: var(--green);
+    --btn-to: var(--green-2);
+    --btn-edge: var(--green-edge);
+  }
+
+  .btn-coral {
+    --btn-from: var(--coral);
+    --btn-to: var(--coral-2);
+    --btn-edge: var(--coral-edge);
+  }
+
+  .btn-blue {
+    --btn-from: #7ba4ff;
+    --btn-to: var(--blue);
+    --btn-edge: var(--blue-edge);
+  }
+
+  .btn-orange {
+    --btn-from: var(--orange);
+    --btn-to: var(--orange-2);
+    --btn-edge: var(--orange-edge);
+  }
+
+  .btn-red {
+    --btn-from: #ef6a58;
+    --btn-to: var(--red);
+    --btn-edge: var(--red-edge);
+  }
+
+  .btn-gold {
+    --btn-from: var(--gold);
+    --btn-to: var(--gold-2);
+    --btn-edge: var(--gold-edge);
+    color: var(--ink);
+  }
+
+  /* A quiet button on cream: reads as a card row, not a call to action. */
+  .btn-ghost {
+    background: var(--pill);
+    color: var(--ink);
+    box-shadow: 0 3px 0 #e2d2a8;
+  }
+
+  .btn-ghost:hover:not(:disabled) {
+    background: #fdf3d9;
+  }
+
+  .btn-ghost:active:not(:disabled) {
+    box-shadow: 0 1px 0 #e2d2a8;
+  }
+
+  /* The round × on every panel. */
+  .btn-close {
+    width: 1.9rem;
+    height: 1.9rem;
+    padding: 0;
+    border-radius: 999px;
+    --btn-from: var(--coral);
+    --btn-to: var(--coral-2);
+    --btn-edge: var(--coral-edge);
+  }
+
+  /* ── Chips, badges, gauges ─────────────────────────────────────────── */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: 999px;
+    padding: 0.28rem 0.7rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #fff;
+    background: var(--chip-bg, #8f7a52);
+    box-shadow: 0 2px 0 var(--chip-edge, #6b5a3c);
+  }
+
+  .chip-fire {
+    --chip-bg: #f28b2b;
+    --chip-edge: #b85e12;
+  }
+
+  .chip-smoke {
+    --chip-bg: #9b7c53;
+    --chip-edge: #6f5636;
+  }
+
+  .chip-ash {
+    --chip-bg: #9a9a9a;
+    --chip-edge: #6f6f6f;
+  }
+
+  .chip-water {
+    --chip-bg: var(--blue);
+    --chip-edge: var(--blue-edge);
+  }
+
+  .chip-dry {
+    --chip-bg: #c9a44a;
+    --chip-edge: #957425;
+  }
+
+  .chip-pest {
+    --chip-bg: var(--red);
+    --chip-edge: var(--red-edge);
+  }
+
+  .chip-econ {
+    --chip-bg: #5a8bff;
+    --chip-edge: var(--blue-edge);
+  }
+
+  .chip-cream {
+    background: var(--pill);
+    color: var(--ink);
+    box-shadow: 0 2px 0 #e2d2a8;
+  }
+
+  /* The cash readout: a gold pill with a coin. */
+  .cash {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: linear-gradient(180deg, #fff3cd, var(--gold));
+    border: 2px solid var(--gold-2);
+    border-radius: 14px;
+    padding: 0.3rem 0.75rem;
+    font-weight: 800;
+    color: var(--ink);
+    box-shadow: 0 2px 0 var(--gold-edge);
+  }
+
+  .gauge {
+    position: relative;
+    height: 0.6rem;
+    width: 5.5rem;
+    border-radius: 999px;
+    background: var(--pill-muted);
+    overflow: hidden;
+    box-shadow: inset 0 2px 0 rgb(0 0 0 / 0.06);
+  }
+
+  .gauge > i {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(180deg, var(--gauge-from, #5fd06a), var(--gauge-to, #3faa4c));
+  }
+
+  .icon {
+    width: 1.15rem;
+    height: 1.15rem;
+    display: inline-block;
+    flex: none;
+  }
+
+  .icon-lg {
+    width: 1.6rem;
+    height: 1.6rem;
+  }
+
+  /* Numbers line up in every panel. */
+  .num {
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+  }
 }

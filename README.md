@@ -60,6 +60,11 @@ pnpm install
 pnpm dev            # http://localhost:5173
 ```
 
+The interface follows the cartoon UI kit: cream cards with a hard bottom
+edge, inset pills, Baloo 2 (Google Fonts, with a rounded system fallback if
+it cannot be fetched), and the 35 flat icons in `public/icons`. The tokens
+and the handful of component classes live in `src/ui/styles.css`.
+
 URL flags: `?webgl` forces the WebGL 2 fallback CI uses; `?seed=42` picks a
 world; `?fresh` ignores the save in this browser; `?spike` opens the §6.9 art
 spike instead of the game; `?models` lays out every scenery model (`src/render/models/`); `?debug` exposes the running sim as

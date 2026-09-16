@@ -13,11 +13,22 @@ import { kopdesRange } from '@sim/kopdes';
 import type { Command, DispatchResult, ItemId } from '@sim/types';
 
 import { formatDate, formatKg, formatRp } from './format.ts';
+import { icon, type IconName } from './icons.ts';
 
 export interface ShopHandlers {
   dispatch(command: Command): DispatchResult;
   close(): void;
 }
+
+const ITEM_ICON: Record<ItemId, IconName> = {
+  bibit: 'shop-bibit',
+  forestSapling: 'shop-sapling',
+  fertilizer: 'shop-fertilizer',
+  sanitationCrew: 'shop-sanitation',
+  pheromoneTrap: 'shop-trap',
+  metarhizium: 'shop-metarhizium',
+  trichoderma: 'shop-trichoderma',
+};
 
 interface ShopRow {
   item: ItemId;
@@ -120,21 +131,23 @@ export class KopdesShop {
     const kopdes = state.kopdes;
     return html`
       <div
-        class="absolute top-20 left-3 z-10 w-[26rem] max-w-[calc(100vw-1.5rem)] rounded-xl bg-black/70 p-4 text-sm text-white shadow-lg backdrop-blur"
+        class="card absolute top-24 left-3 z-10 max-h-[calc(100vh-8rem)] w-[26rem] max-w-[calc(100vw-1.5rem)] overflow-y-auto p-4 text-sm"
         data-testid="kopdes-shop"
       >
         <div class="mb-3 flex items-start justify-between gap-2">
-          <div>
-            <div class="text-xs uppercase tracking-wide opacity-60">Koperasi Desa</div>
-            <div class="font-semibold">
-              ${kopdes ? html`Kopdes · level ${kopdes.level} · range ${kopdesRange(kopdes.level)} blocks` : 'No Kopdes yet'}
+          <div class="flex items-center gap-2.5">
+            <span class="pill flex h-10 w-10 items-center justify-center"
+              >${icon('kopdes', 'icon-lg')}</span
+            >
+            <div>
+              <div class="label">Koperasi Desa</div>
+              <div class="text-base font-extrabold leading-tight">
+                ${kopdes ? html`Kopdes shop` : 'No Kopdes yet'}
+              </div>
+              ${kopdes ? html`<div class="label">Level ${kopdes.level} · sells within ${kopdesRange(kopdes.level)} blocks</div>` : nothing}
             </div>
           </div>
-          <button
-            class="rounded px-2 py-0.5 hover:bg-white/15"
-            aria-label="Close"
-            @click=${() => this.handlers.close()}
-          >
+          <button class="btn btn-close" aria-label="Close" @click=${() => this.handlers.close()}>
             ✕
           </button>
         </div>
@@ -142,25 +155,25 @@ export class KopdesShop {
         ${
           kopdes
             ? html`
-                <div class="mb-3 flex gap-1 rounded bg-white/5 p-1 text-xs">
+                <div class="pill-muted mb-3 flex gap-1 p-1 text-xs">
                   ${(['buy', 'sell'] as Tab[]).map(
                     (tab) => html`
                       <button
-                        class=${this.tab === tab ? 'flex-1 rounded bg-white/15 px-2 py-1 font-medium' : 'flex-1 rounded px-2 py-1 opacity-70 hover:bg-white/10'}
+                        class=${`btn btn-sm flex-1 ${this.tab === tab ? (tab === 'buy' ? 'btn-coral' : 'btn-green') : 'btn-ghost'}`}
                         data-testid=${`shop-tab-${tab}`}
                         @click=${() => {
                           this.tab = tab;
                           this.refresh();
                         }}
                       >
-                        ${tab === 'buy' ? 'Buy' : 'Sell & upgrade'}
+                        ${tab === 'buy' ? 'BUY' : 'SELL & UPGRADE'}
                       </button>
                     `,
                   )}
                 </div>
                 ${this.tab === 'buy' ? this.buyTab(sim) : this.sellTab(sim)}
               `
-            : html`<div class="text-xs opacity-70">
+            : html`<div class="muted text-xs">
                 Place the Kopdes on a cleared block to open the shop.
               </div>`
         }
@@ -175,7 +188,7 @@ export class KopdesShop {
       <div class="flex flex-col gap-3">
         ${
           index !== 1
-            ? html`<div class="text-xs text-amber-200/90">
+            ? html`<div class="pill-muted text-xs font-bold text-[#b85e12]">
                 Input prices at ${Math.round(index * 100)}% of baseline.
               </div>`
             : nothing
@@ -183,15 +196,20 @@ export class KopdesShop {
         ${ROWS.map((row) => {
           const unit = itemPrice(row.item, index);
           return html`
-            <div class="rounded bg-white/5 p-2">
+            <div class="pill-muted p-2.5">
               <div class="flex items-baseline justify-between gap-2">
-                <div>
-                  <div class="font-medium">${row.label}</div>
-                  <div class="text-xs opacity-60">${row.note}</div>
+                <div class="flex items-start gap-2">
+                  <span class="pill flex h-9 w-9 shrink-0 items-center justify-center"
+                    >${icon(ITEM_ICON[row.item])}</span
+                  >
+                  <div>
+                    <div class="font-extrabold">${row.label}</div>
+                    <div class="muted text-xs">${row.note}</div>
+                  </div>
                 </div>
-                <div class="text-right text-xs">
-                  <div class="tabular-nums">${formatRp(unit)} each</div>
-                  <div class="opacity-60">
+                <div class="shrink-0 text-right text-xs">
+                  <div class="num">${formatRp(unit)} each</div>
+                  <div class="muted">
                     in stock:
                     <span data-testid=${`stock-${row.item}`}>${state.inventory[row.item]}</span>
                   </div>
@@ -203,11 +221,7 @@ export class KopdesShop {
                   const rejection = sim.validate(command);
                   return html`
                     <button
-                      class=${
-                        rejection
-                          ? 'flex-1 cursor-not-allowed rounded bg-white/10 px-2 py-1.5 text-xs opacity-60'
-                          : 'flex-1 rounded bg-emerald-600 px-2 py-1.5 text-xs font-medium hover:bg-emerald-500'
-                      }
+                      class="btn btn-sm btn-green flex-1 flex-col gap-0"
                       ?disabled=${rejection !== null}
                       title=${rejection?.reason ?? ''}
                       data-testid=${`buy-${row.item}-${quantity}`}
@@ -216,7 +230,10 @@ export class KopdesShop {
                         this.refresh();
                       }}
                     >
-                      Buy ${quantity} · ${formatRp(unit * quantity)}
+                      <span>Buy ${quantity}</span>
+                      <span class="num text-[0.68rem] opacity-90"
+                        >${formatRp(unit * quantity)}</span
+                      >
                     </button>
                   `;
                 })}
@@ -246,32 +263,32 @@ export class KopdesShop {
 
     return html`
       <div class="flex flex-col gap-3">
-        <div class="rounded bg-white/5 p-2">
+        <div class="pill-muted p-2.5">
           <div class="flex items-baseline justify-between">
-            <div class="font-medium">TBS today</div>
-            <div class="tabular-nums" data-testid="shop-price">
-              ${formatRp(e.tbsPrice)}/kg <span class="opacity-70">${trend}</span>
+            <div class="font-extrabold">TBS today</div>
+            <div class="num" data-testid="shop-price">
+              ${formatRp(e.tbsPrice)}/kg <span class="muted">${trend}</span>
             </div>
           </div>
-          <div class="mt-1 text-xs opacity-70">
+          <div class="muted mt-1 text-xs">
             Harvested fruit inside range sells the same day at this price. Lifetime sold:
             ${formatKg(e.soldKgTotal)}.
           </div>
         </div>
 
-        <div class="rounded bg-white/5 p-2">
-          <div class="mb-1 font-medium">Recent sales</div>
+        <div class="pill-muted p-2.5">
+          <div class="mb-1 font-extrabold">Recent sales</div>
           ${
             sales.length === 0
-              ? html`<div class="text-xs opacity-60">Nothing sold yet.</div>`
+              ? html`<div class="muted text-xs">Nothing sold yet.</div>`
               : html`
                   <ul class="text-xs">
                     ${sales.map(
                       (sale) => html`
                         <li class="flex justify-between gap-2 py-0.5">
-                          <span class="opacity-70">${formatDate(sale.tick)}</span>
-                          <span class="opacity-70">${sale.note ?? ''}</span>
-                          <span class="tabular-nums">${formatRp(sale.amount)}</span>
+                          <span class="muted">${formatDate(sale.tick)}</span>
+                          <span class="muted">${sale.note ?? ''}</span>
+                          <span class="num">${formatRp(sale.amount)}</span>
                         </li>
                       `,
                     )}
@@ -280,10 +297,10 @@ export class KopdesShop {
           }
         </div>
 
-        <div class="rounded bg-white/5 p-2">
+        <div class="pill-muted p-2.5">
           <div class="flex items-baseline justify-between">
-            <div class="font-medium">Upgrade Kopdes</div>
-            <div class="text-xs opacity-70">
+            <div class="font-extrabold">Upgrade Kopdes</div>
+            <div class="muted text-xs">
               ${upgradeCost === null ? 'max level' : `level ${kopdes.level} → ${kopdes.level + 1}, range ${kopdesRange(kopdes.level + 1)}`}
             </div>
           </div>
@@ -300,12 +317,12 @@ export class KopdesShop {
               this.refresh();
             }}
           >
-            <span class="flex justify-between gap-2">
+            <span class="flex w-full items-center justify-between gap-2">
               <span>Upgrade</span>
-              ${upgradeCost !== null ? html`<span class="tabular-nums opacity-80">${formatRp(upgradeCost)}</span>` : nothing}
+              ${upgradeCost !== null ? html`<span class="num rounded-lg bg-black/15 px-1.5 py-0.5 text-xs">${formatRp(upgradeCost)}</span>` : nothing}
             </span>
           </button>
-          ${upgradeRejection ? html`<div class="mt-0.5 px-1 text-xs text-amber-200/90">${upgradeRejection.reason}</div>` : nothing}
+          ${upgradeRejection ? html`<div class="mt-0.5 px-1 text-xs font-bold text-[#b85e12]">${upgradeRejection.reason}</div>` : nothing}
         </div>
       </div>
     `;

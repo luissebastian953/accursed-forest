@@ -67,10 +67,10 @@ export class ControlsHelp {
       ([key, what]) => html`
         <li class="flex items-baseline gap-3">
           <kbd
-            class="min-w-[5.5rem] shrink-0 rounded bg-white/10 px-1.5 py-0.5 text-center font-mono text-xs"
+            class="pill-muted min-w-[5.5rem] shrink-0 px-1.5 py-0.5 text-center font-mono text-xs"
             >${key}</kbd
           >
-          <span class="opacity-85">${what}</span>
+          <span class="font-bold">${what}</span>
         </li>
       `,
     );
@@ -84,28 +84,28 @@ export class ControlsHelp {
     render(
       html`
         <div
-          class="absolute left-3 top-24 z-30 w-[min(20rem,calc(100%-1.5rem))] rounded-xl bg-stone-900/95 p-4 text-sm text-white shadow-2xl backdrop-blur"
+          class="card absolute left-3 top-28 z-30 w-[min(20rem,calc(100%-1.5rem))] p-4 text-sm"
           data-testid="controls-help"
         >
           <div class="mb-2 flex items-center justify-between">
-            <div class="font-semibold">Controls</div>
+            <div class="text-base font-extrabold">Controls</div>
             <button
-              class="rounded px-2 py-0.5 hover:bg-white/10"
+              class="btn btn-close"
               data-testid="controls-help-close"
               @click=${() => this.handlers.close()}
             >
               ✕
             </button>
           </div>
-          <div class="mb-1 text-xs uppercase tracking-wide opacity-60">Mouse</div>
+          <div class="label mb-1">Mouse</div>
           <ul class="mb-3 space-y-1">
             ${this.rows(MOUSE)}
           </ul>
-          <div class="mb-1 text-xs uppercase tracking-wide opacity-60">Keyboard</div>
+          <div class="label mb-1">Keyboard</div>
           <ul class="mb-3 space-y-1">
             ${this.rows(KEYS)}
           </ul>
-          <p class="text-xs leading-relaxed opacity-60">
+          <p class="muted text-xs leading-relaxed">
             Start by clicking the bare brown block: build the Kopdes there, then chop or burn a
             block, buy bibit, plant, and harvest when the palms bear.
           </p>

@@ -72,39 +72,32 @@ export class Menu {
     render(
       html`
         <div
-          class="absolute inset-0 z-30 flex items-center justify-center bg-black/50 p-4"
+          class="absolute inset-0 z-30 flex items-center justify-center bg-[rgba(74,51,32,0.45)] p-4"
           @click=${(e: Event) => e.target === e.currentTarget && this.hide()}
         >
-          <div
-            class="w-full max-w-md rounded-2xl bg-neutral-900 p-6 text-white shadow-2xl"
-            data-testid="menu"
-          >
+          <div class="card w-full max-w-md p-6" data-testid="menu">
             <div class="mb-4 flex items-start justify-between">
               <div>
-                <div class="text-lg font-semibold">Sawit Simulator</div>
-                <div class="text-xs opacity-60">
-                  Estate code <span class="font-mono">${v.estateCode}</span>
+                <div class="text-2xl font-extrabold text-[#3faa4c]">Sawit Simulator</div>
+                <div class="label mt-1">
+                  Estate code <span class="pill-muted px-1.5 py-0.5">${v.estateCode}</span>
                 </div>
               </div>
-              <button
-                class="rounded px-2 py-0.5 hover:bg-white/15"
-                aria-label="Close"
-                @click=${() => this.hide()}
-              >
+              <button class="btn btn-close" aria-label="Close" @click=${() => this.hide()}>
                 ✕
               </button>
             </div>
 
             <div class="mb-5 grid grid-cols-2 gap-2">
               <button
-                class="rounded bg-emerald-600 px-3 py-2 font-medium hover:bg-emerald-500"
+                class="btn btn-green btn-lg"
                 data-testid="menu-save"
                 @click=${() => this.handlers.save()}
               >
                 Save
               </button>
               <button
-                class=${v.hasSave ? 'rounded bg-white/10 px-3 py-2 font-medium hover:bg-white/20' : 'rounded bg-white/5 px-3 py-2 opacity-40'}
+                class="btn btn-ghost btn-lg"
                 ?disabled=${!v.hasSave}
                 data-testid="menu-load"
                 @click=${() => this.handlers.load()}
@@ -112,21 +105,21 @@ export class Menu {
                 Load
               </button>
             </div>
-            <div class="mb-5 text-xs opacity-70">
+            <div class="muted mb-5 text-xs">
               ${
                 v.saveError
-                  ? html`<span class="text-red-300">${v.saveError}</span>`
+                  ? html`<span class="text-[#9e2e20]">${v.saveError}</span>`
                   : v.lastSavedAt
                     ? html`Last saved ${new Date(v.lastSavedAt).toLocaleString()}`
                     : 'Not saved yet — autosave runs every 30 days.'
               }
             </div>
 
-            <div class="border-t border-white/10 pt-4">
-              <div class="mb-2 text-sm font-medium">New estate</div>
-              <div class="flex gap-2">
+            <div class="border-t-2 border-dashed border-[#f2e0b0] pt-4">
+              <div class="mb-2 text-sm font-extrabold">New estate</div>
+              <div class="flex flex-col gap-2">
                 <input
-                  class="min-w-0 flex-1 rounded bg-white/10 px-3 py-2 font-mono text-sm placeholder:opacity-40"
+                  class="min-w-0 flex-1 rounded-xl border-2 border-[#f2e0b0] bg-white px-3 py-2 text-sm font-bold text-[#4a3320] outline-none placeholder:text-[#c4b083] focus:border-[#5fd06a]"
                   placeholder="Estate code (optional)"
                   .value=${this.codeInput}
                   @input=${(e: Event) => {
@@ -135,15 +128,15 @@ export class Menu {
                   }}
                 />
                 <button
-                  class="rounded bg-white/10 px-3 py-2 font-medium hover:bg-white/20"
+                  class="btn btn-coral btn-lg w-full tracking-wide"
                   data-testid="menu-new"
                   @click=${() => this.startNew()}
                 >
-                  Start
+                  START A GAME
                 </button>
               </div>
-              ${this.codeError ? html`<div class="mt-1 text-xs text-amber-200">${this.codeError}</div>` : nothing}
-              <div class="mt-2 text-xs opacity-60">
+              ${this.codeError ? html`<div class="mt-1 text-xs font-bold text-[#b85e12]">${this.codeError}</div>` : nothing}
+              <div class="muted mt-2 text-xs">
                 Leave the code empty for a random world. Starting a new estate replaces the current
                 one.
               </div>

@@ -68,6 +68,8 @@ const SLOT = 'slot0';
 const SNAPSHOTS_KEPT = 25;
 /** How long the certificate ceremony plays before the epilogue covers it. */
 const CEREMONY_MS = 4_500;
+/** How often the DOM panels re-read the sim. */
+const UI_REFRESH_MS = 100;
 const SNAPSHOT_KEY = new RegExp(`^${KEY_PREFIX}:save:year:(\\d+)$`);
 
 function randomSeed(): number {
@@ -925,6 +927,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     return { smoke, ash: activeEvent(state, ASH_EVENT) ? 1 : 0 };
   }
 
+  let lastUiMs = -1;
+
   function onFrame(dt: number, nowMs: number): void {
     rig.update(dt, nowMs);
     rig.visibleGround(visible);
@@ -945,9 +949,15 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     sky.update(sim.state.weather, uniforms, atmosphere(), dt);
     rain.update(dt, sim.state.weather.rain, visible, time.speed > 0);
 
-    refreshHud();
-    if (panel.selected !== null) panel.refresh();
-    if (shop.isOpen) shop.refresh();
+    // The panels are DOM: ten refreshes a second is plenty, and it leaves the
+    // frame budget to the world. (Every frame cost the sim a third of its
+    // ticks at 20x on the software renderer.)
+    if (nowMs - lastUiMs >= UI_REFRESH_MS) {
+      lastUiMs = nowMs;
+      refreshHud();
+      if (panel.selected !== null) panel.refresh();
+      if (shop.isOpen) shop.refresh();
+    }
     // Bloom only while something glows: it costs a few full-screen passes.
     if (fires.burning) glow.render();
     else handle.render(scene, rig.camera);

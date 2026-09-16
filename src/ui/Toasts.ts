@@ -2,6 +2,8 @@
 
 import { html, render } from 'lit-html';
 
+import { icon, type IconName } from './icons.ts';
+
 export type ToastKind = 'info' | 'warn' | 'error';
 
 interface Toast {
@@ -9,6 +11,18 @@ interface Toast {
   text: string;
   kind: ToastKind;
 }
+
+const TONE: Record<ToastKind, string> = {
+  info: 'border-[#f2e0b0] bg-[#fff6e0] text-[#4a3320]',
+  warn: 'border-[#ffcf8f] bg-[#fff1d6] text-[#8a4b12]',
+  error: 'border-[#ffb3a3] bg-[#ffe6e0] text-[#9e2e20]',
+};
+
+const MARK: Record<ToastKind, IconName> = {
+  info: 'news',
+  warn: 'fire',
+  error: 'police-warning',
+};
 
 export class Toasts {
   private readonly root: HTMLElement;
@@ -21,7 +35,7 @@ export class Toasts {
   ) {
     this.root = document.createElement('div');
     this.root.className =
-      'pointer-events-none absolute bottom-14 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-2';
+      'pointer-events-none absolute bottom-16 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-2';
     parent.appendChild(this.root);
   }
 
@@ -39,22 +53,21 @@ export class Toasts {
 
   private render(): void {
     render(
-      html`${this.items.map(
-        (toast) => html`
-          <div
-            class=${`rounded-lg px-4 py-2 text-sm text-white shadow-lg backdrop-blur ${
-              toast.kind === 'error'
-                ? 'bg-red-700/85'
-                : toast.kind === 'warn'
-                  ? 'bg-amber-700/85'
-                  : 'bg-black/70'
-            }`}
-            data-testid="toast"
-          >
-            ${toast.text}
-          </div>
-        `,
-      )}`,
+      html`
+        ${this.items.map(
+          (toast) => html`
+            <div
+              class=${`flex max-w-[min(34rem,calc(100vw-2rem))] items-center gap-2 rounded-2xl border-2 px-3.5 py-2 text-sm font-bold shadow-[0_3px_0_rgba(217,196,141,0.9)] ${TONE[toast.kind]}`}
+              data-testid="toast"
+            >
+              <span class="pill flex h-6 w-6 items-center justify-center">
+                ${icon(MARK[toast.kind])}
+              </span>
+              <span>${toast.text}</span>
+            </div>
+          `,
+        )}
+      `,
       this.root,
     );
   }

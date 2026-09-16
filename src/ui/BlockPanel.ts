@@ -39,6 +39,7 @@ import type {
 } from '@sim/types';
 
 import { formatKg, formatPercent, formatRp } from './format.ts';
+import { icon, type IconName } from './icons.ts';
 
 export interface BlockPanelHandlers {
   dispatch(command: Command): DispatchResult;
@@ -61,6 +62,29 @@ const BIOME_LABEL: Record<Biome, string> = {
   village: 'Village land',
   swamp: 'Swamp (rawa)',
 };
+
+/** Which icon heads the panel: what is on the block, or what it is. */
+function blockIcon(biome: Biome, phase: string): IconName {
+  if (phase === 'kopdes') return 'kopdes';
+  if (phase === 'planted' || phase === 'reforesting') return 'biome-palm-planted';
+  if (phase === 'cleared' || phase === 'clearing') return 'biome-forest-cleared';
+  switch (biome) {
+    case 'forest':
+    case 'protected':
+    case 'rubber':
+      return 'biome-forest-wild';
+    case 'scrub':
+      return 'biome-scrub';
+    case 'hills':
+      return 'biome-hills';
+    case 'river':
+    case 'riverbank':
+    case 'swamp':
+      return 'biome-river';
+    default:
+      return 'biome-grassfield';
+  }
+}
 
 const STAGE_ORDER: GrowthStage[] = ['seedling', 'immature', 'mature', 'senile', 'dead'];
 const INTENSITY_LABEL: Record<FireIntensity, string> = { 1: 'Low', 2: 'Medium', 3: 'High' };
@@ -251,72 +275,69 @@ export class BlockPanel {
     }
 
     return html`
-      <div
-        class="rounded-xl bg-black/65 p-4 text-sm text-white shadow-lg backdrop-blur"
-        data-testid="block-panel"
-      >
-        <div class="mb-2 flex items-start justify-between gap-2">
-          <div>
-            <div class="text-xs uppercase tracking-wide opacity-60">Block ${x}, ${y}</div>
-            <div class="font-semibold">
-              ${block.phase === 'kopdes' ? 'Kopdes' : BIOME_LABEL[block.biome]}
+      <div class="card p-4 text-sm" data-testid="block-panel">
+        <div class="mb-3 flex items-start justify-between gap-2">
+          <div class="flex items-center gap-2.5">
+            <span class="pill flex h-10 w-10 items-center justify-center">
+              ${icon(blockIcon(block.biome, block.phase), 'icon-lg')}
+            </span>
+            <div>
+              <div class="label">Block ${x}, ${y}</div>
+              <div class="text-base font-extrabold leading-tight">
+                ${block.phase === 'kopdes' ? 'Kopdes' : BIOME_LABEL[block.biome]}
+              </div>
+              <div class="label" data-testid="block-phase">
+                ${phaseLabel(block.phase, block.clearProgress, block.burning, block.fireIntensity)}
+              </div>
             </div>
           </div>
-          <button
-            class="rounded px-2 py-0.5 hover:bg-white/15"
-            aria-label="Close"
-            @click=${() => this.handlers.close()}
-          >
+          <button class="btn btn-close" aria-label="Close" @click=${() => this.handlers.close()}>
             ✕
           </button>
         </div>
 
-        <dl class="mb-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
-          <dt class="opacity-60">Status</dt>
-          <dd data-testid="block-phase">
-            ${phaseLabel(block.phase, block.clearProgress, block.burning, block.fireIntensity)}
-          </dd>
-          <dt class="opacity-60">Title</dt>
+        <dl class="pill mb-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
+          <dt class="label">Title</dt>
           <dd>${block.owned ? 'Yours' : block.forSale ? 'For sale' : 'Not for sale'}</dd>
-          <dt class="opacity-60">Elevation</dt>
+          <dt class="label">Elevation</dt>
           <dd>${block.elevation}${block.slope ? ' · slope' : ''}</dd>
           ${
             block.slope
-              ? html`<dt class="opacity-60">Slope</dt>
+              ? html`<dt class="label">Slope</dt>
                   <dd data-testid="block-slope">${slopeLine(sim, id)}</dd>`
               : nothing
           }
-          <dt class="opacity-60">Moisture</dt>
+          <dt class="label">Moisture</dt>
           <dd>
             ${formatPercent(block.moisture)}${block.irrigated ? ' · irrigated' : ''}${block.drained ? ' · drained' : ''}
           </dd>
           ${
             block.debris > 0
-              ? html`<dt class="opacity-60">Debris</dt>
+              ? html`<dt class="label">Debris</dt>
                   <dd data-testid="block-debris">${Math.round(block.debris)} / 100</dd>`
               : nothing
           }
           ${
             block.ashUntil > state.tick
-              ? html`<dt class="opacity-60">Ash</dt>
+              ? html`<dt class="label">Ash</dt>
                   <dd>fertile for ${block.ashUntil - state.tick} more days</dd>`
               : nothing
           }
           ${
             block.phase === 'wild'
-              ? html`<dt class="opacity-60">Plantable</dt>
+              ? html`<dt class="label">Plantable</dt>
                   <dd>${spec.plantableSlots} / 144 slots</dd>`
               : nothing
           }
           ${
             block.fertilizedUntil > state.tick
-              ? html`<dt class="opacity-60">Fertilized</dt>
+              ? html`<dt class="label">Fertilized</dt>
                   <dd>${block.fertilizedUntil - state.tick} days left</dd>`
               : nothing
           }
           ${
             block.owned && block.phase !== 'kopdes' && state.kopdes
-              ? html`<dt class="opacity-60">Kopdes</dt>
+              ? html`<dt class="label">Kopdes</dt>
                   <dd data-testid="block-range">
                     ${
                       inKopdesRange(state, world, id)
@@ -349,30 +370,22 @@ export class BlockPanel {
 
   private actionButton(sim: Sim, action: Action) {
     const rejection = sim.validate(action.command);
-    const base = action.minor
-      ? 'rounded px-2.5 py-1 text-left text-xs'
-      : 'w-full rounded px-3 py-1.5 text-left';
+    const base = action.minor ? 'btn btn-sm' : 'btn w-full';
     return html`
       <div>
         <button
-          class=${
-            rejection
-              ? `${base} cursor-not-allowed bg-white/10 opacity-60`
-              : action.minor
-                ? `${base} bg-white/15 font-medium hover:bg-white/25`
-                : `${base} bg-emerald-600 font-medium hover:bg-emerald-500`
-          }
+          class=${action.minor ? `${base} btn-ghost` : `${base} btn-green`}
           ?disabled=${rejection !== null}
           title=${rejection?.reason ?? ''}
           data-testid=${action.testId}
           @click=${() => this.act(action.command)}
         >
-          <span class="flex justify-between gap-2">
+          <span class="flex w-full items-center justify-between gap-2">
             <span>${action.label}</span>
-            ${action.cost !== undefined ? html`<span class="tabular-nums opacity-80">${formatRp(action.cost)}</span>` : nothing}
+            ${action.cost !== undefined ? html`<span class="num rounded-lg bg-black/15 px-1.5 py-0.5 text-xs">${formatRp(action.cost)}</span>` : nothing}
           </span>
         </button>
-        ${rejection && !action.minor ? html`<div class="mt-0.5 px-1 text-xs text-amber-200/90">${rejection.reason}</div>` : nothing}
+        ${rejection && !action.minor ? html`<div class="mt-0.5 px-1 text-xs font-bold text-[#b85e12]">${rejection.reason}</div>` : nothing}
       </div>
     `;
   }
@@ -389,14 +402,14 @@ export class BlockPanel {
 
     return html`
       <div
-        class="rounded bg-orange-950/40 p-2"
+        class="rounded-2xl border-2 border-[#ffd6a1] bg-[#ffeed6] p-2.5"
         data-testid="burn-section"
         @mouseenter=${() => this.handlers.hoverBurn(fuel)}
         @mouseleave=${() => this.handlers.hoverBurn(null)}
       >
         <div class="mb-1.5 flex items-baseline justify-between text-xs">
-          <span class="font-medium">Burn</span>
-          <span class="opacity-70"
+          <span class="flex items-center gap-1.5 font-extrabold">${icon('fire')} Burn</span>
+          <span class="muted num"
             >${formatRp(FIRE.burnCost)} · pressure ${pressure.toFixed(1)} / ${threshold}</span
           >
         </div>
@@ -407,33 +420,27 @@ export class BlockPanel {
             const tips = pressure + FIRE.pressure[intensity] > threshold;
             return html`
               <button
-                class=${
-                  rejection
-                    ? 'flex-1 cursor-not-allowed rounded bg-white/10 px-2 py-1.5 text-xs opacity-60'
-                    : tips
-                      ? 'flex-1 rounded bg-red-700 px-2 py-1.5 text-xs font-medium hover:bg-red-600'
-                      : 'flex-1 rounded bg-orange-700 px-2 py-1.5 text-xs font-medium hover:bg-orange-600'
-                }
+                class=${`btn btn-sm flex-1 flex-col gap-0 ${tips ? 'btn-red' : 'btn-orange'}`}
                 ?disabled=${rejection !== null}
                 title=${rejection?.reason ?? (tips ? 'This would tip the fire pressure over the line.' : '')}
                 data-testid=${`action-BurnBlock-${intensity}`}
                 @click=${() => this.act(command)}
               >
                 ${INTENSITY_LABEL[intensity]}
-                <span class="block opacity-80"
+                <span class="block text-[0.68rem] font-bold opacity-90"
                   >${FIRE.burnDays[intensity]} d · +${FIRE.pressure[intensity]}</span
                 >
               </button>
             `;
           })}
         </div>
-        <div class="mt-1.5 text-xs opacity-70" data-testid="burn-preview">
+        <div class="muted mt-1.5 text-xs" data-testid="burn-preview">
           ${
             fuel.length === 0
               ? 'Nothing next door will catch.'
               : `Could spread to ${fuel.length} neighbour${fuel.length === 1 ? '' : 's'}${state.weather.regime === 'elNino' ? ' — doubled this El Niño year' : ''}.`
           }
-          ${wildfire ? html`<span class="text-red-300"> A wildfire is burning: any new fire joins it.</span>` : nothing}
+          ${wildfire ? html`<span class="text-[#9e2e20]"> A wildfire is burning: any new fire joins it.</span>` : nothing}
         </div>
       </div>
     `;
@@ -442,13 +449,13 @@ export class BlockPanel {
   private kopdesSection(sim: Sim) {
     const kopdes = sim.state.kopdes!;
     return html`
-      <div class="mb-3 rounded bg-white/5 p-2 text-xs">
+      <div class="pill mb-3 text-xs">
         <div class="flex items-baseline justify-between">
-          <span class="font-medium">Level ${kopdes.level}</span>
-          <span class="opacity-70">sells within ${kopdesRange(kopdes.level)} blocks</span>
+          <span class="font-extrabold">Level ${kopdes.level}</span>
+          <span class="muted">sells within ${kopdesRange(kopdes.level)} blocks</span>
         </div>
         <button
-          class="mt-2 w-full rounded bg-white/10 px-3 py-1.5 text-left font-medium hover:bg-white/20"
+          class="btn btn-ghost mt-2 w-full justify-between"
           data-testid="action-OpenShop"
           @click=${() => this.handlers.openShop()}
         >
@@ -486,7 +493,7 @@ export class BlockPanel {
     const days = daysUntilRipe(block, state.tick);
 
     return html`
-      <div class="mb-3 rounded bg-white/5 p-2 text-xs">
+      <div class="pill mb-3 text-xs">
         <div class="mb-1 font-medium">
           ${block.species === 'forest' ? 'Forest' : 'Palms'} · ${growthN}
         </div>
@@ -563,16 +570,15 @@ export class BlockPanel {
       windows.push(`Trichoderma ${block.trichodermaUntil - tick} d`);
 
     return html`
-      <div class="mb-3 rounded bg-white/5 p-2 text-xs" data-testid="pest-section">
+      <div
+        class="mb-3 rounded-2xl border-2 border-[#ffc9bd] bg-[#ffece7] p-2.5 text-xs"
+        data-testid="pest-section"
+      >
         <div class="mb-1 flex items-baseline justify-between">
-          <span class="font-medium">Pests</span>
+          <span class="flex items-center gap-1.5 font-extrabold">${icon('beetle')} Pests</span>
           ${
             block.plagued
-              ? html`<span
-                  class="rounded bg-red-700 px-1.5 py-0.5 font-semibold"
-                  data-testid="plague-badge"
-                  >PLAGUE</span
-                >`
+              ? html`<span class="chip chip-pest" data-testid="plague-badge">PLAGUE</span>`
               : html`<span class="opacity-60"
                   >pressure ${pressure.toFixed(2)} / ${PLAGUE.onAt}</span
                 >`
@@ -617,16 +623,16 @@ export class BlockPanel {
     for (let slot = 0; slot < palms.plantedAt.length; slot++) {
       const stage = slotStage(palms, slot, block.species, state.tick);
       const g = palms.ganoderma[slot]!;
-      let cls = 'bg-white/5';
-      if (stage === 'dead') cls = 'bg-neutral-700';
-      else if (g === 2) cls = 'bg-amber-400';
-      else if (stage === 'mature' || stage === 'senile') cls = 'bg-emerald-500';
-      else if (stage === 'immature') cls = 'bg-lime-400';
-      else if (stage === 'seedling') cls = 'bg-lime-200';
+      let cls = 'bg-[#efe1bf]';
+      if (stage === 'dead') cls = 'bg-[#6f6f6f]';
+      else if (g === 2) cls = 'bg-[#ffb03a]';
+      else if (stage === 'mature' || stage === 'senile') cls = 'bg-[#3faa4c]';
+      else if (stage === 'immature') cls = 'bg-[#7fb03a]';
+      else if (stage === 'seedling') cls = 'bg-[#cbe08a]';
       const health = palms.health[slot]!;
       if (stage !== 'empty' && stage !== 'dead' && health < 128) cls += ' opacity-60';
-      const ring = palms.trenched[slot] === 1 ? ' ring-1 ring-sky-300' : '';
-      const selected = this.slot === slot ? ' outline outline-2 outline-white' : '';
+      const ring = palms.trenched[slot] === 1 ? ' ring-2 ring-[#5a8bff]' : '';
+      const selected = this.slot === slot ? ' outline outline-2 outline-[#4a3320]' : '';
       cells.push(html`
         <button
           class=${`h-3 w-3 rounded-[2px] ${cls}${ring}${selected}`}
@@ -660,28 +666,28 @@ export class BlockPanel {
         minor: true,
       };
       detail = html`
-        <div class="mt-2 rounded bg-black/30 p-2" data-testid="slot-detail">
+        <div class="pill mt-2" data-testid="slot-detail">
           <div class="flex justify-between">
             <span>Slot ${slotRow(slot)},${slotCol(slot)} · ${stage}</span>
-            <span class="opacity-70">health ${Math.round((palms.health[slot]! / 255) * 100)}%</span>
+            <span class="muted num">health ${Math.round((palms.health[slot]! / 255) * 100)}%</span>
           </div>
-          ${g === 2 ? html`<div class="text-amber-200">Ganoderma — visibly sick. Remove it before it spreads.</div>` : nothing}
-          ${g === 3 ? html`<div class="text-amber-200">Dead stump — still infectious until removed.</div>` : nothing}
-          ${palms.trenched[slot] === 1 ? html`<div class="text-sky-200">Trenched: root links cut.</div>` : nothing}
+          ${g === 2 ? html`<div class="text-[#b85e12]">Ganoderma — visibly sick. Remove it before it spreads.</div>` : nothing}
+          ${g === 3 ? html`<div class="text-[#b85e12]">Dead stump — still infectious until removed.</div>` : nothing}
+          ${palms.trenched[slot] === 1 ? html`<div class="text-[#2f56b8]">Trenched: root links cut.</div>` : nothing}
           <div class="mt-1.5 flex flex-wrap gap-1.5">
             ${[remove, trench].map((a) => this.actionButton(sim, a))}
           </div>
         </div>
       `;
     } else if (slot !== null) {
-      detail = html`<div class="mt-2 rounded bg-black/30 p-2 opacity-70" data-testid="slot-detail">
+      detail = html`<div class="pill muted mt-2" data-testid="slot-detail">
         Slot ${slotRow(slot)},${slotCol(slot)} is empty — Replant gaps fills it.
       </div>`;
     }
 
     return html`
       <div class="mt-2">
-        <div class="mb-1 opacity-60">Palms by slot — click one</div>
+        <div class="label mb-1">Palms by slot — click one</div>
         <div class="grid grid-cols-12 gap-[2px]" data-testid="slot-grid">${cells}</div>
         ${detail}
       </div>

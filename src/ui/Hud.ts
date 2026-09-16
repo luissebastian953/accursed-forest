@@ -1,15 +1,15 @@
 /**
- * Top bar and time controls (§8 panels 1–2, 5–8). lit-html templates, patched
- * on change; no framework.
+ * Top bar and time controls (§8 panels 1–2, 5–8), in the cartoon kit: one
+ * cream card of pills, icons from `icons.ts`, and chunky buttons.
  */
 
 import { html, nothing, render } from 'lit-html';
-import { classMap } from 'lit-html/directives/class-map.js';
 
 import { SPEEDS, type Speed } from '@app/timeControl';
 import type { ClimateRegime } from '@sim/types';
 
 import { formatDate, formatRp } from './format.ts';
+import { icon, type IconName } from './icons.ts';
 
 /** One chip in the active-events strip (§8 panel 6). */
 export interface EventChip {
@@ -64,16 +64,30 @@ const REGIME_LABEL: Record<ClimateRegime, string> = {
   laNina: 'La Niña',
 };
 
-const SPEED_LABEL: Record<Speed, string> = { 0: '⏸', 1: '1×', 5: '5×', 20: '20×' };
+const SPEED_LABEL: Record<Speed, string> = { 0: '‖', 1: '1×', 5: '5×', 20: '20×' };
 
-const TONE: Record<EventChip['tone'], string> = {
-  fire: 'bg-orange-700/80',
-  smoke: 'bg-amber-900/75',
-  ash: 'bg-neutral-600/80',
-  water: 'bg-sky-800/80',
-  dry: 'bg-yellow-800/75',
-  pest: 'bg-red-800/80',
-  econ: 'bg-sky-800/80',
+const CHIP_TONE: Record<EventChip['tone'], string> = {
+  fire: 'chip-fire',
+  smoke: 'chip-smoke',
+  ash: 'chip-ash',
+  water: 'chip-water',
+  dry: 'chip-dry',
+  pest: 'chip-pest',
+  econ: 'chip-econ',
+};
+
+/** Which icon a chip carries, by event id. */
+const CHIP_ICON: Record<string, IconName> = {
+  wildfire: 'fire',
+  haze: 'haze',
+  ash: 'haze',
+  flood: 'rain',
+  drought: 'sun',
+  plague: 'beetle',
+  investigation: 'police-warning',
+  ban: 'police-warning',
+  insolvent: 'coin',
+  millStrike: 'mill-strike',
 };
 
 export class Hud {
@@ -85,44 +99,56 @@ export class Hud {
   ) {
     this.root = document.createElement('div');
     this.root.className =
-      'pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col items-center gap-1.5 p-3';
+      'pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col items-center gap-2 p-3';
     parent.appendChild(this.root);
   }
 
   update(view: HudView): void {
-    const weather = view.rain > 0.6 ? '🌧' : view.rain > 0.25 ? '🌦' : '☀️';
     const cover = Math.round(view.forestCover * 100);
+    const rainy = view.rain > 0.45;
     render(
       html`
         <div
-          class="pointer-events-auto flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl bg-black/60 px-5 py-2.5 text-sm text-white shadow-lg backdrop-blur"
+          class="card pointer-events-auto flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5"
         >
-          <div class="font-semibold tabular-nums" data-testid="hud-cash">
-            ${formatRp(view.cash)}
+          <div class="cash num" data-testid="hud-cash">
+            ${icon('coin')}<span>${formatRp(view.cash)}</span>
           </div>
-          <div class="tabular-nums opacity-90" data-testid="hud-date">${formatDate(view.tick)}</div>
-          <div class="tabular-nums opacity-90" title="TBS price today" data-testid="hud-price">
-            ${formatRp(view.tbsPrice)}/kg
-            <span
-              class=${view.tbsTrend > 0 ? 'text-emerald-300' : view.tbsTrend < 0 ? 'text-red-300' : 'opacity-60'}
-            >
-              ${view.tbsTrend > 0 ? '▲' : view.tbsTrend < 0 ? '▼' : '▬'}
-            </span>
+
+          <div class="pill flex items-center gap-1.5" data-testid="hud-date">
+            ${icon('calendar')}<span class="num text-sm">${formatDate(view.tick)}</span>
           </div>
-          <div class="opacity-90" title=${REGIME_LABEL[view.regime]} data-testid="hud-regime">
-            ${weather} ${REGIME_LABEL[view.regime]}
-          </div>
+
           <div
-            class=${cover < 25 ? 'tabular-nums text-amber-300' : 'tabular-nums opacity-90'}
+            class="flex items-center gap-1.5 text-sm"
+            title="TBS price today"
+            data-testid="hud-price"
+          >
+            ${icon('tbs-fruit')}
+            <span class="num">${formatRp(view.tbsPrice)}/kg</span>
+            <span
+              class=${view.tbsTrend > 0 ? 'text-[#3faa4c]' : view.tbsTrend < 0 ? 'text-[#e04a3a]' : 'muted'}
+              >${view.tbsTrend > 0 ? '▲' : view.tbsTrend < 0 ? '▼' : '▬'}</span
+            >
+          </div>
+
+          <div class="flex items-center gap-1.5 text-sm" data-testid="hud-regime">
+            ${icon(rainy ? 'rain' : 'sun')}<span>${REGIME_LABEL[view.regime]}</span>
+          </div>
+
+          <div
+            class="flex items-center gap-1.5 text-sm"
             title="Forest cover around the estate — forest holds the slopes when the rains come"
             data-testid="hud-forest"
           >
-            🌳 ${cover}%
+            ${icon('forest-cover')}
+            <span class=${cover < 25 ? 'num text-[#b85e12]' : 'num'}>${cover}%</span>
           </div>
+
           ${
             view.inputIndex > 1.005
               ? html`<div
-                  class="tabular-nums text-sky-200/90"
+                  class="pill-muted num text-xs"
                   title="Input prices against the start of the run"
                   data-testid="hud-inputs"
                 >
@@ -138,18 +164,13 @@ export class Hud {
                     title="Attention from the authorities — a letter at 40, police at 70, arrest at 100"
                     data-testid="attention-gauge"
                   >
-                    <span>👁</span>
-                    <div class="relative h-2 w-20 overflow-hidden rounded bg-white/15">
-                      <div
-                        class=${view.attention >= 70 ? 'h-full bg-red-500' : view.attention >= 40 ? 'h-full bg-amber-400' : 'h-full bg-slate-300'}
-                        style=${`width: ${Math.min(100, view.attention)}%`}
-                      ></div>
-                      <div class="absolute inset-y-0 left-[40%] w-px bg-white/60"></div>
-                      <div class="absolute inset-y-0 left-[70%] w-px bg-white/60"></div>
-                    </div>
-                    <span class="text-xs tabular-nums opacity-80"
-                      >${Math.round(view.attention)}</span
-                    >
+                    ${icon('eye-attention')}
+                    <span class="gauge">
+                      <i
+                        style=${`width: ${Math.min(100, view.attention)}%; --gauge-from: ${view.attention >= 70 ? '#ef6a58' : view.attention >= 40 ? '#ffb03a' : '#cbbb9a'}; --gauge-to: ${view.attention >= 70 ? '#e04a3a' : view.attention >= 40 ? '#f28b2b' : '#a08a5e'}`}
+                      ></i>
+                    </span>
+                    <span class="num text-xs muted">${Math.round(view.attention)}</span>
                   </div>
                 `
               : nothing
@@ -162,28 +183,16 @@ export class Hud {
                     title="Fire pressure — past the line the fire is no longer yours"
                     data-testid="fire-gauge"
                   >
-                    <span>🔥</span>
-                    <div class="relative h-2 w-20 overflow-hidden rounded bg-white/15">
-                      <div
-                        class=${
-                          view.wildfire || view.firePressure > view.fireThreshold
-                            ? 'h-full bg-red-500'
-                            : view.firePressure > view.fireThreshold * 0.6
-                              ? 'h-full bg-amber-400'
-                              : 'h-full bg-emerald-400'
-                        }
-                        style=${`width: ${Math.min(100, (view.firePressure / view.fireThreshold) * 100)}%`}
-                      ></div>
-                      <div class="absolute inset-y-0 right-0 w-px bg-white/70"></div>
-                    </div>
-                    <span class="text-xs tabular-nums opacity-80"
-                      >${view.firePressure.toFixed(1)}</span
-                    >
+                    ${icon('fire')}
+                    <span class="gauge">
+                      <i
+                        style=${`width: ${Math.min(100, (view.firePressure / view.fireThreshold) * 100)}%; --gauge-from: ${view.wildfire || view.firePressure > view.fireThreshold ? '#ef6a58' : view.firePressure > view.fireThreshold * 0.6 ? '#ffb03a' : '#5fd06a'}; --gauge-to: ${view.wildfire || view.firePressure > view.fireThreshold ? '#e04a3a' : view.firePressure > view.fireThreshold * 0.6 ? '#f28b2b' : '#3faa4c'}`}
+                      ></i>
+                    </span>
+                    <span class="num text-xs muted">${view.firePressure.toFixed(1)}</span>
                     ${
                       view.wildfire
-                        ? html`<span
-                            class="rounded bg-red-600 px-1.5 py-0.5 text-xs font-semibold"
-                            data-testid="wildfire-badge"
+                        ? html`<span class="chip chip-fire" data-testid="wildfire-badge"
                             >WILDFIRE</span
                           >`
                         : nothing
@@ -194,10 +203,7 @@ export class Hud {
           }
           ${
             view.burningCount > 0
-              ? html`<span
-                  class="rounded bg-orange-700/80 px-2 py-0.5 text-xs font-medium"
-                  data-testid="burning-chip"
-                >
+              ? html`<span class="chip chip-fire" data-testid="burning-chip">
                   burning: ${view.burningCount} block${view.burningCount === 1 ? '' : 's'}
                 </span>`
               : nothing
@@ -205,12 +211,12 @@ export class Hud {
           ${
             view.ispoMet !== null
               ? html`<button
-                  class=${`rounded px-2 py-0.5 text-xs font-medium ${view.ispoMet === 5 ? 'bg-emerald-700' : 'bg-white/10 hover:bg-white/20'}`}
+                  class=${`btn btn-sm ${view.ispoMet === 5 ? 'btn-green' : 'btn-ghost'}`}
                   title="ISPO certificate progress"
                   data-testid="hud-ispo"
                   @click=${() => this.handlers.openCertificate()}
                 >
-                  📜 ISPO ${view.ispoMet}/5
+                  ${icon('certificate-ispo')} ISPO ${view.ispoMet}/5
                 </button>`
               : nothing
           }
@@ -219,44 +225,30 @@ export class Hud {
             ${SPEEDS.map(
               (speed) => html`
                 <button
-                  class=${classMap({
-                    rounded: true,
-                    'px-2': true,
-                    'py-1': true,
-                    'font-medium': true,
-                    'transition-colors': true,
-                    'bg-emerald-600': view.speed === speed,
-                    'text-white': view.speed === speed,
-                    'bg-white/10': view.speed !== speed,
-                    'hover:bg-white/20': view.speed !== speed,
-                    'cursor-not-allowed': view.locked && speed > 1,
-                    'opacity-40': view.locked && speed > 1,
-                  })}
+                  class=${`btn btn-sm ${view.speed === speed ? 'btn-green' : 'btn-ghost'}`}
                   ?disabled=${view.locked && speed > 1}
                   data-testid=${`speed-${speed}`}
                   @click=${() => this.handlers.setSpeed(speed)}
                 >
-                  ${SPEED_LABEL[speed]}
+                  ${speed === 0 ? icon('pause') : SPEED_LABEL[speed]}
                 </button>
               `,
             )}
             ${
               view.locked
-                ? html`<span
-                    class="ml-1 text-amber-300"
-                    title="Speed locked to 1× while anything burns"
-                    >🔥 1×</span
+                ? html`<span class="chip chip-fire" title="Speed locked to 1× while anything burns"
+                    >${icon('fire')} 1×</span
                   >`
                 : nothing
             }
           </div>
 
-          <div class="flex items-center gap-3 text-xs opacity-70">
+          <div class="label flex items-center gap-2">
             <span title="Estate code — share it to replay this world">${view.estateCode}</span>
-            <span class="rounded bg-white/10 px-1.5 py-0.5 uppercase">${view.backend}</span>
+            <span class="pill-muted px-1.5 py-0.5">${view.backend}</span>
             ${
               view.saveError
-                ? html`<span class="text-red-300" title=${view.saveError}>save failed</span>`
+                ? html`<span class="text-[#e04a3a]" title=${view.saveError}>save failed</span>`
                 : view.saveNote
                   ? html`<span>${view.saveNote}</span>`
                   : nothing
@@ -264,7 +256,7 @@ export class Hud {
           </div>
 
           <button
-            class="rounded bg-white/10 px-2.5 py-1 font-medium hover:bg-white/20"
+            class="btn btn-sm btn-ghost"
             title="Controls (H)"
             aria-label="Controls"
             data-testid="help-button"
@@ -274,11 +266,11 @@ export class Hud {
           </button>
 
           <button
-            class="rounded bg-white/10 px-2.5 py-1 font-medium hover:bg-white/20"
+            class="btn btn-sm btn-coral"
             data-testid="menu-button"
             @click=${() => this.handlers.openMenu()}
           >
-            Menu
+            MENU
           </button>
         </div>
 
@@ -292,10 +284,15 @@ export class Hud {
                   ${view.events.map(
                     (chip) => html`
                       <span
-                        class=${`rounded-full px-2.5 py-0.5 text-xs font-medium text-white shadow ${TONE[chip.tone]}`}
+                        class=${`chip ${CHIP_TONE[chip.tone]}`}
                         data-testid=${`event-chip-${chip.id}`}
                       >
-                        ${chip.label}${chip.daysLeft !== null ? html` · <span class="tabular-nums">${chip.daysLeft} d</span>` : nothing}
+                        ${CHIP_ICON[chip.id] ? icon(CHIP_ICON[chip.id]!) : nothing}
+                        ${chip.label}${
+                          chip.daysLeft !== null
+                            ? html` · <span class="num">${chip.daysLeft} d</span>`
+                            : nothing
+                        }
                       </span>
                     `,
                   )}

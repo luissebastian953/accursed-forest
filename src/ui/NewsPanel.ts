@@ -9,6 +9,7 @@ import { html, nothing, render } from 'lit-html';
 import type { BlockId, NewsItem } from '@sim/types';
 
 import { formatDate } from './format.ts';
+import { icon } from './icons.ts';
 import { LANE_LABEL, LANE_TONE } from './NewsTicker.ts';
 
 export interface NewsPanelHandlers {
@@ -72,16 +73,16 @@ export class NewsPanel {
     render(
       html`
         <div
-          class="absolute top-20 bottom-12 left-3 z-20 flex w-[28rem] max-w-[calc(100vw-1.5rem)] flex-col rounded-xl bg-black/75 text-sm text-white shadow-2xl backdrop-blur"
+          class="card absolute top-24 bottom-14 left-3 z-20 flex w-[28rem] max-w-[calc(100vw-1.5rem)] flex-col overflow-hidden text-sm"
           data-testid="news-panel"
         >
-          <div class="flex items-center justify-between gap-2 border-b border-white/10 p-3">
-            <div class="font-semibold">News</div>
+          <div class="flex items-center justify-between gap-2 border-b-2 border-[#f2e0b0] p-3">
+            <div class="flex items-center gap-2 font-extrabold">${icon('news')} News</div>
             <div class="flex gap-1 text-xs">
               ${filters.map(
                 (f) => html`
                   <button
-                    class=${this.filter === f ? 'rounded bg-white/20 px-2 py-0.5 font-medium' : 'rounded px-2 py-0.5 opacity-70 hover:bg-white/10'}
+                    class=${`btn btn-sm ${this.filter === f ? 'btn-green' : 'btn-ghost'}`}
                     data-testid=${`news-filter-${f}`}
                     @click=${() => {
                       this.filter = f;
@@ -93,47 +94,44 @@ export class NewsPanel {
                 `,
               )}
             </div>
-            <button
-              class="rounded px-2 py-0.5 hover:bg-white/15"
-              aria-label="Close"
-              @click=${() => this.handlers.close()}
-            >
+            <button class="btn btn-close" aria-label="Close" @click=${() => this.handlers.close()}>
               ✕
             </button>
           </div>
           <ol class="flex-1 overflow-y-auto p-2" data-testid="news-list">
             ${
               items.length === 0
-                ? html`<li class="p-3 text-xs opacity-60">Nothing in the news yet.</li>`
+                ? html`<li class="muted p-3 text-xs">Nothing in the news yet.</li>`
                 : items.map(
                     (item) => html`
                       <li
-                        class=${`mb-1.5 rounded-lg bg-white/5 p-2.5 ${item.blocks?.length ? 'cursor-pointer hover:bg-white/10' : ''}`}
+                        class=${`pill-muted mb-1.5 p-2.5 ${item.blocks?.length ? 'cursor-pointer hover:brightness-[1.03]' : ''}`}
                         data-testid="news-item"
                         @click=${() => {
                           const first = item.blocks?.[0];
                           if (first !== undefined) this.handlers.focus(first);
                         }}
                       >
-                        <div class="mb-0.5 flex items-center gap-2 text-[11px] opacity-80">
-                          <span class=${`rounded px-1.5 py-px font-medium ${LANE_TONE[item.lane]}`}
+                        <div class="mb-0.5 flex items-center gap-2 text-[11px]">
+                          <span
+                            class=${`rounded-full px-2 py-px font-extrabold text-white ${LANE_TONE[item.lane]}`}
                             >${LANE_LABEL[item.lane]}</span
                           >
-                          <span class="tabular-nums">${formatDate(item.tick)}</span>
+                          <span class="num muted">${formatDate(item.tick)}</span>
                           ${
                             item.severity === 'critical' || item.severity === 'warning'
                               ? html`<span
-                                  class=${item.severity === 'critical' ? 'text-red-300' : 'text-amber-300'}
+                                  class=${item.severity === 'critical' ? 'font-extrabold text-[#9e2e20]' : 'font-extrabold text-[#b85e12]'}
                                   >${item.severity}</span
                                 >`
                               : nothing
                           }
                         </div>
-                        <div class="font-medium leading-snug">${item.title}</div>
-                        <div class="mt-0.5 text-xs leading-snug opacity-75">${item.body}</div>
+                        <div class="font-extrabold leading-snug">${item.title}</div>
+                        <div class="muted mt-0.5 text-xs leading-snug">${item.body}</div>
                         ${
                           item.effects.length > 0
-                            ? html`<div class="mt-1 text-xs text-amber-200/90">
+                            ? html`<div class="mt-1 text-xs font-bold text-[#b85e12]">
                                 → ${item.effects.join(' · ')}
                               </div>`
                             : nothing

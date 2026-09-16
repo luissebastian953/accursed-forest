@@ -177,17 +177,19 @@ export class Epilogue {
 
     render(
       html`
-        <div class="absolute inset-0 z-40 flex items-center justify-center bg-black/60 p-4">
+        <div
+          class="absolute inset-0 z-40 flex items-center justify-center bg-[rgba(30,20,12,0.6)] p-4"
+        >
           <div
-            class="flex max-h-full w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-neutral-950 text-white shadow-2xl"
+            class="card-dark flex max-h-full w-full max-w-2xl flex-col overflow-hidden"
             data-testid="epilogue"
             data-ending=${v.ending}
           >
             <div class="border-b border-white/10 px-6 pb-4 pt-5">
-              <div class="mb-1 text-xs uppercase tracking-widest opacity-60">
+              <div class="mb-1 text-xs font-extrabold uppercase tracking-widest opacity-60">
                 Estate ${v.estateCode} · ${formatDate(v.endedAt)}
               </div>
-              <div class=${`text-2xl font-bold ${t.tone}`} data-testid="epilogue-title">
+              <div class=${`text-3xl font-extrabold ${t.tone}`} data-testid="epilogue-title">
                 ${t.title}
               </div>
               <p class="mt-1 text-sm opacity-85">${t.line}</p>
@@ -204,15 +206,17 @@ export class Epilogue {
               ${this.stats(v).map(
                 (stat) => html`
                   <div data-testid="epilogue-stat">
-                    <div class="text-xs opacity-60">${stat.label}</div>
-                    <div class="font-semibold tabular-nums">${stat.value}</div>
+                    <div class="text-xs uppercase tracking-wide opacity-55">${stat.label}</div>
+                    <div class="num text-lg">${stat.value}</div>
                   </div>
                 `,
               )}
             </div>
 
             <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-3" data-testid="epilogue-timeline">
-              <div class="mb-1 text-xs uppercase tracking-wide opacity-60">How it went</div>
+              <div class="mb-1 text-xs font-extrabold uppercase tracking-wide opacity-60">
+                How it went
+              </div>
               <ol class="space-y-1 text-xs">
                 ${v.chronicle.map(
                   (entry) => html`
@@ -245,7 +249,7 @@ export class Epilogue {
                           .map(
                             (year) => html`
                               <button
-                                class="rounded bg-sky-700 px-3 py-1.5 text-sm font-medium hover:bg-sky-600"
+                                class="btn btn-sm btn-blue"
                                 data-testid=${`epilogue-rewind-${year}`}
                                 @click=${() => this.handlers.rewind(year)}
                               >
@@ -261,7 +265,7 @@ export class Epilogue {
                 ${
                   sandbox
                     ? html`<button
-                        class="flex-1 rounded bg-emerald-700 px-3 py-2 font-medium hover:bg-emerald-600"
+                        class="btn btn-green btn-lg flex-1"
                         data-testid="epilogue-keep-playing"
                         @click=${() => this.handlers.keepPlaying()}
                       >
@@ -270,7 +274,7 @@ export class Epilogue {
                     : nothing
                 }
                 <button
-                  class="flex-1 rounded bg-white/15 px-3 py-2 font-medium hover:bg-white/25"
+                  class="btn btn-lg flex-1 bg-white/15 shadow-[0_3px_0_rgba(0,0,0,0.35)]"
                   data-testid="epilogue-new-estate"
                   @click=${() => this.handlers.newEstate()}
                 >

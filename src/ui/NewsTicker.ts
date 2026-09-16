@@ -8,10 +8,12 @@ import { html, nothing, render } from 'lit-html';
 
 import type { NewsItem } from '@sim/types';
 
+import { icon } from './icons.ts';
+
 export const LANE_TONE: Record<NewsItem['lane'], string> = {
-  natural: 'bg-emerald-700/80',
-  economic: 'bg-sky-700/80',
-  government: 'bg-rose-800/80',
+  natural: 'bg-[#3faa4c]',
+  economic: 'bg-[#5a8bff]',
+  government: 'bg-[#e04a3a]',
 };
 
 export const LANE_LABEL: Record<NewsItem['lane'], string> = {
@@ -49,16 +51,14 @@ export class NewsTicker {
         ? nothing
         : html`
             <button
-              class="pointer-events-auto flex max-w-[min(64rem,calc(100vw-1rem))] items-center gap-2 overflow-hidden rounded-xl bg-black/65 px-3 py-1.5 text-left text-xs text-white shadow-lg backdrop-blur hover:bg-black/75"
+              class="card pointer-events-auto flex max-w-[min(64rem,calc(100vw-1rem))] items-center gap-2.5 overflow-hidden px-3 py-1.5 text-left text-xs hover:brightness-[1.03]"
               data-testid="news-ticker"
               @click=${() => this.handlers.open()}
             >
-              <span class="shrink-0 font-semibold uppercase tracking-wide opacity-70">News</span>
+              <span class="chip chip-cream shrink-0">${icon('news')} NEWS</span>
               ${
                 unread > 0
-                  ? html`<span
-                      class="shrink-0 rounded-full bg-red-600 px-1.5 font-semibold tabular-nums"
-                      data-testid="news-unread"
+                  ? html`<span class="chip chip-pest num shrink-0" data-testid="news-unread"
                       >${unread}</span
                     >`
                   : nothing

@@ -10,6 +10,7 @@ import type { IspoCondition, IspoConditionId } from '@sim/systems/endings';
 import type { YearSummary } from '@sim/types';
 
 import { formatPercent, formatRp } from './format.ts';
+import { icon } from './icons.ts';
 
 const CONDITION_LABEL: Record<IspoConditionId, string> = {
   profit: 'Operating profit, and three profitable years',
@@ -40,10 +41,12 @@ function checklist(conditions: readonly IspoCondition[]) {
       ${conditions.map(
         (c) => html`
           <li class="flex items-start gap-2" data-testid=${`certificate-condition-${c.id}`}>
-            <span class=${c.met ? 'text-emerald-300' : 'opacity-50'}>${c.met ? '✓' : '○'}</span>
+            <span class=${c.met ? 'font-extrabold text-[#3faa4c]' : 'muted'}
+              >${c.met ? '✓' : '○'}</span
+            >
             <span class="flex-1">
-              <span class=${c.met ? '' : 'opacity-85'}>${CONDITION_LABEL[c.id]}</span>
-              <span class="block text-xs tabular-nums opacity-60">${conditionValue(c)}</span>
+              <span class="font-bold">${CONDITION_LABEL[c.id]}</span>
+              <span class="muted num block text-xs">${conditionValue(c)}</span>
             </span>
           </li>
         `,
@@ -97,20 +100,23 @@ export class CertificatePanel {
     render(
       html`
         <div
-          class="absolute left-1/2 top-24 z-30 w-[min(24rem,calc(100%-2rem))] -translate-x-1/2 rounded-xl bg-stone-900/95 p-4 text-white shadow-2xl backdrop-blur"
+          class="card absolute left-1/2 top-28 z-30 w-[min(24rem,calc(100%-2rem))] -translate-x-1/2 p-4"
           data-testid="certificate-panel"
         >
           <div class="mb-1 flex items-center justify-between">
-            <div class="font-semibold">📜 ISPO certificate · ${met}/${conditions.length}</div>
+            <div class="flex items-center gap-2 font-extrabold">
+              ${icon('certificate-ispo')} ISPO certificate ·
+              <span class="num">${met}/${conditions.length}</span>
+            </div>
             <button
-              class="rounded px-2 py-0.5 hover:bg-white/10"
+              class="btn btn-close"
               data-testid="certificate-close"
               @click=${() => this.handlers.close()}
             >
               ✕
             </button>
           </div>
-          <p class="mb-3 text-xs opacity-60">
+          <p class="muted mb-3 text-xs">
             Checked at the close of every year. Meet all five and the Ministry sends a banner.
           </p>
           ${checklist(conditions)}
@@ -172,14 +178,11 @@ export class YearEndCard {
     const coverDelta = v.previous ? s.forestCover - v.previous.forestCover : null;
     render(
       html`
-        <div
-          class="absolute right-3 top-24 z-20 w-64 rounded-xl bg-black/75 p-4 text-sm text-white shadow-xl backdrop-blur"
-          data-testid="year-end-card"
-        >
+        <div class="card absolute right-3 top-28 z-20 w-64 p-4 text-sm" data-testid="year-end-card">
           <div class="mb-2 flex items-center justify-between">
-            <div class="font-semibold">Year ${s.year} closed</div>
+            <div class="font-extrabold">Year ${s.year} closed</div>
             <button
-              class="rounded px-1.5 hover:bg-white/10"
+              class="btn btn-close"
               data-testid="year-end-dismiss"
               @click=${() => this.hide()}
             >
@@ -187,19 +190,19 @@ export class YearEndCard {
             </button>
           </div>
           <dl class="grid grid-cols-2 gap-y-1">
-            <dt class="opacity-60">${s.profit >= 0 ? 'Profit' : 'Loss'}</dt>
+            <dt class="label">${s.profit >= 0 ? 'Profit' : 'Loss'}</dt>
             <dd
               class=${`text-right tabular-nums ${s.profit >= 0 ? 'text-emerald-300' : 'text-red-300'}`}
             >
               ${formatRp(Math.abs(s.profit))}
             </dd>
-            <dt class="opacity-60">Bearing</dt>
-            <dd class="text-right tabular-nums">${s.matureHectares} ha</dd>
-            <dt class="opacity-60">Forest cover</dt>
-            <dd class="text-right tabular-nums">
+            <dt class="label">Bearing</dt>
+            <dd class="num text-right">${s.matureHectares} ha</dd>
+            <dt class="label">Forest cover</dt>
+            <dd class="num text-right">
               ${formatPercent(s.forestCover)}${
                 coverDelta !== null && Math.abs(coverDelta) >= 0.005
-                  ? html` <span class=${coverDelta > 0 ? 'text-emerald-300' : 'text-amber-300'}
+                  ? html` <span class=${coverDelta > 0 ? 'text-[#3faa4c]' : 'text-[#b85e12]'}
                       >${coverDelta > 0 ? '+' : '−'}${formatPercent(Math.abs(coverDelta))}</span
                     >`
                   : nothing
@@ -207,8 +210,8 @@ export class YearEndCard {
             </dd>
             ${
               v.conditionsMet !== null
-                ? html`<dt class="opacity-60">ISPO</dt>
-                    <dd class="text-right tabular-nums">${v.conditionsMet}/5</dd>`
+                ? html`<dt class="label">ISPO</dt>
+                    <dd class="num text-right">${v.conditionsMet}/5</dd>`
                 : nothing
             }
           </dl>
