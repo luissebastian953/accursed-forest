@@ -200,6 +200,24 @@ export class Epilogue {
                     </p>`
                   : nothing
               }
+              ${
+                win
+                  ? html`<div
+                      class="mt-4 flex items-start gap-3 rounded-2xl border border-white/15 bg-white/5 px-4 py-3"
+                      data-testid="epilogue-president"
+                    >
+                      <span class="text-2xl leading-none">🎖️</span>
+                      <div>
+                        <div class="text-xs font-extrabold uppercase tracking-widest opacity-60">
+                          The President, at the Kopdes door
+                        </div>
+                        <div class="mt-0.5 text-base font-extrabold">
+                          “Your palm trees will do the country a favour.”
+                        </div>
+                      </div>
+                    </div>`
+                  : nothing
+              }
             </div>
 
             <div class="grid grid-cols-2 gap-x-6 gap-y-2 px-6 py-4 text-sm sm:grid-cols-3">

@@ -48,7 +48,7 @@ panel, the balance sweep, README) is next.
 | News feed (3 lanes), integrity, macro economy, authority ladder                | done                     |
 | Endings: ISPO clean/dirty, bankruptcy, ban, fade, epilogue, rewind, sandbox    | done                     |
 | Mobs: wildlife, thief, babi ngepet, ghost, hired workers, chop/burn crews      | done                     |
-| Endgame: the President's motorcade pulls up to the Kopdes before the epilogue  | done                     |
+| Endgame: on a win the President's motorcade pulls up to the Kopdes door        | done                     |
 | Far-LOD heatmap tiles, GPU per-instance animation, forest box-trees            | deferred until they bite |
 
 Tests: 323 unit (Vitest) and 12 browser (Playwright, WebGL fallback) — the

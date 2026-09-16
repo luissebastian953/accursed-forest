@@ -116,6 +116,43 @@ export function terraceHeight(elevation: number): number {
 
 const TERRACED: ReadonlySet<BlockPhase> = new Set(['cleared', 'planted', 'reforesting', 'kopdes']);
 
+/**
+ * The height of the land the mesher draws under world point (x, z): a flat
+ * terrace on cleared, planted and Kopdes blocks, otherwise the same bilinear
+ * blend of neighbouring block heights the columns use, snapped to the same
+ * quantum. Anything standing on the ground — mobs, cars, felled trees — must
+ * use this, or it floats or sinks wherever the two formulas disagree. (The
+ * river's cut is not applied; nothing should be standing in the river.)
+ */
+export function landHeight(
+  world: World,
+  phaseOf: (id: BlockId) => BlockPhase,
+  x: number,
+  z: number,
+): number {
+  const side = WORLD.blockSide;
+  const bx = Math.floor(x / side);
+  const by = Math.floor(z / side);
+  if (!world.inBounds(bx, by)) return FLOOR_Y;
+  if (TERRACED.has(phaseOf(world.toId(bx, by)))) {
+    return terraceHeight(world.generated(bx, by).elevation);
+  }
+  const gx = Math.floor(x);
+  const gz = Math.floor(z);
+  const u = (gx + 0.5) / side - 0.5;
+  const v = (gz + 0.5) / side - 0.5;
+  const x0 = Math.floor(u);
+  const y0 = Math.floor(v);
+  const fx = u - x0;
+  const fy = v - y0;
+  const h00 = continuousHeight(world, x0, y0);
+  const h10 = continuousHeight(world, x0 + 1, y0);
+  const h01 = continuousHeight(world, x0, y0 + 1);
+  const h11 = continuousHeight(world, x0 + 1, y0 + 1);
+  const h = (h00 * (1 - fx) + h10 * fx) * (1 - fy) + (h01 * (1 - fx) + h11 * fx) * fy;
+  return Math.max(FLOOR_Y + HEIGHT_QUANTUM, quantise(h, HEIGHT_QUANTUM));
+}
+
 /** Continuous height of a block's land before quantising. */
 function continuousHeight(world: World, bx: number, by: number): number {
   const x = Math.min(world.width - 1, Math.max(0, bx));

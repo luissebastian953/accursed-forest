@@ -24,7 +24,7 @@ import { Palette } from '@render/materials/paletteSlots';
 import { MobField, type MobMode } from '@render/mobs/MobField';
 import { SPECIES, SPECIES_IDS, type SpeciesId } from '@render/mobs/species';
 import { createRenderer } from '@render/Renderer';
-import { ELEVATION_STEP, terraceHeight } from '@render/scene/chunkField';
+import { landHeight } from '@render/scene/chunkField';
 import { ChunkManager } from '@render/scene/ChunkManager';
 import { Sky } from '@render/scene/Sky';
 import { WORLD } from '@sim/balance/world';
@@ -98,15 +98,8 @@ export async function startMobPoc(root: HTMLElement): Promise<() => void> {
     minZ: (startY - 2) * side,
     maxZ: (startY + startSize + 2) * side,
   };
-  const groundAt = (x: number, z: number): number => {
-    const bx = Math.floor(x / side);
-    const by = Math.floor(z / side);
-    if (!world.inBounds(bx, by)) return 0;
-    const block = sim.state.blocks.get(world.toId(bx, by));
-    const generated = world.generated(bx, by);
-    const terraced = block && block.phase !== 'wild';
-    return terraceHeight(generated.elevation) + (terraced ? 0 : ELEVATION_STEP);
-  };
+  const groundAt = (x: number, z: number): number =>
+    landHeight(world, (id) => sim.state.blocks.get(id)?.phase ?? 'wild', x, z);
 
   const mobs = new MobField({ material, spectralMaterial: spectral, bounds, groundAt });
   scene.add(mobs.group);

@@ -16,8 +16,6 @@ import { easeOutCubic } from '../anim/easing.ts';
 import { BoxBuilder } from '../geometry/boxBuilder.ts';
 import { Palette } from '../materials/paletteSlots.ts';
 
-import { terraceHeight } from './chunkField.ts';
-
 const DRIVE_MS = 1400;
 
 function carGeometry(truck: boolean) {
@@ -71,7 +69,11 @@ export class Police {
   private arrivedAt = -1;
   private truckAt = -1;
 
-  constructor(material: Material) {
+  constructor(
+    material: Material,
+    /** The land under a world point; the cars ride it in. */
+    private readonly groundAt: (x: number, z: number) => number,
+  ) {
     for (let i = 0; i < 2; i++) {
       const body = new Mesh(carGeometry(false), material);
       const lights = this.sirens(body, false);
@@ -112,7 +114,6 @@ export class Police {
     }
 
     const [bx, by] = world.toXY(state.kopdes.blockId);
-    const y = terraceHeight(state.blocks.get(state.kopdes.blockId)?.elevation ?? 0);
     const cx = bx * WORLD.blockSide + WORLD.blockSide / 2;
     const cz = by * WORLD.blockSide + WORLD.blockSide / 2;
 
@@ -121,13 +122,13 @@ export class Police {
       car.parkedX = cx - 3 + i * 3.2;
       car.parkedZ = cz + 4.2;
       car.startX = car.parkedX - 30;
-      car.body.position.set(car.startX, y, car.parkedZ);
+      car.body.position.set(car.startX, this.groundAt(car.startX, car.parkedZ), car.parkedZ);
       car.body.visible = true;
     });
 
     if (state.run.ending === 'arrested') {
       if (this.truckAt < 0) this.truckAt = nowMs;
-      this.truck.body.position.set(cx + 4, y, cz + 4.2);
+      this.truck.body.position.set(cx + 4, this.groundAt(cx + 4, cz + 4.2), cz + 4.2);
       this.truck.body.visible = true;
     }
   }
@@ -140,6 +141,7 @@ export class Police {
     for (const [i, car] of this.cars.entries()) {
       if (!car.body.visible) continue;
       car.body.position.x = car.startX + (car.parkedX - car.startX) * t;
+      car.body.position.y = this.groundAt(car.body.position.x, car.parkedZ);
       const on = (phase + i) % 2 === 0;
       car.blue.level.value = on ? 1 : 0.12;
       car.red.level.value = on ? 0.12 : 1;

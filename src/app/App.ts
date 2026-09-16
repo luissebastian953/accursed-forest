@@ -19,7 +19,7 @@ import { MobField } from '@render/mobs/MobField';
 import { Picker } from '@render/picking';
 import { createRenderer } from '@render/Renderer';
 import { Ceremony } from '@render/scene/Ceremony';
-import { ELEVATION_STEP, terraceHeight } from '@render/scene/chunkField';
+import { landHeight } from '@render/scene/chunkField';
 import { ChunkManager } from '@render/scene/ChunkManager';
 import { Fires } from '@render/scene/Fires';
 import { KopdesMesh } from '@render/scene/Kopdes';
@@ -216,12 +216,15 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   );
 
   let picker = new Picker(rig.camera, chunks.group, sim.world);
-  const police = new Police(material);
+  /** The land under a world point, exactly as the mesher draws it. */
+  const groundAt = (x: number, z: number): number =>
+    landHeight(sim.world, (id) => sim.state.blocks.get(id)?.phase ?? 'wild', x, z);
+  const police = new Police(material, groundAt);
   const ceremony = new Ceremony(material);
   const rain = new Rain(material);
   const lightning = new Lightning();
-  const timber = new Timber(material);
-  const motorcade = new Motorcade(material);
+  const timber = new Timber(material, groundAt);
+  const motorcade = new Motorcade(material, groundAt);
   const spectral = createPaletteMaterial(paletteTexture, uniforms).material;
   spectral.transparent = true;
   spectral.opacity = 0.45;
@@ -230,16 +233,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     material,
     spectralMaterial: spectral,
     bounds: { minX: 0, maxX: 0, minZ: 0, maxZ: 0 },
-    groundAt: (x, z) => {
-      const bx = Math.floor(x / WORLD.blockSide);
-      const by = Math.floor(z / WORLD.blockSide);
-      if (!sim.world.inBounds(bx, by)) return 0;
-      const block = sim.state.blocks.get(sim.world.toId(bx, by));
-      const generated = sim.world.generated(bx, by);
-      return (
-        terraceHeight(generated.elevation) + (block && block.phase !== 'wild' ? 0 : ELEVATION_STEP)
-      );
-    },
+    groundAt,
   });
   const glow = new Glow(handle.renderer, scene, rig.camera);
   scene.add(
@@ -864,16 +858,13 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
           d.yearClosed.year + 1 >= ISPO.progressFromYear ? d.yearClosed.conditionsMet : null,
       });
     }
-    if (d.runEnded && sim.state.run.ending !== 'arrested' && sim.state.kopdes) {
-      // The President's motorcade comes up to the Kopdes (with the Ministry's
-      // banner and fireworks when the estate certified), and the epilogue
-      // opens once he is at the door. An arrest keeps the police truck instead.
-      if (d.certified) {
-        ceremony.sync(sim.state, sim.world, performance.now(), true);
-        toasts.push('The Ministry has sent a banner. ISPO certified.');
-      }
+    if (d.certified && sim.state.kopdes) {
+      // The win: the Ministry's banner and fireworks, and the President's
+      // motorcade up to the Kopdes door. The epilogue opens once he is there.
+      ceremony.sync(sim.state, sim.world, performance.now(), true);
       motorcade.arrive(sim.state, sim.world, performance.now());
       focusBlock(sim.state.kopdes.blockId);
+      toasts.push('The Ministry has sent a banner. ISPO certified.');
       toasts.push('A motorcade is coming up the road. The President is here.');
       time.set(0);
       const run = sim;
@@ -1157,6 +1148,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       },
       timber,
       mobField,
+      police,
+      motorcade,
     };
   }
 

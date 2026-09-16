@@ -506,6 +506,7 @@ test.describe('Sawit Simulator', () => {
     await expect(page.locator('[data-testid="epilogue"][data-ending="clean"]')).toBeVisible({
       timeout: 15_000,
     });
+    await expect(tid(page, 'epilogue-president')).toContainText('do the country a favour');
     await tid(page, 'epilogue-keep-playing').click();
     await expect(tid(page, 'epilogue')).toHaveCount(0);
     await tid(page, 'speed-20').click();

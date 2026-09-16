@@ -1,9 +1,11 @@
 /**
- * The presidential motorcade (§3.8, §6.5): when the run ends, a long black
- * car with two flags on the bonnet comes up the road between two white
- * escorts and stops in front of the Kopdes porch. The President steps out and
- * walks to the door; the epilogue card opens once he is there. Purely visual,
- * and driven by the App's clock, not the sim's — the sim has already ended.
+ * The presidential motorcade (§3.8, §6.5): when the estate certifies, a long
+ * black car with two flags on the bonnet comes up the road between two white
+ * escorts and stops in front of the Kopdes porch. The President steps out,
+ * walks to the door, and tells you your palms will do the country a favour;
+ * the epilogue card opens once he is there. Only for the win — nobody comes
+ * for a bankruptcy. Purely visual, and driven by the App's clock, not the
+ * sim's: the sim has already ended.
  */
 
 import { Group, Mesh, type Material } from 'three/webgpu';
@@ -16,8 +18,6 @@ import type { World } from '@sim/worldgen/index';
 import { easeInOutQuad, easeOutCubic } from '../anim/easing.ts';
 import { BoxBuilder } from '../geometry/boxBuilder.ts';
 import { Palette } from '../materials/paletteSlots.ts';
-
-import { terraceHeight } from './chunkField.ts';
 
 /** The cars drive up, a beat for the door, then the walk to the porch. */
 export const DRIVE_MS = 2600;
@@ -109,9 +109,12 @@ export class Motorcade {
   private parkZ = 0;
   private doorX = 0;
   private doorZ = 0;
-  private y = 0;
 
-  constructor(material: Material) {
+  constructor(
+    material: Material,
+    /** The land under a world point; the cars ride it in and the President walks it. */
+    private readonly groundAt: (x: number, z: number) => number,
+  ) {
     this.limo = new Mesh(limoGeometry(), material);
     this.group.add(this.limo);
     for (let i = 0; i < 2; i++) {
@@ -141,7 +144,6 @@ export class Motorcade {
     const side = WORLD.blockSide;
     const cx = bx * side + side / 2;
     const cz = by * side + side / 2;
-    this.y = terraceHeight(state.blocks.get(state.kopdes.blockId)?.elevation ?? 0);
     // In front of the porch (the door faces +z), nose toward the road.
     this.parkX = cx + 0.4;
     this.parkZ = cz + 5.3;
@@ -159,10 +161,10 @@ export class Motorcade {
     this.update(nowMs);
   }
 
-  /** Show the parked motorcade for a run that has already ended, or hide it. */
+  /** Show the parked motorcade for a run that has already been won, or hide it. */
   sync(state: SimState, world: World): void {
-    const ended = state.run.ending !== undefined && state.run.ending !== 'arrested';
-    if (!ended || !this.place(state, world)) {
+    const won = state.run.ending === 'clean' || state.run.ending === 'dirty';
+    if (!won || !this.place(state, world)) {
       this.group.visible = false;
       this.startedAt = -1;
       return;
@@ -175,9 +177,9 @@ export class Motorcade {
   /** Cars at `drive` of the way in, the President `walk` of the way to the door. */
   private pose(drive: number, walk: number): void {
     const x = this.parkX - FROM_X * (1 - drive);
-    this.limo.position.set(x, this.y, this.parkZ);
-    this.escorts[0]!.position.set(x + 5.4, this.y, this.parkZ);
-    this.escorts[1]!.position.set(x - 5.4, this.y, this.parkZ);
+    this.limo.position.set(x, this.groundAt(x, this.parkZ), this.parkZ);
+    this.escorts[0]!.position.set(x + 5.4, this.groundAt(x + 5.4, this.parkZ), this.parkZ);
+    this.escorts[1]!.position.set(x - 5.4, this.groundAt(x - 5.4, this.parkZ), this.parkZ);
     if (walk <= 0) {
       this.president.visible = false;
       return;
@@ -186,10 +188,12 @@ export class Motorcade {
     const fromX = this.parkX - 0.6;
     const fromZ = this.parkZ - 1.1;
     const w = easeInOutQuad(walk);
+    const px = fromX + (this.doorX - fromX) * w;
+    const pz = fromZ + (this.doorZ - fromZ) * w;
     this.president.position.set(
-      fromX + (this.doorX - fromX) * w,
-      this.y + (walk < 1 ? Math.abs(Math.sin(walk * Math.PI * 6)) * 0.05 : 0),
-      fromZ + (this.doorZ - fromZ) * w,
+      px,
+      this.groundAt(px, pz) + (walk < 1 ? Math.abs(Math.sin(walk * Math.PI * 6)) * 0.05 : 0),
+      pz,
     );
     this.president.rotation.y = Math.atan2(this.doorX - fromX, this.doorZ - fromZ);
     const swing = walk < 1 ? Math.sin(walk * Math.PI * 6) * 0.55 : 0;

@@ -16,8 +16,6 @@ import { easeInCubic, easeOutBounce } from '../anim/easing.ts';
 import { BoxBuilder } from '../geometry/boxBuilder.ts';
 import { Palette } from '../materials/paletteSlots.ts';
 
-import { terraceHeight } from './chunkField.ts';
-
 /** How long a tree takes to hit the ground, to lie there, and to sink after. */
 const FALL_MS = 2200;
 const REST_MS = 1400;
@@ -46,7 +44,11 @@ export class Timber {
   readonly group = new Group();
   private readonly falling: Falling[] = [];
 
-  constructor(private readonly material: Material) {}
+  constructor(
+    private readonly material: Material,
+    /** The land under a world point, as the mesher draws it. */
+    private readonly groundAt: (x: number, z: number) => number,
+  ) {}
 
   /**
    * Fell tree `index` (0-based) of a block, starting now. The trees stand
@@ -54,15 +56,13 @@ export class Timber {
    */
   fell(world: World, block: BlockId, nowMs: number, index = 0): void {
     const [bx, by] = world.toXY(block);
-    const groundY = terraceHeight(world.generated(bx, by).elevation);
     const side = WORLD.blockSide;
     const mesh = new Mesh(treeGeometry(block + index), this.material);
     const angle = (index / TREES_PER_BLOCK) * Math.PI * 2 + block * 0.37;
-    mesh.position.set(
-      bx * side + side / 2 + Math.cos(angle) * 3.2,
-      groundY,
-      by * side + side / 2 + Math.sin(angle) * 3.2,
-    );
+    const x = bx * side + side / 2 + Math.cos(angle) * 3.2;
+    const z = by * side + side / 2 + Math.sin(angle) * 3.2;
+    const groundY = this.groundAt(x, z);
+    mesh.position.set(x, groundY, z);
     // Yaw first, then the tip: the tree falls the way it faces, away from the crew.
     mesh.rotation.order = 'YXZ';
     mesh.rotation.y = angle + 1.2 + ((block * 13 + index * 7) % 10) * 0.1;
