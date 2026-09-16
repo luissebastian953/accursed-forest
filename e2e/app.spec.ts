@@ -417,21 +417,23 @@ test.describe('Sawit Simulator', () => {
     await setState(41);
     await tid(page, 'speed-1').click();
     await expect(tid(page, 'card-letter')).toBeVisible({ timeout: 5_000 });
+    // The card stops the clock; dismissing it starts the estate again.
+    const dateOnCard = await tid(page, 'hud-date').textContent();
     await tid(page, 'card-dismiss').click();
     await expect(tid(page, 'attention-gauge')).toBeVisible();
+    await expect(tid(page, 'hud-date')).not.toHaveText(dateOnCard!, { timeout: 5_000 });
 
+    // The clock is running again after the letter, so the police arrive on their own.
     await setState(71, 500_000_000);
-    await tid(page, 'speed-1').click();
-    await expect(tid(page, 'card-investigation')).toBeVisible({ timeout: 5_000 });
+    await expect(tid(page, 'card-investigation')).toBeVisible({ timeout: 10_000 });
     await expect(tid(page, 'event-chip-investigation')).toBeVisible();
     await tid(page, 'card-settle').click();
     await expect(tid(page, 'card-investigation')).toHaveCount(0);
     await expect(tid(page, 'event-chip-investigation')).toHaveCount(0);
 
     await setState(100);
-    await tid(page, 'speed-1').click();
     await expect(page.locator('[data-testid="epilogue"][data-ending="arrested"]')).toBeVisible({
-      timeout: 5_000,
+      timeout: 10_000,
     });
     await expect(page.locator('[data-testid="epilogue-timeline"] li').first()).toBeVisible();
     await expect(tid(page, 'epilogue-keep-playing')).toHaveCount(0);

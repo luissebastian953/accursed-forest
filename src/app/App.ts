@@ -327,15 +327,24 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   }
 
   const cards = new AuthorityCards(root, {
-    dismiss: () => cards.hide(),
+    dismiss: () => closeCard(),
     settle: () => {
       const result = dispatch({ type: 'SettleInvestigation' });
       if (result.ok) {
         police.sync(sim.state, sim.world, performance.now());
-        cards.hide();
+        closeCard();
       }
     },
   });
+
+  /**
+   * A card stopped the clock so it would be read; when it goes, the estate
+   * starts running again rather than leaving the player on a paused screen.
+   */
+  function closeCard(): void {
+    cards.hide();
+    if (time.speed === 0) time.set(1);
+  }
 
   const certificate = new CertificatePanel(stage, { close: () => certificate.hide() });
   const help = new ControlsHelp(stage, { close: () => help.hide() });
@@ -1019,7 +1028,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     },
     escape: () => {
       if (epilogue.isOpen) return;
-      if (cards.showing) cards.hide();
+      if (cards.showing) closeCard();
       else if (certificate.isOpen) certificate.hide();
       else if (help.isOpen) help.hide();
       else if (newsPanel.isOpen) newsPanel.hide();
