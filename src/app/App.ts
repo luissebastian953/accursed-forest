@@ -1150,6 +1150,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       mobField,
       police,
       motorcade,
+      showEpilogue,
     };
   }
 

@@ -442,6 +442,7 @@ test.describe('Sawit Simulator', () => {
     await expect(page.locator('[data-testid="epilogue"][data-ending="arrested"]')).toBeVisible({
       timeout: 10_000,
     });
+    await tid(page, 'epilogue-timeline-toggle').click();
     await expect(page.locator('[data-testid="epilogue-timeline"] li').first()).toBeVisible();
     await expect(tid(page, 'epilogue-keep-playing')).toHaveCount(0);
     await tid(page, 'epilogue-new-estate').click();
