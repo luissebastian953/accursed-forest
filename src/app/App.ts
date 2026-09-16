@@ -343,17 +343,25 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   }
 
   const ticker = new NewsTicker(stage, { open: () => openNews() });
+  const newsStatus = () => ({ tick: sim.state.tick, unread: unreadWarnings() });
   const newsPanel = new NewsPanel(stage, {
     focus: (block) => {
       select(block);
       focusBlock(block);
     },
-    close: () => newsPanel.hide(),
+    close: () => {
+      // Looked at: whatever was new is read once the phone goes away.
+      markNewsRead();
+      newsPanel.hide();
+    },
+    markRead: () => {
+      markNewsRead();
+      newsPanel.update(sim.state.society.news, newsStatus());
+    },
   });
 
   function openNews(): void {
-    newsPanel.show(sim.state.society.news);
-    markNewsRead();
+    newsPanel.show(sim.state.society.news, newsStatus());
   }
 
   const cards = new AuthorityCards(root, {
@@ -1062,7 +1070,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     ceremony.update(nowMs);
     motorcade.update(nowMs);
     ticker.update(sim.state.society.news, unreadWarnings());
-    newsPanel.update(sim.state.society.news);
+    newsPanel.update(sim.state.society.news, newsStatus());
     fires.update(nowMs);
     sky.update(sim.state.weather, uniforms, atmosphere(), dt, nowMs);
     rain.update(dt, sim.state.weather.rain, visible, time.speed > 0);
