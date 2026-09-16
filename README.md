@@ -67,7 +67,7 @@ and the handful of component classes live in `src/ui/styles.css`.
 
 URL flags: `?webgl` forces the WebGL 2 fallback CI uses; `?seed=42` picks a
 world; `?fresh` ignores the save in this browser; `?spike` opens the §6.9 art
-spike instead of the game; `?models` lays out every scenery model (`src/render/models/`); `?debug` exposes the running sim as
+spike instead of the game; `?models` lays out every scenery model (`src/render/models/`); `?mobs` is the mob proof of concept (`src/render/mobs/`), a rigged crowd with a cost readout; `?debug` exposes the running sim as
 `window.__sawit` for the browser suite and for poking at events by hand.
 
 Controls: drag to pan, wheel to zoom, **Q/E** rotate a quarter turn, click a

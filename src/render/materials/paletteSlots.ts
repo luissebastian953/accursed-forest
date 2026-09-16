@@ -72,6 +72,28 @@ export const Palette = {
   FlowerPink: 54,
   Rain: 55,
   CharredGround: 56,
+
+  // Mobs (§POC): fur, skin, cloth and the things that are not quite there.
+  FurDark: 57,
+  FurBoar: 58,
+  FurPig: 59,
+  FurCow: 60,
+  FurCowSpot: 61,
+  FurMouse: 62,
+  FurMonkey: 63,
+  FurOrangutan: 64,
+  FurCapybara: 65,
+  Skin: 66,
+  ClothThief: 67,
+  ClothWorker: 68,
+  ClothDoctor: 69,
+  ClothSecurity: 70,
+  HiVis: 71,
+  Steel: 72,
+  Ghost: 73,
+  Snout: 74,
+  Hoof: 75,
+  Sack: 76,
 } as const;
 
 export type PaletteSlot = (typeof Palette)[keyof typeof Palette];

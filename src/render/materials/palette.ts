@@ -89,6 +89,27 @@ const COLOURS: Partial<Record<number, [Hex, Hex]>> = {
   [Palette.FlowerPink]: [0xe486b0, 0xea94b8],
   [Palette.Rain]: [0xbcd6e6, 0xc8dde8],
   [Palette.CharredGround]: [0x3a322b, 0x463c33],
+
+  [Palette.FurDark]: [0x3b342c, 0x4a4136],
+  [Palette.FurBoar]: [0x4f4237, 0x615345],
+  [Palette.FurPig]: [0xe0a99a, 0xe8b6a7],
+  [Palette.FurCow]: [0xefe6d8, 0xf4ece1],
+  [Palette.FurCowSpot]: [0x4a3b2e, 0x5a4a3a],
+  [Palette.FurMouse]: [0x8d8378, 0x9c9287],
+  [Palette.FurMonkey]: [0x6b5138, 0x7d6143],
+  [Palette.FurOrangutan]: [0xb5562a, 0xc46836],
+  [Palette.FurCapybara]: [0xa8794a, 0xb98a58],
+  [Palette.Skin]: [0xc98f63, 0xd69c70],
+  [Palette.ClothThief]: [0x2f3640, 0x3b434f],
+  [Palette.ClothWorker]: [0x4a6b8a, 0x587c9c],
+  [Palette.ClothDoctor]: [0xf2f2ee, 0xf8f8f4],
+  [Palette.ClothSecurity]: [0x2b3550, 0x36415f],
+  [Palette.HiVis]: [0xf0c93a, 0xf4d24a],
+  [Palette.Steel]: [0x9aa3ab, 0xaab3ba],
+  [Palette.Ghost]: [0xdcecf5, 0xe8f3fa],
+  [Palette.Snout]: [0xd9a58f, 0xe2b29c],
+  [Palette.Hoof]: [0x33302c, 0x413d38],
+  [Palette.Sack]: [0xa8925f, 0xb9a26c],
 };
 
 const FALLBACK: [Hex, Hex] = [0xff00ff, 0xff00ff];
