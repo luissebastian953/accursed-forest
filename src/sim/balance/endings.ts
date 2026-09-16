@@ -27,6 +27,26 @@ export const ISPO = {
 } as const;
 
 /**
+ * Reboisasi: the ending nobody planned for. An estate that has put more of
+ * its land back to forest than it holds in palms — by a clear margin, and not
+ * a token strip — is called at the close of the year, from the same year the
+ * ISPO checklist opens. Young forest counts; saplings do not.
+ */
+export const REBOISASI = {
+  /** Reforested hectares must beat palm hectares by at least this many. */
+  marginHectares: 2,
+  /** ...and be at least this many, so a two-block hobby does not end a run. */
+  minHectares: 6,
+  /** A reforesting block counts once this share of its trees has grown past sapling. */
+  grownShare: 0.5,
+  /**
+   * TODO(sponsor): the reboisasi card carries a sponsor line; fill this in
+   * when the partner is confirmed (name, one line, optional url).
+   */
+  sponsor: null as { name: string; line: string; url?: string } | null,
+} as const;
+
+/**
  * The bank's patience (§3.8). Palms planted within Kopdes range are collateral:
  * the estate may sit this far in the red per hectare of them. Below that line
  * for `daysInRed` straight days — or below zero with no collateral at all, or

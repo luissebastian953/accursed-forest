@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import { autoplay } from '@sim/autoplay.ts';
 import { BIOMES } from '@sim/balance/biomes.ts';
-import { BANKRUPTCY, CHRONICLE, ISPO, OPERATING_BAN } from '@sim/balance/endings.ts';
-import { GROWTH } from '@sim/balance/growth.ts';
+import { BANKRUPTCY, CHRONICLE, ISPO, OPERATING_BAN, REBOISASI } from '@sim/balance/endings.ts';
+import { FOREST_GROWTH, GROWTH } from '@sim/balance/growth.ts';
 import { ECONOMY, ITEM_PRICES } from '@sim/balance/prices.ts';
 import { SLOTS_PER_BLOCK } from '@sim/balance/world.ts';
 import type { SimEvent } from '@sim/events.ts';
@@ -12,7 +12,12 @@ import { distanceToKopdes, inKopdesRange } from '@sim/kopdes.ts';
 import { createPalmArrays, plantSlots } from '@sim/palms.ts';
 import { chronicle } from '@sim/run.ts';
 import { writeBlock } from '@sim/state.ts';
-import { creditLine, ispoConditions, matureHectares } from '@sim/systems/endings.ts';
+import {
+  creditLine,
+  ispoConditions,
+  matureHectares,
+  reforestedHectares,
+} from '@sim/systems/endings.ts';
 import { operatingBanned } from '@sim/systems/society.ts';
 import type { BlockId } from '@sim/types.ts';
 
@@ -216,8 +221,10 @@ describe('ISPO certification (§3.8)', () => {
       expand: { reserve: 40_000_000, maxBlocks: 24 },
     });
     expect(run.ending === 'clean' || run.ending === 'dirty').toBe(true);
-    expect(run.endedYear).toBeGreaterThanOrEqual(8);
-    expect(run.endedYear).toBeLessThanOrEqual(20);
+    // Palms bear in their second year and a round comes every six days now,
+    // so a steady player is certified in well under a decade.
+    expect(run.endedYear).toBeGreaterThanOrEqual(5);
+    expect(run.endedYear).toBeLessThanOrEqual(14);
   });
 });
 
@@ -348,5 +355,53 @@ describe('the operating ban (§3.8)', () => {
     const lifted = tickFor(sim!, 'OperatingBanLifted', OPERATING_BAN.days + 1);
     expect(lifted).not.toBeNull();
     expect(operatingBanned(sim!.state)).toBe(false);
+  });
+});
+
+describe('reboisasi (§3.8, the ending nobody planned for)', () => {
+  /** Put grown forest on `n` blocks and palms on `palms` blocks, then close a year. */
+  function forestEstate(forest: number, palms: number): Sim {
+    const sim = createSim(42);
+    const { state, world } = sim;
+    state.tick = 4 * YEAR - 1;
+    state.weather.dayOfYear = state.tick % YEAR;
+    sim.dispatch({ type: 'PlaceKopdes', block: state.worldGen.kopdesBlock });
+    state.economy.cash = 2e9;
+    const planted = plantMature(sim, forest + palms, 2);
+    for (const [i, id] of planted.entries()) {
+      const block = writeBlock(state, world, id);
+      if (i < forest) {
+        block.phase = 'reforesting';
+        block.species = 'forest';
+        // Young forest: past the sapling stage, not yet mature.
+        state.palms.get(id)!.growth.fill(FOREST_GROWTH.saplingDays + 10);
+      }
+    }
+    return sim;
+  }
+
+  it('more grown forest than palms, by the margin, ends the run at the close of the year', () => {
+    const sim = forestEstate(REBOISASI.minHectares + 2, REBOISASI.minHectares);
+    expect(reforestedHectares(sim.state)).toBe(REBOISASI.minHectares + 2);
+    const ended = tickFor(sim, 'RunEnded', 3);
+    expect(ended?.ending).toBe('reboisasi');
+    expect(sim.state.society.news.some((n) => n.key === 'ending.reboisasi')).toBe(true);
+    expect(sim.dispatch({ type: 'KeepPlaying' })).toEqual({ ok: true });
+  });
+
+  it('a token strip of trees, or forest that only matches the palms, does not', () => {
+    const token = forestEstate(REBOISASI.minHectares - 2, 0);
+    expect(tickFor(token, 'RunEnded', 3)).toBeNull();
+    const even = forestEstate(REBOISASI.minHectares + 4, REBOISASI.minHectares + 3);
+    expect(tickFor(even, 'RunEnded', 3)).toBeNull();
+  });
+
+  it('saplings do not count as forest yet', () => {
+    const sim = forestEstate(REBOISASI.minHectares + 2, 0);
+    for (const [id, palms] of sim.state.palms) {
+      if (sim.state.blocks.get(id)?.phase === 'reforesting') palms.growth.fill(10);
+    }
+    expect(reforestedHectares(sim.state)).toBe(0);
+    expect(tickFor(sim, 'RunEnded', 3)).toBeNull();
   });
 });

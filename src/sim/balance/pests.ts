@@ -58,9 +58,13 @@ export const GANODERMA = {
   /** Spontaneous infection per day: a floor for any planted block, plus debris. */
   baseSeedPerDay: 0.00008,
   seedPerDebrisPerDay: 0.00003,
-  /** Latent → symptomatic, then symptomatic → dead: young palms go fast (§2). */
-  latentDays: { immature: 240, mature: 480 },
-  symptomaticDays: { immature: 480, mature: 1440 },
+  /**
+   * Latent → symptomatic, then symptomatic → dead: young palms go fast (§2).
+   * Scaled with the palm life cycle (0.6) so an infection still plays out
+   * over the same share of a palm's life.
+   */
+  latentDays: { immature: 145, mature: 290 },
+  symptomaticDays: { immature: 290, mature: 860 },
   /** Symptomatic palms cap stress here (§3.6.1). */
   stressCap: 0.6,
   /** Trichoderma halves spread while active (§3.4). */

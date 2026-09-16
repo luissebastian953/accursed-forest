@@ -288,9 +288,9 @@ describe('commands (§4.2)', () => {
 });
 
 describe('growth (§3.6.1)', () => {
-  it('a planted grassfield block reaches maturity in roughly 900 calendar days under normal weather', () => {
+  it('a planted grassfield block reaches maturity in about `immatureDays` calendar days', () => {
     // Seeds differ in the regimes they roll; El Niño years legitimately push
-    // this out toward ~1000. The window is "about 2.5–3 years", as §2 says.
+    // this out by a quarter or so. The window is the tunable, give or take.
     for (const seed of [42, 1234, 99_999]) {
       const sim = createSim(seed);
       const block = firstOwnedWild(sim);
@@ -304,8 +304,8 @@ describe('growth (§3.6.1)', () => {
       );
       const calendarDays = sim.state.tick - plantedAt;
       expect(days).toBeLessThan(1500);
-      expect(calendarDays).toBeGreaterThan(700);
-      expect(calendarDays).toBeLessThan(1150);
+      expect(calendarDays).toBeGreaterThan(GROWTH.immatureDays * 0.8);
+      expect(calendarDays).toBeLessThan(GROWTH.immatureDays * 1.3);
     }
   });
 

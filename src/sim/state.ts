@@ -63,6 +63,7 @@ export function createInitialState(world: World): SimState {
       sun: 1,
       sky: 'clear',
       skyUntil: 0,
+      naturalFires: [],
       dryStreak: 0,
       wetStreak: 0,
       activeEvents: [],

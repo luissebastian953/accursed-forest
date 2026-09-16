@@ -146,7 +146,7 @@ describe('harvest (§2, §3.3)', () => {
     });
   });
 
-  it('becomes ripe on a 10-day rotation once the first palm bears, and announces it', () => {
+  it('becomes ripe on the harvest rotation once the first palm bears, and announces it', () => {
     const { sim, block } = plantedEstate();
     growToBearing(sim, block);
 
@@ -164,7 +164,9 @@ describe('harvest (§2, §3.3)', () => {
 
     const early = sim.dispatch({ type: 'HarvestBlock', block });
     expect(early).toMatchObject({ ok: false, code: 'notRipe' });
-    expect((early as { reason: string }).reason).toMatch(/Next round in 10 days/);
+    expect((early as { reason: string }).reason).toMatch(
+      new RegExp(`Next round in ${HARVEST_ROTATION_DAYS} days`),
+    );
   });
 
   it("a round yields a plausible mass and is sold at the day's price next tick", () => {
@@ -356,12 +358,13 @@ describe('the loop closes (§3.5, M1b done-criterion)', () => {
     const { rows, lowestCash } = autoplay({ seed: 42, years: 8, blocks: 1 });
     const byYear = new Map(rows.map((r) => [r.year, r]));
 
-    // Losing money while immature.
+    // Losing money while immature (the palms bear in the second year now).
     expect(byYear.get(1)!.net).toBeLessThan(0);
-    expect(byYear.get(2)!.net).toBeLessThan(0);
     // Earning once the palms bear and the curve ramps.
+    expect(byYear.get(3)!.net).toBeGreaterThan(0);
     expect(byYear.get(5)!.net).toBeGreaterThan(0);
-    expect(byYear.get(7)!.net).toBeGreaterThan(byYear.get(5)!.net);
+    // The curve ramps to its plateau by year five.
+    expect(byYear.get(5)!.net).toBeGreaterThan(byYear.get(3)!.net);
     expect(byYear.get(8)!.soldKg).toBeGreaterThan(5000);
     // Tight, not fatal: the reserve never went negative on one block.
     expect(lowestCash).toBeGreaterThan(0);

@@ -11,6 +11,7 @@
 
 import { html, nothing, render, type TemplateResult } from 'lit-html';
 
+import { REBOISASI } from '@sim/balance/endings';
 import { GROWTH } from '@sim/balance/growth';
 import type { ChronicleEntry, Ending, NewsItem, RunStats, YearSummary } from '@sim/types';
 
@@ -83,6 +84,16 @@ const LOOK: Record<Ending, Look> = {
     band: 'linear-gradient(180deg, #fff3cd, #ffe9a8)',
     badge: '#fff9e6',
     title_: '#4a3320',
+    numbers: 'The numbers',
+  },
+  reboisasi: {
+    kicker: 'You won · reboisasi',
+    title: 'Reboisasi',
+    line: 'More of the land went back to forest than ever went to palms.',
+    icon: 'forest-cover',
+    band: 'linear-gradient(180deg, #e4f6dc, #c9ecbd)',
+    badge: '#f1faec',
+    title_: '#2f7a2b',
     numbers: 'The numbers',
   },
   fade: {
@@ -214,6 +225,15 @@ export class Epilogue {
           },
           profit(v.profitTotal),
         ];
+      case 'reboisasi':
+        return [
+          { label: 'Years', value: String(years) },
+          { label: 'Forest planted back', value: `${s.forestPlanted} ha`, tone: 'good' },
+          { label: 'Forest cover', value: formatPercent(v.forestCover), tone: 'good' },
+          { label: 'Hectares bearing', value: String(v.matureHectares) },
+          { label: 'Disasters weathered', value: String(s.disasters) },
+          profit(v.profitTotal),
+        ];
       case 'fade':
         return [
           { label: 'Hectares bearing', value: String(v.matureHectares) },
@@ -282,9 +302,11 @@ export class Epilogue {
       return;
     }
     const look = LOOK[v.ending];
-    const win = v.ending === 'clean' || v.ending === 'dirty';
+    const certified = v.ending === 'clean' || v.ending === 'dirty';
+    const win = certified || v.ending === 'reboisasi';
     const sandbox = win || v.ending === 'fade';
     const rewind = !win && v.rewindYears.length > 0;
+    const sponsor = REBOISASI.sponsor;
     const years = Math.max(1, Math.ceil(v.endedAt / GROWTH.daysPerYear));
     const oldest = Math.min(...v.rewindYears);
 
@@ -334,7 +356,34 @@ export class Epilogue {
                   : nothing
               }
               ${
-                win
+                v.ending === 'reboisasi'
+                  ? this.note(
+                      'forest-cover',
+                      html`
+                        <div class="text-base font-extrabold leading-snug text-[#2f7a2b]">
+                          “You chose the world over your own desire. You are a true noble. If most
+                          people would do the same, if government would support such a path, the
+                          world could have been a better place.”
+                        </div>
+                        <div
+                          class="label mt-2 !text-[#2f7a2b] opacity-80"
+                          data-testid="epilogue-sponsor"
+                        >
+                          ${
+                            sponsor
+                              ? html`Presented with ${sponsor.name} · ${sponsor.line}`
+                              : html`Presented with —
+                                  <span class="italic">sponsor to be announced</span>`
+                          }
+                        </div>
+                      `,
+                      'bg-[#e4f6dc] border-[var(--green)]',
+                      'epilogue-reboisasi',
+                    )
+                  : nothing
+              }
+              ${
+                certified
                   ? this.note(
                       'certificate-ispo',
                       html`

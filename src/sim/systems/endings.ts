@@ -8,12 +8,13 @@
  * horizon, calls the fade.
  */
 
-import { BANKRUPTCY, ISPO } from '../balance/endings.ts';
+import { BANKRUPTCY, ISPO, REBOISASI } from '../balance/endings.ts';
 import { LANDSLIDE } from '../balance/events.ts';
 import { GROWTH } from '../balance/growth.ts';
 import { ECONOMY } from '../balance/prices.ts';
 import { inKopdesRange } from '../kopdes.ts';
 import { estateForestCover, forestCoverAround } from '../landscape.ts';
+import { slotStage } from '../palms.ts';
 import { chronicle, endRun, runOver } from '../run.ts';
 import { readBlock, type SimContext } from '../state.ts';
 import type { BlockId, SimState, YearSummary } from '../types.ts';
@@ -193,6 +194,42 @@ function insolvent(ctx: SimContext): boolean {
 // ── The year ──────────────────────────────────────────────────────────────
 
 /** Blocks of palms where at least `ISPO.matureShare` of the palms bear. One block is one hectare. */
+/** Blocks planted with palms, bearing or not. */
+export function palmHectares(state: SimState): number {
+  let n = 0;
+  for (const block of state.blocks.values()) {
+    if (block.phase === 'planted' && block.species === 'palm') n += 1;
+  }
+  return n;
+}
+
+/** Reforesting blocks whose trees have mostly grown past sapling. */
+export function reforestedHectares(state: SimState): number {
+  let n = 0;
+  for (const [id, palms] of state.palms) {
+    const block = state.blocks.get(id);
+    if (block?.phase !== 'reforesting') continue;
+    let planted = 0;
+    let grown = 0;
+    for (let slot = 0; slot < palms.plantedAt.length; slot++) {
+      if (palms.plantedAt[slot]! < 0) continue;
+      planted += 1;
+      const stage = slotStage(palms, slot, 'forest', state.tick);
+      if (stage === 'immature' || stage === 'mature') grown += 1;
+    }
+    if (planted > 0 && grown >= planted * REBOISASI.grownShare) n += 1;
+  }
+  return n;
+}
+
+/** The reboisasi ending's test: more land back to forest than under palms, by a margin. */
+export function reboisasiReached(state: SimState): boolean {
+  const forest = reforestedHectares(state);
+  return (
+    forest >= REBOISASI.minHectares && forest >= palmHectares(state) + REBOISASI.marginHectares
+  );
+}
+
 export function matureHectares(state: SimState): number {
   let n = 0;
   for (const [id, palms] of state.palms) {
@@ -311,6 +348,13 @@ function closeYear(ctx: SimContext, year: number): void {
       severity: 'notice',
       title: `Year ${year} closed: ${summary.profit >= 0 ? 'profit' : 'loss'} Rp ${Math.abs(Math.round(summary.profit / 1_000_000))}M, ${summary.matureHectares} ha bearing`,
     });
+  }
+
+  // The forest first: someone who put the land back is not waiting on a certificate.
+  if (year >= ISPO.progressFromYear && reboisasiReached(state)) {
+    endRun(state, 'reboisasi');
+    events.push({ type: 'RunEnded', ending: 'reboisasi' });
+    return;
   }
 
   const met = (id: IspoConditionId): boolean => closed.find((c) => c.id === id)!.met;

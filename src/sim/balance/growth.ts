@@ -8,10 +8,14 @@
  */
 
 export const GROWTH = {
-  /** Growth-days from planting to first fruit (§2: ~900). */
-  immatureDays: 900,
+  /**
+   * Growth-days from planting to first fruit. The design doc's ~900 was a
+   * real palm's three years; with a day ten seconds long that was an hour of
+   * watching seedlings, so the whole life cycle runs at 0.6.
+   */
+  immatureDays: 540,
   /** Growth-days from planting to the end of the seedling look. */
-  seedlingDays: 180,
+  seedlingDays: 110,
 
   /** Calendar days per simulated year. */
   daysPerYear: 360,
@@ -51,24 +55,25 @@ export const MOISTURE_CURVE: readonly (readonly [moisture: number, factor: numbe
 ];
 
 /**
- * Kilograms of TBS per palm per 10-day round at peak health, by calendar age in
- * years: ramp from first fruit to year 8, plateau to 18, decline to 25, then
- * senile (§2). ~8.4 kg/palm/round at peak is ~43 t/ha/yr across 144 palms —
- * well above a real estate's best: a good round should feel like a payday.
+ * Kilograms of TBS per palm per harvest round at peak health, by calendar age
+ * in years: ramp from first fruit (about a year and a half in) to year 5,
+ * plateau to 18, decline to 25, then senile (§2). ~10.5 kg/palm/round every
+ * six days is far above a real estate's best: a good round should feel like a
+ * payday, and a year of them should build something.
  */
 export const YIELD_CURVE: readonly (readonly [ageYears: number, kg: number])[] = [
   [0, 0],
-  [2.5, 1],
-  [4, 4],
-  [6, 6.7],
-  [8, 8.4],
-  [18, 8.4],
-  [25, 4.8],
-  [30, 1.8],
+  [1.5, 1.2],
+  [2.5, 5],
+  [4, 8.4],
+  [5, 10.5],
+  [18, 10.5],
+  [25, 6],
+  [30, 2.2],
 ];
 
-/** Days between harvest rounds on a block (§2). */
-export const HARVEST_ROTATION_DAYS = 10;
+/** Days between harvest rounds on a block (§2: ten, shortened with the slower clock). */
+export const HARVEST_ROTATION_DAYS = 6;
 
 /** One fertilizer application lifts fertility for this long (§3.5). */
 export const FERTILIZER_DAYS = 90;
@@ -78,9 +83,9 @@ export const FERTILIZER_DAYS = 90;
  * young to mature forest over roughly eight years (§3.10).
  */
 export const FOREST_GROWTH = {
-  saplingDays: 360,
-  youngDays: 1440,
-  matureDays: 2880,
+  saplingDays: 220,
+  youngDays: 860,
+  matureDays: 1720,
   /** Forest cover weight by stage (§3.10: young counts half). */
   youngCoverWeight: 0.5,
   matureCoverWeight: 1,

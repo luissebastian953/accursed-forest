@@ -197,6 +197,15 @@ export const MIGRATIONS: readonly Migration[] = [
       }
     },
   },
+  {
+    // Natural fires: an old save's burning blocks are all taken as lit by hand.
+    from: 10,
+    up(save) {
+      const head = save.manifest['head'] as { weather?: Record<string, unknown> } | undefined;
+      if (!head?.weather) throw new SaveError('corrupt', 'v10 manifest has no weather');
+      head.weather['naturalFires'] ??= [];
+    },
+  },
 ];
 
 /**

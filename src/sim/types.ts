@@ -129,6 +129,8 @@ export interface Weather {
   sky: SkyCondition;
   /** The sky holds until this tick, storms excepted (§3.6 spells). */
   skyUntil: Tick;
+  /** Blocks lit by lightning or a drought spark: they burn out where they are and never spread. */
+  naturalFires: BlockId[];
   dryStreak: number;
   wetStreak: number;
   activeEvents: ActiveEvent[];
@@ -202,7 +204,7 @@ export type ItemId =
   | 'sanitationCrew'
   | 'forestSapling';
 
-export type Ending = 'clean' | 'dirty' | 'fade' | 'bankrupt' | 'banned' | 'arrested';
+export type Ending = 'clean' | 'dirty' | 'reboisasi' | 'fade' | 'bankrupt' | 'banned' | 'arrested';
 
 // ── Mobs ──────────────────────────────────────────────────────────────────
 

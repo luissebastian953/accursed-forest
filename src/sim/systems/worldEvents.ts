@@ -7,6 +7,7 @@
  * reads the events this system keeps in `state.weather.activeEvents`.
  */
 
+import { BIOMES } from '../balance/biomes.ts';
 import {
   ASH,
   DECK,
@@ -31,6 +32,7 @@ import {
   fuelFactor,
   ignite,
   isFuel,
+  isNaturalFire,
   isWildfire,
 } from '../fire.ts';
 import { landslideChance, slide } from '../landscape.ts';
@@ -164,7 +166,7 @@ function maybeSpark(ctx: SimContext): void {
   // iterates the sparse map in a different order.
   piles.sort((a, b) => a - b);
   const target = piles[nextInt(state.rng, piles.length)]!;
-  ignite(ctx, target, 1);
+  ignite(ctx, target, 1, true);
   events.push({ type: 'SparkCaught', block: target });
   events.push({ type: 'BlockChanged', block: target });
 }
@@ -252,7 +254,7 @@ function strikeLightning(ctx: SimContext): void {
       isFuel(block, isWildfire(state)) &&
       chance(state.rng, LIGHTNING.igniteChance);
     if (ignited) {
-      ignite(ctx, id, 1);
+      ignite(ctx, id, 1, true);
       events.push({ type: 'BlockChanged', block: id });
     }
     events.push({ type: 'LightningStruck', block: id, ignited });
@@ -337,6 +339,8 @@ function fire(ctx: SimContext): void {
       continue;
     }
 
+    // An act of God burns its own block and stops; only a lit match travels.
+    if (isNaturalFire(state, block.id)) continue;
     const spread = wildfire
       ? FIRE.wildfireSpreadPerDay * FIRE.wildfireRegimeMultiplier[weather.regime]
       : (FIRE.spreadPerDay[block.fireIntensity as 1 | 2 | 3] ?? 0) *
@@ -346,7 +350,11 @@ function fire(ctx: SimContext): void {
     for (const neighbourId of neighbourIds(ctx.world, block.id)) {
       const neighbour = readBlock(state, ctx.world, neighbourId);
       if (!isFuel(neighbour, wildfire)) continue;
-      if (!chance(state.rng, Math.min(SPREAD_CAP, spread * fuelFactor(neighbour)))) continue;
+      // A controlled burn reaches into standing forest far more readily than
+      // across grass: that is what the crews are for, and what the letters are about.
+      const forest = !wildfire && BIOMES[neighbour.biome].forestCover ? FIRE.forestSpreadFactor : 1;
+      if (!chance(state.rng, Math.min(SPREAD_CAP, spread * forest * fuelFactor(neighbour))))
+        continue;
       const intensity = wildfire ? 3 : block.fireIntensity === 0 ? 1 : block.fireIntensity;
       ignite(ctx, neighbourId, intensity);
       events.push({ type: 'FireSpread', from: block.id, to: neighbourId });

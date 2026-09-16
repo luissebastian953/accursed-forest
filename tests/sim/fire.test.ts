@@ -9,6 +9,7 @@ import { SLOTS_PER_BLOCK } from '@sim/balance/world.ts';
 import { EventSink } from '@sim/events.ts';
 import { HAZE_EVENT, WILDFIRE_EVENT, activeEvent, ignite, isFuel, isWildfire } from '@sim/fire.ts';
 import { createSim, type Sim } from '@sim/index.ts';
+import { writeBlock } from '@sim/state.ts';
 import { growthMultiplier } from '@sim/systems/growth.ts';
 import type { BlockId, FireIntensity } from '@sim/types.ts';
 
@@ -328,5 +329,52 @@ describe('sanitation, irrigation, drainage (§3.1)', () => {
 
   it('the season is 360 days, so a 90-day ash window is a quarter of it', () => {
     expect(FIRE.ashDays * 4).toBe(GROWTH.daysPerYear);
+  });
+});
+
+describe('whose fire it is (§3.1.1)', () => {
+  /** Light `block` at high intensity in a dry year, and count what it takes with it. */
+  function spreadFrom(seed: number, natural: boolean): number {
+    const sim = createSim(seed);
+    sim.state.weather.regime = 'elNino';
+    const block = ownedWild(sim, 'forest')[0] ?? ownedWild(sim)[0];
+    if (block === undefined) return 0;
+    const b = writeBlock(sim.state, sim.world, block);
+    b.burning = true;
+    b.fireIntensity = 3;
+    if (natural) sim.state.weather.naturalFires.push(block);
+    let spread = 0;
+    for (let i = 0; i < 6; i++) {
+      for (const e of sim.tick()) if (e.type === 'FireSpread' && e.from === block) spread += 1;
+    }
+    return spread;
+  }
+
+  it('a lightning fire burns its block out and never spreads; a lit match does', () => {
+    let natural = 0;
+    let lit = 0;
+    for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
+      natural += spreadFrom(seed, true);
+      lit += spreadFrom(seed, false);
+    }
+    expect(natural).toBe(0);
+    expect(lit).toBeGreaterThan(0);
+  });
+
+  it('a controlled burn reaches into standing forest more readily than across grass', () => {
+    expect(FIRE.forestSpreadFactor).toBeGreaterThan(1);
+  });
+
+  it('the block forgets it was lightning once the fire is out', () => {
+    const sim = createSim(3);
+    const block = ownedWild(sim)[0]!;
+    const b = writeBlock(sim.state, sim.world, block);
+    b.burning = true;
+    b.fireIntensity = 1;
+    b.clearProgress = 0.9;
+    sim.state.weather.naturalFires.push(block);
+    for (let i = 0; i < 3 && sim.state.blocks.get(block)!.burning; i++) sim.tick();
+    expect(sim.state.blocks.get(block)!.burning).toBe(false);
+    expect(sim.state.weather.naturalFires).not.toContain(block);
   });
 });

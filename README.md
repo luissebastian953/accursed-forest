@@ -21,7 +21,9 @@ and forest conditions can be waived, and the epilogue tells that dirty win
 plainly. Fall below the bank's credit line (Rp 20M per planted hectare in
 Kopdes range) for 90 days and the loans are called; burn while an honest
 enforcement team is in office and the estate can be shut for two years.
-Twenty-five years without a certificate is the fade. Every ending replays
+Put more land back to young forest than you hold in palms — by two clear
+hectares, six at least — and the run ends in _reboisasi_, the ending nobody
+planned for. Twenty-five years without a certificate is the fade. Every ending replays
 the run as a chain of headlines, and losses offer "Return to Year N" from
 start-of-year snapshots. M1h (polish: toasts, block panel rejections, the stats
 panel, the balance sweep, README) is next.
@@ -46,7 +48,7 @@ panel, the balance sweep, README) is next.
 | Map camera, picking, keyboard, HUD (price, fire, plague), panels, shop         | done                     |
 | Weather deck: haze, ash, flood, drought; forest cover and landslides           | done                     |
 | News feed (3 lanes), integrity, macro economy, authority ladder                | done                     |
-| Endings: ISPO clean/dirty, bankruptcy, ban, fade, epilogue, rewind, sandbox    | done                     |
+| Endings: ISPO clean/dirty, reboisasi, bankruptcy, ban, fade, rewind, sandbox   | done                     |
 | Mobs: wildlife, thief, babi ngepet, ghost, hired workers, chop/burn crews      | done                     |
 | Endgame: on a win the President's motorcade pulls up to the Kopdes door        | done                     |
 | Far-LOD heatmap tiles, GPU per-instance animation, forest box-trees            | deferred until they bite |

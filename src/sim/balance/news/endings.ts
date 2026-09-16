@@ -59,6 +59,17 @@ export const ENDINGS: Record<string, NewsTemplate> = {
     bodies: ['Schools are closed again. Hotspot maps show clusters on certified plantation land.'],
     effects: [],
   },
+  'ending.reboisasi': {
+    lane: 'natural',
+    severity: 'notice',
+    chronicle: true,
+    cooldownDays: 0,
+    titles: ['{estate} has more forest than palms, and the birds have noticed'],
+    bodies: [
+      'The owner planted trees where the concession said oil palm, and kept planting. Officials in {region} have no form for it. The canopy has closed over the old clearings.',
+    ],
+    effects: ['Reboisasi'],
+  },
   'ending.fade': {
     lane: 'economic',
     severity: 'notice',

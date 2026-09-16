@@ -77,6 +77,7 @@ export async function startGallery(root: HTMLElement): Promise<() => void> {
     sun: 1,
     sky: 'clear' as const,
     skyUntil: 0,
+    naturalFires: [],
     dryStreak: 0,
     wetStreak: 0,
     activeEvents: [],

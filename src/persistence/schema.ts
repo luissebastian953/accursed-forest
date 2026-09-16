@@ -48,8 +48,10 @@ export const KEY_PREFIX = 'accursed-forest';
  * 8 — Mobs: the head carries the mobs on the estate and the next mob id.
  * 9 — Weather spells: the weather carries how long the sky holds.
  * 10 — Mob repertoire: mobs carry a behaviour timer, an anchor and a heading.
+ * 11 — Natural fires: the weather lists the blocks lightning lit; the
+ *     reboisasi ending.
  */
-export const CURRENT_SCHEMA = 10;
+export const CURRENT_SCHEMA = 11;
 
 export type SaveErrorCode = 'missing' | 'corrupt' | 'newerSchema' | 'quota';
 
@@ -154,6 +156,7 @@ const WeatherSchema = z.object({
   sun: z.number(),
   sky: z.enum(['clear', 'cloudy', 'rain', 'storm']),
   skyUntil: Tick,
+  naturalFires: z.array(Id),
   dryStreak: z.number(),
   wetStreak: z.number(),
   activeEvents: z.array(ActiveEventSchema),
@@ -248,7 +251,9 @@ const RunSchema = z.object({
   chronicle: z.array(ChronicleEntrySchema),
   sandbox: z.boolean(),
   endedAt: Tick.optional(),
-  ending: z.enum(['clean', 'dirty', 'fade', 'bankrupt', 'banned', 'arrested']).optional(),
+  ending: z
+    .enum(['clean', 'dirty', 'reboisasi', 'fade', 'bankrupt', 'banned', 'arrested'])
+    .optional(),
 });
 
 const CommandSchema = z.discriminatedUnion('type', [

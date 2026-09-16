@@ -400,6 +400,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     const keys: Record<typeof ending, string[]> = {
       clean: ['ispo.clean'],
       dirty: ['ispo.dirty'],
+      reboisasi: ['ending.reboisasi'],
       fade: ['ending.fade'],
       bankrupt: ['ending.bankrupt'],
       banned: ['ending.banned'],

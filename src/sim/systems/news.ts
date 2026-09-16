@@ -213,7 +213,12 @@ export function newsSystem(ctx: SimContext): void {
         if (!event.clean) add('ispo.dirtyHaze');
         break;
       case 'RunEnded':
-        if (event.ending === 'fade' || event.ending === 'bankrupt' || event.ending === 'banned')
+        if (
+          event.ending === 'fade' ||
+          event.ending === 'reboisasi' ||
+          event.ending === 'bankrupt' ||
+          event.ending === 'banned'
+        )
           add(`ending.${event.ending}`, { days: state.run.insolventFor });
         break;
       default:

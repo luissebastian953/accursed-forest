@@ -65,12 +65,33 @@ export function fuelFactor(block: Readonly<Block>): number {
 }
 
 /** Set a block alight. Materialises it into the sparse map. */
-export function ignite(ctx: SimContext, id: BlockId, intensity: FireIntensity): Block {
+export function ignite(
+  ctx: SimContext,
+  id: BlockId,
+  intensity: FireIntensity,
+  natural = false,
+): Block {
   const block = writeBlock(ctx.state, ctx.world, id);
   block.burning = true;
   block.fireIntensity = intensity;
   block.clearProgress = 0;
+  const fires = ctx.state.weather.naturalFires;
+  if (natural) {
+    if (!fires.includes(id)) fires.push(id);
+  } else if (fires.includes(id)) {
+    ctx.state.weather.naturalFires = fires.filter((b) => b !== id);
+  }
   return block;
+}
+
+/** Lightning or a drought spark lit it: it will not spread. */
+export function isNaturalFire(state: SimState, id: BlockId): boolean {
+  return state.weather.naturalFires.includes(id);
+}
+
+function forgetNaturalFire(state: SimState, id: BlockId): void {
+  if (state.weather.naturalFires.includes(id))
+    state.weather.naturalFires = state.weather.naturalFires.filter((b) => b !== id);
 }
 
 /** The fire has consumed the block: it is cleared, ashed, and any palms are gone. */
@@ -90,6 +111,7 @@ export function finishBurn(ctx: SimContext, block: Block): void {
   block.fireIntensity = 0;
   block.clearProgress = 1;
   block.phase = 'cleared';
+  forgetNaturalFire(state, block.id);
   block.debris = Math.min(100, Math.max(FIRE.debrisAfterBurn, block.debris * 0.25));
   block.ashUntil = state.tick + FIRE.ashDays;
   events.push({ type: 'BurnFinished', block: block.id });
@@ -107,6 +129,7 @@ export function extinguish(ctx: SimContext, block: Block): void {
   block.burning = false;
   block.fireIntensity = 0;
   block.clearProgress = 0;
+  forgetNaturalFire(ctx.state, block.id);
   block.debris = Math.min(100, block.debris + FIRE.debrisFromExtinguished);
   ctx.events.push({ type: 'FireExtinguished', block: block.id });
   ctx.events.push({ type: 'BlockChanged', block: block.id });

@@ -26,6 +26,15 @@ export const FIRE = {
   spreadPerDay: { 1: 0.01, 2: 0.058, 3: 0.2 } satisfies Record<FireIntensity, number>,
 
   /**
+   * A man-made burn spreads this much more readily into a neighbouring block
+   * of standing forest: dry canopy and litter catch where grass would not.
+   * Lightning and drought fires do not spread at all (`weather.naturalFires`):
+   * they burn their block out and stop, so an act of God never costs the
+   * player the hillside — only their own matches do.
+   */
+  forestSpreadFactor: 3,
+
+  /**
    * A wildfire's own daily spread chance per neighbour, replacing the block's
    * intensity. Tuned by burned area over a dry season: ~50 blocks in two
    * months and ~95 over the season in a normal year — a disaster for a

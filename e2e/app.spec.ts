@@ -149,18 +149,18 @@ test.describe('Sawit Simulator', () => {
     await tid(page, 'action-PlantBlock-palm').click();
     await expect(tid(page, 'block-phase')).toHaveText('Planted');
     await expect(tid(page, 'block-range')).toContainText(/in range/i);
-    await expect(tid(page, 'growth-progress')).toContainText(/\d+ \/ 180 growth-days/, {
+    await expect(tid(page, 'growth-progress')).toContainText(/\d+ \/ 110 growth-days/, {
       timeout: 10_000,
     });
 
-    // ~900 growth-days at 40 ticks/s, then the first ripe round.
+    // ~540 growth-days at turbo speed, then the first ripe round.
     await expect(tid(page, 'harvest-info')).toContainText(/ripe now/i, { timeout: 60_000 });
     await tid(page, 'speed-0').click();
     await expect(tid(page, 'action-HarvestBlock')).toBeEnabled();
     const cashBeforeHarvest = await tid(page, 'hud-cash').textContent();
     await tid(page, 'action-HarvestBlock').click();
     await expect(tid(page, 'action-HarvestBlock')).toBeDisabled();
-    await expect(tid(page, 'block-panel')).toContainText('Next round in 10 days');
+    await expect(tid(page, 'block-panel')).toContainText('Next round in 6 days');
 
     // Hand the picking to the Kopdes crew and take it back.
     await tid(page, 'toggle-auto-harvest').click();
