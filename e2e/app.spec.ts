@@ -155,6 +155,13 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'action-HarvestBlock')).toBeDisabled();
     await expect(tid(page, 'block-panel')).toContainText('Next round in 10 days');
 
+    // Hand the picking to the Kopdes crew and take it back.
+    await tid(page, 'toggle-auto-harvest').click();
+    await expect(tid(page, 'toggle-auto-harvest')).toContainText('ON');
+    await expect(tid(page, 'action-HarvestBlock')).toBeDisabled();
+    await tid(page, 'toggle-auto-harvest').click();
+    await expect(tid(page, 'toggle-auto-harvest')).toContainText('OFF');
+
     // The sale lands on the next tick.
     await tid(page, 'speed-1').click();
     await expect(page.getByTestId('toast').filter({ hasText: 'Sold' })).toBeVisible({
@@ -212,7 +219,7 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'controls-help')).toHaveCount(0);
   });
 
-  test('burning: a controlled burn locks the clock, a second one tips the wildfire', async ({
+  test('burning: a controlled burn caps the clock, a second one tips the wildfire', async ({
     page,
   }) => {
     test.setTimeout(90_000);
@@ -230,9 +237,9 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'block-phase')).toContainText('Burning · medium');
     await expect(tid(page, 'fire-gauge')).toBeVisible();
     await expect(tid(page, 'burning-chip')).toBeVisible();
-    // §3.1.1: speed is locked to 1× while anything burns.
+    // §3.1.1: the clock is capped while anything burns — 5×, not a crawl.
     await expect(tid(page, 'speed-20')).toBeDisabled();
-    await expect(tid(page, 'speed-5')).toBeDisabled();
+    await expect(tid(page, 'speed-5')).toBeEnabled();
     await expect(tid(page, 'wildfire-badge')).toHaveCount(0);
 
     // A second medium burn: pressure 6 > 5.5.

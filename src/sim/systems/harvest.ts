@@ -12,9 +12,13 @@ import { sampleCurve } from '@shared/math';
 
 import { HARVEST_ROTATION_DAYS, YIELD_CURVE } from '../balance/growth.ts';
 import { HARVEST } from '../balance/prices.ts';
+import { ASH_EVENT, activeEvent } from '../fire.ts';
+import { inKopdesRange } from '../kopdes.ts';
 import { ageInYears, isBearing, slotStage } from '../palms.ts';
-import type { SimContext } from '../state.ts';
-import type { Block, PalmArrays, Species, Tick } from '../types.ts';
+import { spend, writeBlock, type SimContext } from '../state.ts';
+import type { Block, BlockId, PalmArrays, Species, Tick } from '../types.ts';
+
+import { operatingBanned } from './society.ts';
 
 export function isRipe(block: Readonly<Block>, tick: Tick): boolean {
   return block.lastHarvest >= 0 && tick - block.lastHarvest >= HARVEST_ROTATION_DAYS;
@@ -46,9 +50,45 @@ export function harvestableKg(palms: PalmArrays, species: Species, tick: Tick): 
   return kg;
 }
 
+/**
+ * Take the round off one block: fruit to the Kopdes intake, wages paid, clock
+ * reset. The crew's own rounds pay a surcharge on top (§3.3).
+ */
+export function pickBlock(ctx: SimContext, id: BlockId, auto: boolean): number {
+  const { state, world, events } = ctx;
+  const block = writeBlock(state, world, id);
+  const palms = state.palms.get(id)!;
+
+  let kilograms = 0;
+  for (let slot = 0; slot < palms.plantedAt.length; slot++) {
+    if (palms.plantedAt[slot]! < 0) continue;
+    if (!isBearing(slotStage(palms, slot, 'palm', state.tick))) continue;
+    kilograms += palms.yieldAcc[slot]!;
+    palms.yieldAcc[slot] = 0;
+  }
+
+  block.lastHarvest = state.tick;
+  state.economy.tbsPending += kilograms;
+  spend(
+    state,
+    HARVEST.crewWagePerRound + (auto ? HARVEST.autoSurchargePerRound : 0),
+    'wages',
+    `${auto ? 'auto-harvest' : 'harvest'}: block ${id}`,
+  );
+
+  events.push({ type: 'Harvested', block: id, kilograms });
+  events.push({ type: 'CashChanged', cash: state.economy.cash });
+  return kilograms;
+}
+
 export function harvest(ctx: SimContext): void {
   const { state, events } = ctx;
   const tick = state.tick;
+  // The Kopdes crew picks for you, unless ash is falling or the estate is shut.
+  const autoCrew =
+    (state.kopdes?.autoHarvest ?? false) &&
+    !activeEvent(state, ASH_EVENT) &&
+    !operatingBanned(state);
 
   for (const [id, palms] of state.palms) {
     const block = state.blocks.get(id);
@@ -74,6 +114,9 @@ export function harvest(ctx: SimContext): void {
     }
     if (tick - block.lastHarvest === HARVEST_ROTATION_DAYS) {
       events.push({ type: 'BlockRipe', block: id });
+    }
+    if (autoCrew && isRipe(block, tick) && harvestableKg(palms, 'palm', tick) > 0) {
+      if (inKopdesRange(state, ctx.world, id)) pickBlock(ctx, id, true);
     }
   }
 }

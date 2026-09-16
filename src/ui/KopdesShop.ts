@@ -12,6 +12,7 @@ import type { Sim } from '@sim/index';
 import { kopdesRange } from '@sim/kopdes';
 import type { Command, DispatchResult, ItemId } from '@sim/types';
 
+import { autoHarvestToggle } from './BlockPanel.ts';
 import { formatDate, formatKg, formatRp } from './format.ts';
 import { icon, type IconName } from './icons.ts';
 
@@ -263,6 +264,18 @@ export class KopdesShop {
 
     return html`
       <div class="flex flex-col gap-3">
+        <div class="pill-muted p-2.5">
+          <div class="flex items-baseline justify-between">
+            <div class="font-extrabold">Picking</div>
+            <div class="muted text-xs">
+              ${kopdes.autoHarvest ? 'the Kopdes crew does the rounds' : 'you pick, block by block'}
+            </div>
+          </div>
+          ${autoHarvestToggle(sim, (command) => {
+            this.handlers.dispatch(command);
+            this.refresh();
+          })}
+        </div>
         <div class="pill-muted p-2.5">
           <div class="flex items-baseline justify-between">
             <div class="font-extrabold">TBS today</div>

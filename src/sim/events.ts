@@ -43,6 +43,7 @@ export type SimEvent =
   | { type: 'BlockFertilized'; block: BlockId }
   | { type: 'ItemBought'; item: ItemId; quantity: number }
   | { type: 'KopdesUpgraded'; level: number }
+  | { type: 'AutoHarvestSet'; on: boolean }
   | { type: 'BurnStarted'; block: BlockId; intensity: FireIntensity }
   | { type: 'FireSpread'; from: BlockId; to: BlockId }
   | { type: 'BurnFinished'; block: BlockId }

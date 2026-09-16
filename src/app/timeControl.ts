@@ -11,6 +11,9 @@ export type Speed = 0 | 1 | 5 | 20;
 export const SPEEDS: readonly Speed[] = [0, 1, 5, 20];
 
 /** Ticks per real second at each speed. 1× is one sim day every 500 ms (§4.2). */
+/** The fastest the clock runs while anything is burning. */
+export const FIRE_LOCK_SPEED = 5 satisfies Speed;
+
 export const TICKS_PER_SECOND: Record<Speed, number> = { 0: 0, 1: 2, 5: 10, 20: 40 };
 
 export type SpeedListener = (speed: Speed, locked: boolean) => void;
@@ -29,7 +32,9 @@ export class TimeControl {
   /** What the loop actually runs at. */
   get speed(): Speed {
     if (this.requested === 0) return 0;
-    return this.realtimeLock ? 1 : this.requested;
+    // Fire is worth watching, but not at a crawl: the lock caps the clock
+    // rather than pinning it to real time.
+    return this.realtimeLock && this.requested > FIRE_LOCK_SPEED ? FIRE_LOCK_SPEED : this.requested;
   }
 
   get ticksPerSecond(): number {

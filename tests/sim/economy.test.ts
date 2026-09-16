@@ -244,6 +244,54 @@ describe('harvest (§2, §3.3)', () => {
   });
 });
 
+describe('auto-harvest (§3.3)', () => {
+  it('the Kopdes crew picks every ripe round for a surcharge, and takes the button away', () => {
+    const { sim, block } = plantedEstate();
+    growToBearing(sim, block);
+    tickUntil(sim, () => sim.validate({ type: 'HarvestBlock', block }) === null, 40);
+
+    expect(sim.dispatch({ type: 'SetAutoHarvest', on: true })).toEqual({ ok: true });
+    expect(sim.state.kopdes!.autoHarvest).toBe(true);
+    expect(sim.dispatch({ type: 'HarvestBlock', block })).toMatchObject({
+      ok: false,
+      code: 'halted',
+    });
+
+    // The next tick picks it without being asked, and the sale lands the same day.
+    const cashBefore = sim.state.economy.cash;
+    const events = sim.tick();
+    const picked = events.find((e) => e.type === 'Harvested');
+    expect(picked).toBeDefined();
+    expect(sim.state.blocks.get(block)!.lastHarvest).toBe(sim.state.tick);
+    expect(events.some((e) => e.type === 'TbsSold')).toBe(true);
+    expect(sim.state.economy.cash).toBeGreaterThan(cashBefore);
+
+    const wages = sim.state.economy.ledger.filter((e) => e.note?.startsWith('auto-harvest'));
+    expect(wages).toHaveLength(1);
+    expect(wages[0]!.amount).toBe(-(HARVEST.crewWagePerRound + HARVEST.autoSurchargePerRound));
+  });
+
+  it('switching it off hands the picking back', () => {
+    const { sim, block } = plantedEstate();
+    growToBearing(sim, block);
+    sim.dispatch({ type: 'SetAutoHarvest', on: true });
+    tickUntil(sim, () => sim.state.economy.soldKgTotal > 0, 60);
+
+    expect(sim.dispatch({ type: 'SetAutoHarvest', on: false })).toEqual({ ok: true });
+    tickUntil(sim, () => sim.validate({ type: 'HarvestBlock', block }) === null, 40);
+    const before = sim.state.economy.tbsPending + sim.state.economy.soldKgTotal;
+    sim.tick();
+    // Nobody picked it for us this time.
+    expect(sim.state.economy.tbsPending + sim.state.economy.soldKgTotal).toBe(before);
+    expect(sim.validate({ type: 'HarvestBlock', block })).toBeNull();
+  });
+
+  it('needs a Kopdes', () => {
+    const sim = createSim(42);
+    expect(sim.validate({ type: 'SetAutoHarvest', on: true })).toMatchObject({ code: 'noKopdes' });
+  });
+});
+
 describe('fertilizer (§3.5)', () => {
   it('opens a 90-day window from stock, and speeds growth while it is open', () => {
     const { sim, block } = plantedEstate();

@@ -5,7 +5,7 @@
 
 import { html, nothing, render } from 'lit-html';
 
-import { SPEEDS, type Speed } from '@app/timeControl';
+import { FIRE_LOCK_SPEED, SPEEDS, type Speed } from '@app/timeControl';
 import type { ClimateRegime } from '@sim/types';
 
 import { formatDate, formatRp } from './format.ts';
@@ -226,7 +226,7 @@ export class Hud {
               (speed) => html`
                 <button
                   class=${`btn btn-sm ${view.speed === speed ? 'btn-green' : 'btn-ghost'}`}
-                  ?disabled=${view.locked && speed > 1}
+                  ?disabled=${view.locked && speed > FIRE_LOCK_SPEED}
                   data-testid=${`speed-${speed}`}
                   @click=${() => this.handlers.setSpeed(speed)}
                 >
@@ -236,8 +236,10 @@ export class Hud {
             )}
             ${
               view.locked
-                ? html`<span class="chip chip-fire" title="Speed locked to 1× while anything burns"
-                    >${icon('fire')} 1×</span
+                ? html`<span
+                    class="chip chip-fire"
+                    title=${`Speed capped at ${FIRE_LOCK_SPEED}× while anything burns`}
+                    >${icon('fire')} ${FIRE_LOCK_SPEED}×</span
                   >`
                 : nothing
             }

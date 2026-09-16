@@ -144,6 +144,14 @@ export const MIGRATIONS: readonly Migration[] = [
       society['operatingBanUntil'] ??= -1;
     },
   },
+  {
+    // M1 balance pass: the Kopdes crew can pick for you; an old one did not.
+    from: 5,
+    up(save) {
+      const head = save.manifest['head'] as { kopdes?: Record<string, unknown> | null } | undefined;
+      if (head?.kopdes) head.kopdes['autoHarvest'] ??= false;
+    },
+  },
 ];
 
 /**

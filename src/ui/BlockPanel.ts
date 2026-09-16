@@ -14,7 +14,7 @@ import { COVER_CROP } from '@sim/balance/events';
 import { FIRE } from '@sim/balance/fire';
 import { GROWTH } from '@sim/balance/growth';
 import { PEST_LABOUR, PLAGUE } from '@sim/balance/pests';
-import { DRAINAGE_COST, IRRIGATION_COST, KOPDES_BUILD_COST } from '@sim/balance/prices';
+import { DRAINAGE_COST, HARVEST, IRRIGATION_COST, KOPDES_BUILD_COST } from '@sim/balance/prices';
 import { isWetSeason } from '@sim/balance/seasons';
 import { landPrice } from '@sim/commands/buyBlock';
 import { itemPrice } from '@sim/commands/buyItem';
@@ -62,6 +62,34 @@ const BIOME_LABEL: Record<Biome, string> = {
   village: 'Village land',
   swamp: 'Swamp (rawa)',
 };
+
+/**
+ * The auto-harvest switch (§3.3): the Kopdes crew picks every ripe block in
+ * range for a small surcharge, and the manual button steps aside.
+ */
+export function autoHarvestToggle(sim: Sim, act: (command: Command) => void) {
+  const kopdes = sim.state.kopdes;
+  if (!kopdes) return nothing;
+  const on = kopdes.autoHarvest;
+  const command: Command = { type: 'SetAutoHarvest', on: !on };
+  return html`
+    <button
+      class=${`btn mt-2 w-full justify-between ${on ? 'btn-green' : 'btn-ghost'}`}
+      title=${
+        on
+          ? 'The Kopdes crew picks for you. Click to take it back.'
+          : `Let the Kopdes crew pick every ripe block for ${formatRp(HARVEST.autoSurchargePerRound)} a round on top of wages.`
+      }
+      data-testid="toggle-auto-harvest"
+      @click=${() => act(command)}
+    >
+      <span>Auto-harvest</span>
+      <span class=${`num rounded-lg px-1.5 py-0.5 text-xs ${on ? 'bg-black/15' : 'bg-[#efe1bf]'}`}>
+        ${on ? `ON · +${formatRp(HARVEST.autoSurchargePerRound)}/round` : 'OFF'}
+      </span>
+    </button>
+  `;
+}
 
 /** Which icon heads the panel: what is on the block, or what it is. */
 function blockIcon(biome: Biome, phase: string): IconName {
@@ -352,6 +380,11 @@ export class BlockPanel {
         ${block.phase === 'kopdes' && state.kopdes ? this.kopdesSection(sim) : nothing}
         ${state.palms.has(id) ? this.palmsSection(sim, id) : nothing}
         ${block.owned && (state.palms.has(id) || block.debris > 0 || block.beetles > 0) ? this.pestSection(sim, id) : nothing}
+        ${
+          block.phase === 'planted' && block.species === 'palm' && state.kopdes
+            ? autoHarvestToggle(sim, (command) => this.act(command))
+            : nothing
+        }
 
         <div class="flex flex-col gap-1.5">
           ${actions.filter((a) => !a.minor).map((action) => this.actionButton(sim, action))}
@@ -461,6 +494,7 @@ export class BlockPanel {
         >
           Open shop
         </button>
+        ${autoHarvestToggle(sim, (command) => this.act(command))}
       </div>
     `;
   }

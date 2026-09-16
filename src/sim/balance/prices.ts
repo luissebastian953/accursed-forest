@@ -17,13 +17,12 @@ export const ECONOMY = {
   tbsPriceMean: 2_650,
 
   /**
-   * Labour per planted block per tick. Tuned with `pnpm sweep` so one block
-   * is cash-positive after its first harvests but the immature years hurt
-   * (§3.5: "possible but tight").
+   * Labour per planted block per tick. Tuned with `pnpm sweep`: the immature
+   * years still cost, but the estate no longer bleeds while it waits (§3.5).
    */
-  upkeepPerPlantedBlock: 22_000,
+  upkeepPerPlantedBlock: 9_000,
   /** Extra daily cost of keeping an irrigated block watered (§3.1). */
-  irrigationUpkeepPerDay: 6_000,
+  irrigationUpkeepPerDay: 3_000,
   /** Price history kept for the HUD trend and sparkline. */
   priceHistoryCap: 60,
 
@@ -87,6 +86,11 @@ export const KOPDES_UPGRADE_COST: readonly number[] = [0, 18_000_000, 30_000_000
 export const HARVEST = {
   /** A harvest crew's wages per block per round. */
   crewWagePerRound: 180_000,
+  /**
+   * The Kopdes's own crew, when auto-harvest is on: a small surcharge on top
+   * of the wages for picking the block without being asked (§3.3).
+   */
+  autoSurchargePerRound: 45_000,
   /** Unharvested fruit rots on the tree beyond this many rounds' worth. */
   overripeCapRounds: 1.5,
 } as const;

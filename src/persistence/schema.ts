@@ -43,8 +43,9 @@ export const KEY_PREFIX = 'accursed-forest';
  * 5 — M1g: run gains profit books, stats, year summaries, the chronicle and
  *     sandbox, and loses yearSnapshots (the snapshots are storage keys);
  *     society gains operatingBanUntil; the ledger gains the `capital` kind.
+ * 6 — M1 balance pass: the Kopdes gains the auto-harvest toggle.
  */
-export const CURRENT_SCHEMA = 5;
+export const CURRENT_SCHEMA = 6;
 
 export type SaveErrorCode = 'missing' | 'corrupt' | 'newerSchema' | 'quota';
 
@@ -269,6 +270,7 @@ const CommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('ReplantBlock'), block: Id }),
   z.object({ type: z.literal('CoverCropBlock'), block: Id }),
   z.object({ type: z.literal('SettleInvestigation') }),
+  z.object({ type: z.literal('SetAutoHarvest'), on: z.boolean() }),
   z.object({ type: z.literal('KeepPlaying') }),
 ]);
 
@@ -296,7 +298,7 @@ const HeadSchema = z.object({
   weather: WeatherSchema,
   society: SocietySchema,
   run: RunSchema,
-  kopdes: z.object({ blockId: Id, level: z.int().positive() }).nullable(),
+  kopdes: z.object({ blockId: Id, level: z.int().positive(), autoHarvest: z.boolean() }).nullable(),
   inventory: z.record(ItemIdSchema, z.number()),
   commandLog: z.array(z.object({ tick: Tick, command: CommandSchema })),
 });

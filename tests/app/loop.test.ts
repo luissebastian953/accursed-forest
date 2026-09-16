@@ -168,11 +168,11 @@ describe('time control (§3.1.1, §8)', () => {
     expect(tc.speed).toBe(20);
   });
 
-  it('the fire lock caps the speed at 1× without forgetting the request', () => {
+  it('the fire lock caps the speed at 5× without forgetting the request', () => {
     const tc = new TimeControl();
     tc.set(20);
     tc.lockToRealtime(true);
-    expect(tc.speed).toBe(1);
+    expect(tc.speed).toBe(5);
     expect(tc.requestedSpeed).toBe(20);
     expect(tc.locked).toBe(true);
     tc.lockToRealtime(false);
@@ -197,7 +197,7 @@ describe('time control (§3.1.1, §8)', () => {
     tc.set(20);
     expect(seen).toEqual([
       [5, false],
-      [1, true],
+      [5, true],
     ]);
   });
 });

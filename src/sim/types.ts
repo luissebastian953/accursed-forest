@@ -273,6 +273,11 @@ export interface WorldGenParams {
 export interface Kopdes {
   blockId: BlockId;
   level: number;
+  /**
+   * The Kopdes crew picks every ripe block in range on its own, for a small
+   * surcharge on top of the wages (§3.3). Manual harvest is off while it is on.
+   */
+  autoHarvest: boolean;
 }
 
 export interface SimState {
@@ -326,6 +331,7 @@ export type Command =
   | { type: 'ReplantBlock'; block: BlockId }
   | { type: 'CoverCropBlock'; block: BlockId }
   | { type: 'SettleInvestigation' }
+  | { type: 'SetAutoHarvest'; on: boolean }
   | { type: 'KeepPlaying' };
 
 export type CommandType = Command['type'];

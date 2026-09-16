@@ -9,11 +9,11 @@ export const ISPO = {
   /** The checklist shows from this year on (§8 panel 19). */
   progressFromYear: 3,
   /** Cumulative operating profit, land and buildings excluded. */
-  winProfit: 1_500_000_000,
+  winProfit: 3_500_000_000,
   /** Every one of the last this-many years must have been profitable. */
   profitableYears: 3,
   /** Hectares of palms bearing fruit. One block is one hectare. */
-  winHectares: 16,
+  winHectares: 20,
   /** A block counts as mature once this share of its palms bear. */
   matureShare: 0.5,
   /** No burn-to-clear within this many years. */
@@ -45,7 +45,7 @@ export const BANKRUPTCY = {
 export const OPERATING_BAN = {
   minIntegrity: 0.5,
   chance: 0.4,
-  days: 720,
+  days: 300,
   /** Caretaker crews: upkeep runs at this share while the estate is shut. */
   upkeepFactor: 0.5,
 } as const;

@@ -204,7 +204,7 @@ describe('commands (§4.2)', () => {
     const cash = sim.state.economy.cash;
 
     expect(sim.dispatch({ type: 'PlaceKopdes', block })).toEqual({ ok: true });
-    expect(sim.state.kopdes).toEqual({ blockId: block, level: 1 });
+    expect(sim.state.kopdes).toEqual({ blockId: block, level: 1, autoHarvest: false });
     expect(sim.state.blocks.get(block)!.phase).toBe('kopdes');
     expect(sim.state.economy.cash).toBe(cash - KOPDES_BUILD_COST);
 

@@ -13,12 +13,16 @@
  * then "next round in N days", then "nothing on the trees".
  */
 
-import { HARVEST } from '../balance/prices.ts';
 import { ASH_EVENT, activeEvent } from '../fire.ts';
 import { distanceToKopdes, inKopdesRange, kopdesRange } from '../kopdes.ts';
-import { isBearing, slotStage } from '../palms.ts';
-import { readBlock, spend, writeBlock } from '../state.ts';
-import { bearingCount, daysUntilRipe, harvestableKg, isRipe } from '../systems/harvest.ts';
+import { readBlock } from '../state.ts';
+import {
+  bearingCount,
+  daysUntilRipe,
+  harvestableKg,
+  isRipe,
+  pickBlock,
+} from '../systems/harvest.ts';
 import { operatingBanReason, operatingBanned } from '../systems/society.ts';
 import type { Command } from '../types.ts';
 
@@ -41,6 +45,9 @@ export const harvestBlock: CommandHandler<HarvestBlock> = {
     }
     if (!state.kopdes) {
       return reject('noKopdes', 'Build a Kopdes first — harvested fruit has nowhere to go.');
+    }
+    if (state.kopdes.autoHarvest) {
+      return reject('halted', 'Auto-harvest is on — the Kopdes crew picks this block itself.');
     }
     if (!inKopdesRange(state, world, command.block)) {
       const distance = distanceToKopdes(state, world, command.block) ?? 0;
@@ -70,23 +77,6 @@ export const harvestBlock: CommandHandler<HarvestBlock> = {
   },
 
   apply(ctx, command) {
-    const { state, world, events } = ctx;
-    const block = writeBlock(state, world, command.block);
-    const palms = state.palms.get(command.block)!;
-
-    let kilograms = 0;
-    for (let slot = 0; slot < palms.plantedAt.length; slot++) {
-      if (palms.plantedAt[slot]! < 0) continue;
-      if (!isBearing(slotStage(palms, slot, 'palm', state.tick))) continue;
-      kilograms += palms.yieldAcc[slot]!;
-      palms.yieldAcc[slot] = 0;
-    }
-
-    block.lastHarvest = state.tick;
-    state.economy.tbsPending += kilograms;
-    spend(state, HARVEST.crewWagePerRound, 'wages', `harvest: block ${command.block}`);
-
-    events.push({ type: 'Harvested', block: command.block, kilograms });
-    events.push({ type: 'CashChanged', cash: state.economy.cash });
+    pickBlock(ctx, command.block, false);
   },
 };
