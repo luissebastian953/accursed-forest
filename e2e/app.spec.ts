@@ -129,6 +129,12 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'stock-bibit')).toHaveText('144');
     await tid(page, 'shop-tab-sell').click();
     await expect(tid(page, 'shop-price')).toContainText('/kg');
+    // Workers are hired here too: a sanitizer goes on the payroll and comes off it.
+    await expect(tid(page, 'shop-workers')).toBeVisible();
+    await tid(page, 'worker-sanitizer').click();
+    await expect(tid(page, 'worker-sanitizer')).toContainText('Dismiss');
+    await tid(page, 'worker-sanitizer').click();
+    await expect(tid(page, 'worker-sanitizer')).toContainText('Hire');
     await page.keyboard.press('Escape');
     await expect(tid(page, 'kopdes-shop')).toHaveCount(0);
 

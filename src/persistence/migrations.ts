@@ -164,6 +164,25 @@ export const MIGRATIONS: readonly Migration[] = [
       weather['sky'] ??= skyFor(Number(weather['rain'] ?? 0));
     },
   },
+  {
+    // Mobs: an old estate has nobody on it yet.
+    from: 7,
+    up(save) {
+      const head = save.manifest['head'] as Record<string, unknown> | undefined;
+      if (!head) throw new SaveError('corrupt', 'v7 manifest has no head');
+      head['mobs'] ??= [];
+      head['nextMobId'] ??= 1;
+    },
+  },
+  {
+    // Weather spells: an old sky is re-read tomorrow.
+    from: 8,
+    up(save) {
+      const head = save.manifest['head'] as { weather?: Record<string, unknown> } | undefined;
+      if (!head?.weather) throw new SaveError('corrupt', 'v8 manifest has no weather');
+      head.weather['skyUntil'] ??= 0;
+    },
+  },
 ];
 
 /**

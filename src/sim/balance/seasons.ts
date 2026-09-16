@@ -85,6 +85,15 @@ export const SKY = {
   dryStormStreak: 5,
   dryStormRain: 0.2,
   dryStormChance: 0.3,
+
+  /**
+   * Weather comes in spells: once the sky is set it holds for this many days
+   * before it is read off the rain again, so a sunny week is a week. A storm
+   * still breaks in whenever the rain calls for one.
+   */
+  spellDays: { min: 3, max: 7 },
+  /** Tag for the spell lengths' own random stream. */
+  stream: 0x534b5920,
 } as const;
 
 /** Lightning (§3.6): storms strike, and dry timber catches. */

@@ -4,8 +4,9 @@
  * A real estate (seed 42, streamed chunks) with a crowd of rigged mobs walking
  * over it, and a readout of what they cost: frame time, the time spent posing
  * them, draw calls and triangles. Buttons set the crowd size and switch between
- * the two ways of drawing it — one scene node per body part, or one instanced
- * mesh per part — so the question "will this make the game heavy?" gets a
+ * the two ways of drawing it — one scene node per body part, or every part
+ * skinned on the CPU into one merged mesh — so the question "will this make
+ * the game heavy?" gets a
  * number rather than an opinion. "Chop a tree" plays the tree-fall animation.
  *
  * `?mobs&count=200&mode=nodes` presets the crowd for scripted measurement, and
@@ -177,7 +178,7 @@ export async function startMobPoc(root: HTMLElement): Promise<() => void> {
     drawCalls: 0,
     triangles: 0,
     count: 0,
-    mode: 'instanced' as MobMode,
+    mode: 'merged' as MobMode,
     backend: handle.backend,
   };
   let frames = 0;
@@ -202,7 +203,7 @@ export async function startMobPoc(root: HTMLElement): Promise<() => void> {
       actions.set(`${n}`, () => populate(n));
       return button(`${n}`, mobs.count === n, `mobs-count-${n}`);
     }).join('');
-    const modeButtons = (['instanced', 'nodes'] as MobMode[])
+    const modeButtons = (['merged', 'nodes'] as MobMode[])
       .map((mode) => {
         actions.set(mode, () => {
           mobs.setMode(mode);
@@ -296,7 +297,7 @@ export async function startMobPoc(root: HTMLElement): Promise<() => void> {
 
   const preset = Number(params.get('count') ?? 100);
   const mode = params.get('mode');
-  if (mode === 'nodes' || mode === 'instanced') mobs.setMode(mode);
+  if (mode === 'nodes' || mode === 'merged') mobs.setMode(mode);
   populate(Number.isFinite(preset) ? preset : 100);
   (window as unknown as { __mobs: unknown }).__mobs = {
     stats,

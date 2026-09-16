@@ -47,9 +47,10 @@ panel, the balance sweep, README) is next.
 | Weather deck: haze, ash, flood, drought; forest cover and landslides           | done                     |
 | News feed (3 lanes), integrity, macro economy, authority ladder                | done                     |
 | Endings: ISPO clean/dirty, bankruptcy, ban, fade, epilogue, rewind, sandbox    | done                     |
+| Mobs: wildlife, thief, babi ngepet, ghost, hired workers, chop/burn crews      | done                     |
 | Far-LOD heatmap tiles, GPU per-instance animation, forest box-trees            | deferred until they bite |
 
-Tests: 274 unit (Vitest) and 12 browser (Playwright, WebGL fallback) — the
+Tests: 323 unit (Vitest) and 12 browser (Playwright, WebGL fallback) — the
 browser suite plays the loop end to end, lights a wildfire on purpose, and
 lets beetles loose on an unsanitized block.
 
@@ -64,6 +65,18 @@ The interface follows the cartoon UI kit: cream cards with a hard bottom
 edge, inset pills, Baloo 2 (Google Fonts, with a rounded system fallback if
 it cannot be fetched), and the 35 flat icons in `public/icons`. The tokens
 and the handful of component classes live in `src/ui/styles.css`.
+
+Mobs walk the estate: wild boar, pigs, mice, cows, a capybara by the river,
+monkeys and orangutans in the forest. A thief comes for ripe fruit now and
+then; a security guard from the Kopdes keeps most away and catches the rest.
+Rarer still, a pig walks up to the Kopdes, stands on two legs, and the cash
+box is lighter — the babi ngepet. Workers hired at the Kopdes (sanitation,
+plant doctor, security) cost a wage a day and find their own jobs; a crew
+stands on every block being chopped or burned. Every mob lives in the sim as
+data, drawn from its own random stream, so a save replays the same visitors.
+The renderer poses every body part on the CPU and skins the whole crowd into
+one merged mesh per material — two draw calls, no new shaders
+(`src/render/mobs/`); the `?mobs` page measures why.
 
 URL flags: `?webgl` forces the WebGL 2 fallback CI uses; `?seed=42` picks a
 world; `?fresh` ignores the save in this browser; `?spike` opens the §6.9 art

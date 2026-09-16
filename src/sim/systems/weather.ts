@@ -13,7 +13,7 @@ import { ASH, HAZE } from '../balance/events.ts';
 import { FIRE } from '../balance/fire.ts';
 import { SEASONS, SKY, isWetSeason } from '../balance/seasons.ts';
 import { ASH_EVENT, HAZE_EVENT, activeEvent, isWildfire } from '../fire.ts';
-import { chance, nextGaussian, pickWeighted, type RngState } from '../rng.ts';
+import { chance, forkRng, nextGaussian, nextInt, pickWeighted, type RngState } from '../rng.ts';
 import type { SimContext } from '../state.ts';
 import type { ClimateRegime, SkyCondition } from '../types.ts';
 
@@ -44,7 +44,16 @@ export function weather(ctx: SimContext): void {
     w.rain >= SKY.dryStormRain &&
     w.rain < SKY.stormAbove &&
     chance(state.rng, SKY.dryStormChance);
-  w.sky = dryStorm ? 'storm' : skyFor(w.rain);
+  // The sky changes in spells of a few days, not every morning; thunder is the exception.
+  const today = dryStorm ? 'storm' : skyFor(w.rain);
+  if (today === 'storm' || state.tick >= w.skyUntil || w.sky === 'storm') {
+    w.sky = today;
+    // Drawn from a side stream: how long the clouds hang about must not
+    // reshuffle the rain, the prices or where the lightning lands.
+    const spellRng = forkRng(state.seed ^ SKY.stream, state.tick);
+    const spell = SKY.spellDays.min + nextInt(spellRng, SKY.spellDays.max - SKY.spellDays.min + 1);
+    w.skyUntil = state.tick + spell;
+  }
 
   w.dryStreak = w.rain < SEASONS.dryStreakBelow ? w.dryStreak + 1 : 0;
   w.wetStreak = w.rain > SEASONS.wetStreakAbove ? w.wetStreak + 1 : 0;

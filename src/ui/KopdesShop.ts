@@ -6,6 +6,7 @@
 
 import { html, nothing, render } from 'lit-html';
 
+import { WORKERS, type WorkerKind } from '@sim/balance/mobs';
 import { itemPrice } from '@sim/commands/buyItem';
 import { kopdesUpgradeCost } from '@sim/commands/upgradeKopdes';
 import type { Sim } from '@sim/index';
@@ -20,6 +21,18 @@ export interface ShopHandlers {
   dispatch(command: Command): DispatchResult;
   close(): void;
 }
+
+const WORKER_ICON: Record<WorkerKind, IconName> = {
+  sanitizer: 'shop-sanitation',
+  plantDoctor: 'shop-trichoderma',
+  security: 'police-warning',
+};
+
+const WORKER_BLURB: Record<WorkerKind, string> = {
+  sanitizer: 'clears debris wherever it piles up',
+  plantDoctor: 'removes sick palms, doses the block',
+  security: 'keeps thieves off the ripe blocks',
+};
 
 const ITEM_ICON: Record<ItemId, IconName> = {
   bibit: 'shop-bibit',
@@ -246,6 +259,57 @@ export class KopdesShop {
     `;
   }
 
+  /** People on the payroll (§mobs): a fee to hire, a wage a day, and they find their own work. */
+  private workersSection(sim: Sim) {
+    const { state } = sim;
+    const kinds = Object.keys(WORKERS) as WorkerKind[];
+    return html`
+      <div class="pill-muted p-2.5" data-testid="shop-workers">
+        <div class="mb-1 flex items-baseline justify-between">
+          <div class="font-extrabold">Workers</div>
+          <div class="muted text-xs">paid daily, find their own jobs</div>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          ${kinds.map((kind) => {
+            const spec = WORKERS[kind];
+            const hired = state.mobs.some((m) => m.hired && m.species === kind);
+            const command: Command = hired
+              ? { type: 'DismissWorker', kind }
+              : { type: 'HireWorker', kind };
+            const rejection = sim.validate(command);
+            return html`
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <span class="pill flex h-8 w-8 items-center justify-center"
+                    >${icon(WORKER_ICON[kind])}</span
+                  >
+                  <div>
+                    <div class="text-sm font-extrabold">${spec.label}</div>
+                    <div class="muted text-xs">
+                      ${WORKER_BLURB[kind]} · ${formatRp(spec.wagePerDay)}/day
+                    </div>
+                  </div>
+                </div>
+                <button
+                  class=${`btn btn-sm shrink-0 ${hired ? 'btn-coral' : 'btn-green'}`}
+                  ?disabled=${rejection !== null}
+                  title=${rejection?.reason ?? ''}
+                  data-testid=${`worker-${kind}`}
+                  @click=${() => {
+                    this.handlers.dispatch(command);
+                    this.refresh();
+                  }}
+                >
+                  ${hired ? 'Dismiss' : html`Hire · ${formatRp(spec.hireFee)}`}
+                </button>
+              </div>
+            `;
+          })}
+        </div>
+      </div>
+    `;
+  }
+
   private sellTab(sim: Sim) {
     const { state } = sim;
     const e = state.economy;
@@ -264,6 +328,7 @@ export class KopdesShop {
 
     return html`
       <div class="flex flex-col gap-3">
+        ${this.workersSection(sim)}
         <div class="pill-muted p-2.5">
           <div class="flex items-baseline justify-between">
             <div class="font-extrabold">Picking</div>

@@ -51,6 +51,13 @@ export interface EventDigest {
   sparks: Set<BlockId>;
   /** Bolts that landed this tick, and whether they set anything alight. */
   lightning: { block: BlockId; ignited: boolean }[];
+  /** Forest blocks whose chop finished this tick: their trees come down. */
+  felled: Set<BlockId>;
+  stolen: { block: BlockId; kilograms: number }[];
+  cashStolen: number;
+  thiefCaught: boolean;
+  /** Mobs changed this tick: arrivals, departures, workers hired or let go. */
+  mobsChanged: boolean;
   letter: boolean;
   investigationOpened: boolean;
   investigationEnded: boolean;
@@ -101,6 +108,11 @@ export function digestEvents(events: readonly SimEvent[]): EventDigest {
     ashSettled: false,
     sparks: new Set(),
     lightning: [],
+    felled: new Set(),
+    stolen: [],
+    cashStolen: 0,
+    thiefCaught: false,
+    mobsChanged: false,
     letter: false,
     investigationOpened: false,
     investigationEnded: false,
@@ -236,6 +248,24 @@ export function digestEvents(events: readonly SimEvent[]): EventDigest {
         break;
       case 'AshSettled':
         d.ashSettled = true;
+        break;
+      case 'ForestChopped':
+        d.felled.add(event.block);
+        break;
+      case 'HarvestStolen':
+        d.stolen.push({ block: event.block, kilograms: event.kilograms });
+        break;
+      case 'CashStolen':
+        d.cashStolen += event.amount;
+        break;
+      case 'ThiefCaught':
+        d.thiefCaught = true;
+        break;
+      case 'MobArrived':
+      case 'MobLeft':
+      case 'WorkerHired':
+      case 'WorkerDismissed':
+        d.mobsChanged = true;
         break;
       case 'LightningStruck':
         d.lightning.push({ block: event.block, ignited: event.ignited });

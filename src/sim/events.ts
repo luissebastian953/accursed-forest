@@ -12,6 +12,7 @@ import type {
   FireIntensity,
   GrowthStage,
   ItemId,
+  MobSpecies,
   Species,
   YearSummary,
 } from './types.ts';
@@ -89,6 +90,13 @@ export type SimEvent =
       lane: 'natural' | 'economic' | 'government';
       severity: 'info' | 'notice' | 'warning' | 'critical';
     }
+  | { type: 'MobArrived'; id: number; species: MobSpecies; block: BlockId }
+  | { type: 'MobLeft'; id: number; species: MobSpecies }
+  | { type: 'HarvestStolen'; block: BlockId; kilograms: number }
+  | { type: 'CashStolen'; amount: number }
+  | { type: 'ThiefCaught'; block: BlockId }
+  | { type: 'WorkerHired'; kind: 'sanitizer' | 'plantDoctor' | 'security'; fee: number }
+  | { type: 'WorkerDismissed'; kind: 'sanitizer' | 'plantDoctor' | 'security' }
   | { type: 'YearPassed'; year: number }
   | { type: 'CashChanged'; cash: number };
 

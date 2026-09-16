@@ -15,9 +15,11 @@ import { MapRig, type GroundRect } from '@render/camera/MapRig';
 import { Glow } from '@render/Glow';
 import { createPaletteTexture } from '@render/materials/palette';
 import { createPaletteMaterial } from '@render/materials/paletteMaterial';
+import { MobField } from '@render/mobs/MobField';
 import { Picker } from '@render/picking';
 import { createRenderer } from '@render/Renderer';
 import { Ceremony } from '@render/scene/Ceremony';
+import { ELEVATION_STEP, terraceHeight } from '@render/scene/chunkField';
 import { ChunkManager } from '@render/scene/ChunkManager';
 import { Fires } from '@render/scene/Fires';
 import { KopdesMesh } from '@render/scene/Kopdes';
@@ -27,6 +29,7 @@ import { Palms } from '@render/scene/Palms';
 import { Police } from '@render/scene/Police';
 import { Rain } from '@render/scene/Rain';
 import { Sky } from '@render/scene/Sky';
+import { Timber } from '@render/scene/Timber';
 import { digestEvents } from '@render/sync';
 import { BANKRUPTCY, ISPO } from '@sim/balance/endings';
 import { FIRE } from '@sim/balance/fire';
@@ -216,8 +219,28 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   const ceremony = new Ceremony(material);
   const rain = new Rain(material);
   const lightning = new Lightning();
+  const timber = new Timber(material);
+  const spectral = createPaletteMaterial(paletteTexture, uniforms).material;
+  spectral.transparent = true;
+  spectral.opacity = 0.45;
+  spectral.depthWrite = false;
+  const mobField = new MobField({
+    material,
+    spectralMaterial: spectral,
+    bounds: { minX: 0, maxX: 0, minZ: 0, maxZ: 0 },
+    groundAt: (x, z) => {
+      const bx = Math.floor(x / WORLD.blockSide);
+      const by = Math.floor(z / WORLD.blockSide);
+      if (!sim.world.inBounds(bx, by)) return 0;
+      const block = sim.state.blocks.get(sim.world.toId(bx, by));
+      const generated = sim.world.generated(bx, by);
+      return (
+        terraceHeight(generated.elevation) + (block && block.phase !== 'wild' ? 0 : ELEVATION_STEP)
+      );
+    },
+  });
   const glow = new Glow(handle.renderer, scene, rig.camera);
-  scene.add(police.group, ceremony.group, rain.mesh, lightning.group);
+  scene.add(police.group, ceremony.group, rain.mesh, lightning.group, timber.group, mobField.group);
   const visible: GroundRect = { minX: 0, maxX: 0, minZ: 0, maxZ: 0 };
 
   // Edge vignette while anything burns (§8 panel 7).
@@ -690,6 +713,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
           isWildfire(sim.state) ? 'error' : 'warn',
         );
       }
+      if (command.type === 'HireWorker' || command.type === 'DismissWorker') {
+        mobField.syncSim(sim.state);
+      }
       if (command.type === 'PlaceKopdes' || command.type === 'UpgradeKopdes') {
         kopdes.sync(sim.state, sim.world);
         if (shop.isOpen) rangeRing.show(sim.state, sim.world);
@@ -741,6 +767,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     yearEnd.hide();
     newsReadTick = Math.min(loadReadTick(), sim.state.tick);
     picker = new Picker(rig.camera, chunks.group, sim.world);
+    mobField.clear();
+    mobField.syncSim(sim.state);
     palmsDirty = true;
     animateBlocks = new Set();
     kopdes.sync(sim.state, sim.world);
@@ -891,6 +919,23 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       }
     }
     if (d.lightning.some((b) => b.ignited)) syncFireState();
+
+    // Trees down, thieves, and the people on the estate.
+    for (const block of d.felled) timber.fell(sim.world, block, performance.now());
+    for (const theft of d.stolen) {
+      toasts.push(
+        `Thieves took ${formatKg(theft.kilograms)} of fruit from ${blockName(theft.block)}. A security guard would have stopped them.`,
+        'error',
+      );
+    }
+    if (d.cashStolen > 0) {
+      toasts.push(
+        `${formatRp(d.cashStolen)} is missing from the Kopdes. Staff blame a pig that stood up.`,
+        'error',
+      );
+    }
+    if (d.thiefCaught) toasts.push('Security saw off a fruit thief.');
+    mobField.syncSim(sim.state);
     const drowned = d.palmsDied.filter((p) => p.cause === 'flood').length;
     if (drowned > 0)
       toasts.push(
@@ -980,6 +1025,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     sky.update(sim.state.weather, uniforms, atmosphere(), dt, nowMs);
     rain.update(dt, sim.state.weather.rain, visible, time.speed > 0);
     lightning.update(nowMs);
+    timber.update(nowMs);
+    mobField.update(dt);
 
     // The panels are DOM: ten refreshes a second is plenty, and it leaves the
     // frame budget to the world. (Every frame cost the sim a third of its
@@ -1067,6 +1114,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       redrawTerrain: (blocks: BlockId[]) => {
         for (const block of blocks) chunks.markBlockDirty(block);
       },
+      timber,
+      mobField,
     };
   }
 
@@ -1109,6 +1158,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     ceremony.dispose();
     rain.dispose();
     lightning.dispose();
+    timber.dispose();
+    mobField.dispose();
+    spectral.dispose();
     glow.dispose();
     sky.dispose();
     rig.dispose();

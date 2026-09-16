@@ -8,7 +8,7 @@
  * Pure TypeScript: nothing here knows about Three.js, the DOM or the clock.
  * The systems run in a fixed order each tick. The full chain from §4.2 is
  *
- *   weather → worldEvents → terrain → growth → pest → harvest → economy → society → endings → news
+ *   weather → worldEvents → terrain → growth → pest → harvest → economy → mobs → society → endings → news
  *
  * Once the run is over (and not continued in sandbox) the world stops: `tick()`
  * does nothing and every command but `KeepPlaying` is refused.
@@ -24,6 +24,7 @@ import { economy } from './systems/economy.ts';
 import { endings } from './systems/endings.ts';
 import { growth } from './systems/growth.ts';
 import { harvest } from './systems/harvest.ts';
+import { mobs } from './systems/mobs.ts';
 import { newsSystem } from './systems/news.ts';
 import { pest } from './systems/pest.ts';
 import { society } from './systems/society.ts';
@@ -107,6 +108,7 @@ class SimImpl implements Sim {
     pest(this.ctx);
     harvest(this.ctx);
     economy(this.ctx);
+    mobs(this.ctx);
     society(this.ctx);
     endings(this.ctx);
     newsSystem(this.ctx);

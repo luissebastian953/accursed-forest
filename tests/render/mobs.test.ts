@@ -64,11 +64,18 @@ describe('mob rig (POC)', () => {
 
   it('posing a crowd is cheap: 500 mobs of every part in well under a frame', () => {
     const m = new Matrix4();
+    const crowd = (): void => {
+      for (let mob = 0; mob < 500; mob++) {
+        const spec = SPECIES[SPECIES_IDS[mob % SPECIES_IDS.length]!]!;
+        for (const part of spec.parts)
+          pose(spec, part, { time: mob * 0.01, gait: 1, phase: mob }, m);
+      }
+    };
+    // Warm the JIT first; the cold run measures compilation, not posing. The
+    // real number is ~1 ms; the budget leaves room for a busy test machine.
+    crowd();
     const t0 = performance.now();
-    for (let mob = 0; mob < 500; mob++) {
-      const spec = SPECIES[SPECIES_IDS[mob % SPECIES_IDS.length]!]!;
-      for (const part of spec.parts) pose(spec, part, { time: mob * 0.01, gait: 1, phase: mob }, m);
-    }
+    crowd();
     const ms = performance.now() - t0;
     expect(ms).toBeLessThan(16);
   });

@@ -24,6 +24,7 @@ import { setAutoHarvest } from './setAutoHarvest.ts';
 import { settleInvestigation } from './settleInvestigation.ts';
 import { applyMetarhizium, applyTrichoderma, setTrap } from './treatments.ts';
 import { upgradeKopdes } from './upgradeKopdes.ts';
+import { dismissWorker, hireWorker } from './workers.ts';
 
 // Handlers are typed against their own command; the registry erases that so
 // `dispatch` can look up by discriminant. The cast is the single unsafe point.
@@ -49,6 +50,8 @@ const registry: Partial<Record<CommandType, CommandHandler>> = {
   CoverCropBlock: coverCropBlock as CommandHandler,
   SettleInvestigation: settleInvestigation as CommandHandler,
   SetAutoHarvest: setAutoHarvest as CommandHandler,
+  HireWorker: hireWorker as CommandHandler,
+  DismissWorker: dismissWorker as CommandHandler,
   KeepPlaying: keepPlaying as CommandHandler,
 };
 

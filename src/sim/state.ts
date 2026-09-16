@@ -62,6 +62,7 @@ export function createInitialState(world: World): SimState {
       rain: 0,
       sun: 1,
       sky: 'clear',
+      skyUntil: 0,
       dryStreak: 0,
       wetStreak: 0,
       activeEvents: [],
@@ -98,6 +99,8 @@ export function createInitialState(world: World): SimState {
       chronicle: [],
       sandbox: false,
     },
+    mobs: [],
+    nextMobId: 1,
     commandLog: [],
   };
 

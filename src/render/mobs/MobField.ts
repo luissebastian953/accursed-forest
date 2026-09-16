@@ -1,41 +1,57 @@
 /**
- * A crowd of mobs, drawn two ways (POC).
+ * The crowd on screen. Two sources, one rig:
  *
- * The behaviour is deliberately simple: pick a spot, walk to it, pause, pick
- * another; a thief walks at the Kopdes instead. What the prototype is really
- * measuring is the cost of drawing and animating them:
+ *   - `syncSim(state)`: the game's mobs. The simulation moves them a few
+ *     blocks a day; here each one glides toward its latest position and its
+ *     gait follows how fast it is actually moving, so a boar the sim moved a
+ *     block and a half walks it. Species come from the sim; the babi ngepet is
+ *     drawn as a pig until it stands up.
+ *   - `spawn()`: the proof of concept's own wanderers, for the `?mobs` page,
+ *     in either draw mode.
  *
- *   - `nodes`: one `Object3D` per part. three.js walks the tree and issues a
- *     draw call per part — the way you would write it first, and the way that
- *     falls over with a crowd.
- *   - `instanced`: one `InstancedMesh` per species part. The rig composes the
- *     matrices here and writes them into the instance buffers, so a hundred
- *     boars cost one draw call per part rather than a hundred.
- *
- * Both run the same rig, so the comparison is honest.
+ * Drawing is CPU skinning into one dynamic mesh per material: every frame the
+ * rig poses each part, the part's box is transformed into a shared vertex
+ * buffer, and the whole crowd is two draw calls with the terrain's own shader.
+ * The instanced alternative (one `InstancedMesh` per species part) looked
+ * cheaper on paper but three's node renderer keys a program on each instanced
+ * object, so every part of every species that appeared compiled a fresh
+ * shader — seconds of stall each on the software renderer, a hitch on real
+ * GPUs. The `nodes` mode (a scene node per part) is kept for the POC's
+ * comparison.
  */
 
-import type { Object3D } from 'three/webgpu';
-import { Group, InstancedMesh, Matrix4, Mesh, type Material } from 'three/webgpu';
+import {
+  BufferGeometry,
+  DynamicDrawUsage,
+  Float32BufferAttribute,
+  Group,
+  Matrix4,
+  Mesh,
+  type Material,
+  type Object3D,
+} from 'three/webgpu';
+
+import { WORLD } from '@sim/balance/world';
+import type { Mob as SimMob, SimState } from '@sim/types';
 
 import { partGeometry, partOrder, pose, type PoseInput, type SpeciesSpec } from './rig.ts';
 import { SPECIES, type SpeciesId } from './species.ts';
 
-export type MobMode = 'nodes' | 'instanced';
+export type MobMode = 'nodes' | 'merged';
 
 export interface MobFieldOptions {
   material: Material;
   /** Ghosts need their own, see-through material. */
   spectralMaterial: Material;
-  /** Where mobs may wander, in world units. */
+  /** Where the POC's wanderers may roam, in world units. */
   bounds: { minX: number; maxX: number; minZ: number; maxZ: number };
-  /** Ground height under a point. */
+  /** Ground height under a point, in world units. */
   groundAt(x: number, z: number): number;
-  /** Instance capacity per species part. */
-  capacity?: number;
 }
 
 interface Mob {
+  /** Sim id, or negative for the POC's own. */
+  id: number;
   species: SpeciesSpec;
   x: number;
   z: number;
@@ -43,20 +59,120 @@ interface Mob {
   /** Where it is heading. */
   targetX: number;
   targetZ: number;
-  /** Seconds left standing still. */
+  /** Seconds left standing still (POC wanderers). */
   rest: number;
   phase: number;
   age: number;
   gait: number;
-  /** How far reared up, 0..1; only the babi ngepet does this. */
+  /** How far reared up, 0..1. */
   stand: number;
+  /** Sim-driven mobs glide; POC mobs walk at their species' speed. */
+  glide: boolean;
   /** `nodes` mode only: the part nodes, parent-first. */
   nodes?: Object3D[];
 }
 
-interface Slot {
-  meshes: InstancedMesh[];
-  count: number;
+/** A part's box as flat arrays, ready to be transformed into the shared buffer. */
+interface PartArrays {
+  positions: Float32Array;
+  normals: Float32Array;
+  paletteU: Float32Array;
+  vertices: number;
+}
+
+/** One dynamic mesh: all the mobs sharing a material. */
+class Sheet {
+  readonly mesh: Mesh;
+  private positions = new Float32Array(0);
+  private normals = new Float32Array(0);
+  private paletteU = new Float32Array(0);
+  /** Vertices written this frame. */
+  used = 0;
+
+  constructor(material: Material) {
+    this.mesh = new Mesh(new BufferGeometry(), material);
+    this.mesh.frustumCulled = false;
+    this.mesh.matrixAutoUpdate = false;
+    this.mesh.visible = false;
+    this.mesh.geometry.setDrawRange(0, 0);
+  }
+
+  /** Make room for `vertices`; the buffers grow in steps so a new arrival rarely reallocates. */
+  reserve(vertices: number): void {
+    if (vertices <= this.positions.length / 3) return;
+    const size = Math.max(4096, 1 << Math.ceil(Math.log2(vertices)));
+    this.positions = new Float32Array(size * 3);
+    this.normals = new Float32Array(size * 3);
+    this.paletteU = new Float32Array(size);
+    const geometry = this.mesh.geometry;
+    geometry.dispose();
+    const next = new BufferGeometry();
+    const attribute = (array: Float32Array, itemSize: number) => {
+      const a = new Float32BufferAttribute(array, itemSize);
+      a.setUsage(DynamicDrawUsage);
+      return a;
+    };
+    next.setAttribute('position', attribute(this.positions, 3));
+    next.setAttribute('normal', attribute(this.normals, 3));
+    next.setAttribute('paletteU', attribute(this.paletteU, 1));
+    this.mesh.geometry = next;
+  }
+
+  begin(): void {
+    this.used = 0;
+  }
+
+  /** Append a part's box under a world matrix. */
+  append(part: PartArrays, m: Matrix4): void {
+    const e = m.elements;
+    const p = this.positions;
+    const n = this.normals;
+    const src = part.positions;
+    const srcN = part.normals;
+    let o = this.used * 3;
+    for (let i = 0; i < src.length; i += 3) {
+      const x = src[i]!;
+      const y = src[i + 1]!;
+      const z = src[i + 2]!;
+      p[o] = e[0]! * x + e[4]! * y + e[8]! * z + e[12]!;
+      p[o + 1] = e[1]! * x + e[5]! * y + e[9]! * z + e[13]!;
+      p[o + 2] = e[2]! * x + e[6]! * y + e[10]! * z + e[14]!;
+      const nx = srcN[i]!;
+      const ny = srcN[i + 1]!;
+      const nz = srcN[i + 2]!;
+      // The rig's matrices are rotations, translations and mild scales, so the
+      // upper-left 3×3 does for normals once renormalised.
+      const wx = e[0]! * nx + e[4]! * ny + e[8]! * nz;
+      const wy = e[1]! * nx + e[5]! * ny + e[9]! * nz;
+      const wz = e[2]! * nx + e[6]! * ny + e[10]! * nz;
+      const len = Math.hypot(wx, wy, wz) || 1;
+      n[o] = wx / len;
+      n[o + 1] = wy / len;
+      n[o + 2] = wz / len;
+      o += 3;
+    }
+    this.paletteU.set(part.paletteU, this.used);
+    this.used += part.vertices;
+  }
+
+  end(): void {
+    const geometry = this.mesh.geometry;
+    geometry.setDrawRange(0, this.used);
+    // An empty sheet stays out of the render list, so its program is not
+    // compiled until something actually needs it (the ghost's, possibly never).
+    this.mesh.visible = this.used > 0;
+    if (this.used === 0) return;
+    for (const name of ['position', 'normal', 'paletteU'] as const) {
+      const attribute = geometry.getAttribute(name) as Float32BufferAttribute;
+      attribute.clearUpdateRanges();
+      attribute.addUpdateRange(0, this.used * attribute.itemSize);
+      attribute.needsUpdate = true;
+    }
+  }
+
+  dispose(): void {
+    this.mesh.geometry.dispose();
+  }
 }
 
 const _local = new Matrix4();
@@ -65,19 +181,31 @@ const _root = new Matrix4();
 /** Scratch world matrices, one per part; no rig is anywhere near this deep. */
 const _worlds = Array.from({ length: 64 }, () => new Matrix4());
 
+/** How the sim's species are drawn; the babi ngepet passes for a pig on all fours. */
+function drawnAs(mob: SimMob): SpeciesId {
+  if (mob.species === 'babiNgepet' && !mob.standing) return 'pig';
+  if (mob.species === 'crew') return 'sanitizer';
+  return mob.species;
+}
+
 export class MobField {
   readonly group = new Group();
   private readonly mobs: Mob[] = [];
-  private readonly slots = new Map<string, Slot>();
-  private readonly geometry = new Map<string, ReturnType<typeof partGeometry>[]>();
+  private readonly byId = new Map<number, Mob>();
+  private readonly geometry = new Map<string, BufferGeometry[]>();
+  private readonly arrays = new Map<string, PartArrays[]>();
   private readonly orders = new Map<string, ReturnType<typeof partOrder>>();
-  private readonly capacity: number;
-  private mode: MobMode = 'instanced';
+  private readonly solid: Sheet;
+  private readonly spectral: Sheet;
+  private mode: MobMode = 'merged';
+  private nextPocId = -1;
   /** Milliseconds the last update spent posing mobs. */
   lastUpdateMs = 0;
 
   constructor(private readonly options: MobFieldOptions) {
-    this.capacity = options.capacity ?? 512;
+    this.solid = new Sheet(options.material);
+    this.spectral = new Sheet(options.spectralMaterial);
+    this.group.add(this.solid.mesh, this.spectral.mesh);
   }
 
   get count(): number {
@@ -91,13 +219,20 @@ export class MobField {
   setMode(mode: MobMode): void {
     if (mode === this.mode) return;
     this.mode = mode;
-    const species = this.mobs.map((m) => m.species.id as SpeciesId);
+    const again = this.mobs.map((m) => m.species.id as SpeciesId);
     this.clear();
-    for (const id of species) this.spawn(id);
+    for (const id of again) this.spawn(id);
+    if (mode === 'nodes') {
+      this.solid.begin();
+      this.solid.end();
+      this.spectral.begin();
+      this.spectral.end();
+    }
   }
 
-  /** Geometry for a species' parts, built once. */
-  private partsOf(spec: SpeciesSpec) {
+  // ── Geometry ───────────────────────────────────────────────────────────
+
+  private partsOf(spec: SpeciesSpec): BufferGeometry[] {
     let parts = this.geometry.get(spec.id);
     if (!parts) {
       parts = spec.parts.map((part) => partGeometry(part));
@@ -106,7 +241,23 @@ export class MobField {
     return parts;
   }
 
-  /** Parent-before-child order for a species, worked out once. */
+  private arraysOf(spec: SpeciesSpec): PartArrays[] {
+    let arrays = this.arrays.get(spec.id);
+    if (!arrays) {
+      arrays = this.partsOf(spec).map((geometry) => {
+        const positions = geometry.getAttribute('position').array as Float32Array;
+        return {
+          positions,
+          normals: geometry.getAttribute('normal').array as Float32Array,
+          paletteU: geometry.getAttribute('paletteU').array as Float32Array,
+          vertices: positions.length / 3,
+        };
+      });
+      this.arrays.set(spec.id, arrays);
+    }
+    return arrays;
+  }
+
   private orderOf(spec: SpeciesSpec) {
     let order = this.orders.get(spec.id);
     if (!order) {
@@ -116,29 +267,39 @@ export class MobField {
     return order;
   }
 
-  private slotOf(spec: SpeciesSpec): Slot {
-    let slot = this.slots.get(spec.id);
-    if (!slot) {
+  private attach(mob: Mob): void {
+    if (this.mode === 'nodes') {
+      const spec = mob.species;
       const material = spec.spectral ? this.options.spectralMaterial : this.options.material;
-      const meshes = this.partsOf(spec).map((geometry) => {
-        const mesh = new InstancedMesh(geometry, material, this.capacity);
-        mesh.count = 0;
-        mesh.frustumCulled = false;
-        this.group.add(mesh);
-        return mesh;
+      const parts = this.partsOf(spec);
+      const nodes = parts.map((geometry) => new Mesh(geometry, material) as Object3D);
+      spec.parts.forEach((part, i) => {
+        const node = nodes[i]!;
+        if (part.parent === undefined) this.group.add(node);
+        else nodes[spec.parts.findIndex((p) => p.name === part.parent)]!.add(node);
       });
-      slot = { meshes, count: 0 };
-      this.slots.set(spec.id, slot);
+      mob.nodes = nodes;
     }
-    return slot;
+    this.mobs.push(mob);
+    this.byId.set(mob.id, mob);
   }
+
+  private detach(mob: Mob): void {
+    if (mob.nodes) for (const node of mob.nodes) node.removeFromParent();
+    const i = this.mobs.indexOf(mob);
+    if (i >= 0) this.mobs.splice(i, 1);
+    this.byId.delete(mob.id);
+  }
+
+  // ── The POC's wanderers ────────────────────────────────────────────────
 
   spawn(id: SpeciesId): void {
     const spec = SPECIES[id]!;
     const { bounds } = this.options;
     const x = bounds.minX + Math.random() * (bounds.maxX - bounds.minX);
     const z = bounds.minZ + Math.random() * (bounds.maxZ - bounds.minZ);
-    const mob: Mob = {
+    this.attach({
+      id: this.nextPocId--,
       species: spec,
       x,
       z,
@@ -150,53 +311,96 @@ export class MobField {
       age: Math.random() * 10,
       gait: 0,
       stand: 0,
-    };
-
-    if (this.mode === 'nodes') {
-      const material = spec.spectral ? this.options.spectralMaterial : this.options.material;
-      const parts = this.partsOf(spec);
-      const nodes = parts.map((geometry) => new Mesh(geometry, material) as Object3D);
-      spec.parts.forEach((part, i) => {
-        const node = nodes[i]!;
-        if (part.parent === undefined) this.group.add(node);
-        else nodes[spec.parts.findIndex((p) => p.name === part.parent)]!.add(node);
-      });
-      mob.nodes = nodes;
-    } else {
-      const slot = this.slotOf(spec);
-      slot.count += 1;
-      for (const mesh of slot.meshes) mesh.count = slot.count;
-    }
-
-    this.mobs.push(mob);
+      glide: false,
+    });
   }
 
   clear(): void {
-    for (const mob of this.mobs) {
-      if (!mob.nodes) continue;
-      for (const node of mob.nodes) node.removeFromParent();
+    for (const mob of [...this.mobs]) this.detach(mob);
+  }
+
+  // ── The game's mobs ────────────────────────────────────────────────────
+
+  /** Read the sim's mobs: new ones appear where they are, gone ones vanish, the rest get a new target. */
+  syncSim(state: SimState): void {
+    const seen = new Set<number>();
+    const side = WORLD.blockSide;
+    for (const sim of state.mobs) {
+      seen.add(sim.id);
+      const spec = SPECIES[drawnAs(sim)]!;
+      let mob = this.byId.get(sim.id);
+      if (mob && mob.species !== spec) {
+        // The babi ngepet stood up: same mob, different body.
+        this.detach(mob);
+        mob = undefined;
+      }
+      if (!mob) {
+        mob = {
+          id: sim.id,
+          species: spec,
+          x: sim.x * side,
+          z: sim.z * side,
+          facing: Math.atan2(sim.tx - sim.x, sim.tz - sim.z),
+          targetX: sim.x * side,
+          targetZ: sim.z * side,
+          rest: 0,
+          phase: sim.phase * Math.PI * 2,
+          age: sim.phase * 10,
+          gait: 0,
+          stand: sim.standing ? 1 : 0,
+          glide: true,
+        };
+        this.attach(mob);
+      }
+      mob.targetX = sim.x * side;
+      mob.targetZ = sim.z * side;
+      mob.stand = sim.standing ? 1 : 0;
     }
-    this.mobs.length = 0;
-    for (const slot of this.slots.values()) {
-      slot.count = 0;
-      for (const mesh of slot.meshes) mesh.count = 0;
+    for (const mob of [...this.mobs]) {
+      if (mob.id > 0 && !seen.has(mob.id)) this.detach(mob);
     }
   }
 
-  /** Walk everyone, then pose them. */
+  // ── Per frame ──────────────────────────────────────────────────────────
+
   update(dtSeconds: number): void {
     const started = performance.now();
     const { bounds, groundAt } = this.options;
-    const counters = new Map<string, number>();
+
+    if (this.mode === 'merged') {
+      let solid = 0;
+      let spectral = 0;
+      for (const mob of this.mobs) {
+        const vertices = this.arraysOf(mob.species).reduce((sum, p) => sum + p.vertices, 0);
+        if (mob.species.spectral) spectral += vertices;
+        else solid += vertices;
+      }
+      this.solid.reserve(solid);
+      this.spectral.reserve(spectral);
+      this.solid.begin();
+      this.spectral.begin();
+    }
 
     for (const mob of this.mobs) {
       mob.age += dtSeconds;
 
-      // ── Behaviour: wander, rest, wander ────────────────────────────────
       const dx = mob.targetX - mob.x;
       const dz = mob.targetZ - mob.z;
       const distance = Math.hypot(dx, dz);
-      if (mob.rest > 0) {
+
+      if (mob.glide) {
+        // Sim-driven: close the gap to the latest sim position over about a
+        // second, and walk while there is a gap to close.
+        if (distance > 0.05) {
+          const step = Math.min(distance, Math.max(distance * 3, mob.species.speed) * dtSeconds);
+          mob.x += (dx / distance) * step;
+          mob.z += (dz / distance) * step;
+          mob.facing = Math.atan2(dx, dz);
+          mob.gait += (1 - mob.gait) * Math.min(1, dtSeconds * 5);
+        } else {
+          mob.gait += (0 - mob.gait) * Math.min(1, dtSeconds * 4);
+        }
+      } else if (mob.rest > 0) {
         mob.rest -= dtSeconds;
         mob.gait += (0 - mob.gait) * Math.min(1, dtSeconds * 6);
       } else if (distance < 0.6) {
@@ -209,12 +413,11 @@ export class MobField {
         mob.z += (dz / distance) * speed * dtSeconds;
         mob.facing = Math.atan2(dx, dz);
         mob.gait += (1 - mob.gait) * Math.min(1, dtSeconds * 4);
-      }
-
-      // The babi ngepet rears up now and then, and walks on like that.
-      if (mob.species.id === 'babiNgepet') {
-        const wants = Math.sin(mob.age * 0.35 + mob.phase) > 0.2 ? 1 : 0;
-        mob.stand += (wants - mob.stand) * Math.min(1, dtSeconds * 2);
+        // The POC's babi ngepet rears up now and then, and walks on like that.
+        if (mob.species.id === 'babiNgepet') {
+          const wants = Math.sin(mob.age * 0.35 + mob.phase) > 0.2 ? 1 : 0;
+          mob.stand += (wants - mob.stand) * Math.min(1, dtSeconds * 2);
+        }
       }
 
       const y = groundAt(mob.x, mob.z);
@@ -228,7 +431,6 @@ export class MobField {
       _facing.setPosition(mob.x, y, mob.z);
 
       if (mob.nodes) {
-        // three.js composes the tree; we only set the local transforms.
         const parts = mob.species.parts;
         for (let i = 0; i < parts.length; i++) {
           const part = parts[i]!;
@@ -242,22 +444,22 @@ export class MobField {
         continue;
       }
 
-      const slot = this.slots.get(mob.species.id)!;
-      const index = counters.get(mob.species.id) ?? 0;
-      counters.set(mob.species.id, index + 1);
+      const sheet = mob.species.spectral ? this.spectral : this.solid;
       const order = this.orderOf(mob.species);
+      const arrays = this.arraysOf(mob.species);
       for (let i = 0; i < order.length; i++) {
         const { part, parent } = order[i]!;
         pose(mob.species, part, input, _local);
         const world = _worlds[i]!;
         if (parent < 0) world.multiplyMatrices(_facing, _local);
         else world.multiplyMatrices(_worlds[parent]!, _local);
-        slot.meshes[i]!.setMatrixAt(index, world);
+        sheet.append(arrays[i]!, world);
       }
     }
 
-    for (const slot of this.slots.values()) {
-      for (const mesh of slot.meshes) mesh.instanceMatrix.needsUpdate = true;
+    if (this.mode === 'merged') {
+      this.solid.end();
+      this.spectral.end();
     }
     this.lastUpdateMs = performance.now() - started;
   }
@@ -266,6 +468,8 @@ export class MobField {
     this.clear();
     for (const parts of this.geometry.values()) for (const geometry of parts) geometry.dispose();
     this.geometry.clear();
-    this.slots.clear();
+    this.arrays.clear();
+    this.solid.dispose();
+    this.spectral.dispose();
   }
 }

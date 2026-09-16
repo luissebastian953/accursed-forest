@@ -127,6 +127,8 @@ export interface Weather {
   sun: number;
   /** Today's sky: sunshine, cloud, rain, or a thunderstorm. */
   sky: SkyCondition;
+  /** The sky holds until this tick, storms excepted (§3.6 spells). */
+  skyUntil: Tick;
   dryStreak: number;
   wetStreak: number;
   activeEvents: ActiveEvent[];
@@ -201,6 +203,54 @@ export type ItemId =
   | 'forestSapling';
 
 export type Ending = 'clean' | 'dirty' | 'fade' | 'bankrupt' | 'banned' | 'arrested';
+
+// ── Mobs ──────────────────────────────────────────────────────────────────
+
+export type MobSpecies =
+  | 'wildBoar'
+  | 'pig'
+  | 'mouse'
+  | 'cow'
+  | 'monkey'
+  | 'orangutan'
+  | 'capybara'
+  | 'thief'
+  | 'babiNgepet'
+  | 'ghost'
+  | 'sanitizer'
+  | 'plantDoctor'
+  | 'security'
+  | 'crew';
+
+/** What a mob is up to. */
+export type MobIntent = 'wander' | 'travel' | 'work' | 'flee' | 'leave';
+
+/**
+ * Someone or something walking the estate (§POC → M2). Positions are in block
+ * units with a fraction inside the block, so the renderer scales them.
+ */
+export interface Mob {
+  id: number;
+  species: MobSpecies;
+  x: number;
+  z: number;
+  /** Where it is heading. */
+  tx: number;
+  tz: number;
+  intent: MobIntent;
+  /** The block it is working on or heading for, if any. */
+  target: BlockId | null;
+  /** Tick it appeared. */
+  born: Tick;
+  /** Tick it goes away on its own. */
+  until: Tick;
+  /** Animation seed, 0..1. */
+  phase: number;
+  /** Reared up on two legs (the babi ngepet's tell). */
+  standing: boolean;
+  /** Hired workers stay until dismissed and are paid daily. */
+  hired: boolean;
+}
 
 /** What the epilogue counts (§3.8). Accumulated by the endings system from events. */
 export interface RunStats {
@@ -304,6 +354,9 @@ export interface SimState {
   weather: Weather;
   society: Society;
   run: RunState;
+  mobs: Mob[];
+  /** The next mob id; ids never repeat within a run. */
+  nextMobId: number;
   commandLog: CommandRecord[];
 }
 
@@ -337,6 +390,8 @@ export type Command =
   | { type: 'CoverCropBlock'; block: BlockId }
   | { type: 'SettleInvestigation' }
   | { type: 'SetAutoHarvest'; on: boolean }
+  | { type: 'HireWorker'; kind: 'sanitizer' | 'plantDoctor' | 'security' }
+  | { type: 'DismissWorker'; kind: 'sanitizer' | 'plantDoctor' | 'security' }
   | { type: 'KeepPlaying' };
 
 export type CommandType = Command['type'];

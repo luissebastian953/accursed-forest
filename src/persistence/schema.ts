@@ -45,8 +45,10 @@ export const KEY_PREFIX = 'accursed-forest';
  *     society gains operatingBanUntil; the ledger gains the `capital` kind.
  * 6 — M1 balance pass: the Kopdes gains the auto-harvest toggle.
  * 7 — M1 weather pass: the weather carries the day's sky.
+ * 8 — Mobs: the head carries the mobs on the estate and the next mob id.
+ * 9 — Weather spells: the weather carries how long the sky holds.
  */
-export const CURRENT_SCHEMA = 7;
+export const CURRENT_SCHEMA = 9;
 
 export type SaveErrorCode = 'missing' | 'corrupt' | 'newerSchema' | 'quota';
 
@@ -150,6 +152,7 @@ const WeatherSchema = z.object({
   rain: z.number(),
   sun: z.number(),
   sky: z.enum(['clear', 'cloudy', 'rain', 'storm']),
+  skyUntil: Tick,
   dryStreak: z.number(),
   wetStreak: z.number(),
   activeEvents: z.array(ActiveEventSchema),
@@ -273,6 +276,14 @@ const CommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('CoverCropBlock'), block: Id }),
   z.object({ type: z.literal('SettleInvestigation') }),
   z.object({ type: z.literal('SetAutoHarvest'), on: z.boolean() }),
+  z.object({
+    type: z.literal('HireWorker'),
+    kind: z.enum(['sanitizer', 'plantDoctor', 'security']),
+  }),
+  z.object({
+    type: z.literal('DismissWorker'),
+    kind: z.enum(['sanitizer', 'plantDoctor', 'security']),
+  }),
   z.object({ type: z.literal('KeepPlaying') }),
 ]);
 
@@ -293,6 +304,38 @@ const WorldGenSchema = z.object({
   riverCount: z.int().nonnegative(),
 });
 
+const MobSchema = z.object({
+  id: z.int().positive(),
+  species: z.enum([
+    'wildBoar',
+    'pig',
+    'mouse',
+    'cow',
+    'monkey',
+    'orangutan',
+    'capybara',
+    'thief',
+    'babiNgepet',
+    'ghost',
+    'sanitizer',
+    'plantDoctor',
+    'security',
+    'crew',
+  ]),
+  x: z.number(),
+  z: z.number(),
+  tx: z.number(),
+  tz: z.number(),
+  intent: z.enum(['wander', 'travel', 'work', 'flee', 'leave']),
+  target: Id.nullable(),
+  born: Tick,
+  /** `Infinity` does not survive JSON; a hired worker's `until` is stored as null. */
+  until: z.number().nullable(),
+  phase: z.number(),
+  standing: z.boolean(),
+  hired: z.boolean(),
+});
+
 const HeadSchema = z.object({
   tick: Tick,
   rng: RngSchema,
@@ -302,6 +345,8 @@ const HeadSchema = z.object({
   run: RunSchema,
   kopdes: z.object({ blockId: Id, level: z.int().positive(), autoHarvest: z.boolean() }).nullable(),
   inventory: z.record(ItemIdSchema, z.number()),
+  mobs: z.array(MobSchema),
+  nextMobId: z.int().positive(),
   commandLog: z.array(z.object({ tick: Tick, command: CommandSchema })),
 });
 
@@ -418,6 +463,8 @@ export function serializeState(
       },
       kopdes: state.kopdes ? { ...state.kopdes } : null,
       inventory: { ...state.inventory },
+      mobs: state.mobs.map((m) => ({ ...m, until: Number.isFinite(m.until) ? m.until : null })),
+      nextMobId: state.nextMobId,
       commandLog: state.commandLog.map((r) => ({ tick: r.tick, command: { ...r.command } })),
     },
     chunks: [...chunks.keys()],
@@ -562,6 +609,8 @@ export function deserializeState(manifestJson: unknown, chunkJsons: Iterable<unk
       unreadSince: h.society.unreadSince,
     },
     run: decodeRun(h.run),
+    mobs: h.mobs.map((m) => ({ ...m, until: m.until ?? Infinity })),
+    nextMobId: h.nextMobId,
     commandLog: decodeCommandLog(h.commandLog),
   };
 }

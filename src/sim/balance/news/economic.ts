@@ -80,6 +80,42 @@ export const ECONOMIC: Record<string, NewsTemplate> = {
     bodies: ['Buyers cite weak export demand.'],
     effects: ['TBS {price}/kg'],
   },
+  'estate.theft': {
+    lane: 'economic',
+    severity: 'warning',
+    chronicle: true,
+    cooldownDays: 15,
+    titles: [
+      'Fruit thieves hit {estate} overnight',
+      'Ripe bunches stripped from {block} at {estate}',
+    ],
+    bodies: [
+      'About {n} kg walked off the block before anyone noticed. A guard would have noticed.',
+    ],
+    effects: ['{n} kg of fruit gone'],
+  },
+  'estate.thiefCaught': {
+    lane: 'economic',
+    severity: 'notice',
+    cooldownDays: 15,
+    titles: ['Security at {estate} sees off a fruit thief'],
+    bodies: ['The guard was on the ripe blocks when it mattered.'],
+    effects: ['Nothing taken'],
+  },
+  'estate.babiNgepet': {
+    lane: 'government',
+    severity: 'warning',
+    chronicle: true,
+    cooldownDays: 30,
+    titles: [
+      'Villagers blame babi ngepet for missing cash at {estate}',
+      'A pig that stood up: {estate} says its cash box is lighter',
+    ],
+    bodies: [
+      'Staff swear the pig walked in on two legs. {cost} is gone either way, and the police have declined to open a file on a pig.',
+    ],
+    effects: ['{cost} taken'],
+  },
   'estate.firstSale': {
     lane: 'economic',
     chronicle: true,

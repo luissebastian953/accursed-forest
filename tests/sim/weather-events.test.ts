@@ -419,6 +419,20 @@ describe('the sky and its lightning (§3.6)', () => {
     expect(skyFor(1)).toBe('storm');
   });
 
+  it('the sky holds for a spell of days rather than flipping every morning', () => {
+    const sim = createSim(42);
+    let changes = 0;
+    let last = sim.state.weather.sky;
+    for (let i = 0; i < 2 * GROWTH.daysPerYear; i++) {
+      sim.tick();
+      if (sim.state.weather.sky !== last) changes += 1;
+      last = sim.state.weather.sky;
+    }
+    // Spells of 3–7 days, storms excepted: well under one change a day.
+    expect(changes).toBeLessThan(GROWTH.daysPerYear * 2 * 0.4);
+    expect(changes).toBeGreaterThan(40);
+  });
+
   it('a year has all four kinds of day, not just rain', () => {
     const sim = createSim(42);
     const seen = new Set<string>();

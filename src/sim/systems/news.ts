@@ -150,6 +150,17 @@ export function newsSystem(ctx: SimContext): void {
           add('landslide', { n: event.palmsLost, block: `block ${x}, ${y}` }, [event.block]);
         break;
       }
+      case 'HarvestStolen': {
+        const [x, y] = world.toXY(event.block);
+        add('estate.theft', { n: event.kilograms, block: `block ${x}, ${y}` }, [event.block]);
+        break;
+      }
+      case 'ThiefCaught':
+        add('estate.thiefCaught');
+        break;
+      case 'CashStolen':
+        add('estate.babiNgepet', { cost: `Rp ${rupiah.format(event.amount)}` });
+        break;
       case 'LightningStruck':
         if (event.ignited) add('storm.lightning', {}, [event.block]);
         break;
