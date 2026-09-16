@@ -94,7 +94,9 @@ describe('BurnBlock (§3.1.1)', () => {
     toDrySeason(chopped);
     const block = ownedWild(burned, 'grassfield')[0] ?? ownedWild(burned)[0]!;
 
-    burned.dispatch({ type: 'BurnBlock', block, intensity: 3 });
+    // A low burn: anything bigger tips the wildfire threshold and the smoke
+    // would be doing the talking, not the ash.
+    burned.dispatch({ type: 'BurnBlock', block, intensity: 1 });
     chopped.dispatch({ type: 'ChopBlock', block });
     tickUntil(burned, () => burned.state.blocks.get(block)!.phase === 'cleared');
     tickUntil(chopped, () => chopped.state.blocks.get(block)!.phase === 'cleared');
@@ -114,8 +116,10 @@ describe('BurnBlock (§3.1.1)', () => {
     const [a, b] = ownedWild(sim);
     sim.dispatch({ type: 'BurnBlock', block: a!, intensity: 1 });
     expect(sim.state.society.firePressure).toBeCloseTo(FIRE.pressure[1], 6);
-    sim.dispatch({ type: 'BurnBlock', block: b!, intensity: 2 });
-    expect(sim.state.society.firePressure).toBeCloseTo(FIRE.pressure[1] + FIRE.pressure[2], 6);
+    sim.dispatch({ type: 'BurnBlock', block: b!, intensity: 1 });
+    expect(sim.state.society.firePressure).toBeCloseTo(FIRE.pressure[1] * 2, 6);
+    // Two low burns sit under the line; a medium on top of them would not.
+    expect(FIRE.pressure[1] * 2).toBeLessThanOrEqual(FIRE.wildfireThreshold);
     expect(isWildfire(sim.state)).toBe(false);
 
     const before = sim.state.society.firePressure;

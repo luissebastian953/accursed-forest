@@ -96,6 +96,20 @@ export const NATURAL: Record<string, NewsTemplate> = {
     ],
     effects: ['Fire spreads into planted land', 'Smoke for weeks', 'Authorities act at once'],
   },
+  'storm.lightning': {
+    lane: 'natural',
+    severity: 'warning',
+    cooldownDays: 20,
+    titles: [
+      'Lightning sets plantation land alight in {region}',
+      'Dry storm starts a fire near {estate}',
+    ],
+    bodies: [
+      'A bolt found something that would burn. Nobody lit this one — which will not stop it spreading.',
+    ],
+    effects: ['A fire nobody lit'],
+  },
+
   landslide: {
     lane: 'natural',
     severity: 'warning',

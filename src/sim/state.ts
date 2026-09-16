@@ -61,6 +61,7 @@ export function createInitialState(world: World): SimState {
       regime: 'normal',
       rain: 0,
       sun: 1,
+      sky: 'clear',
       dryStreak: 0,
       wetStreak: 0,
       activeEvents: [],

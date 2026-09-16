@@ -45,7 +45,7 @@ export const BANKRUPTCY = {
 export const OPERATING_BAN = {
   minIntegrity: 0.5,
   chance: 0.4,
-  days: 300,
+  days: 180,
   /** Caretaker crews: upkeep runs at this share while the estate is shut. */
   upkeepFactor: 0.5,
 } as const;

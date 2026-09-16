@@ -21,6 +21,7 @@ import { Ceremony } from '@render/scene/Ceremony';
 import { ChunkManager } from '@render/scene/ChunkManager';
 import { Fires } from '@render/scene/Fires';
 import { KopdesMesh } from '@render/scene/Kopdes';
+import { Lightning } from '@render/scene/Lightning';
 import { HazardRing, RangeRing, SelectionRing } from '@render/scene/Overlays';
 import { Palms } from '@render/scene/Palms';
 import { Police } from '@render/scene/Police';
@@ -214,8 +215,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   const police = new Police(material);
   const ceremony = new Ceremony(material);
   const rain = new Rain(material);
+  const lightning = new Lightning();
   const glow = new Glow(handle.renderer, scene, rig.camera);
-  scene.add(police.group, ceremony.group, rain.mesh);
+  scene.add(police.group, ceremony.group, rain.mesh, lightning.group);
   const visible: GroundRect = { minX: 0, maxX: 0, minZ: 0, maxZ: 0 };
 
   // Edge vignette while anything burns (§8 panel 7).
@@ -608,6 +610,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       tbsTrend: priceTrend(),
       regime: sim.state.weather.regime,
       rain: sim.state.weather.rain,
+      sky: sim.state.weather.sky,
       speed: time.speed,
       locked: time.locked,
       estateCode: sim.world.estateCode,
@@ -870,6 +873,15 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     }
     if (d.ashSettled) toasts.push('The ash has settled. It will feed the soil for a season.');
     if (d.sparks.size > 0) toasts.push('Drought: a spark caught a debris pile.', 'error');
+    for (const bolt of d.lightning) {
+      lightning.strike(sim.state, sim.world, bolt.block, performance.now());
+      sky.flash(performance.now());
+      if (bolt.ignited) {
+        toasts.push(`Lightning has set ${blockName(bolt.block)} alight.`, 'error');
+        chunks.markBlockDirty(bolt.block);
+      }
+    }
+    if (d.lightning.some((b) => b.ignited)) syncFireState();
     const drowned = d.palmsDied.filter((p) => p.cause === 'flood').length;
     if (drowned > 0)
       toasts.push(
@@ -956,8 +968,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     ticker.update(sim.state.society.news, unreadWarnings());
     newsPanel.update(sim.state.society.news);
     fires.update(nowMs);
-    sky.update(sim.state.weather, uniforms, atmosphere(), dt);
+    sky.update(sim.state.weather, uniforms, atmosphere(), dt, nowMs);
     rain.update(dt, sim.state.weather.rain, visible, time.speed > 0);
+    lightning.update(nowMs);
 
     // The panels are DOM: ten refreshes a second is plenty, and it leaves the
     // frame budget to the world. (Every frame cost the sim a third of its
@@ -1086,6 +1099,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     police.dispose();
     ceremony.dispose();
     rain.dispose();
+    lightning.dispose();
     glow.dispose();
     sky.dispose();
     rig.dispose();

@@ -6,7 +6,7 @@
 import { html, nothing, render } from 'lit-html';
 
 import { FIRE_LOCK_SPEED, SPEEDS, type Speed } from '@app/timeControl';
-import type { ClimateRegime } from '@sim/types';
+import type { ClimateRegime, SkyCondition } from '@sim/types';
 
 import { formatDate, formatRp } from './format.ts';
 import { icon, type IconName } from './icons.ts';
@@ -28,6 +28,8 @@ export interface HudView {
   tbsTrend: -1 | 0 | 1;
   regime: ClimateRegime;
   rain: number;
+  /** Today's sky (§3.6): what the climate tile actually shows. */
+  sky: SkyCondition;
   speed: Speed;
   locked: boolean;
   estateCode: string;
@@ -62,6 +64,20 @@ const REGIME_LABEL: Record<ClimateRegime, string> = {
   normal: 'Normal year',
   elNino: 'El Niño',
   laNina: 'La Niña',
+};
+
+const SKY_LABEL: Record<SkyCondition, string> = {
+  clear: 'Sunny',
+  cloudy: 'Cloudy',
+  rain: 'Rain',
+  storm: 'Thunderstorm',
+};
+
+const SKY_ICON: Record<SkyCondition, IconName> = {
+  clear: 'sun',
+  cloudy: 'haze',
+  rain: 'rain',
+  storm: 'rain',
 };
 
 const SPEED_LABEL: Record<Speed, string> = {
@@ -104,6 +120,8 @@ interface Tile {
   alert?: boolean;
   testId: string;
   title?: string | undefined;
+  /** A quieter second line, for the regime under the sky. */
+  note?: string;
 }
 
 /** One read-out in the top bar: icon, label, value — and an alert when it bites. */
@@ -115,6 +133,7 @@ function tile(t: Tile) {
       <div>
         <div class="label">${t.label}</div>
         <div class="hud-value">${t.value}</div>
+        ${t.note ? html`<div class="label">${t.note}</div>` : nothing}
       </div>
       ${t.alert ? html`<span class="ping" data-testid=${`${t.testId}-alert`}>!</span>` : nothing}
     </div>
@@ -136,7 +155,6 @@ export class Hud {
 
   update(view: HudView): void {
     const cover = Math.round(view.forestCover * 100);
-    const rainy = view.rain > 0.45;
     const inDebt = view.cash < 0;
     const fireOver = view.wildfire || view.firePressure > view.fireThreshold;
     const trendClass =
@@ -177,9 +195,10 @@ export class Hud {
               title: 'What the Kopdes pays for fresh fruit bunches today',
             })}
             ${tile({
-              icon: rainy ? 'rain' : 'sun',
+              icon: SKY_ICON[view.sky],
               label: 'Climate',
-              value: html`${REGIME_LABEL[view.regime]}`,
+              value: html`${SKY_LABEL[view.sky]}`,
+              note: REGIME_LABEL[view.regime],
               testId: 'hud-regime',
             })}
             ${tile({

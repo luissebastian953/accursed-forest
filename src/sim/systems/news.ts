@@ -150,6 +150,9 @@ export function newsSystem(ctx: SimContext): void {
           add('landslide', { n: event.palmsLost, block: `block ${x}, ${y}` }, [event.block]);
         break;
       }
+      case 'LightningStruck':
+        if (event.ignited) add('storm.lightning', {}, [event.block]);
+        break;
       case 'PlagueStarted':
         add('plague.start', {}, [event.block]);
         break;

@@ -49,6 +49,8 @@ export interface EventDigest {
   flooded: Set<BlockId>;
   ashSettled: boolean;
   sparks: Set<BlockId>;
+  /** Bolts that landed this tick, and whether they set anything alight. */
+  lightning: { block: BlockId; ignited: boolean }[];
   letter: boolean;
   investigationOpened: boolean;
   investigationEnded: boolean;
@@ -98,6 +100,7 @@ export function digestEvents(events: readonly SimEvent[]): EventDigest {
     flooded: new Set(),
     ashSettled: false,
     sparks: new Set(),
+    lightning: [],
     letter: false,
     investigationOpened: false,
     investigationEnded: false,
@@ -233,6 +236,13 @@ export function digestEvents(events: readonly SimEvent[]): EventDigest {
         break;
       case 'AshSettled':
         d.ashSettled = true;
+        break;
+      case 'LightningStruck':
+        d.lightning.push({ block: event.block, ignited: event.ignited });
+        if (event.ignited) {
+          d.burnStarted.add(event.block);
+          d.terrainBlocks.add(event.block);
+        }
         break;
       case 'SparkCaught':
         d.sparks.add(event.block);

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { BIOMES } from '@sim/balance/biomes.ts';
 import { ASH, COVER_CROP, DROUGHT, FLOOD, HAZE, LANDSLIDE } from '@sim/balance/events.ts';
 import { GROWTH } from '@sim/balance/growth.ts';
+import { SKY } from '@sim/balance/seasons.ts';
 import { SLOTS_PER_BLOCK } from '@sim/balance/world.ts';
 import { EventSink } from '@sim/events.ts';
 import { ASH_EVENT, DROUGHT_EVENT, FLOOD_EVENT, HAZE_EVENT, activeEvent } from '@sim/fire.ts';
@@ -16,6 +17,7 @@ import {
 } from '@sim/landscape.ts';
 import { slotStage } from '@sim/palms.ts';
 import { writeBlock } from '@sim/state.ts';
+import { skyFor } from '@sim/systems/weather.ts';
 import type { BlockId } from '@sim/types.ts';
 
 function ownedWild(sim: Sim): BlockId[] {
@@ -239,12 +241,19 @@ describe('drought (§3.6)', () => {
       );
     }
 
-    let ended = false;
+    // El Niño keeps the rain under the breaking point for years on end, which
+    // is the point of it; a wet regime is what ends a drought. A short one may
+    // already have broken during the five ticks above.
+    let ended = !activeEvent(sim.state, DROUGHT_EVENT);
     for (let i = 0; i < 2 * GROWTH.daysPerYear && !ended; i++) {
-      ended = sim.tick().some((e) => e.type === 'WeatherEventEnded' && e.id === DROUGHT_EVENT);
+      sim.state.weather.regime = 'laNina';
+      if (sim.tick().some((e) => e.type === 'WeatherEventEnded' && e.id === DROUGHT_EVENT)) {
+        ended = true;
+        expect(sim.state.weather.rain).toBeGreaterThanOrEqual(DROUGHT.breaksAtRain);
+      }
     }
     expect(ended).toBe(true);
-    expect(sim.state.weather.rain).toBeGreaterThanOrEqual(DROUGHT.breaksAtRain);
+    expect(activeEvent(sim.state, DROUGHT_EVENT)).toBeUndefined();
   });
 
   it('a dry year visibly delays first harvest (M1e done-criterion)', () => {
@@ -398,5 +407,61 @@ describe('landslides (§3.6.2)', () => {
     expect(bare).toBeGreaterThanOrEqual(SEEDS * 0.55);
     expect(forested).toBeLessThanOrEqual(SEEDS * 0.3);
     expect(bare).toBeGreaterThanOrEqual(forested * 3);
+  });
+});
+
+describe('the sky and its lightning (§3.6)', () => {
+  it('reads the day off its rain: sun, cloud, rain, thunder', () => {
+    expect(skyFor(0)).toBe('clear');
+    expect(skyFor(SKY.cloudyAbove)).toBe('cloudy');
+    expect(skyFor(SKY.rainAbove)).toBe('rain');
+    expect(skyFor(SKY.stormAbove)).toBe('storm');
+    expect(skyFor(1)).toBe('storm');
+  });
+
+  it('a year has all four kinds of day, not just rain', () => {
+    const sim = createSim(42);
+    const seen = new Set<string>();
+    for (let i = 0; i < 720; i++) {
+      sim.tick();
+      seen.add(sim.state.weather.sky);
+    }
+    expect([...seen].sort()).toEqual(['clear', 'cloudy', 'rain', 'storm']);
+  });
+
+  it('lightning only falls in a storm, near the estate, and sometimes starts a fire', () => {
+    let strikes = 0;
+    let fires = 0;
+    let stormDays = 0;
+    for (let seed = 1; seed <= 6; seed++) {
+      const sim = createSim(seed);
+      for (let i = 0; i < 1080; i++) {
+        const storm = (() => {
+          const events = sim.tick();
+          return events.filter((e) => e.type === 'LightningStruck');
+        })();
+        if (sim.state.weather.sky === 'storm') stormDays += 1;
+        for (const strike of storm) {
+          expect(sim.state.weather.sky).toBe('storm');
+          strikes += 1;
+          // A wet storm can douse its own fire the same day; a dry one cannot.
+          if (strike.ignited && sim.state.blocks.get(strike.block)?.burning === true) fires += 1;
+        }
+      }
+    }
+    expect(stormDays).toBeGreaterThan(100);
+    expect(strikes).toBeGreaterThan(20);
+    expect(fires).toBeGreaterThan(0);
+  });
+
+  it("a lightning fire is nobody's fault: no pressure, no attention", () => {
+    const sim = createSim(3);
+    let struck = false;
+    for (let i = 0; i < 2000 && !struck; i++) {
+      for (const e of sim.tick()) if (e.type === 'LightningStruck' && e.ignited) struck = true;
+    }
+    expect(struck).toBe(true);
+    expect(sim.state.society.firePressure).toBe(0);
+    expect(sim.state.society.attention).toBe(0);
   });
 });

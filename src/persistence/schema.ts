@@ -44,8 +44,9 @@ export const KEY_PREFIX = 'accursed-forest';
  *     sandbox, and loses yearSnapshots (the snapshots are storage keys);
  *     society gains operatingBanUntil; the ledger gains the `capital` kind.
  * 6 — M1 balance pass: the Kopdes gains the auto-harvest toggle.
+ * 7 — M1 weather pass: the weather carries the day's sky.
  */
-export const CURRENT_SCHEMA = 6;
+export const CURRENT_SCHEMA = 7;
 
 export type SaveErrorCode = 'missing' | 'corrupt' | 'newerSchema' | 'quota';
 
@@ -148,6 +149,7 @@ const WeatherSchema = z.object({
   regime: z.enum(['normal', 'elNino', 'laNina']),
   rain: z.number(),
   sun: z.number(),
+  sky: z.enum(['clear', 'cloudy', 'rain', 'storm']),
   dryStreak: z.number(),
   wetStreak: z.number(),
   activeEvents: z.array(ActiveEventSchema),

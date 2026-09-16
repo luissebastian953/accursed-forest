@@ -208,11 +208,15 @@ describe('Ganoderma (§3.4)', () => {
     const { sim, block } = plantedEstate(42, { sanitize: true });
     const palms = sim.state.palms.get(block)!;
     infect(sim, block, 60, 2);
+    // The comparison palm sits well away on the lattice: a root neighbour
+    // would catch it inside the window and slow down too.
+    const clean = 5;
     const before60 = palms.growth[60]!;
-    const before61 = palms.growth[61]!;
+    const before61 = palms.growth[clean]!;
     for (let i = 0; i < 30; i++) sim.tick();
+    expect(palms.ganoderma[clean]).toBe(0);
     const gained60 = palms.growth[60]! - before60;
-    const gained61 = palms.growth[61]! - before61;
+    const gained61 = palms.growth[clean]! - before61;
     // float32 accumulation: allow a hair of slack
     expect(gained60).toBeLessThanOrEqual(gained61 * GANODERMA.stressCap + 1e-3);
     expect(gained60).toBeGreaterThan(0);

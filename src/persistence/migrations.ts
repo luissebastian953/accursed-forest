@@ -7,6 +7,7 @@
 import { encodeTypedArray } from '@shared/base64';
 import { ECONOMY } from '@sim/balance/prices';
 import { SLOTS_PER_BLOCK } from '@sim/balance/world';
+import { skyFor } from '@sim/systems/weather';
 
 import { CURRENT_SCHEMA, SaveError } from './schema.ts';
 
@@ -150,6 +151,17 @@ export const MIGRATIONS: readonly Migration[] = [
     up(save) {
       const head = save.manifest['head'] as { kopdes?: Record<string, unknown> | null } | undefined;
       if (head?.kopdes) head.kopdes['autoHarvest'] ??= false;
+    },
+  },
+  {
+    // M1 weather pass: the sky follows from the day's rain, so an old save
+    // can be read off its own weather.
+    from: 6,
+    up(save) {
+      const head = save.manifest['head'] as { weather?: Record<string, unknown> } | undefined;
+      const weather = head?.weather;
+      if (!weather) throw new SaveError('corrupt', 'v6 manifest has no weather');
+      weather['sky'] ??= skyFor(Number(weather['rain'] ?? 0));
     },
   },
 ];

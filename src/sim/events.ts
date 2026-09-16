@@ -61,6 +61,7 @@ export type SimEvent =
   | { type: 'BlockFlooded'; block: BlockId }
   | { type: 'AshSettled'; blocks: number }
   | { type: 'SparkCaught'; block: BlockId }
+  | { type: 'LightningStruck'; block: BlockId; ignited: boolean }
   | { type: 'CoverCropSown'; block: BlockId }
   | { type: 'ForestChopped'; block: BlockId }
   | { type: 'MacroEventStarted'; id: string; days: number }

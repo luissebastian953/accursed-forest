@@ -11,11 +11,11 @@ import { clamp01, mod } from '@shared/math';
 
 import { ASH, HAZE } from '../balance/events.ts';
 import { FIRE } from '../balance/fire.ts';
-import { SEASONS, isWetSeason } from '../balance/seasons.ts';
+import { SEASONS, SKY, isWetSeason } from '../balance/seasons.ts';
 import { ASH_EVENT, HAZE_EVENT, activeEvent, isWildfire } from '../fire.ts';
-import { nextGaussian, pickWeighted, type RngState } from '../rng.ts';
+import { chance, nextGaussian, pickWeighted, type RngState } from '../rng.ts';
 import type { SimContext } from '../state.ts';
-import type { ClimateRegime } from '../types.ts';
+import type { ClimateRegime, SkyCondition } from '../types.ts';
 
 const REGIMES: readonly ClimateRegime[] = ['normal', 'elNino', 'laNina'];
 
@@ -38,6 +38,13 @@ export function weather(ctx: SimContext): void {
   if (activeEvent(state, HAZE_EVENT)) sun *= isWildfire(state) ? FIRE.hazeLight : HAZE.light;
   if (activeEvent(state, ASH_EVENT)) sun *= ASH.light;
   w.sun = clamp01(sun);
+  // A dry spell can still end in thunder, and those are the storms that burn.
+  const dryStorm =
+    w.dryStreak >= SKY.dryStormStreak &&
+    w.rain >= SKY.dryStormRain &&
+    w.rain < SKY.stormAbove &&
+    chance(state.rng, SKY.dryStormChance);
+  w.sky = dryStorm ? 'storm' : skyFor(w.rain);
 
   w.dryStreak = w.rain < SEASONS.dryStreakBelow ? w.dryStreak + 1 : 0;
   w.wetStreak = w.rain > SEASONS.wetStreakAbove ? w.wetStreak + 1 : 0;
@@ -51,6 +58,14 @@ export function weather(ctx: SimContext): void {
     if (block.drained) m = Math.min(m, SEASONS.drainageCeiling);
     block.moisture = clamp01(m);
   }
+}
+
+/** The day's sky from its rain: clear, cloudy, raining, or a thunderstorm. */
+export function skyFor(rain: number): SkyCondition {
+  if (rain >= SKY.stormAbove) return 'storm';
+  if (rain >= SKY.rainAbove) return 'rain';
+  if (rain >= SKY.cloudyAbove) return 'cloudy';
+  return 'clear';
 }
 
 /** Weighted roll with a bonus for last year's regime, so regimes cluster. */

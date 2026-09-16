@@ -114,6 +114,9 @@ export interface ActiveEvent {
 
 export type ClimateRegime = 'normal' | 'elNino' | 'laNina';
 
+/** What the day looks like overhead (§3.6). Derived from the rain draw. */
+export type SkyCondition = 'clear' | 'cloudy' | 'rain' | 'storm';
+
 export interface Weather {
   /** 0..359 in a 360-day year. */
   dayOfYear: number;
@@ -122,6 +125,8 @@ export interface Weather {
   rain: number;
   /** This tick, 0..1, after haze and ash attenuation. */
   sun: number;
+  /** Today's sky: sunshine, cloud, rain, or a thunderstorm. */
+  sky: SkyCondition;
   dryStreak: number;
   wetStreak: number;
   activeEvents: ActiveEvent[];

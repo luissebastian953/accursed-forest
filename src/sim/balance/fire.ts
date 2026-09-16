@@ -2,10 +2,10 @@
  * Fire tunables (§3.1.1, §3.6). Burning is nearly free and fast; these numbers
  * are the brakes: spread, the pressure meter, and the wildfire threshold.
  *
- * Pressures 1 / 3 / 5 against a threshold of 5.5: a lone high burn stops just
- * short, so any residual pressure from an earlier burn tips it — "almost
- * guaranteed to tip pressure over the line". Two medium burns in one season
- * cross it; low burns spaced out over seasons never do.
+ * Pressures 1 / 3 / 5 against a threshold of 3: a high burn tips it on its
+ * own, a medium burn sits exactly on the line so anything after it tips, and
+ * low burns spaced out over seasons still never do. Burning big is now a
+ * decision to lose control, not a gamble.
  */
 
 import type { ClimateRegime, FireIntensity } from '../types.ts';
@@ -64,7 +64,7 @@ export const FIRE = {
 
   /** Fire pressure a burn adds when lit. */
   pressure: { 1: 1, 2: 3, 3: 5 } satisfies Record<FireIntensity, number>,
-  wildfireThreshold: 5.5,
+  wildfireThreshold: 3,
   /** Roughly a season to clear one medium burn. */
   pressureDecayPerDay: 3 / 180,
 

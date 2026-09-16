@@ -17,7 +17,7 @@ import {
   type DeckEventId,
 } from '../balance/events.ts';
 import { FIRE } from '../balance/fire.ts';
-import { isWetSeason } from '../balance/seasons.ts';
+import { LIGHTNING, isWetSeason } from '../balance/seasons.ts';
 import { MACRO_PREFIX } from '../balance/society.ts';
 import {
   ASH_EVENT,
@@ -57,6 +57,7 @@ export function worldEvents(ctx: SimContext): void {
   if (activeEvent(state, DROUGHT_EVENT) && weather.regime === 'elNino') maybeSpark(ctx);
 
   rollLandslides(ctx);
+  if (weather.sky === 'storm') strikeLightning(ctx);
   fire(ctx);
 
   // ── Expire what has run its course, with its after-effects ─────────────
@@ -159,6 +160,9 @@ function maybeSpark(ctx: SimContext): void {
       piles.push(block.id);
   }
   if (piles.length === 0) return;
+  // Sorted for the same reason as the lightning targets: a restored save
+  // iterates the sparse map in a different order.
+  piles.sort((a, b) => a - b);
   const target = piles[nextInt(state.rng, piles.length)]!;
   ignite(ctx, target, 1);
   events.push({ type: 'SparkCaught', block: target });
@@ -222,6 +226,74 @@ function applyAsh(ctx: SimContext): void {
       if (health === 0) events.push({ type: 'PalmDied', block: id, slot, cause: 'ash' });
     }
   }
+}
+
+// ── Lightning (§3.6) ──────────────────────────────────────────────────────
+
+/**
+ * A thunderstorm throws bolts at the estate and the land around it. Most hit
+ * wet ground and do nothing but light up the sky; one in four finds something
+ * that will burn, and unless it is pouring, that is a fire nobody lit — no
+ * pressure on the meter, and nothing for the authorities to read into it.
+ */
+function strikeLightning(ctx: SimContext): void {
+  const { state, world, events } = ctx;
+  if (!chance(state.rng, LIGHTNING.strikeChance)) return;
+
+  const strikes = 1 + nextInt(state.rng, LIGHTNING.maxStrikes);
+  for (let i = 0; i < strikes; i++) {
+    const id = strikeTarget(ctx);
+    if (id === null) continue;
+    const block = readBlock(state, world, id);
+    const ignited =
+      state.weather.rain < LIGHTNING.soakedAbove &&
+      block.moisture < LIGHTNING.soakedGround &&
+      !block.burning &&
+      isFuel(block, isWildfire(state)) &&
+      chance(state.rng, LIGHTNING.igniteChance);
+    if (ignited) {
+      ignite(ctx, id, 1);
+      events.push({ type: 'BlockChanged', block: id });
+    }
+    events.push({ type: 'LightningStruck', block: id, ignited });
+  }
+}
+
+/**
+ * Where a bolt lands: anywhere over the estate's box, widened by the storm's
+ * reach. Drawing from the box rather than a list of blocks keeps this O(1) on
+ * a storm day, and independent of the order the sparse map happens to be in —
+ * a restored save must throw its bolts at the same places.
+ */
+function strikeTarget(ctx: SimContext): BlockId | null {
+  const { state, world } = ctx;
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const block of state.blocks.values()) {
+    if (!block.owned) continue;
+    const [x, y] = world.toXY(block.id);
+    minX = Math.min(minX, x);
+    maxX = Math.max(maxX, x);
+    minY = Math.min(minY, y);
+    maxY = Math.max(maxY, y);
+  }
+  if (minX === Infinity) return null;
+
+  const r = LIGHTNING.reach;
+  const x0 = Math.max(0, minX - r);
+  const x1 = Math.min(world.width - 1, maxX + r);
+  const y0 = Math.max(0, minY - r);
+  const y1 = Math.min(world.height - 1, maxY + r);
+
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const x = x0 + nextInt(state.rng, x1 - x0 + 1);
+    const y = y0 + nextInt(state.rng, y1 - y0 + 1);
+    const id = world.toId(x, y);
+    if (readBlock(state, world, id).biome !== 'river') return id;
+  }
+  return null;
 }
 
 // ── Landslides ────────────────────────────────────────────────────────────

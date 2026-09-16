@@ -26,6 +26,9 @@ import { TINT, type PaletteUniforms } from '../materials/paletteMaterial.ts';
 const SKY_WET = new Color(0x9fc2d4);
 const SKY_DRY = new Color(0xd8d2b4);
 const SKY_RAIN = new Color(0x7d96a6);
+const FLASH_COLOUR = new Color(0xf2f6ff);
+/** How long a lightning flash lingers. */
+const FLASH_MS = 260;
 
 /** Fog distances relative to the camera distance (see MapRig). */
 const CAMERA_DISTANCE = 120;
@@ -49,6 +52,7 @@ export class Sky {
   private readonly tint = new Color();
   private smoke = 0;
   private ash = 0;
+  private flashAt = -1;
 
   constructor(private readonly scene: Scene) {
     this.fog = new Fog(SKY_WET.clone(), CAMERA_DISTANCE + 40, CAMERA_DISTANCE + 200);
@@ -78,7 +82,18 @@ export class Sky {
     return { smoke: this.smoke, ash: this.ash };
   }
 
-  update(weather: Weather, uniforms: PaletteUniforms, target: Atmosphere, dtSeconds: number): void {
+  /** A bolt just landed: wash the whole sky white for a moment. */
+  flash(nowMs: number): void {
+    this.flashAt = nowMs;
+  }
+
+  update(
+    weather: Weather,
+    uniforms: PaletteUniforms,
+    target: Atmosphere,
+    dtSeconds: number,
+    nowMs = 0,
+  ): void {
     const step = clamp01(dtSeconds * EASE_PER_SECOND);
     this.smoke = lerp(this.smoke, target.smoke, step);
     this.ash = lerp(this.ash, target.ash, step);
@@ -104,8 +119,21 @@ export class Sky {
     this.fog.near = lerp(CAMERA_DISTANCE + 40, CAMERA_DISTANCE - 30, murk);
     this.fog.far = lerp(CAMERA_DISTANCE + 200, CAMERA_DISTANCE + 20, murk);
 
-    this.sun.intensity = lerp(1.9, 1.1, rain * 0.6) * lerp(1, 0.3, murk);
-    this.hemi.intensity = lerp(1.05, 0.85, rain * 0.5) * lerp(1, 0.75, murk);
+    // Two quick pulses, the way a strike actually reads.
+    const since = nowMs - this.flashAt;
+    const flash =
+      this.flashAt < 0 || since > FLASH_MS
+        ? 0
+        : Math.max(0, 1 - since / FLASH_MS) *
+          (since < 60 || (since > 110 && since < 190) ? 1 : 0.25);
+
+    this.sun.intensity = lerp(1.9, 1.1, rain * 0.6) * lerp(1, 0.3, murk) + flash * 2.4;
+    this.hemi.intensity = lerp(1.05, 0.85, rain * 0.5) * lerp(1, 0.75, murk) + flash * 1.7;
+    if (flash > 0) {
+      this.sky.lerp(FLASH_COLOUR, flash * 0.75);
+      (this.scene.background as Color).copy(this.sky);
+      this.fog.color.copy(this.sky);
+    }
   }
 
   dispose(): void {
