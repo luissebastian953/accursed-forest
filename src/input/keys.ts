@@ -32,10 +32,10 @@ export function attachKeys(handlers: KeyHandlers, target: Window = window): () =
         handlers.setSpeed(1);
         break;
       case '2':
-        handlers.setSpeed(5);
+        handlers.setSpeed(10);
         break;
       case '3':
-        handlers.setSpeed(20);
+        handlers.setSpeed(50);
         break;
       case 'q':
       case 'Q':

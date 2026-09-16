@@ -143,7 +143,7 @@ test.describe('Sawit Simulator', () => {
     await selectWildNeighbour(page);
     await tid(page, 'action-ChopBlock').click();
     await expect(tid(page, 'block-phase')).toContainText('Clearing');
-    await tid(page, 'speed-20').click();
+    await tid(page, 'speed-50').click();
     await expect(tid(page, 'block-phase')).toHaveText('Cleared', { timeout: 15_000 });
     await expect(tid(page, 'action-PlantBlock-palm')).toBeEnabled();
     await tid(page, 'action-PlantBlock-palm').click();
@@ -188,7 +188,7 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'hud-cash')).toContainText('Rp');
     await expect(tid(page, 'hud-date')).toHaveText(dateBefore!);
     await expect(tid(page, 'hud-cash')).toHaveText(cashBefore!);
-    await tid(page, 'speed-20').click();
+    await tid(page, 'speed-50').click();
     await page.waitForTimeout(1000);
     expect(await tid(page, 'hud-date').textContent()).not.toBe(dateBefore);
 
@@ -233,7 +233,7 @@ test.describe('Sawit Simulator', () => {
     const errors = await boot(page);
 
     // Into the dry season, so a shower does not rain the burn out.
-    await tid(page, 'speed-20').click();
+    await tid(page, 'speed-50').click();
     await expect(tid(page, 'hud-date')).toContainText(/Day (1[3-9]\d|2\d\d)/, { timeout: 30_000 });
     await tid(page, 'speed-1').click();
 
@@ -246,9 +246,9 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'block-phase')).toContainText('Burning · medium');
     await expect(tid(page, 'fire-gauge')).toBeVisible();
     await expect(tid(page, 'burning-chip')).toBeVisible();
-    // §3.1.1: the clock is capped while anything burns — 5×, not a crawl.
-    await expect(tid(page, 'speed-20')).toBeDisabled();
-    await expect(tid(page, 'speed-5')).toBeEnabled();
+    // §3.1.1: the clock is capped while anything burns — 10×, not a crawl.
+    await expect(tid(page, 'speed-50')).toBeDisabled();
+    await expect(tid(page, 'speed-10')).toBeEnabled();
     await expect(tid(page, 'wildfire-badge')).toHaveCount(0);
 
     // A second medium burn: pressure 6 > 5.5.
@@ -310,7 +310,7 @@ test.describe('Sawit Simulator', () => {
 
     await selectWildNeighbour(page, /Wild forest/);
     await tid(page, 'action-ChopBlock').click();
-    await tid(page, 'speed-20').click();
+    await tid(page, 'speed-50').click();
     await expect(tid(page, 'block-phase')).toHaveText('Cleared', { timeout: 20_000 });
     await tid(page, 'action-PlantBlock-palm').click();
     await expect(tid(page, 'block-phase')).toHaveText('Planted');
@@ -408,8 +408,8 @@ test.describe('Sawit Simulator', () => {
         [attention, cash ?? null] as const,
       );
 
-    // A year at 20× fills the feed.
-    await tid(page, 'speed-20').click();
+    // A year at 50× fills the feed.
+    await tid(page, 'speed-50').click();
     await expect(tid(page, 'news-ticker')).toBeVisible({ timeout: 30_000 });
     await tid(page, 'speed-0').click();
     await page.keyboard.press('n');
@@ -511,7 +511,7 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'epilogue-president')).toContainText('do the country a favour');
     await tid(page, 'epilogue-keep-playing').click();
     await expect(tid(page, 'epilogue')).toHaveCount(0);
-    await tid(page, 'speed-20').click();
+    await tid(page, 'speed-50').click();
     const tickA = await page.evaluate(
       () => (window as unknown as DebugWindow).__sawit.sim().state.tick,
     );

@@ -42,19 +42,19 @@ describe('game loop (§4.2)', () => {
     expect(h.ticks()).toBe(2);
   });
 
-  it('runs 20× as two ticks per second at a 60 Hz frame rate', () => {
-    const h = harness(() => TICKS_PER_SECOND[20]);
+  it('runs 50× as five ticks per second at a 60 Hz frame rate', () => {
+    const h = harness(() => TICKS_PER_SECOND[50]);
     h.loop.step(0);
     for (let t = 1000 / 60; t <= 5000; t += 1000 / 60) h.loop.step(t);
-    expect(h.ticks()).toBeGreaterThanOrEqual(9);
-    expect(h.ticks()).toBeLessThanOrEqual(10);
+    expect(h.ticks()).toBeGreaterThanOrEqual(24);
+    expect(h.ticks()).toBeLessThanOrEqual(25);
   });
 
   it('a turbo scale multiplies every rate, for the browser suite', () => {
     const turbo = new TimeControl(20);
-    turbo.set(20);
-    expect(turbo.ticksPerSecond).toBe(TICKS_PER_SECOND[20] * 20);
-    expect(turbo.secondsPerTick).toBeCloseTo(1 / (TICKS_PER_SECOND[20] * 20));
+    turbo.set(50);
+    expect(turbo.ticksPerSecond).toBe(TICKS_PER_SECOND[50] * 20);
+    expect(turbo.secondsPerTick).toBeCloseTo(1 / (TICKS_PER_SECOND[50] * 20));
     turbo.set(0);
     expect(turbo.secondsPerTick).toBe(Infinity);
   });
@@ -69,9 +69,9 @@ describe('game loop (§4.2)', () => {
   });
 
   it('drops the backlog after a stall instead of catching up', () => {
-    const h = harness(() => TICKS_PER_SECOND[20], 6);
+    const h = harness(() => TICKS_PER_SECOND[50], 6);
     h.loop.step(0);
-    h.loop.step(100_000); // a hundred seconds hidden: would be 200 ticks
+    h.loop.step(100_000); // a hundred seconds hidden: would be 500 ticks
     expect(h.ticks()).toBe(6);
     // and the excess is gone, not queued
     h.loop.step(100_016);
@@ -83,8 +83,8 @@ describe('game loop (§4.2)', () => {
     const h = harness(() => rate);
     h.loop.step(0);
     h.loop.step(8000); // 80% of the way to a 1× tick
-    rate = TICKS_PER_SECOND[20];
-    h.loop.step(8001); // 1 ms at 20×: not enough for a tick
+    rate = TICKS_PER_SECOND[50];
+    h.loop.step(8001); // 1 ms at 50×: not enough for a tick
     expect(h.ticks()).toBe(0);
   });
 
@@ -169,23 +169,23 @@ describe('time control (§3.1.1, §8)', () => {
 
   it('toggles pause back to the last running speed', () => {
     const tc = new TimeControl();
-    tc.set(20);
+    tc.set(50);
     tc.togglePause();
     expect(tc.speed).toBe(0);
     expect(tc.paused).toBe(true);
     tc.togglePause();
-    expect(tc.speed).toBe(20);
+    expect(tc.speed).toBe(50);
   });
 
-  it('the fire lock caps the speed at 5× without forgetting the request', () => {
+  it('the fire lock caps the speed at 10× without forgetting the request', () => {
     const tc = new TimeControl();
-    tc.set(20);
+    tc.set(50);
     tc.lockToRealtime(true);
-    expect(tc.speed).toBe(5);
-    expect(tc.requestedSpeed).toBe(20);
+    expect(tc.speed).toBe(10);
+    expect(tc.requestedSpeed).toBe(50);
     expect(tc.locked).toBe(true);
     tc.lockToRealtime(false);
-    expect(tc.speed).toBe(20);
+    expect(tc.speed).toBe(50);
   });
 
   it('the fire lock does not unpause', () => {
@@ -199,14 +199,14 @@ describe('time control (§3.1.1, §8)', () => {
     const tc = new TimeControl();
     const seen: [number, boolean][] = [];
     const off = tc.subscribe((s, l) => seen.push([s, l]));
-    tc.set(5);
-    tc.set(5); // no-op
+    tc.set(10);
+    tc.set(10); // no-op
     tc.lockToRealtime(true);
     off();
-    tc.set(20);
+    tc.set(50);
     expect(seen).toEqual([
-      [5, false],
-      [5, true],
+      [10, false],
+      [10, true],
     ]);
   });
 });

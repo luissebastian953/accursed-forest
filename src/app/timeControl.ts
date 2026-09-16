@@ -1,24 +1,24 @@
 /**
- * Sim speed (§4.2, §8 panel 2): pause · 1× · 5× · 20×.
+ * Sim speed (§4.2, §8 panel 2): pause · 1× · 10× · 50×.
  *
  * While anything burns the speed is locked to 1× — you watch your fire
  * (§3.1.1). The lock is separate from the requested speed so releasing it
  * returns the player to what they had chosen.
  */
 
-export type Speed = 0 | 1 | 5 | 20;
+export type Speed = 0 | 1 | 10 | 50;
 
-export const SPEEDS: readonly Speed[] = [0, 1, 5, 20];
+export const SPEEDS: readonly Speed[] = [0, 1, 10, 50];
 
 /** The fastest the clock runs while anything is burning. */
-export const FIRE_LOCK_SPEED = 5 satisfies Speed;
+export const FIRE_LOCK_SPEED = 10 satisfies Speed;
 
 /**
  * Ticks per real second at each speed. 1× is one sim day every ten seconds
  * (§4.2): long enough to watch a crew work a tree and a boar cross a block.
- * 5× is a day every two seconds, 20× a day every half second.
+ * 10× is a day a second, 50× five days a second — a year in about a minute.
  */
-export const TICKS_PER_SECOND: Record<Speed, number> = { 0: 0, 1: 0.1, 5: 0.5, 20: 2 };
+export const TICKS_PER_SECOND: Record<Speed, number> = { 0: 0, 1: 0.1, 10: 1, 50: 5 };
 
 export type SpeedListener = (speed: Speed, locked: boolean) => void;
 

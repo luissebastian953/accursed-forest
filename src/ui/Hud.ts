@@ -83,8 +83,8 @@ const SKY_ICON: Record<SkyCondition, IconName> = {
 const SPEED_LABEL: Record<Speed, string> = {
   0: 'Pause',
   1: '1× Normal',
-  5: '5× Fast',
-  20: '20× Skip',
+  10: '10× Fast',
+  50: '50× Skip',
 };
 
 const CHIP_TONE: Record<EventChip['tone'], string> = {

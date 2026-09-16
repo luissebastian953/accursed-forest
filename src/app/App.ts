@@ -1028,7 +1028,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   /**
    * A forest block gives up a tree at each quarter of the chop, and whatever
    * is left when the block clears; a block that clears while unwatched (a
-   * loaded save, a 20× skip) just drops what remains.
+   * loaded save, a 50× skip) just drops what remains.
    */
   const treesFelled = new Map<BlockId, number>();
   function fellChoppedTrees(cleared: ReadonlySet<BlockId>): void {
