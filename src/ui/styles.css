@@ -392,6 +392,51 @@ canvas {
     }
   }
 
+  /* The block panel's aside: docked on the right, slides away when nothing is selected. */
+  :root {
+    --aside-w: 24rem;
+  }
+  @media (min-width: 80rem) {
+    :root {
+      --aside-w: 28rem;
+    }
+  }
+  .aside {
+    width: var(--aside-w);
+    transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .aside-hidden {
+    transform: translateX(100%);
+  }
+  /* Top and bottom chrome make room for the open aside without touching the canvas. */
+  .chrome-right {
+    right: var(--chrome-right, 0px);
+    transition: right 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  /* The HUD and the ticker slide off their edges under the title screens. */
+  .ui-slide {
+    transition:
+      transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      opacity 420ms ease;
+  }
+  .ui-hidden-top {
+    transform: translateY(-120%);
+    opacity: 0;
+  }
+  .ui-hidden-bottom {
+    transform: translateY(120%);
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aside,
+    .ui-slide,
+    .chrome-right {
+      transition: none;
+    }
+  }
+
   /* The title screen: sky over the estate, and the card's fade on start. */
   .start-screen {
     background: rgb(28 52 26 / 0.58);

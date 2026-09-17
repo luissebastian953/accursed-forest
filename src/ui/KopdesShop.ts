@@ -16,6 +16,7 @@ import type { Command, DispatchResult, ItemId } from '@sim/types';
 import { autoHarvestToggle } from './BlockPanel.ts';
 import { formatDate, formatKg, formatRp } from './format.ts';
 import { icon, type IconName } from './icons.ts';
+import { phoneHeader, phoneShell } from './phone.ts';
 
 export interface ShopHandlers {
   dispatch(command: Command): DispatchResult;
@@ -143,33 +144,28 @@ export class KopdesShop {
   private template(sim: Sim) {
     const { state } = sim;
     const kopdes = state.kopdes;
-    return html`
-      <div
-        class="card absolute top-24 left-3 z-10 max-h-[calc(100vh-8rem)] w-[26rem] max-w-[calc(100vw-1.5rem)] overflow-y-auto p-4 text-sm"
-        data-testid="kopdes-shop"
-      >
-        <div class="mb-3 flex items-start justify-between gap-2">
-          <div class="flex items-center gap-2.5">
-            <span class="pill flex h-10 w-10 items-center justify-center"
-              >${icon('kopdes', 'icon-lg')}</span
-            >
-            <div>
-              <div class="label">Koperasi Desa</div>
-              <div class="text-base font-extrabold leading-tight">
-                ${kopdes ? html`Kopdes shop` : 'No Kopdes yet'}
-              </div>
-              ${kopdes ? html`<div class="label">Level ${kopdes.level} · sells within ${kopdesRange(kopdes.level)} blocks</div>` : nothing}
-            </div>
-          </div>
-          <button class="btn btn-close" aria-label="Close" @click=${() => this.handlers.close()}>
-            ✕
-          </button>
-        </div>
-
+    return phoneShell({
+      testId: 'kopdes-shop',
+      tick: state.tick,
+      header: html`
+        ${phoneHeader({
+          tile: icon('kopdes', 'icon-lg'),
+          title: kopdes ? 'Kopdes shop' : 'No Kopdes yet',
+          subtitle: html`<div class="label">
+            ${
+              kopdes
+                ? html`Koperasi Desa · level ${kopdes.level} · sells within
+                  ${kopdesRange(kopdes.level)} blocks`
+                : 'Koperasi Desa'
+            }
+          </div>`,
+          closeTestId: 'shop-close',
+          onClose: () => this.handlers.close(),
+        })}
         ${
           kopdes
-            ? html`
-                <div class="pill-muted mb-3 flex gap-1 p-1 text-xs">
+            ? html`<div class="border-b-2 border-[var(--card-edge)] px-[6%] pb-3">
+                <div class="pill-muted flex gap-1 p-1 text-xs">
                   ${(['buy', 'sell'] as Tab[]).map(
                     (tab) => html`
                       <button
@@ -185,14 +181,18 @@ export class KopdesShop {
                     `,
                   )}
                 </div>
-                ${this.tab === 'buy' ? this.buyTab(sim) : this.sellTab(sim)}
-              `
-            : html`<div class="muted text-xs">
-                Place the Kopdes on a cleared block to open the shop.
               </div>`
+            : nothing
         }
-      </div>
-    `;
+      `,
+      body: kopdes
+        ? this.tab === 'buy'
+          ? this.buyTab(sim)
+          : this.sellTab(sim)
+        : html`<div class="muted text-xs">
+            Place the Kopdes on a cleared block to open the shop.
+          </div>`,
+    });
   }
 
   private buyTab(sim: Sim) {

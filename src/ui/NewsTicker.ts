@@ -36,8 +36,13 @@ export class NewsTicker {
   ) {
     this.root = document.createElement('div');
     this.root.className =
-      'pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-center px-[30px] py-2';
+      'ui-slide chrome-right pointer-events-none absolute bottom-0 left-0 z-10 flex justify-center px-[30px] py-2';
     parent.appendChild(this.root);
+  }
+
+  /** Slide the ticker down out of the way (the title screens) and back. */
+  setHidden(hidden: boolean): void {
+    this.root.classList.toggle('ui-hidden-bottom', hidden);
   }
 
   update(news: readonly NewsItem[], unread: number): void {

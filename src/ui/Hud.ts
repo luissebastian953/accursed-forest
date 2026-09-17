@@ -149,8 +149,13 @@ export class Hud {
   ) {
     this.root = document.createElement('div');
     this.root.className =
-      'pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col items-center gap-2 p-3';
+      'ui-slide chrome-right pointer-events-none absolute left-0 top-0 z-10 flex flex-col items-center gap-2 p-3';
     parent.appendChild(this.root);
+  }
+
+  /** Slide the bar up out of the way (the title screens) and back. */
+  setHidden(hidden: boolean): void {
+    this.root.classList.toggle('ui-hidden-top', hidden);
   }
 
   update(view: HudView): void {

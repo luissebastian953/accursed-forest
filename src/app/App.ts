@@ -88,16 +88,23 @@ function randomSeed(): number {
 export async function startApp(root: HTMLElement): Promise<() => void> {
   const params = new URLSearchParams(location.search);
   root.style.position = 'relative';
-  // The world on the left, the block panel docked down the right (§8 panel 9).
-  // Modals mount on the root so they cover both; everything else lives on the
-  // stage, so the aside is never overlapped.
-  root.style.display = 'flex';
+  // The world fills the root; the block panel is an aside laid over its right
+  // edge that slides in with a selection (§8 panel 9). Laying it over rather
+  // than docking it means the canvas never resizes when it comes and goes —
+  // the HUD and ticker shift left by its width instead (`--chrome-right`).
+  // Modals mount on the root so they cover both.
   const stage = document.createElement('div');
-  stage.className = 'relative min-w-0 flex-1';
+  stage.className = 'absolute inset-0';
+  stage.style.setProperty('--chrome-right', '0px');
   const aside = document.createElement('aside');
   aside.className =
-    'z-10 flex w-[24rem] shrink-0 flex-col border-l-2 border-[#f2e0b0] bg-[#fff6e0] xl:w-[28rem]';
+    'aside aside-hidden absolute bottom-0 right-0 top-0 z-10 flex flex-col overflow-hidden border-l-2 border-[#f2e0b0] bg-[#fff6e0]';
   root.append(stage, aside);
+  /** The aside slides in from the right with a selection and away without one. */
+  const setAsideOpen = (open: boolean): void => {
+    aside.classList.toggle('aside-hidden', !open);
+    stage.style.setProperty('--chrome-right', open ? 'var(--aside-w)' : '0px');
+  };
 
   // ── Persistence ─────────────────────────────────────────────────────────
   const storage = localStorageAdapter();
@@ -363,6 +370,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   });
 
   function openNews(): void {
+    if (shop.isOpen) closeShop();
     newsPanel.show(sim.state.society.news, newsStatus());
   }
 
@@ -506,6 +514,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   });
 
   function openShop(): void {
+    // One phone at a time.
+    if (newsPanel.isOpen) newsPanel.hide();
     shop.open(sim);
     rangeRing.show(sim.state, sim.world);
   }
@@ -757,10 +767,12 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       ring.hide();
       hazardRing.hide();
       panel.show(sim, null);
+      setAsideOpen(false);
       return;
     }
     ring.show(sim.state, sim.world, block, performance.now());
     panel.show(sim, block);
+    setAsideOpen(true);
   }
 
   function focusBlock(block: BlockId): void {
@@ -1248,6 +1260,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   /** Fade the title out and pull the camera in on the estate; the clock starts with it. */
   function beginPlay(): void {
     startScreen.dismiss();
+    hud.setHidden(false);
+    ticker.setHidden(false);
     const now = performance.now();
     if (sim.state.kopdes) focusBlock(sim.state.kopdes.blockId);
     rig.zoomTo(1.5, now, START_FADE_MS + 900);
@@ -1257,6 +1271,10 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   if (titleScreen) {
     time.set(0);
     rig.setZoom(0.62);
+    // Nothing but the estate behind the title: the bar and the ticker slide off.
+    hud.setHidden(true);
+    ticker.setHidden(true);
+    select(null);
     startScreen.show({
       estateCode: sim.world.estateCode,
       save: slot.exists() ? saveSummary() : null,
