@@ -701,7 +701,8 @@ function stepBabi(ctx: SimContext, mob: Mob, rng: RngState): void {
   const { state, world, events } = ctx;
   switch (mob.intent) {
     case 'leave':
-      walk(mob, BABI_NGEPET.raidSpeed);
+      // Startled, it goes faster than it ever came.
+      walk(mob, mob.standing ? BABI_NGEPET.fleeSpeed : BABI_NGEPET.raidSpeed);
       return;
     case 'raid': {
       // Upright, it runs the estate for a few days, then is simply gone.
@@ -737,6 +738,26 @@ function stepBabi(ctx: SimContext, mob: Mob, rng: RngState): void {
   }
   mob.intent = 'raid';
   mob.intentUntil = state.tick + BABI_NGEPET.raidDays;
+}
+
+/**
+ * Seen and startled: it drops what it was carrying and bolts for the edge.
+ * The tap command calls this; the walk itself is the usual leave.
+ */
+export function startle(ctx: SimContext, mob: Mob): void {
+  const { world } = ctx;
+  const [x, y] = world.toXY(world.toId(Math.floor(mob.x), Math.floor(mob.z)));
+  // Straight out the nearest side, at a run.
+  const left = x;
+  const right = world.width - 1 - x;
+  const up = y;
+  const down = world.height - 1 - y;
+  const shortest = Math.min(left, right, up, down);
+  mob.tx = shortest === left ? -1 : shortest === right ? world.width : mob.x;
+  mob.tz = shortest === up ? -1 : shortest === down ? world.height : mob.z;
+  mob.intent = 'leave';
+  mob.climb = 0;
+  mob.until = ctx.state.tick;
 }
 
 function leave(ctx: SimContext, mob: Mob, rng: RngState): void {

@@ -392,6 +392,24 @@ canvas {
     }
   }
 
+  /* A slot with a sick or dead palm in it: the mark pulses so the eye finds it. */
+  .slot-alert {
+    position: relative;
+  }
+
+  .slot-alert::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: inherit;
+    animation: ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  .slot-alert > * {
+    position: relative;
+  }
+
   /* The block panel's aside: docked on the right, slides away when nothing is selected. */
   :root {
     --aside-w: 24rem;

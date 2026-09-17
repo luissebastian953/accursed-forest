@@ -103,6 +103,9 @@ export const Palette = {
   FurPangolinDark: 80,
   /** The capybara nobody believes you saw. */
   FurCapybaraGold: 81,
+  /** Coins in the air, and the glint that says something is worth clicking. */
+  Coin: 82,
+  Sparkle: 83,
 } as const;
 
 export type PaletteSlot = (typeof Palette)[keyof typeof Palette];

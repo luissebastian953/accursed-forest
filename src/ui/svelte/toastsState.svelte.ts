@@ -31,7 +31,16 @@ export const MARK: Record<ToastKind, IconName> = {
   error: 'police-warning',
 };
 
+/** How many notices sit on screen at once; more than this and the oldest goes. */
+const AT_ONCE = 2;
+
 const state = $state<{ items: ToastItem[] }>({ items: [] });
+
+/** Take one off, whether it ran out or was closed by hand. */
+export function dismissToast(id: number): void {
+  const index = state.items.findIndex((item) => item.id === id);
+  if (index >= 0) state.items.splice(index, 1);
+}
 
 /** Read from the `.svelte` template; mutated only through `Toasts.push`. */
 export function toastState(): { items: ToastItem[] } {
@@ -55,11 +64,8 @@ export class Toasts {
   push(text: string, kind: ToastKind = 'info'): void {
     const toast: ToastItem = { id: this.nextId++, text, kind };
     state.items.push(toast);
-    if (state.items.length > 5) state.items.shift();
-    setTimeout(() => {
-      const index = state.items.indexOf(toast);
-      if (index >= 0) state.items.splice(index, 1);
-    }, this.ttlMs);
+    while (state.items.length > AT_ONCE) state.items.shift();
+    setTimeout(() => dismissToast(toast.id), this.ttlMs);
   }
 
   dispose(): void {

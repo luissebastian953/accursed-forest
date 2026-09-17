@@ -593,7 +593,9 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
         cells.push({
           slot,
           cls,
-          sick: g === 2,
+          // A sick palm, and a dead one that is still infectious, both want
+          // taking out: both carry the mark.
+          sick: g === 2 || g === 3 || stage === 'dead',
           title: t('block.slotTitle', {
             at: slotLabel(slot),
             stage: t(`block.stage_${stage}`),

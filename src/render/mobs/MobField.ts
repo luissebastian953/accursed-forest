@@ -84,6 +84,8 @@ interface Mob {
   climb: number;
   /** World-unit height of the body's top, for the Zs. */
   crown: number;
+  /** 1 normally; counts down to 0 while the mob fades out of the world. */
+  fade: number;
   /** `nodes` mode only: the part nodes, parent-first. */
   nodes?: Object3D[];
 }
@@ -196,6 +198,12 @@ class Sheet {
 
 const _local = new Matrix4();
 const _facing = new Matrix4();
+const _at = new Vector3();
+const _size = new Vector3();
+const _spin = new Quaternion();
+const _up = new Vector3(0, 1, 0);
+/** Seconds a mob takes to fade out of the world when something makes it vanish. */
+const FADE_SECONDS = 0.7;
 const _root = new Matrix4();
 /** Scratch world matrices, one per part; no rig is anywhere near this deep. */
 const _worlds = Array.from({ length: 64 }, () => new Matrix4());
@@ -366,6 +374,18 @@ export class MobField {
     this.byId.set(mob.id, mob);
   }
 
+  /** Where a mob is being drawn, for an effect that lands on it. */
+  positionOf(id: number): { x: number; y: number; z: number } | null {
+    const mob = this.byId.get(id);
+    return mob ? { x: mob.x, y: this.options.groundAt(mob.x, mob.z), z: mob.z } : null;
+  }
+
+  /** Shrink a mob out of the world over the next moment, then drop it. */
+  vanish(id: number): void {
+    const mob = this.byId.get(id);
+    if (mob && mob.fade >= 1) mob.fade = 0.999;
+  }
+
   private detach(mob: Mob): void {
     if (mob.nodes) for (const node of mob.nodes) node.removeFromParent();
     const i = this.mobs.indexOf(mob);
@@ -401,6 +421,7 @@ export class MobField {
       sit: 0,
       climb: 0,
       crown: crownOf(spec),
+      fade: 1,
     });
   }
 
@@ -445,6 +466,7 @@ export class MobField {
           sit: 0,
           climb: 0,
           crown: crownOf(spec),
+          fade: 1,
         };
         this.attach(mob);
       }
@@ -454,7 +476,8 @@ export class MobField {
       mob.wants = wantsFor(sim);
     }
     for (const mob of [...this.mobs]) {
-      if (mob.id > 0 && !seen.has(mob.id)) this.detach(mob);
+      // A mob the sim has dropped goes at once, unless it is still fading out.
+      if (mob.id > 0 && !seen.has(mob.id) && mob.fade >= 1) this.detach(mob);
     }
   }
 
@@ -498,6 +521,13 @@ export class MobField {
       mob.crouch += (mob.wants.crouch - mob.crouch) * Math.min(1, dtSeconds * 4);
       mob.work += (mob.wants.work - mob.work) * Math.min(1, dtSeconds * 3);
       mob.sit += (mob.wants.sit - mob.sit) * Math.min(1, dtSeconds * 2.5);
+      if (mob.fade < 1) {
+        mob.fade -= dtSeconds / FADE_SECONDS;
+        if (mob.fade <= 0) {
+          this.detach(mob);
+          continue;
+        }
+      }
       // Up and down a trunk is a climb, not a jump cut.
       mob.climb += (mob.wants.climb - mob.climb) * Math.min(1, dtSeconds * 0.9);
 
@@ -550,8 +580,11 @@ export class MobField {
         sit: mob.sit,
         climb: mob.climb,
       };
-      _facing.makeRotationY(mob.facing);
-      _facing.setPosition(mob.x, y, mob.z);
+      _facing.compose(
+        _at.set(mob.x, y, mob.z),
+        _spin.setFromAxisAngle(_up, mob.facing),
+        _size.setScalar(mob.fade),
+      );
 
       if (mob.nodes) {
         const parts = mob.species.parts;

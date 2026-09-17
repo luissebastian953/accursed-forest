@@ -21,6 +21,7 @@ import { createRenderer } from '@render/Renderer';
 import { Ceremony } from '@render/scene/Ceremony';
 import { landHeight } from '@render/scene/chunkField';
 import { ChunkManager } from '@render/scene/ChunkManager';
+import { Coins } from '@render/scene/Coins';
 import { Fires } from '@render/scene/Fires';
 import { KopdesMesh } from '@render/scene/Kopdes';
 import { Lightning } from '@render/scene/Lightning';
@@ -30,6 +31,7 @@ import { Palms } from '@render/scene/Palms';
 import { Police } from '@render/scene/Police';
 import { Rain } from '@render/scene/Rain';
 import { Sky } from '@render/scene/Sky';
+import { Sparkles, type SparklePoint } from '@render/scene/Sparkles';
 import { TREES_PER_BLOCK, Timber } from '@render/scene/Timber';
 import { WorkSite } from '@render/scene/WorkSite';
 import { digestEvents } from '@render/sync';
@@ -37,7 +39,7 @@ import { BIOMES } from '@sim/balance/biomes';
 import { BANKRUPTCY, ISPO } from '@sim/balance/endings';
 import { FIRE } from '@sim/balance/fire';
 import { GROWTH } from '@sim/balance/growth';
-import { SHINY } from '@sim/balance/mobs';
+import { BABI_NGEPET, SHINY } from '@sim/balance/mobs';
 import { BEETLES } from '@sim/balance/pests';
 import { MACRO_PREFIX } from '@sim/balance/society';
 import { WORLD } from '@sim/balance/world';
@@ -242,6 +244,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   const police = new Police(material, groundAt);
   const ceremony = new Ceremony(material);
   const rain = new Rain(material);
+  const coins = new Coins(material);
   const lightning = new Lightning();
   const timber = new Timber(material, groundAt);
   const motorcade = new Motorcade(material, groundAt);
@@ -250,6 +253,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   spectral.transparent = true;
   spectral.opacity = 0.45;
   spectral.depthWrite = false;
+  // The glints live on the see-through material, like the ghost.
+  const sparkles = new Sparkles(spectral);
   const mobField = new MobField({
     material,
     spectralMaterial: spectral,
@@ -258,6 +263,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   });
   const glow = new Glow(handle.renderer, scene, rig.camera);
   scene.add(
+    coins.mesh,
+    sparkles.mesh,
     police.group,
     ceremony.group,
     motorcade.group,
@@ -745,7 +752,12 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         palmsDirty = true;
       }
       if (command.type === 'TapMob') {
-        toasts.push(t('mobs.golden', { amount: formatRp(SHINY.reward) }));
+        const caught = sim.state.mobs.find((m) => m.id === command.mob);
+        toasts.push(
+          caught?.species === 'babiNgepet'
+            ? t('mobs.babiNgepet', { amount: formatRp(BABI_NGEPET.caughtDrop) })
+            : t('mobs.golden', { amount: formatRp(SHINY.reward) }),
+        );
       }
       if (command.type === 'ChopBlock' || command.type === 'BurnBlock') {
         // The crew and their scaffolding are on the block before the next tick.
@@ -1134,6 +1146,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     lightning.update(nowMs);
     timber.update(nowMs);
     mobField.update(dt, time.secondsPerTick);
+    coins.update(dt);
+    syncSparkles(nowMs);
     syncWorkMarkers();
 
     // The panels are DOM: ten refreshes a second is plenty, and it leaves the
@@ -1157,10 +1171,28 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   });
 
   /**
-   * The golden capybara is the one thing on the map you click rather than a
-   * block: rare, worth something, and gone once seen. Its drawn position is
-   * projected each click; the crowd mesh itself cannot be picked apart.
+   * Some mobs are worth a click rather than a block: the golden capybara, and
+   * the babi ngepet on the day it stands up at the Kopdes. Both sparkle while
+   * they can be caught, and their drawn position is projected on the click;
+   * the crowd mesh itself cannot be picked apart.
    */
+  function worthAClick(mob: (typeof sim.state.mobs)[number]): boolean {
+    return mob.shiny || (mob.species === 'babiNgepet' && mob.standing);
+  }
+
+  const sparklePoints: SparklePoint[] = [];
+  function syncSparkles(nowMs: number): void {
+    sparklePoints.length = 0;
+    for (const mob of sim.state.mobs) {
+      if (!worthAClick(mob)) continue;
+      const drawn = mobField.positionOf(mob.id);
+      const x = drawn?.x ?? mob.x * WORLD.blockSide;
+      const z = drawn?.z ?? mob.z * WORLD.blockSide;
+      sparklePoints.push({ x, y: drawn?.y ?? groundAt(x, z), z });
+    }
+    sparkles.update(sparklePoints, nowMs);
+  }
+
   const TAP_RADIUS_PX = 42;
   const tapPoint = new Vector3();
   function tapMobAt(ndcX: number, ndcY: number): boolean {
@@ -1171,10 +1203,11 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     rig.camera.updateMatrixWorld();
     let best: { id: number; distance: number } | null = null;
     for (const mob of sim.state.mobs) {
-      if (!mob.shiny) continue;
-      const x = mob.x * WORLD.blockSide;
-      const z = mob.z * WORLD.blockSide;
-      tapPoint.set(x, groundAt(x, z) + 1, z).project(rig.camera);
+      if (!worthAClick(mob)) continue;
+      const drawn = mobField.positionOf(mob.id);
+      const x = drawn?.x ?? mob.x * WORLD.blockSide;
+      const z = drawn?.z ?? mob.z * WORLD.blockSide;
+      tapPoint.set(x, (drawn?.y ?? groundAt(x, z)) + 1, z).project(rig.camera);
       const distance = Math.hypot(
         ((tapPoint.x + 1) / 2) * width - clickX,
         ((1 - tapPoint.y) / 2) * height - clickY,
@@ -1184,7 +1217,14 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       }
     }
     if (!best) return false;
+    const mob = sim.state.mobs.find((m) => m.id === best.id);
+    const runs = mob?.species === 'babiNgepet';
+    const at = mobField.positionOf(best.id);
     if (!dispatch({ type: 'TapMob', mob: best.id }).ok) return false;
+    // Coins first, so they fall from where it was standing.
+    if (at) coins.burst(at.x, at.y + 1.2, at.z, runs ? 14 : 10);
+    // The pig bolts; the capybara is simply not there any more.
+    if (!runs) mobField.vanish(best.id);
     mobField.syncSim(sim.state);
     return true;
   }
@@ -1380,6 +1420,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     observer.disconnect();
     hud.dispose();
     workMarkers.dispose();
+    coins.dispose();
+    sparkles.dispose();
     panel.dispose();
     shop.dispose();
     menu.dispose();

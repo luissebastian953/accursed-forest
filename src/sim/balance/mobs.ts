@@ -146,6 +146,9 @@ export const BABI_NGEPET = {
   raidSpeed: 0.9,
   /** Days it runs the estate on two legs before it is gone. */
   raidDays: 3,
+  /** Caught at it: what falls out of its coat, and how fast it bolts. */
+  caughtDrop: 6_000_000,
+  fleeSpeed: 1.8,
   /** It looks like a pig until it stands up at the Kopdes. */
   stayDays: 40,
 } as const;

@@ -186,7 +186,9 @@
                 <div class="grid grid-cols-12 gap-[3px]" data-testid="slot-grid">
                   {#each p.grid.cells as cell (cell.slot)}
                     <button
-                      class="flex h-4 w-4 items-center justify-center rounded-[3px] {cell.cls}"
+                      class="flex h-4 w-4 items-center justify-center rounded-[3px] {cell.cls} {cell.sick
+                        ? 'slot-alert'
+                        : ''}"
                       title={cell.title}
                       aria-label={cell.title}
                       data-testid={`slot-cell-${cell.slot}`}

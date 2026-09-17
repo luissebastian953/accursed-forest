@@ -155,6 +155,31 @@ describe('wildlife (mobs)', () => {
     ).toBe(true);
   });
 
+  it('a babi ngepet caught on two legs drops its takings and bolts', () => {
+    const sim = createSim(42);
+    const { state } = sim;
+    sim.dispatch({ type: 'PlaceKopdes', block: state.worldGen.kopdesBlock });
+    run(sim, 10);
+    const babi = state.mobs[0]!;
+    babi.species = 'babiNgepet';
+    babi.standing = false;
+    // On all fours it is just a pig: nothing to click.
+    expect(sim.validate({ type: 'TapMob', mob: babi.id })).toMatchObject({ code: 'wrongPhase' });
+
+    babi.standing = true;
+    const cash = state.economy.cash;
+    expect(sim.dispatch({ type: 'TapMob', mob: babi.id })).toEqual({ ok: true });
+    expect(state.economy.cash - cash).toBe(BABI_NGEPET.caughtDrop);
+    // It is not caught, only startled: still on the map, and on its way out.
+    expect(state.mobs.some((m) => m.id === babi.id)).toBe(true);
+    expect(babi.intent).toBe('leave');
+
+    // ...and it runs faster than it ever walked in.
+    const [x, z] = [babi.x, babi.z];
+    sim.tick();
+    expect(Math.hypot(babi.x - x, babi.z - z)).toBeGreaterThan(BABI_NGEPET.pigSpeed);
+  });
+
   it('the golden capybara pays out once, to whoever clicks it', () => {
     const sim = createSim(42);
     const { state } = sim;
