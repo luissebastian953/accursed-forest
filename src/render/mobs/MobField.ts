@@ -393,6 +393,67 @@ export class MobField {
     this.byId.delete(mob.id);
   }
 
+  // ── The workbench ───────────────────────────────────────────────────────
+
+  /**
+   * One mob of a species, standing at the origin and driven by hand: the
+   * workbench has no simulation to take its orders from. Returns its id.
+   */
+  addBenchMob(species: SpeciesId): number {
+    const spec = SPECIES[species];
+    if (!spec) throw new Error(`no such species: ${species}`);
+    const id = this.nextPocId--;
+    this.attach({
+      id,
+      species: spec,
+      x: 0,
+      z: 0,
+      facing: Math.PI * 0.75,
+      targetX: 0,
+      targetZ: 0,
+      rest: 0,
+      phase: 0,
+      age: 0,
+      gait: 0,
+      stand: 0,
+      glide: true,
+      wants: { sleep: 0, crouch: 0, work: 0, sit: 0, climb: 0 },
+      sleep: 0,
+      crouch: 0,
+      work: 0,
+      sit: 0,
+      climb: 0,
+      crown: crownOf(spec),
+      fade: 1,
+    });
+    return id;
+  }
+
+  /** On the bench: what the body should be doing. */
+  setBenchWants(id: number, wants: Partial<Mob['wants']>): void {
+    const mob = this.byId.get(id);
+    if (mob) mob.wants = { ...mob.wants, ...wants };
+  }
+
+  /** On the bench: walking on the spot, or standing still. */
+  setBenchWalking(id: number, walking: boolean): void {
+    const mob = this.byId.get(id);
+    if (!mob) return;
+    mob.glide = false;
+    mob.rest = walking ? 0 : Number.POSITIVE_INFINITY;
+    if (walking) {
+      // A target it never quite reaches: it walks in a circle around the bench.
+      mob.targetX = Math.cos(mob.facing) * 40;
+      mob.targetZ = Math.sin(mob.facing) * 40;
+    }
+  }
+
+  /** On the bench: reared up on the hind legs. */
+  setBenchStanding(id: number, standing: boolean): void {
+    const mob = this.byId.get(id);
+    if (mob) mob.stand = standing ? 1 : 0;
+  }
+
   // ── The POC's wanderers ────────────────────────────────────────────────
 
   spawn(id: SpeciesId): void {

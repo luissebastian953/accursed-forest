@@ -168,8 +168,14 @@ export default defineConfig({
     // Maps only on request: shipping them hands the source back.
     sourcemap: process.env['VITE_SOURCEMAP'] === '1',
     rollupOptions: {
-      // Two pages: the static landing page and the game.
-      input: { index: 'index.html', id: 'id/index.html', play: 'play.html' },
+      // Three pages: the static landing page, the game, and the workbench,
+      // a development page that ships but is never indexed or linked.
+      input: {
+        index: 'index.html',
+        id: 'id/index.html',
+        play: 'play.html',
+        workbench: 'workbench.html',
+      },
       output: {
         // three.js in its own long-lived chunk: it changes far less often than
         // the game, and it is the one the boot shell is waiting on.
