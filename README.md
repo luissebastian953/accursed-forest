@@ -75,6 +75,13 @@ Vitals (LCP, INP, CLS, FCP, TTFB) are measured with `web-vitals` and sent to
 Google Analytics 4 as events when `VITE_GA_ID` is set at build time (see
 `.env.example`); with it empty the pages load no third-party script at all.
 
+Production builds obfuscate the game's own chunks on top of minification
+(string literals into an encoded array, hex identifiers; the expensive
+transforms stay off so the sim keeps its frame budget) and ship no source
+maps; three.js is left as is. `VITE_OBFUSCATE=0` gives a readable build and
+`VITE_SOURCEMAP=1` emits maps, for debugging a deployment. This raises the
+cost of reading the code; it cannot hide it from the browser that runs it.
+
 For search and social: the landing page carries a description, canonical
 link, Open Graph and Twitter cards (the 1200×630 image in `public/`), the
 favicon set and web manifest from the brand kit (`public/brand`, `icon-*.png`),
