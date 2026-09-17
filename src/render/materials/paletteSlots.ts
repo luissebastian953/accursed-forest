@@ -94,6 +94,10 @@ export const Palette = {
   Snout: 74,
   Hoof: 75,
   Sack: 76,
+
+  // River surface: its own light blue, and the darker patches that texture it.
+  River: 77,
+  RiverDeep: 78,
 } as const;
 
 export type PaletteSlot = (typeof Palette)[keyof typeof Palette];

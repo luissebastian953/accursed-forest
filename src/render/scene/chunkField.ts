@@ -43,6 +43,20 @@ const WATER_REACH = 2;
 const EDGE_WARP = 3.2;
 const EDGE_WARP_SCALE = 16;
 const TINT_SCALE = 7;
+/** Columns across a deep patch in the river; an offset keeps them off the land's tint pattern. */
+const RIVER_PATCH_SCALE = 5;
+const RIVER_PATCH_OFFSET = 311;
+
+/** River water: light blue, with a few darker pools where the tint noise dips. */
+function riverSlot(look: LandLook, gx: number, gz: number): number {
+  const v =
+    look.tint(
+      (gx + RIVER_PATCH_OFFSET) / RIVER_PATCH_SCALE,
+      (gz - RIVER_PATCH_OFFSET) / RIVER_PATCH_SCALE,
+    ) +
+    (hash01(gx, gz, 13) - 0.5) * 0.3;
+  return v < -0.42 ? Palette.RiverDeep : Palette.River;
+}
 
 interface LandLook {
   channel: RiverChannel;
@@ -195,7 +209,7 @@ function topSlot(
     case 'riverbank':
       return Palette.Terrace;
     case 'river':
-      return Palette.Water;
+      return Palette.River;
     case 'peat':
       return Palette.Peat;
     case 'rubber':
@@ -273,7 +287,7 @@ export function buildChunkField(
         if (edge < 0) {
           h -= WATER_DROP;
           heights[i] = Math.max(FLOOR_Y + HEIGHT_QUANTUM, quantise(h, HEIGHT_QUANTUM));
-          topSlots[i] = flooded ? Palette.WaterShallow : Palette.Water;
+          topSlots[i] = flooded ? Palette.WaterShallow : riverSlot(look, gx, gz);
           continue;
         }
         heights[i] = Math.max(FLOOR_Y + HEIGHT_QUANTUM, quantise(h, HEIGHT_QUANTUM));

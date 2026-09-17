@@ -103,6 +103,9 @@ describe('chunk field (§6.3, §6.7)', () => {
     expect([Palette.Charcoal, Palette.CharredGround, Palette.Ash]).toContain(slotAt('wild', true));
   });
 
+  /** The river's surface: light blue, with the darker pools that texture it. */
+  const RIVER_SLOTS = new Set<number>([Palette.River, Palette.RiverDeep]);
+
   it('water follows the smoothed channel: every river block holds water, and none strays far', () => {
     const world = createWorld(42);
     const blocks = new Map<number, { water: number }>();
@@ -114,7 +117,7 @@ describe('chunk field (§6.3, §6.7)', () => {
       const f = buildChunkField(world, cx, cy, EMPTY);
       for (let z = f.inset!; z < f.size - f.inset!; z++) {
         for (let x = f.inset!; x < f.size - f.inset!; x++) {
-          if (f.topSlots[z * f.size + x] !== Palette.Water) continue;
+          if (!RIVER_SLOTS.has(f.topSlots[z * f.size + x]!)) continue;
           const bx = Math.floor((f.originX! + x - f.inset!) / WORLD.blockSide);
           const by = Math.floor((f.originZ! + z - f.inset!) / WORLD.blockSide);
           const id = world.toId(bx, by);
@@ -136,6 +139,24 @@ describe('chunk field (§6.3, §6.7)', () => {
     }
     expect(river).toBeGreaterThan(0);
     expect(wet / river).toBeGreaterThan(0.9);
+  });
+
+  it('the river is textured: mostly light blue, with a few deeper pools', () => {
+    const world = createWorld(42);
+    let light = 0;
+    let deep = 0;
+    for (const key of [...world.rivers.water].slice(0, 40)) {
+      const [cx, cy] = chunkOfBlock(world, key);
+      const f = buildChunkField(world, cx, cy, EMPTY);
+      for (const slot of f.topSlots) {
+        if (slot === Palette.River) light += 1;
+        else if (slot === Palette.RiverDeep) deep += 1;
+      }
+    }
+    expect(light).toBeGreaterThan(0);
+    const share = deep / (light + deep);
+    expect(share).toBeGreaterThan(0.02);
+    expect(share).toBeLessThan(0.35);
   });
 
   it('wild ground is not one flat colour per block', () => {

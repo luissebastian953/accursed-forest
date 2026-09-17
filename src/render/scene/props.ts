@@ -195,7 +195,13 @@ class Grower {
     const lz = Math.floor(z) - (f.originZ ?? 0) + inset;
     if (lx < inset || lz < inset || lx >= f.size - inset || lz >= f.size - inset) return null;
     const slot = f.topSlots[lz * f.size + lx]!;
-    if (slot === Palette.Water || slot === Palette.WaterShallow) return null;
+    if (
+      slot === Palette.River ||
+      slot === Palette.RiverDeep ||
+      slot === Palette.Water ||
+      slot === Palette.WaterShallow
+    )
+      return null;
     return f.heights[lz * f.size + lx]!;
   }
 
