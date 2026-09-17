@@ -143,6 +143,9 @@ test.describe('Sawit Simulator', () => {
     await selectWildNeighbour(page);
     await tid(page, 'action-ChopBlock').click();
     await expect(tid(page, 'block-phase')).toContainText('Clearing');
+    // The crew's progress ring stands over the block while it is worked.
+    await expect(tid(page, 'work-marker').first()).toBeVisible();
+    await expect(tid(page, 'work-marker').first()).toHaveAttribute('data-kind', 'chop');
     await tid(page, 'speed-50').click();
     await expect(tid(page, 'block-phase')).toHaveText('Cleared', { timeout: 15_000 });
     await expect(tid(page, 'action-PlantBlock-palm')).toBeEnabled();

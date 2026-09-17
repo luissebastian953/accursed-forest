@@ -24,16 +24,40 @@
 
   const FRAME_URL = `${import.meta.env.BASE_URL}ui/phone-frame.svg`;
   const FRAME_TOP_URL = `${import.meta.env.BASE_URL}ui/phone-frame-top.svg`;
+
+  /**
+   * The frame is sized by the viewport's height, so a zoomed-in browser or a
+   * short window shrinks it while rem-based type stays put and the screen
+   * turns dense. The screen content zooms with the frame's width instead:
+   * 1 at the 360px the layout was drawn for, never below 0.7 or above 1.1.
+   */
+  const REFERENCE_WIDTH = 360;
+  let frame = $state<HTMLElement | null>(null);
+  let scale = $state(1);
+  $effect(() => {
+    if (!frame) return;
+    const fit = (width: number) => Math.min(1.1, Math.max(0.7, width / REFERENCE_WIDTH));
+    // Size once now: the observer's first call waits for a frame, and the
+    // software renderer can hold that frame for a second.
+    scale = fit(frame.getBoundingClientRect().width);
+    const observer = new ResizeObserver(([entry]) => {
+      scale = fit(entry?.contentRect.width ?? REFERENCE_WIDTH);
+    });
+    observer.observe(frame);
+    return () => observer.disconnect();
+  });
 </script>
 
 <div
-  class="@container absolute bottom-16 left-3 top-[15.25rem] z-20 aspect-[480/920] max-h-[920px] max-w-[calc(100vw-1.5rem)]"
+  class="@container absolute bottom-16 left-3 top-[15.25rem] z-20 aspect-[480/920] max-h-[920px] min-h-[540px] max-w-[calc(100vw-1.5rem)]"
   data-testid={testId}
+  bind:this={frame}
 >
   <img class="absolute inset-0 h-full w-full select-none" src={FRAME_URL} alt="" />
 
   <div
     class="absolute bottom-[4.35%] left-[8.33%] right-[8.33%] top-[4.35%] flex flex-col overflow-hidden rounded-[8.75cqw] text-sm"
+    style="zoom: {scale}"
   >
     <div
       class="flex items-center justify-between px-[6%] pb-1 pt-[2.2%] text-[0.7rem] font-extrabold text-[#8f7a52]"

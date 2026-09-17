@@ -3,7 +3,7 @@
  * Nothing below this file knows about anything beside it.
  */
 
-import { Scene } from 'three/webgpu';
+import { Scene, Vector3 } from 'three/webgpu';
 
 import { attachKeys } from '@input/keys';
 import { attachPointer } from '@input/pointer';
@@ -54,6 +54,7 @@ import { createSim, restoreSim, seedFromEstateCode, type Sim } from '@sim/index'
 import { estateForestCover } from '@sim/landscape';
 import { runOver } from '@sim/run';
 import { creditLine, ispoConditions, matureHectares } from '@sim/systems/endings';
+import { workedBlocks } from '@sim/systems/mobs';
 import type { BlockId, Command } from '@sim/types';
 import { formatKg, formatRp } from '@ui/format';
 import { AuthorityCards, type CardKind } from '@ui/svelte/authorityCardsState.svelte.ts';
@@ -72,6 +73,7 @@ import {
   type SaveSummary,
 } from '@ui/svelte/startScreenState.svelte.ts';
 import { Toasts } from '@ui/svelte/toastsState.svelte.ts';
+import { WorkMarkers, type WorkMarker } from '@ui/svelte/workMarkersState.svelte.ts';
 
 import { t } from '../i18n/index.ts';
 
@@ -299,6 +301,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   });
 
   // ── UI ──────────────────────────────────────────────────────────────────
+  const workMarkers = new WorkMarkers(stage);
   const hud = new Hud(stage, {
     setSpeed: (speed) => time.set(speed),
     openMenu: () => {
@@ -1071,6 +1074,39 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     }
   }
 
+  /** Head-room above the work site's pillars for the progress ring. */
+  const MARKER_LIFT = 7;
+  const markerPoint = new Vector3();
+  /** A progress ring over every block a crew is working, projected each frame. */
+  function syncWorkMarkers(): void {
+    const working = workedBlocks(sim.state);
+    if (working.size === 0) {
+      workMarkers.update([]);
+      return;
+    }
+    const side = WORLD.blockSide;
+    const width = handle.canvas.clientWidth;
+    const height = handle.canvas.clientHeight;
+    rig.camera.updateMatrixWorld();
+    const items: WorkMarker[] = [];
+    for (const id of working) {
+      const block = sim.state.blocks.get(id);
+      if (!block) continue;
+      const [bx, by] = sim.world.toXY(id);
+      const cx = bx * side + side / 2;
+      const cz = by * side + side / 2;
+      markerPoint.set(cx, groundAt(cx, cz) + MARKER_LIFT, cz).project(rig.camera);
+      items.push({
+        id,
+        x: ((markerPoint.x + 1) / 2) * width,
+        y: ((1 - markerPoint.y) / 2) * height,
+        progress: block.clearProgress,
+        kind: block.burning ? 'burn' : 'chop',
+      });
+    }
+    workMarkers.update(items);
+  }
+
   function onFrame(dt: number, nowMs: number): void {
     rig.update(dt, nowMs);
     rig.visibleGround(visible);
@@ -1094,6 +1130,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     lightning.update(nowMs);
     timber.update(nowMs);
     mobField.update(dt, time.secondsPerTick);
+    syncWorkMarkers();
 
     // The panels are DOM: ten refreshes a second is plenty, and it leaves the
     // frame budget to the world. (Every frame cost the sim a third of its
@@ -1299,6 +1336,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     detachPointer();
     observer.disconnect();
     hud.dispose();
+    workMarkers.dispose();
     panel.dispose();
     shop.dispose();
     menu.dispose();
