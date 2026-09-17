@@ -1,8 +1,4 @@
-<!--
-  One flat SVG from the design kit (`public/icons`), as an `<img>`: the same
-  markup `icon()` in `../icons.ts` renders for the lit-html panels still
-  waiting on their own Svelte port, so a page mixing both looks identical.
--->
+<!-- One flat SVG from the design kit (`public/icons`), as an `<img>`. -->
 <script lang="ts">
   import { iconUrl, type IconName } from '../icons.ts';
 

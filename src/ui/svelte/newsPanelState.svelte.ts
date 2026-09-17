@@ -1,7 +1,7 @@
 /**
  * The news panel (§8 panel 13): the full feed, newest first, with lane
  * filters and a "what this does to you" line per item, on the phone.
- * `NewsPanel` keeps the lit-html version's constructor and
+ * `NewsPanel` keeps the pre-Svelte constructor and
  * `show`/`hide`/`update`/`isOpen`/`dispose` surface so `App.ts` is
  * unchanged. The feed itself is held raw: it is the sim's own array, read,
  * never mutated here, and far too big to proxy.

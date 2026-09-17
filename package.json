@@ -32,7 +32,6 @@
   "dependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.3.0",
     "es-toolkit": "1.52.0",
-    "lit-html": "3.3.3",
     "lucide-static": "1.46.0",
     "lz-string": "1.5.0",
     "mitt": "3.0.1",

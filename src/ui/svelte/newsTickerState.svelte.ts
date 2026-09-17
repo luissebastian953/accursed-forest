@@ -1,7 +1,7 @@
 /**
  * The news ticker (§8 panels 3 and 8): the latest three headlines along the
  * bottom, lane-coloured, with a badge for unread warnings. Click to open the
- * full feed. `NewsTicker` keeps the lit-html version's constructor and
+ * full feed. `NewsTicker` keeps the pre-Svelte constructor and
  * `update`/`setHidden`/`dispose` surface so `App.ts` is unchanged.
  */
 

@@ -10,7 +10,7 @@
  *     and the ways out (the menu's saves and codes, or a new estate).
  *
  * On start or continue the card fades and the camera pulls in; the App owns
- * that camera move. `StartScreen` keeps the lit-html version's constructor
+ * that camera move. `StartScreen` keeps the pre-Svelte constructor
  * and `show`/`dismiss`/`isOpen`/`dispose` surface so `App.ts` is unchanged.
  */
 

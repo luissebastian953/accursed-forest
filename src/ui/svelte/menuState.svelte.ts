@@ -1,6 +1,6 @@
 /**
  * The menu (§8 panel 16): save, load, a new estate by code, and the language.
- * `Menu` keeps the lit-html version's constructor and
+ * `Menu` keeps the pre-Svelte constructor and
  * `toggle`/`show`/`hide`/`update`/`isOpen`/`dispose` surface so `App.ts` is
  * unchanged; the view reads `state` and calls back into the class.
  */

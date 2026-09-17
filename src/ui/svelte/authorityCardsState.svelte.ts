@@ -2,7 +2,7 @@
  * The authorities' paperwork (§8 panel 17b): the letter, the investigation
  * notice with its "settle the matter" option when integrity allows, and the
  * operating ban (§3.8). The arrest is an ending; the epilogue tells it.
- * `AuthorityCards` keeps the lit-html version's constructor and
+ * `AuthorityCards` keeps the pre-Svelte constructor and
  * `show`/`hide`/`showing`/`dispose` surface so `App.ts` is unchanged.
  */
 

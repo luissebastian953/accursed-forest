@@ -306,7 +306,7 @@ interface OverlayHandlers {
   onReplant: () => void;
 }
 
-/** Plain DOM overlay; the real HUD is lit-html + Tailwind (§8, §10.2). */
+/** Plain DOM overlay; the real HUD is Svelte + Tailwind (§8, §10.2). */
 function buildOverlay(root: HTMLElement, handlers: OverlayHandlers): HTMLElement {
   const panel = document.createElement('div');
   panel.className =
