@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
 
-  import { FIRE_LOCK_SPEED, SPEEDS } from '@app/timeControl';
+  import { FIRE_LOCK_SPEED, SPEEDS, speedNeedsKopdes, TURBO_KOPDES_LEVEL } from '@app/timeControl';
   import type { ClimateRegime, SkyCondition } from '@sim/types';
 
   import { t } from '../../i18n/index.ts';
@@ -10,6 +10,7 @@
 
   import type { EventChip, Hud } from './hudState.svelte.ts';
   import Icon from './Icon.svelte';
+  import Tooltip from './Tooltip.svelte';
 
   interface Props {
     hud: Hud;
@@ -270,14 +271,20 @@
           >
             <span class="label px-1.5">{t('hud.speed')}</span>
             {#each SPEEDS as speed (speed)}
-              <button
-                class="btn btn-sm {v.speed === speed ? 'btn-green' : 'btn-ghost'}"
-                disabled={v.locked && speed > FIRE_LOCK_SPEED}
-                data-testid={`speed-${speed}`}
-                onclick={() => hud.handlers.setSpeed(speed)}
-              >
-                {#if speed === 0}<Icon name="pause" />{/if}{t(`hud.speed${speed}`)}
-              </button>
+              {@const shut = speedNeedsKopdes(speed, v.kopdesLevel)}
+              <Tooltip text={shut ? t('hud.speedNeedsKopdes', { level: TURBO_KOPDES_LEVEL }) : ''}>
+                <button
+                  class="btn btn-sm {v.speed === speed ? 'btn-green' : 'btn-ghost'}"
+                  disabled={shut || (v.locked && speed > FIRE_LOCK_SPEED)}
+                  data-testid={`speed-${speed}`}
+                  data-locked={shut ? 'kopdes' : undefined}
+                  onclick={() => hud.handlers.setSpeed(speed)}
+                >
+                  {#if speed === 0}<Icon name="pause" />{/if}{#if shut}<Icon name="lock" />{/if}{t(
+                    `hud.speed${speed}`,
+                  )}
+                </button>
+              </Tooltip>
             {/each}
             {#if v.locked}
               <span class="chip chip-fire" title={t('hud.lockedTitle', { n: FIRE_LOCK_SPEED })}>

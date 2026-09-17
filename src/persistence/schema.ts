@@ -53,8 +53,10 @@ export const KEY_PREFIX = 'accursed-forest';
  * 12. The canopy: pangolins join the wildlife, mobs carry how far up a tree
  *     they are, and a capybara can be the golden one.
  * 13. Redemption: a run can end in a way older builds have no name for.
+ * 14. Landslides: a block remembers the slide that tore it up and what it
+ *     buried, until something is planted there again.
  */
-export const CURRENT_SCHEMA = 13;
+export const CURRENT_SCHEMA = 14;
 
 export type SaveErrorCode = 'missing' | 'corrupt' | 'newerSchema' | 'quota';
 
@@ -114,6 +116,8 @@ const BlockSchema = z.object({
   elevation: z.number(),
   slope: z.boolean(),
   coverCropUntil: Tick,
+  landslideAt: Tick,
+  landslidePalms: z.number(),
   species: z.enum(['palm', 'forest']),
 });
 

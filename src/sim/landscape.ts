@@ -134,6 +134,10 @@ export function slide(state: SimState, world: World, events: EventSink, id: Bloc
   block.lastHarvest = -1;
   block.coverCropUntil = -1;
   block.debris = Math.min(100, block.debris + LANDSLIDE.debrisOnBlock);
+  // The scar stays on the block until something is planted on it again: the
+  // HUD keeps a pin over it so a slide on the far side is not missed.
+  block.landslideAt = state.tick;
+  block.landslidePalms = lost;
 
   let below: Block | null = null;
   for (const n of neighbourIds(world, id)) {

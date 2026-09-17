@@ -13,6 +13,20 @@ export const SPEEDS: readonly Speed[] = [0, 1, 10, 50];
 /** The fastest the clock runs while anything is burning. */
 export const FIRE_LOCK_SPEED = 10 satisfies Speed;
 
+/** Skipping whole weeks is something the estate earns, not something it starts with. */
+export const TURBO_SPEED = 50 satisfies Speed;
+
+/** The Kopdes level that unlocks {@link TURBO_SPEED}. */
+export const TURBO_KOPDES_LEVEL = 3;
+
+/**
+ * Whether a speed is still behind the Kopdes. The rule lives here so the
+ * button, the keyboard and the loop all read it from one place.
+ */
+export function speedNeedsKopdes(speed: Speed, kopdesLevel: number): boolean {
+  return speed >= TURBO_SPEED && kopdesLevel < TURBO_KOPDES_LEVEL;
+}
+
 /**
  * Ticks per real second at each speed. 1× is one sim day every ten seconds
  * (§4.2): long enough to watch a crew work a tree and a boar cross a block.

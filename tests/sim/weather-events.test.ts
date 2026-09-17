@@ -370,6 +370,35 @@ describe('landslides (§3.6.2)', () => {
     }
   });
 
+  it('the block keeps the scar, with what it buried, until it is planted again', () => {
+    const sim = createSim(1);
+    const high = [...sim.state.blocks.values()].find(
+      (b) => b.owned && b.slope && b.phase === 'wild',
+    );
+    expect(high).toBeDefined();
+    plant(sim, high!.id);
+    const planted = BIOMES[sim.state.blocks.get(high!.id)!.biome].plantableSlots;
+    expect(sim.state.blocks.get(high!.id)!.landslideAt).toBe(-1);
+
+    sim.state.tick += 200;
+    slide(sim.state, sim.world, new EventSink(), high!.id);
+    const scarred = sim.state.blocks.get(high!.id)!;
+    expect(scarred.landslideAt).toBe(sim.state.tick);
+    expect(scarred.landslidePalms).toBe(planted);
+
+    // Debris has to go before anything is planted, and then the scar goes too.
+    writeBlock(sim.state, sim.world, high!.id).debris = 0;
+    sim.state.economy.cash = 1_000_000_000;
+    expect(sim.dispatch({ type: 'BuyItem', item: 'bibit', quantity: SLOTS_PER_BLOCK })).toEqual({
+      ok: true,
+    });
+    expect(sim.dispatch({ type: 'PlantBlock', block: high!.id, species: 'palm' })).toEqual({
+      ok: true,
+    });
+    expect(sim.state.blocks.get(high!.id)!.landslideAt).toBe(-1);
+    expect(sim.state.blocks.get(high!.id)!.landslidePalms).toBe(0);
+  });
+
   it(
     'a wet year on a bare hillside costs you a block; a forested one usually does not (M1e done-criterion)',
     { timeout: 20_000 },

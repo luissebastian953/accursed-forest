@@ -32,6 +32,7 @@
   "speed10": "10× Cepat",
   "speed50": "50× Lompat",
   "lockedTitle": "Kecepatan dibatasi {n}× selama ada yang terbakar",
+  "speedNeedsKopdes": "Tingkatkan Kopdes ke tingkat {level}",
   "ispo": "ISPO {met}/5",
   "ispoTitle": "Kemajuan sertifikat ISPO",
   "help": "? Bantuan",

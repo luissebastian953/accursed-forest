@@ -23,6 +23,7 @@ export type IconName =
   | 'harvest-basket'
   | 'haze'
   | 'kopdes'
+  | 'lock'
   | 'mill-strike'
   | 'news'
   | 'pause'

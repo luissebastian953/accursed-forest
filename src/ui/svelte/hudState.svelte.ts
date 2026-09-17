@@ -34,6 +34,8 @@ export interface HudView {
   sky: SkyCondition;
   speed: Speed;
   locked: boolean;
+  /** 0 when there is no Kopdes yet; gates the 50x button (§3.3). */
+  kopdesLevel: number;
   estateCode: string;
   backend: 'webgpu' | 'webgl';
   saveNote: string | null;

@@ -5,5 +5,8 @@
   "ganodermaDetail": "{sick} dari {total} sawit, menyebar",
   "ganodermaHeld": "{sick} dari {total} sawit, diobati",
   "beetle": "Kumbang",
-  "beetleDetail": "{beetles} kumbang, sisa tebangan {debris}"
+  "beetleDetail": "{beetles} kumbang, sisa tebangan {debris}",
+  "landslide": "Longsor",
+  "landslideDetail": "{palms} sawit hilang, tanam ulang",
+  "landslideBare": "Lereng longsor, tanam ulang"
 }

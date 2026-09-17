@@ -11,7 +11,7 @@ import { expect, test, type Page } from '@playwright/test';
  * runs the clock twenty times faster than a player's, so years pass in seconds.
  */
 
-const URL = '/play.html?webgl&seed=42&fresh&turbo';
+const URL = '/play.html?webgl&seed=42&fresh&turbo&debug';
 
 /** What `?debug` exposes on window; only the parts the suite touches. */
 interface DebugWindow {
@@ -20,10 +20,21 @@ interface DebugWindow {
       state: {
         tick: number;
         worldGen: { kopdesBlock: number };
+        kopdes: { blockId: number; level: number; autoHarvest: boolean } | null;
         society: { attention: number; news: { key: string }[] };
         economy: { cash: number };
         run: { ending?: string; endedAt?: number; insolventFor: number };
-        blocks: Map<number, { id: number; owned: boolean; phase: string; slope: boolean }>;
+        blocks: Map<
+          number,
+          {
+            id: number;
+            owned: boolean;
+            phase: string;
+            slope: boolean;
+            landslideAt: number;
+            landslidePalms: number;
+          }
+        >;
         weather: {
           activeEvents: { id: string; startedAt: number; endsAt: number; blocks?: number[] }[];
         };
@@ -34,6 +45,19 @@ interface DebugWindow {
 }
 
 const tid = (page: Page, id: string) => page.getByTestId(id);
+
+/**
+ * 50x sits behind Kopdes level 3 (§3.3). The suite skips years long before an
+ * estate could grow one, so it hands itself the level through the debug hook.
+ */
+async function unlockTurbo(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const { state } = (window as unknown as DebugWindow).__sawit.sim();
+    if (state.kopdes) state.kopdes.level = 3;
+    else state.kopdes = { blockId: state.worldGen.kopdesBlock, level: 3, autoHarvest: false };
+  });
+  await expect(tid(page, 'speed-50')).toBeEnabled();
+}
 
 async function boot(page: Page): Promise<string[]> {
   const errors: string[] = [];
@@ -146,6 +170,7 @@ test.describe('Sawit Simulator', () => {
     // The crew's progress ring stands over the block while it is worked.
     await expect(tid(page, 'work-marker').first()).toBeVisible();
     await expect(tid(page, 'work-marker').first()).toHaveAttribute('data-kind', 'chop');
+    await unlockTurbo(page);
     await tid(page, 'speed-50').click();
     await expect(tid(page, 'block-phase')).toHaveText('Cleared', { timeout: 15_000 });
     await expect(tid(page, 'action-PlantBlock-palm')).toBeEnabled();
@@ -200,6 +225,7 @@ test.describe('Sawit Simulator', () => {
     const drift = days(await tid(page, 'hud-date').textContent()) - days(dateBefore);
     expect(drift).toBeGreaterThanOrEqual(0);
     expect(drift).toBeLessThan(15);
+    // 50x is open here without asking again: the Kopdes level rode the save.
     await tid(page, 'speed-50').click();
     await page.waitForTimeout(1000);
     expect(await tid(page, 'hud-date').textContent()).not.toBe(dateBefore);
@@ -238,6 +264,30 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'controls-help')).toHaveCount(0);
   });
 
+  test('50x is locked, with its reason, until the Kopdes reaches level 3', async ({ page }) => {
+    await boot(page);
+
+    const turbo = tid(page, 'speed-50');
+    await expect(turbo).toBeDisabled();
+    await expect(turbo).toHaveAttribute('data-locked', 'kopdes');
+    // The button carries its own explanation, shown when the pointer rests on it.
+    await turbo.hover();
+    await expect(tid(page, 'tooltip').filter({ hasText: 'Unlock Kopdes' })).toContainText(
+      'level 3',
+    );
+    // The keyboard cannot go round the lock either.
+    const before = await tid(page, 'hud-date').textContent();
+    await page.keyboard.press('3');
+    await page.waitForTimeout(600);
+    await expect(tid(page, 'speed-1')).toHaveClass(/btn-green/);
+
+    await unlockTurbo(page);
+    await expect(turbo).not.toHaveAttribute('data-locked', 'kopdes');
+    await turbo.click();
+    await expect(turbo).toHaveClass(/btn-green/);
+    await expect(tid(page, 'hud-date')).not.toHaveText(before ?? '');
+  });
+
   test('burning: a controlled burn caps the clock, a second one tips the wildfire', async ({
     page,
   }) => {
@@ -245,6 +295,7 @@ test.describe('Sawit Simulator', () => {
     const errors = await boot(page);
 
     // Into the dry season, so a shower does not rain the burn out.
+    await unlockTurbo(page);
     await tid(page, 'speed-50').click();
     await expect(tid(page, 'hud-date')).toContainText(/Day (1[3-9]\d|2\d\d)/, { timeout: 30_000 });
     await tid(page, 'speed-1').click();
@@ -306,7 +357,7 @@ test.describe('Sawit Simulator', () => {
   }) => {
     test.setTimeout(90_000);
     // Seed 1 starts in forest: the chopped neighbour comes with 55 debris.
-    await page.goto('/play.html?webgl&seed=1&fresh&turbo');
+    await page.goto('/play.html?webgl&seed=1&fresh&turbo&debug');
     await expect(page.locator('canvas')).toBeVisible();
     await expect(tid(page, 'hud-cash')).toContainText('Rp');
     await page.waitForTimeout(2500);
@@ -322,6 +373,7 @@ test.describe('Sawit Simulator', () => {
 
     await selectWildNeighbour(page, /Wild forest/);
     await tid(page, 'action-ChopBlock').click();
+    await unlockTurbo(page);
     await tid(page, 'speed-50').click();
     await expect(tid(page, 'block-phase')).toHaveText('Cleared', { timeout: 20_000 });
     await tid(page, 'action-PlantBlock-palm').click();
@@ -397,6 +449,20 @@ test.describe('Sawit Simulator', () => {
     });
     expect(hasSlope).toBe(true);
 
+    // A slide leaves a scar on the block, and the scar puts a pin over it.
+    await page.evaluate(() => {
+      const { state } = (window as unknown as DebugWindow).__sawit.sim();
+      const block = state.blocks.get(state.worldGen.kopdesBlock)!;
+      block.landslideAt = state.tick;
+      block.landslidePalms = 144;
+    });
+    const scar = page.locator('[data-testid="hud-marker"][data-kind="landslide"]');
+    await expect(scar).toHaveCount(1);
+    await scar.getByTestId('hud-marker-alert').waitFor();
+    await scar.hover();
+    await expect(scar).toContainText('Landslide');
+    await expect(scar).toContainText('144 palms lost');
+
     expect(errors).toEqual([]);
   });
 
@@ -422,6 +488,7 @@ test.describe('Sawit Simulator', () => {
 
     // The ticker is there from day one, with nothing on it yet; a year at 50× fills it.
     await expect(tid(page, 'news-ticker')).toBeVisible();
+    await unlockTurbo(page);
     await tid(page, 'speed-50').click();
     await expect(tid(page, 'news-ticker-latest')).toBeVisible({ timeout: 30_000 });
     await tid(page, 'speed-0').click();
@@ -524,6 +591,7 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'epilogue-president')).toContainText('do the country a favour');
     await tid(page, 'epilogue-keep-playing').click();
     await expect(tid(page, 'epilogue')).toHaveCount(0);
+    await unlockTurbo(page);
     await tid(page, 'speed-50').click();
     const tickA = await page.evaluate(
       () => (window as unknown as DebugWindow).__sawit.sim().state.tick,

@@ -227,6 +227,20 @@ export const MIGRATIONS: readonly Migration[] = [
     from: 12,
     up() {},
   },
+  {
+    // Landslide scars: no block in an old save carries one.
+    from: 13,
+    up(save) {
+      for (const chunk of save.chunks.values()) {
+        const blocks = chunk['blocks'] as Record<string, unknown>[] | undefined;
+        if (!blocks) continue;
+        for (const block of blocks) {
+          block['landslideAt'] ??= -1;
+          block['landslidePalms'] ??= 0;
+        }
+      }
+    },
+  },
 ];
 
 /**

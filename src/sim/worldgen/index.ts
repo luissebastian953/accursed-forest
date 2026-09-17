@@ -208,6 +208,8 @@ export function createWorld(
       elevation: g.elevation,
       slope: g.slope,
       coverCropUntil: -1,
+      landslideAt: -1,
+      landslidePalms: 0,
       species: 'palm',
     };
   };

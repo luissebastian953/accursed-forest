@@ -82,6 +82,9 @@ export const plantBlock: CommandHandler<PlantBlock> = {
 
     block.species = command.species;
     block.phase = command.species === 'forest' ? 'reforesting' : 'planted';
+    // Replanting answers a landslide: the scar, and its pin, come off.
+    block.landslideAt = -1;
+    block.landslidePalms = 0;
 
     events.push({ type: 'BlockPlanted', block: command.block, species: command.species, count });
   },

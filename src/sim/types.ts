@@ -72,6 +72,10 @@ export interface Block {
   /** Derived from neighbours at world generation (§3.6.2). */
   slope: boolean;
   coverCropUntil: Tick;
+  /** When the slope last gave way (§3.6.2), or -1. Cleared by replanting. */
+  landslideAt: Tick;
+  /** Palms buried by that slide, for the marker to name. */
+  landslidePalms: number;
   /**
    * What is planted here. Meaningless unless `phase` is `planted` or
    * `reforesting`. (§4.4 omits this; §3.10 requires it.)

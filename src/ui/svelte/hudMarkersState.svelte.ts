@@ -2,7 +2,8 @@
  * The pin layer (design kit 6a): a marker over the hectare a thing is
  * happening on. The Kopdes carries one so the workshop is findable from
  * anywhere; a block carries one when Ganoderma or the beetles have got into
- * it, so an infestation is visible without opening every block.
+ * it, so an infestation is visible without opening every block, or when a
+ * slope has given way under it.
  *
  * The App projects the world positions each frame and hands them over; the
  * markers themselves know nothing about the camera.
@@ -14,13 +15,14 @@ import type { BlockId } from '@sim/types';
 
 import HudMarkersView from './HudMarkers.svelte';
 
-export type HudMarkerKind = 'workshop' | 'ganoderma' | 'beetle';
+export type HudMarkerKind = 'workshop' | 'ganoderma' | 'beetle' | 'landslide';
 
 /** The pin art and the colour its label pill borrows, by kind. */
 export const MARKER_LOOK: Record<HudMarkerKind, { pin: string; ring: string }> = {
   workshop: { pin: `${import.meta.env.BASE_URL}hud/hud-pin-workshop.svg`, ring: '#7a6440' },
   ganoderma: { pin: `${import.meta.env.BASE_URL}hud/hud-pin-ganoderma.svg`, ring: '#6b3a8a' },
   beetle: { pin: `${import.meta.env.BASE_URL}hud/hud-pin-beetle.svg`, ring: '#9e2e20' },
+  landslide: { pin: `${import.meta.env.BASE_URL}hud/hud-pin-landslide.svg`, ring: '#9c4a24' },
 };
 
 export interface HudMarker {

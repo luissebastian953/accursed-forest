@@ -77,5 +77,12 @@
         </li>
       {/each}
     </ul>
+    <p
+      class="mt-3 text-center text-sm font-extrabold"
+      style="color: var(--green-2)"
+      data-testid="certificate-win-note"
+    >
+      {t('certificate.winNote')}
+    </p>
   </div>
 {/if}

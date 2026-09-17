@@ -85,7 +85,7 @@ import { WorkMarkers, type WorkMarker } from '@ui/svelte/workMarkersState.svelte
 import { t } from '../i18n/index.ts';
 
 import { GameLoop } from './loop.ts';
-import { FIRE_LOCK_SPEED, TimeControl } from './timeControl.ts';
+import { FIRE_LOCK_SPEED, speedNeedsKopdes, TimeControl, type Speed } from './timeControl.ts';
 
 const SLOT = 'slot0';
 /** Start-of-year snapshots kept for the rewind (§7: the last 25). */
@@ -318,7 +318,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   const workMarkers = new WorkMarkers(stage);
   const hudMarkers = new HudMarkers(stage, { select: (block) => select(block) });
   const hud = new Hud(stage, {
-    setSpeed: (speed) => time.set(speed),
+    setSpeed: (speed) => requestSpeed(speed),
     openMenu: () => {
       menu.show();
       refreshMenu();
@@ -689,6 +689,15 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     return n;
   }
 
+  /**
+   * Every road to the clock, the buttons and the number keys alike, goes
+   * through here: 50x stays shut until the Kopdes is big enough for it.
+   */
+  function requestSpeed(speed: Speed): void {
+    if (speedNeedsKopdes(speed, sim.state.kopdes?.level ?? 0)) return;
+    time.set(speed);
+  }
+
   function refreshHud(): void {
     hud.update({
       cash: sim.state.economy.cash,
@@ -700,6 +709,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       sky: sim.state.weather.sky,
       speed: time.speed,
       locked: time.locked,
+      kopdesLevel: sim.state.kopdes?.level ?? 0,
       estateCode: sim.world.estateCode,
       backend: handle.backend,
       saveNote,
@@ -1154,6 +1164,20 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       );
     }
 
+    // A slope that gave way keeps its pin until something is planted on it.
+    for (const [id, block] of state.blocks) {
+      if (!block.owned || block.landslideAt < 0) continue;
+      pin(
+        id,
+        'landslide',
+        t('markers.landslide'),
+        block.landslidePalms > 0
+          ? t('markers.landslideDetail', { palms: block.landslidePalms })
+          : t('markers.landslideBare'),
+        true,
+      );
+    }
+
     for (const [id, palms] of state.palms) {
       const block = state.blocks.get(id);
       if (!block?.owned || block.species !== 'palm') continue;
@@ -1185,13 +1209,14 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         );
       }
     }
-    // The Kopdes always keeps its pin; the pest ones give way to the worst.
-    const workshop = hudMarkerItems.filter((m) => m.kind === 'workshop');
+    // The Kopdes always keeps its pin, and so does a landslide: it is one
+    // block's whole crop. The pest ones give way to the worst of them.
+    const kept = hudMarkerItems.filter((m) => m.kind === 'workshop' || m.kind === 'landslide');
     const pests = hudMarkerItems
-      .filter((m) => m.kind !== 'workshop')
+      .filter((m) => m.kind !== 'workshop' && m.kind !== 'landslide')
       .sort((a, b) => Number(b.alert) - Number(a.alert))
       .slice(0, MAX_PEST_PINS);
-    hudMarkers.update([...workshop, ...pests]);
+    hudMarkers.update([...kept, ...pests]);
   }
 
   /** Head-room above the work site's pillars for the progress ring. */
@@ -1351,7 +1376,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   const detachKeys = attachKeys({
     togglePause: () => time.togglePause(),
-    setSpeed: (speed) => time.set(speed),
+    setSpeed: (speed) => requestSpeed(speed),
     rotate: (direction) => rig.rotate(direction, performance.now()),
     focusKopdes: () => focusBlock(sim.state.kopdes?.blockId ?? sim.state.worldGen.kopdesBlock),
     openNews: () => {

@@ -11,6 +11,7 @@
   "levelOf": "level {value} of {target}",
   "title": "ISPO certificate:",
   "intro": "Checked at the close of every year. Meet all five and the Ministry sends a banner.",
+  "winNote": "Complete this to win the game.",
   "yearClosed": "Year {year} closed",
   "profit": "Profit",
   "loss": "Loss",
