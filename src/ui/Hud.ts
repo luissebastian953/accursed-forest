@@ -149,7 +149,7 @@ export class Hud {
   ) {
     this.root = document.createElement('div');
     this.root.className =
-      'ui-slide chrome-right pointer-events-none absolute left-0 top-0 z-10 flex flex-col items-center gap-2 p-3';
+      'ui-slide chrome-right pointer-events-none absolute left-0 top-0 z-10 flex flex-col items-start gap-2 p-3';
     parent.appendChild(this.root);
   }
 
@@ -168,10 +168,10 @@ export class Hud {
     render(
       html`
         <div
-          class="card pointer-events-auto flex flex-col items-center gap-2 px-5 py-3"
+          class="card pointer-events-auto flex flex-col items-start gap-2 px-5 py-3"
           data-testid="hud"
         >
-          <div class="flex flex-wrap items-center justify-center gap-2.5">
+          <div class="flex flex-wrap items-center justify-start gap-2.5">
             ${tile({
               icon: 'coin',
               label: inDebt ? 'Cash · in debt' : 'Cash',
@@ -280,7 +280,7 @@ export class Hud {
             }
           </div>
 
-          <div class="flex flex-wrap items-center justify-center gap-2">
+          <div class="flex flex-wrap items-center justify-start gap-2">
             <div
               class="pill-muted flex items-center gap-1.5 p-1"
               role="group"
@@ -359,7 +359,7 @@ export class Hud {
           view.events.length > 0
             ? html`
                 <div
-                  class="pointer-events-auto flex flex-wrap justify-center gap-1.5"
+                  class="pointer-events-auto flex flex-wrap justify-start gap-1.5"
                   data-testid="events-strip"
                 >
                   ${view.events.map(
