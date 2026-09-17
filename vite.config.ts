@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 import { svelte } from '@sveltejs/vite-plugin-svelte';
@@ -6,52 +7,71 @@ import JavaScriptObfuscator from 'javascript-obfuscator';
 import { defineConfig, type Plugin } from 'vite';
 import checker from 'vite-plugin-checker';
 
+import { normalizeSiteUrl, renderRobots, renderSitemap, verificationMeta } from './tools/seo.ts';
+
 /** Stamped into save manifests (§7). */
 const appVersion = JSON.stringify(process.env['npm_package_version'] ?? '0.0.0-dev');
 
 /**
- * The public origin, for the tags crawlers want absolute: canonical, Open
- * Graph image, JSON-LD url, the sitemap. Empty locally, so `__SITE_URL__`
- * resolves to '' (relative URLs), the canonical tag is dropped, and no
- * sitemap is written.
+ * The public origin, for the tags crawlers want absolute: canonical, hreflang,
+ * Open Graph image, JSON-LD url, the sitemap. Empty locally, so `__SITE_URL__`
+ * resolves to '' (relative URLs), the canonical and hreflang tags are dropped,
+ * and no sitemap is written. A malformed value fails the build.
  */
-const siteUrl = (process.env['VITE_SITE_URL'] ?? '').replace(/\/$/, '');
+const siteUrl = normalizeSiteUrl(process.env['VITE_SITE_URL']);
+/** The Search Console "HTML tag" token, if ownership is verified that way. */
+const googleVerification = (process.env['VITE_GOOGLE_SITE_VERIFICATION'] ?? '').trim();
+
+/** A page's last commit, so `lastmod` only moves when the page does. */
+function lastCommitDate(file: string): string {
+  for (const args of [
+    ['log', '-1', '--format=%cI', '--', file],
+    // A shallow CI checkout may not reach the file's last change.
+    ['log', '-1', '--format=%cI'],
+  ]) {
+    try {
+      const date = execFileSync('git', args, {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      }).trim();
+      if (date) return date;
+    } catch {
+      // Not a git checkout: fall through to the build date.
+    }
+  }
+  return new Date().toISOString();
+}
 
 function siteUrlPlugin(): Plugin {
   return {
     name: 'sawit-site-url',
-    transformIndexHtml(html) {
+    transformIndexHtml(html, ctx) {
       let out = html.replaceAll('__SITE_URL__', siteUrl);
       if (!siteUrl) {
         out = out.replace(/^\s*<link rel="canonical"[^>]*>\n?/m, '');
         out = out.replace(/^\s*<link rel="alternate" hreflang=[^>]*>\n?/gm, '');
       }
+      // Search Console reads the tag from the home page; the game page is noindex.
+      if (googleVerification && !ctx.filename.endsWith('play.html')) {
+        out = out.replace(
+          /(<meta name="viewport"[^>]*>)/,
+          `$1\n    ${verificationMeta(googleVerification)}`,
+        );
+      }
       return out;
     },
     generateBundle() {
-      if (!siteUrl) return;
-      const today = new Date().toISOString().slice(0, 10);
+      this.emitFile({ type: 'asset', fileName: 'robots.txt', source: renderRobots(siteUrl) });
+      if (!siteUrl) {
+        this.warn(
+          'VITE_SITE_URL is not set: no sitemap.xml, no Sitemap line in robots.txt, and no canonical or hreflang tags. Set it for a production build.',
+        );
+        return;
+      }
       this.emitFile({
         type: 'asset',
         fileName: 'sitemap.xml',
-        source: [
-          '<?xml version="1.0" encoding="UTF-8"?>',
-          '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
-          ...['/', '/id/'].map(
-            (path) =>
-              `  <url><loc>${siteUrl}${path}</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>1.0</priority>` +
-              `<xhtml:link rel="alternate" hreflang="en" href="${siteUrl}/"/>` +
-              `<xhtml:link rel="alternate" hreflang="id" href="${siteUrl}/id/"/>` +
-              `<xhtml:link rel="alternate" hreflang="x-default" href="${siteUrl}/"/></url>`,
-          ),
-          '</urlset>',
-          '',
-        ].join('\n'),
-      });
-      this.emitFile({
-        type: 'asset',
-        fileName: 'robots.txt',
-        source: `User-agent: *\nAllow: /\nDisallow: /play.html\n\nSitemap: ${siteUrl}/sitemap.xml\n`,
+        source: renderSitemap(siteUrl, (page) => lastCommitDate(page.file)),
       });
     },
   };

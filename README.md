@@ -86,9 +86,24 @@ For search and social: the landing page carries a description, canonical
 link, Open Graph and Twitter cards (the 1200×630 image in `public/`), the
 favicon set and web manifest from the brand kit (`public/brand`, `icon-*.png`),
 and JSON-LD (`VideoGame` + `Organization` + `WebSite` + `WebPage`). Set
-`VITE_SITE_URL` at build time to make those URLs absolute and to emit
-`sitemap.xml` and a `robots.txt` that points at it (the game page itself is
-`noindex`); with it empty the tags fall back to relative URLs.
+`VITE_SITE_URL` at build time to make those URLs absolute and to emit the
+crawl files (`tools/seo.ts`, unit-tested in `tests/tools/seo.test.ts`):
+
+- `sitemap.xml` lists the two landing pages, each with the full hreflang set
+  (en, id, x-default), a `lastmod` taken from that page's last git commit (so
+  it only moves when the page does), and the hero screenshot and share image
+  for Google Images. The game page is `noindex` and is not listed.
+- `robots.txt` allows everything and names the sitemap. The game page is
+  deliberately not disallowed: a blocked page cannot be fetched, so Google
+  would never see its `noindex`.
+- `VITE_GOOGLE_SITE_VERIFICATION` adds the Search Console ownership tag to
+  both landing pages.
+
+Without `VITE_SITE_URL` the build writes robots.txt without a sitemap line,
+skips the sitemap, drops canonical and hreflang, and warns; a malformed value
+fails the build. After deploying: verify the domain in Search Console, submit
+`https://<origin>/sitemap.xml` under Sitemaps, and request indexing for `/` and
+`/id/` with URL Inspection (Google retired sitemap pings in 2023).
 
 The landing page exists in English (`/`) and Indonesian (`/id/`), cross-linked
 with `hreflang` (also in the sitemap), each with scenario sections (forest
