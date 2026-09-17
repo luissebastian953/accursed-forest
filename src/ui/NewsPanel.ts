@@ -15,7 +15,7 @@ import type { BlockId, NewsItem } from '@sim/types';
 
 import { formatDate } from './format.ts';
 import { icon } from './icons.ts';
-import { LANE_LABEL, LANE_TONE } from './NewsTicker.ts';
+import { LANE_LABEL, LANE_TONE } from './newsLane.ts';
 import { phoneHeader, phoneShell } from './phone.ts';
 
 export interface NewsPanelHandlers {

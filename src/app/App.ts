@@ -65,8 +65,8 @@ import { Hud, type EventChip } from '@ui/Hud';
 import { KopdesShop } from '@ui/KopdesShop';
 import { Menu } from '@ui/Menu';
 import { NewsPanel } from '@ui/NewsPanel';
-import { NewsTicker } from '@ui/NewsTicker';
 import { START_FADE_MS, StartScreen, type SaveSummary } from '@ui/StartScreen';
+import { NewsTicker } from '@ui/svelte/newsTickerState.svelte.ts';
 import { Toasts } from '@ui/svelte/toastsState.svelte.ts';
 
 import { GameLoop } from './loop.ts';
