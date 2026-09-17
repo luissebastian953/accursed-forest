@@ -21,6 +21,7 @@ import { createRenderer } from '@render/Renderer';
 import { Ceremony } from '@render/scene/Ceremony';
 import { landHeight } from '@render/scene/chunkField';
 import { ChunkManager } from '@render/scene/ChunkManager';
+import { Clouds } from '@render/scene/Clouds';
 import { Coins } from '@render/scene/Coins';
 import { Fires } from '@render/scene/Fires';
 import { KopdesMesh } from '@render/scene/Kopdes';
@@ -255,6 +256,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   spectral.depthWrite = false;
   // The glints live on the see-through material, like the ghost.
   const sparkles = new Sparkles(spectral);
+  const clouds = new Clouds(spectral);
   const mobField = new MobField({
     material,
     spectralMaterial: spectral,
@@ -265,6 +267,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   scene.add(
     coins.mesh,
     sparkles.mesh,
+    clouds.mesh,
     police.group,
     ceremony.group,
     motorcade.group,
@@ -1147,6 +1150,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     timber.update(nowMs);
     mobField.update(dt, time.secondsPerTick);
     coins.update(dt);
+    clouds.update(dt, rig.camera, visible);
     syncSparkles(nowMs);
     syncWorkMarkers();
 
@@ -1422,6 +1426,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     workMarkers.dispose();
     coins.dispose();
     sparkles.dispose();
+    clouds.dispose();
     panel.dispose();
     shop.dispose();
     menu.dispose();

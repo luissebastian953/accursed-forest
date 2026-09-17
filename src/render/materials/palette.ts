@@ -120,6 +120,8 @@ const COLOURS: Partial<Record<number, [Hex, Hex]>> = {
   [Palette.FurCapybaraGold]: [0xe0a63a, 0xf0bb4a],
   [Palette.Coin]: [0xf5c53a, 0xffd45e],
   [Palette.Sparkle]: [0xfff3c4, 0xfff8dd],
+  [Palette.Cloud]: [0xeef4f7, 0xf6f8f6],
+  [Palette.CloudTop]: [0xffffff, 0xffffff],
 };
 
 const FALLBACK: [Hex, Hex] = [0xff00ff, 0xff00ff];

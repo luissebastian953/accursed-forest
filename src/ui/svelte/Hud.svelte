@@ -261,69 +261,73 @@
         {/if}
       </div>
 
-      <div class="flex flex-wrap items-center justify-start gap-2">
-        <div
-          class="pill-muted flex items-center gap-1.5 p-1"
-          role="group"
-          aria-label={t('hud.speedGroup')}
-        >
-          <span class="label px-1.5">{t('hud.speed')}</span>
-          {#each SPEEDS as speed (speed)}
-            <button
-              class="btn btn-sm {v.speed === speed ? 'btn-green' : 'btn-ghost'}"
-              disabled={v.locked && speed > FIRE_LOCK_SPEED}
-              data-testid={`speed-${speed}`}
-              onclick={() => hud.handlers.setSpeed(speed)}
-            >
-              {#if speed === 0}<Icon name="pause" />{/if}{t(`hud.speed${speed}`)}
-            </button>
-          {/each}
-          {#if v.locked}
-            <span class="chip chip-fire" title={t('hud.lockedTitle', { n: FIRE_LOCK_SPEED })}>
-              <Icon name="fire" />
-              {FIRE_LOCK_SPEED}×
-            </span>
-          {/if}
+      <div class="flex w-full flex-wrap items-center justify-between gap-2">
+        <div class="flex flex-wrap items-center gap-2">
+          <div
+            class="pill-muted flex items-center gap-1.5 p-1"
+            role="group"
+            aria-label={t('hud.speedGroup')}
+          >
+            <span class="label px-1.5">{t('hud.speed')}</span>
+            {#each SPEEDS as speed (speed)}
+              <button
+                class="btn btn-sm {v.speed === speed ? 'btn-green' : 'btn-ghost'}"
+                disabled={v.locked && speed > FIRE_LOCK_SPEED}
+                data-testid={`speed-${speed}`}
+                onclick={() => hud.handlers.setSpeed(speed)}
+              >
+                {#if speed === 0}<Icon name="pause" />{/if}{t(`hud.speed${speed}`)}
+              </button>
+            {/each}
+            {#if v.locked}
+              <span class="chip chip-fire" title={t('hud.lockedTitle', { n: FIRE_LOCK_SPEED })}>
+                <Icon name="fire" />
+                {FIRE_LOCK_SPEED}×
+              </span>
+            {/if}
+          </div>
         </div>
 
-        {#if v.ispoMet !== null}
-          <button
-            class="btn {v.ispoMet === 5 ? 'btn-green' : 'btn-ghost'}"
-            title={t('hud.ispoTitle')}
-            data-testid="hud-ispo"
-            onclick={() => hud.handlers.openCertificate()}
-          >
-            <Icon name="certificate-ispo" />
-            {t('hud.ispo', { met: v.ispoMet })}
-          </button>
-        {/if}
-
-        <button
-          class="btn btn-ghost"
-          title={t('hud.helpTitle')}
-          aria-label={t('hud.helpAria')}
-          data-testid="help-button"
-          onclick={() => hud.handlers.openHelp()}
-        >
-          {t('hud.help')}
-        </button>
-
-        <button
-          class="btn btn-coral uppercase"
-          data-testid="menu-button"
-          onclick={() => hud.handlers.openMenu()}
-        >
-          {t('hud.menu')}
-        </button>
-
-        <div class="label flex items-center gap-2">
-          <span title={t('hud.estateTitle')}>{v.estateCode}</span>
-          <span class="pill-muted px-1.5 py-0.5">{v.backend}</span>
-          {#if v.saveError}
-            <span class="text-[#e04a3a]" title={v.saveError}>{t('hud.saveFailed')}</span>
-          {:else if v.saveNote}
-            <span>{t('hud.saved')}</span>
+        <div class="flex flex-wrap items-center gap-2">
+          {#if v.ispoMet !== null}
+            <button
+              class="btn {v.ispoMet === 5 ? 'btn-green' : 'btn-ghost'}"
+              title={t('hud.ispoTitle')}
+              data-testid="hud-ispo"
+              onclick={() => hud.handlers.openCertificate()}
+            >
+              <Icon name="certificate-ispo" />
+              {t('hud.ispo', { met: v.ispoMet })}
+            </button>
           {/if}
+
+          <button
+            class="btn btn-ghost"
+            title={t('hud.helpTitle')}
+            aria-label={t('hud.helpAria')}
+            data-testid="help-button"
+            onclick={() => hud.handlers.openHelp()}
+          >
+            {t('hud.help')}
+          </button>
+
+          <button
+            class="btn btn-coral uppercase"
+            data-testid="menu-button"
+            onclick={() => hud.handlers.openMenu()}
+          >
+            {t('hud.menu')}
+          </button>
+
+          <div class="label flex items-center gap-2">
+            <span title={t('hud.estateTitle')}>{v.estateCode}</span>
+            <span class="pill-muted px-1.5 py-0.5">{v.backend}</span>
+            {#if v.saveError}
+              <span class="text-[#e04a3a]" title={v.saveError}>{t('hud.saveFailed')}</span>
+            {:else if v.saveNote}
+              <span>{t('hud.saved')}</span>
+            {/if}
+          </div>
         </div>
       </div>
     </div>

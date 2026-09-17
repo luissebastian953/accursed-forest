@@ -106,6 +106,9 @@ export const Palette = {
   /** Coins in the air, and the glint that says something is worth clicking. */
   Coin: 82,
   Sparkle: 83,
+  /** Clouds: white, and a touch brighter where the sun catches the top. */
+  Cloud: 84,
+  CloudTop: 85,
 } as const;
 
 export type PaletteSlot = (typeof Palette)[keyof typeof Palette];
