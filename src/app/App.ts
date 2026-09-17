@@ -56,18 +56,24 @@ import { runOver } from '@sim/run';
 import { creditLine, ispoConditions, matureHectares } from '@sim/systems/endings';
 import type { BlockId, Command } from '@sim/types';
 import { BlockPanel } from '@ui/BlockPanel';
-import { Epilogue } from '@ui/Epilogue';
 import { formatKg, formatRp } from '@ui/format';
-import { Hud, type EventChip } from '@ui/Hud';
-import { START_FADE_MS, StartScreen, type SaveSummary } from '@ui/StartScreen';
 import { AuthorityCards, type CardKind } from '@ui/svelte/authorityCardsState.svelte.ts';
 import { CertificatePanel, YearEndCard } from '@ui/svelte/certificateState.svelte.ts';
 import { ControlsHelp } from '@ui/svelte/controlsHelpState.svelte.ts';
+import { Epilogue } from '@ui/svelte/epilogueState.svelte.ts';
+import { Hud, type EventChip } from '@ui/svelte/hudState.svelte.ts';
 import { KopdesShop } from '@ui/svelte/kopdesShopState.svelte.ts';
 import { Menu } from '@ui/svelte/menuState.svelte.ts';
 import { NewsPanel } from '@ui/svelte/newsPanelState.svelte.ts';
 import { NewsTicker } from '@ui/svelte/newsTickerState.svelte.ts';
+import {
+  START_FADE_MS,
+  StartScreen,
+  type SaveSummary,
+} from '@ui/svelte/startScreenState.svelte.ts';
 import { Toasts } from '@ui/svelte/toastsState.svelte.ts';
+
+import { t } from '../i18n/index.ts';
 
 import { GameLoop } from './loop.ts';
 import { FIRE_LOCK_SPEED, TimeControl } from './timeControl.ts';
@@ -569,11 +575,11 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     };
     const chips: EventChip[] = [];
     if (isWildfire(state))
-      chips.push({ id: 'wildfire', label: 'Wildfire', daysLeft: null, tone: 'fire' });
+      chips.push({ id: 'wildfire', label: t('events.wildfire'), daysLeft: null, tone: 'fire' });
     if (activeEvent(state, HAZE_EVENT)) {
       chips.push({
         id: 'haze',
-        label: isWildfire(state) ? 'Smoke' : 'Haze',
+        label: isWildfire(state) ? t('events.smoke') : t('events.haze'),
         daysLeft: isWildfire(state) ? null : left(HAZE_EVENT),
         tone: 'smoke',
       });
@@ -581,7 +587,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     if (activeEvent(state, ASH_EVENT))
       chips.push({
         id: 'ash',
-        label: 'Ash fall, harvest halted',
+        label: t('events.ash'),
         daysLeft: left(ASH_EVENT),
         tone: 'ash',
       });
@@ -589,7 +595,12 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       const n = activeEvent(state, FLOOD_EVENT)!.blocks?.length ?? 0;
       chips.push({
         id: 'flood',
-        label: n > 0 ? `Flood: ${n} block${n === 1 ? '' : 's'}` : 'Flood downstream',
+        label:
+          n === 0
+            ? t('events.floodDownstream')
+            : n === 1
+              ? t('events.floodOne', { n })
+              : t('events.floodMany', { n }),
         daysLeft: left(FLOOD_EVENT),
         tone: 'water',
       });
@@ -597,7 +608,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     if (activeEvent(state, DROUGHT_EVENT)) {
       chips.push({
         id: 'drought',
-        label: `Drought: ${state.weather.dryStreak} dry days`,
+        label: t('events.drought', { n: state.weather.dryStreak }),
         daysLeft: null,
         tone: 'dry',
       });
@@ -606,22 +617,19 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     if (plagued > 0)
       chips.push({
         id: 'plague',
-        label: `Plague: ${plagued} block${plagued === 1 ? '' : 's'}`,
+        label:
+          plagued === 1
+            ? t('events.plagueOne', { n: plagued })
+            : t('events.plagueMany', { n: plagued }),
         daysLeft: null,
         tone: 'pest',
       });
     for (const event of state.weather.activeEvents) {
       if (!event.id.startsWith(MACRO_PREFIX)) continue;
       const id = event.id.slice(MACRO_PREFIX.length);
-      const label: Record<string, string> = {
-        biodieselMandate: 'Biodiesel mandate',
-        euRestriction: 'EU import rules',
-        millStrike: 'Mill strike',
-        exportLevy: 'Export levy',
-      };
       chips.push({
         id,
-        label: label[id] ?? id,
+        label: t(`events.${id}`),
         daysLeft: Math.max(0, event.endsAt - state.tick),
         tone: 'econ',
       });
@@ -629,7 +637,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     if (state.society.operatingBanUntil > state.tick) {
       chips.push({
         id: 'ban',
-        label: 'Operating licence suspended',
+        label: t('events.ban'),
         daysLeft: state.society.operatingBanUntil - state.tick,
         tone: 'pest',
       });
@@ -639,8 +647,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         id: 'insolvent',
         label:
           creditLine(state, sim.world) > 0
-            ? 'Past the credit line; the bank calls the loans'
-            : 'In the red with nothing to lend against; the bank calls the loans',
+            ? t('events.insolventCredit')
+            : t('events.insolventNothing'),
         daysLeft: BANKRUPTCY.daysInRed - state.run.insolventFor,
         tone: 'pest',
       });
@@ -648,7 +656,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     if (state.society.investigationUntil > state.tick) {
       chips.push({
         id: 'investigation',
-        label: 'Police investigation',
+        label: t('events.investigation'),
         daysLeft: state.society.investigationUntil - state.tick,
         tone: 'pest',
       });
@@ -1187,10 +1195,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   // The title screen, over the estate pulled back to a backdrop. Dev and
   // test URLs that name a world (`?seed`, `?fresh`) go straight in.
-  const welcome = () =>
-    toasts.push(
-      `Estate ${sim.world.estateCode}. Click a block to begin; press H or ? for controls.`,
-    );
+  const welcome = () => toasts.push(t('start.welcome', { code: sim.world.estateCode }));
   // A run that is already over reopens on its epilogue, not the title.
   const titleScreen = !params.has('seed') && !params.has('fresh') && !runOver(sim.state);
   /** What the welcome-back card says about the loaded save. */
@@ -1213,17 +1218,21 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     }
     const chips: SaveSummary['chips'] = eventChips().map((c) => ({
       icon: c.tone === 'water' ? 'rain' : c.tone === 'fire' ? 'fire' : 'haze',
-      label: c.daysLeft === null ? c.label : `${c.label}, ${c.daysLeft} d`,
+      label:
+        c.daysLeft === null ? c.label : t('events.withDays', { label: c.label, n: c.daysLeft }),
       tone: c.tone,
     }));
     if (beetleBlocks > 0)
       chips.push({
         icon: 'beetle',
-        label: `Beetles on ${beetleBlocks} ${beetleBlocks === 1 ? 'block' : 'blocks'}`,
+        label:
+          beetleBlocks === 1
+            ? t('events.beetlesOne', { n: beetleBlocks })
+            : t('events.beetlesMany', { n: beetleBlocks }),
         tone: 'pest',
       });
     const met = ispoConditions(state, sim.world).filter((c) => c.met).length;
-    chips.push({ icon: 'certificate-ispo', label: `ISPO ${met} / 5`, tone: 'plain' });
+    chips.push({ icon: 'certificate-ispo', label: t('events.ispo', { met }), tone: 'plain' });
     return {
       code: sim.world.estateCode,
       savedAt,
@@ -1244,7 +1253,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     loadOther: () => menu.toggle(),
     useCode: (code) => {
       const seed = seedFromEstateCode(code);
-      if (seed === null) return 'That is not an estate code: seven letters, like ABC-DEFG.';
+      if (seed === null) return t('start.codeError');
       switchSim(freshSim(seed));
       beginPlay();
       return null;
@@ -1273,7 +1282,10 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     startScreen.show({
       estateCode: sim.world.estateCode,
       save: slot.exists() ? saveSummary() : null,
-      build: `v${__APP_VERSION__}, ${handle.backend === 'webgpu' ? 'WebGPU' : 'WebGL 2'}, saves in this browser`,
+      build: t('start.build', {
+        version: __APP_VERSION__,
+        backend: handle.backend === 'webgpu' ? 'WebGPU' : 'WebGL 2',
+      }),
     });
   } else if (!slot.exists()) {
     welcome();

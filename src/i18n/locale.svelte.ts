@@ -43,6 +43,7 @@ function loadLocale(): Locale {
 }
 
 const state = $state({ locale: loadLocale() });
+if (typeof document !== 'undefined') document.documentElement.lang = state.locale;
 
 /** The active locale. Reading it inside a component, or a `$derived`, tracks changes to it. */
 export function locale(): Locale {
