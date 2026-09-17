@@ -37,6 +37,8 @@ export function tickerState(): TickerState {
 export class NewsTicker {
   private readonly target: HTMLElement;
   private readonly instance: ReturnType<Component>;
+  /** The App calls `update` every frame; only a changed feed touches the state. */
+  private lastKey = '';
 
   constructor(parent: HTMLElement, handlers: TickerHandlers) {
     this.target = document.createElement('div');
@@ -50,6 +52,10 @@ export class NewsTicker {
   }
 
   update(news: readonly NewsItem[], unread: number): void {
+    const latest = news.at(-1);
+    const key = `${news.length}:${latest?.tick ?? -1}:${latest?.title ?? ''}:${unread}`;
+    if (key === this.lastKey) return;
+    this.lastKey = key;
     state.items = news
       .slice(-3)
       .reverse()

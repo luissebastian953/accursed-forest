@@ -192,6 +192,13 @@ function authority(ctx: SimContext): void {
 
   // ── Warning 2: police at the gate ──────────────────────────────────────
   const investigating = s.investigationUntil > state.tick;
+  // A case that has run its course closes before anything can open another,
+  // so the old offence cannot reopen it; a new one the same day still can.
+  if (s.warningLevel === 2 && !investigating) {
+    s.attention = Math.min(s.attention, AUTHORITY.investigationClosesAt);
+    s.warningLevel = s.attention >= AUTHORITY.letterClearsBelow ? 1 : 0;
+    events.push({ type: 'InvestigationClosed' });
+  }
   if (!investigating && (openFor !== null || s.attention >= AUTHORITY.investigationAt)) {
     s.investigationUntil = state.tick + AUTHORITY.investigationDays;
     s.warningLevel = 2;
@@ -203,10 +210,6 @@ function authority(ctx: SimContext): void {
       reason: openFor ?? 'attention',
     });
     return;
-  }
-  if (s.warningLevel === 2 && !investigating) {
-    s.warningLevel = s.attention >= AUTHORITY.letterClearsBelow ? 1 : 0;
-    events.push({ type: 'InvestigationClosed' });
   }
 
   // ── Warning 1: the letter ──────────────────────────────────────────────

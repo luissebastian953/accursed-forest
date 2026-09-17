@@ -420,9 +420,10 @@ test.describe('Sawit Simulator', () => {
         [attention, cash ?? null] as const,
       );
 
-    // A year at 50× fills the feed.
+    // The ticker is there from day one, with nothing on it yet; a year at 50× fills it.
+    await expect(tid(page, 'news-ticker')).toBeVisible();
     await tid(page, 'speed-50').click();
-    await expect(tid(page, 'news-ticker')).toBeVisible({ timeout: 30_000 });
+    await expect(tid(page, 'news-ticker-latest')).toBeVisible({ timeout: 30_000 });
     await tid(page, 'speed-0').click();
     await page.keyboard.press('n');
     await expect(tid(page, 'news-panel')).toBeVisible();

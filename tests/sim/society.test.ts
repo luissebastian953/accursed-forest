@@ -354,6 +354,31 @@ describe('authority (§3.9)', () => {
     expect(sim.validate({ type: 'ChopBlock', block })).toBeNull();
   });
 
+  it('a case that runs its course closes for good: the old attention does not reopen it', () => {
+    const sim = createSim(42);
+    // Well over the police line, and nothing done about it for the whole case.
+    sim.state.society.attention = 90;
+    tickFor(sim, 'InvestigationOpened', 2);
+    const until = sim.state.society.investigationUntil;
+    const reopened: unknown[] = [];
+    let closed = false;
+    while (sim.state.tick <= until + 5) {
+      const events = sim.tick();
+      if (events.some((e) => e.type === 'InvestigationClosed')) closed = true;
+      reopened.push(...events.filter((e) => e.type === 'InvestigationOpened'));
+    }
+    expect(closed).toBe(true);
+    expect(reopened).toEqual([]);
+    expect(underInvestigation(sim.state)).toBe(false);
+    expect(sim.state.society.attention).toBeLessThanOrEqual(AUTHORITY.investigationClosesAt);
+    // The file stays open: the letter stands.
+    expect(sim.state.society.warningLevel).toBe(1);
+
+    // A new offence that climbs back over the line brings them back.
+    sim.state.society.attention = AUTHORITY.investigationAt + 1;
+    expect(tickFor(sim, 'InvestigationOpened', 2)?.reason).toBe('attention');
+  });
+
   it('any wildfire brings the police at once; a second one while they are here is an arrest', () => {
     const sim = createSim(42);
     while (sim.state.weather.dayOfYear < 130) sim.tick();

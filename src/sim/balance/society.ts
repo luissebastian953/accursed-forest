@@ -47,6 +47,13 @@ export const AUTHORITY = {
   investigationAt: 70,
   /** Three months' ban on chopping and burning; sales continue. (Was two years: too long to sit out.) */
   investigationDays: 90,
+  /**
+   * When a case runs its course, attention falls to at most this: still over
+   * the letter line, so the file stays open, but far enough under the police
+   * line that only a new offence brings them back. Without it, a meter still
+   * at 70+ on the last day opened a fresh 90-day case the same tick.
+   */
+  investigationClosesAt: 45,
   /** Game over. */
   arrestAt: 100,
   /** "Settle the matter": only available while integrity is low. */
