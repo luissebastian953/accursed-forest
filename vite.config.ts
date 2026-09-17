@@ -1,3 +1,4 @@
+import { svelte } from '@sveltejs/vite-plugin-svelte';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig, type Plugin } from 'vite';
 import checker from 'vite-plugin-checker';
@@ -57,10 +58,11 @@ export default defineConfig({
   define: { __APP_VERSION__: appVersion },
   plugins: [
     siteUrlPlugin(),
+    svelte(),
     tailwindcss(),
     checker({
       typescript: true,
-      eslint: { lintCommand: 'eslint "src/**/*.ts"', useFlatConfig: true },
+      eslint: { lintCommand: 'eslint "src/**/*.{ts,svelte}"', useFlatConfig: true },
     }),
   ],
   resolve: {
