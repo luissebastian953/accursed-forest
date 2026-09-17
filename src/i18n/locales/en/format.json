@@ -1,0 +1,4 @@
+{
+  "date": "Year {year}, Day {day}",
+  "dateShort": "Y{year}, D{day}"
+}

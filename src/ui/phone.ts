@@ -8,7 +8,7 @@
 
 import { html, nothing, type TemplateResult } from 'lit-html';
 
-import { formatDate } from './format.ts';
+import { formatDateShort } from './format.ts';
 
 const FRAME_URL = `${import.meta.env.BASE_URL}ui/phone-frame.svg`;
 const FRAME_TOP_URL = `${import.meta.env.BASE_URL}ui/phone-frame-top.svg`;
@@ -27,7 +27,7 @@ export interface PhoneShell {
 }
 
 export function phoneShell(shell: PhoneShell): TemplateResult {
-  const date = formatDate(shell.tick).replace('Year ', 'Y').replace(', Day ', ', D');
+  const date = formatDateShort(shell.tick);
   return html`
     <div class=${`@container ${PHONE_PLACEMENT}`} data-testid=${shell.testId}>
       <img class="absolute inset-0 h-full w-full select-none" src=${FRAME_URL} alt="" />

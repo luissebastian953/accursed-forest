@@ -1,0 +1,22 @@
+{
+  "letterFrom": "District office, {date}",
+  "letterTitle": "Summons: cease land clearing pending review",
+  "letterBody": "The office has taken note of clearing on your estate. Until the matter is reviewed, every clearing crew you hire will cost half again. Burn again, or reach into land that is not yours, and the police will be the next to call.",
+  "letterNote": "Attention falls with quiet seasons, and faster if you plant forest back.",
+  "letterDismiss": "Noted",
+  "investigationFrom": "Regional police, {date}",
+  "investigationTitle": "Police open an investigation",
+  "noClearingUntil": "No chopping or burning until",
+  "furtherNotice": "further notice",
+  "harvestsContinue": "Harvests and sales continue.",
+  "secondFire": "A second wildfire while the police are here is an arrest.",
+  "settle": "Settle the matter",
+  "settleNote": "Someone at the district office can make this go away. The papers will notice.",
+  "acceptInvestigation": "Accept the investigation",
+  "banFrom": "Ministry enforcement team, {date}",
+  "banTitle": "Operating licence suspended",
+  "banNoWorkUntil": "No clearing, palm planting or harvest until",
+  "banForestOk": "Planting forest back is allowed.",
+  "banUpkeep": "Upkeep runs at half, and the bank will not lend against a shut estate.",
+  "banDismiss": "Understood"
+}

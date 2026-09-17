@@ -1,0 +1,14 @@
+{
+  "estateCode": "Estate code",
+  "close": "Close",
+  "save": "Save",
+  "load": "Load",
+  "lastSaved": "Last saved {when}",
+  "notSaved": "Not saved yet; autosave runs every 30 days.",
+  "language": "Language",
+  "newEstate": "New estate",
+  "codePlaceholder": "Estate code (optional)",
+  "startGame": "Start a game",
+  "codeError": "That is not an estate code. It looks like ABC-DEFG.",
+  "codeHint": "Leave the code empty for a random world. Starting a new estate replaces the current one."
+}

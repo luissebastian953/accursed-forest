@@ -10,6 +10,9 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:4173',
     trace: 'on-first-retry',
+    // The UI picks Indonesian from an Indonesian time zone; the specs read English.
+    locale: 'en-US',
+    timezoneId: 'UTC',
   },
   projects: [
     {

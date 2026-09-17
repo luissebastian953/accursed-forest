@@ -1,0 +1,22 @@
+{
+  "letterFrom": "Kantor kecamatan, {date}",
+  "letterTitle": "Panggilan: hentikan pembukaan lahan sampai ditinjau",
+  "letterBody": "Kantor mencatat pembukaan lahan di kebun Anda. Sampai perkaranya ditinjau, setiap regu pembuka lahan yang Anda sewa biayanya naik separuh. Bakar lagi, atau masuk ke lahan yang bukan milik Anda, dan polisi yang berikutnya datang.",
+  "letterNote": "Perhatian mereda pada musim yang tenang, dan lebih cepat bila Anda menanam hutan kembali.",
+  "letterDismiss": "Dimengerti",
+  "investigationFrom": "Polda, {date}",
+  "investigationTitle": "Polisi membuka penyelidikan",
+  "noClearingUntil": "Dilarang menebang atau membakar sampai",
+  "furtherNotice": "pemberitahuan lebih lanjut",
+  "harvestsContinue": "Panen dan penjualan tetap berjalan.",
+  "secondFire": "Kebakaran kedua selagi polisi di sini berarti penangkapan.",
+  "settle": "Selesaikan perkaranya",
+  "settleNote": "Ada orang di kantor kecamatan yang bisa membereskan ini. Koran akan mencium baunya.",
+  "acceptInvestigation": "Terima penyelidikan",
+  "banFrom": "Tim penegakan Kementerian, {date}",
+  "banTitle": "Izin usaha dibekukan",
+  "banNoWorkUntil": "Dilarang membuka lahan, menanam sawit, atau memanen sampai",
+  "banForestOk": "Menanam hutan kembali diperbolehkan.",
+  "banUpkeep": "Biaya perawatan turun separuh, dan bank tidak mau meminjami kebun yang ditutup.",
+  "banDismiss": "Dipahami"
+}

@@ -1,0 +1,21 @@
+{
+  "conditionProfit": "Laba operasi, dan tiga tahun untung",
+  "conditionHectares": "Hektar yang berbuah",
+  "conditionNoBurn": "Tanpa bakar lahan",
+  "conditionForest": "Hutan di lereng",
+  "conditionKopdes": "Kopdes di tingkat tertinggi",
+  "valueOf": "{value} dari {target}",
+  "hectaresOf": "{value} dari {target} ha",
+  "yearsClean": "{target}+ tahun bersih",
+  "yearsOf": "{value} dari {target} tahun",
+  "levelOf": "tingkat {value} dari {target}",
+  "title": "Sertifikat ISPO:",
+  "intro": "Diperiksa setiap akhir tahun. Penuhi kelimanya dan Kementerian mengirim spanduk.",
+  "yearClosed": "Tahun {year} ditutup",
+  "profit": "Laba",
+  "loss": "Rugi",
+  "bearing": "Berbuah",
+  "hectares": "{n} ha",
+  "forestCover": "Tutupan hutan",
+  "ispo": "ISPO"
+}

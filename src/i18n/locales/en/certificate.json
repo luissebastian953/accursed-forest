@@ -1,0 +1,21 @@
+{
+  "conditionProfit": "Operating profit, and three profitable years",
+  "conditionHectares": "Hectares bearing fruit",
+  "conditionNoBurn": "No burn-to-clear",
+  "conditionForest": "Forest on the slopes",
+  "conditionKopdes": "Kopdes at its highest level",
+  "valueOf": "{value} of {target}",
+  "hectaresOf": "{value} of {target} ha",
+  "yearsClean": "{target}+ years clean",
+  "yearsOf": "{value} of {target} years",
+  "levelOf": "level {value} of {target}",
+  "title": "ISPO certificate:",
+  "intro": "Checked at the close of every year. Meet all five and the Ministry sends a banner.",
+  "yearClosed": "Year {year} closed",
+  "profit": "Profit",
+  "loss": "Loss",
+  "bearing": "Bearing",
+  "hectares": "{n} ha",
+  "forestCover": "Forest cover",
+  "ispo": "ISPO"
+}

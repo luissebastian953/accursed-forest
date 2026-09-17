@@ -1,0 +1,14 @@
+{
+  "estateCode": "Kode kebun",
+  "close": "Tutup",
+  "save": "Simpan",
+  "load": "Muat",
+  "lastSaved": "Terakhir disimpan {when}",
+  "notSaved": "Belum disimpan; simpan otomatis berjalan tiap 30 hari.",
+  "language": "Bahasa",
+  "newEstate": "Kebun baru",
+  "codePlaceholder": "Kode kebun (opsional)",
+  "startGame": "Mulai permainan",
+  "codeError": "Itu bukan kode kebun. Bentuknya seperti ABC-DEFG.",
+  "codeHint": "Kosongkan kode untuk dunia acak. Memulai kebun baru menggantikan kebun yang sekarang."
+}

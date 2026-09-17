@@ -49,6 +49,11 @@ export function locale(): Locale {
   return state.locale;
 }
 
+/** The BCP 47 tag for `Intl` and `toLocale*String`. */
+export function localeTag(): string {
+  return state.locale === 'id' ? 'id-ID' : 'en-GB';
+}
+
 /** A visitor's own choice always wins from here on; Analytics hears about the switch. */
 export function setLocale(next: Locale): void {
   const from = state.locale;

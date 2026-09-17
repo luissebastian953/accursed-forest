@@ -1,0 +1,4 @@
+{
+  "date": "Tahun {year}, Hari {day}",
+  "dateShort": "T{year}, H{day}"
+}
