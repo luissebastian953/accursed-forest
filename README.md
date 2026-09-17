@@ -5,8 +5,9 @@ clear terrain, plant _bibit_, wait out the immature years, harvest _TBS_ on a
 rotation, sell through your _Kopdes_, and live with what your clearing choices
 invite: pests, landslides, haze, and the letters from the district office.
 
-Vite + TypeScript + Three.js (WebGPU with a WebGL 2 fallback). No backend; saves
-live in `localStorage`.
+Vite + TypeScript + Three.js (WebGPU with a WebGL 2 fallback) for the world,
+Svelte 5 + Tailwind for the panels around it, in English and Indonesian. No
+backend; saves live in `localStorage`.
 
 The full design document is the source of truth for everything below.
 Section references in the code (`§6.5`, `§4.1`, …) point into it.
@@ -51,9 +52,10 @@ panel, the balance sweep, README) is next.
 | Endings: ISPO clean/dirty, reboisasi, bankruptcy, ban, fade, rewind, sandbox   | done                     |
 | Mobs: wildlife, thief, babi ngepet, ghost, hired workers, chop/burn crews      | done                     |
 | Endgame: on a win the President's motorcade pulls up to the Kopdes door        | done                     |
+| Panels on Svelte 5; the interface in English and Indonesian (`src/i18n`)       | done                     |
 | Far-LOD heatmap tiles, GPU per-instance animation, forest box-trees            | deferred until they bite |
 
-Tests: 323 unit (Vitest) and 12 browser (Playwright, WebGL fallback). The
+Tests: 336 unit (Vitest) and 16 browser (Playwright, WebGL fallback). The
 browser suite plays the loop end to end, lights a wildfire on purpose, and
 lets beetles loose on an unsanitized block.
 
@@ -86,12 +88,29 @@ with `hreflang` (also in the sitemap), each with scenario sections (forest
 fire / kebakaran hutan, deforestation / penebangan hutan, reboisasi, petani
 sawit, minyak sawit, pests), a bilingual glossary and an FAQ with `FAQPage`
 schema: the terms people search for, used where they mean something, rather
-than a keyword list.
+than a keyword list. The pages share one design (a nav card, the title over a
+screenshot of a working estate, step and scenario cards) and are hand-mirrored;
+the hero is self-hosted WebP in three widths and preloaded, the icons an inline
+sprite, so nothing on them waits on a third party.
+
+The game plays in English or Bahasa Indonesia (`src/i18n`). A first visit
+picks Indonesian for an Indonesian time zone or browser language; the title
+screen and the menu switch it; the choice is remembered (`sawit:locale`), and
+the landing pages show a dismissible pointer to their twin instead of
+redirecting. Catalogs are flat JSON per panel in `src/i18n/locales/<locale>/`;
+`t('panel.key', vars)` falls back to English, then to the key. The sim's own
+prose (headlines, chronicle entries, a command's rejection reason) is still
+English: it is part of the sim's event data, not the UI's.
 
 The interface follows the cartoon UI kit: cream cards with a hard bottom
-edge, inset pills, Baloo 2 (Google Fonts, with a rounded system fallback if
-it cannot be fetched), and the 35 flat icons in `public/icons`. The tokens
-and the handful of component classes live in `src/ui/styles.css`.
+edge, inset pills, Baloo 2 (self-hosted), and the 35 flat icons in
+`public/icons`. The tokens and the handful of component classes live in
+`src/ui/styles.css`. Panels are Svelte 5 components in `src/ui/svelte/`: each
+`<Name>.svelte` has a `<name>State.svelte.ts` module beside it exporting a
+class with the constructor and `show`/`hide`/`update` surface `App.ts` always
+drove, so the composition root never learned Svelte, and the world stays a
+plain three.js canvas. Panels that read the sim derive a plain snapshot from it
+on every `refresh()`; the sim itself is never made reactive.
 
 Mobs walk the estate: wild boar, pigs, mice, cows, a capybara by the river,
 monkeys and orangutans in the forest. They live on a small repertoire:
@@ -126,17 +145,17 @@ block, double-click to focus it, **space** pauses, **1/2/3** set speed,
 
 ## Scripts
 
-| Command          | What it does                                              |
-| ---------------- | --------------------------------------------------------- |
-| `pnpm dev`       | Vite dev server, with type and lint errors in the overlay |
-| `pnpm build`     | typecheck, then production build                          |
-| `pnpm typecheck` | `tsc --noEmit` over `src/` and `tests/`                   |
-| `pnpm test`      | Vitest unit tests                                         |
-| `pnpm e2e`       | Playwright smoke test (builds and previews first)         |
-| `pnpm lint`      | ESLint + Prettier check                                   |
-| `pnpm format`    | Prettier write                                            |
-| `pnpm knip`      | unused files, exports and dependencies                    |
-| `pnpm commit`    | Commitizen, Conventional Commits with layer scopes        |
+| Command          | What it does                                                 |
+| ---------------- | ------------------------------------------------------------ |
+| `pnpm dev`       | Vite dev server, with type and lint errors in the overlay    |
+| `pnpm build`     | typecheck, then production build                             |
+| `pnpm typecheck` | `tsc --noEmit` over `src/` and `tests/`, then `svelte-check` |
+| `pnpm test`      | Vitest unit tests                                            |
+| `pnpm e2e`       | Playwright smoke test (builds and previews first)            |
+| `pnpm lint`      | ESLint + Prettier check                                      |
+| `pnpm format`    | Prettier write                                               |
+| `pnpm knip`      | unused files, exports and dependencies                       |
+| `pnpm commit`    | Commitizen, Conventional Commits with layer scopes           |
 
 ## Architecture
 
@@ -169,7 +188,8 @@ src/
 │   ├── systems/  weather → worldEvents → terrain → growth → pest → …
 │   └── balance/  every tunable, as data
 ├── render/       Three.js: geometry, materials, animation, camera
-├── ui/           DOM overlay panels
+├── ui/           the panels: Svelte components in ui/svelte, helpers beside them
+├── i18n/         EN and ID catalogs, locale detection, t()
 ├── persistence/  localStorage adapter, save schema, migrations
 ├── workers/      chunk mesher
 └── shared/       math, event bus, base64
@@ -182,3 +202,9 @@ src/
 - No magic numbers in systems: tunables live in `sim/balance/*`.
 - Conventional Commits, scoped by layer (`feat(sim):`, `fix(render):`).
 - One ADR in `docs/adr/` per decision that would be expensive to reverse.
+- Copy and comments use plain punctuation: commas, colons, periods. No em
+  dashes, no middle-dot separators.
+- A `.svelte.ts` state module never shares its base name with the `.svelte`
+  component next to it (`menuState.svelte.ts` beside `Menu.svelte`): with
+  bundler module resolution, TypeScript would otherwise resolve `./Menu.svelte`
+  to the module.

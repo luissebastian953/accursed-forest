@@ -58,7 +58,7 @@ const BUNDLES: Record<ItemId, number[]> = {
 const ITEMS = Object.keys(BUNDLES) as ItemId[];
 
 /** A button that issues a command: what it costs, and why it is greyed out, if it is. */
-export interface Offer {
+interface Offer {
   command: Command;
   rejection: string | null;
 }

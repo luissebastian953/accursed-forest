@@ -7,7 +7,7 @@
     "e2e/**/*.spec.ts",
     "tests/**/*.test.ts"
   ],
-  "project": ["src/**/*.ts", "tools/**/*.ts"],
+  "project": ["src/**/*.{ts,svelte}", "tools/**/*.ts"],
   "ignoreDependencies": ["lucide-static", "lil-gui", "stats-gl", "@commitlint/config-conventional"],
   "vite": { "config": ["vite.config.ts"] },
   "vitest": { "config": ["vitest.config.ts"] }

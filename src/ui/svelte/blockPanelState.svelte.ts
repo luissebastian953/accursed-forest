@@ -73,7 +73,7 @@ export interface ActionView {
 }
 
 /** One stat tile in the panel's grid: a label, a value, and an optional note. */
-export interface TileView {
+interface TileView {
   label: string;
   value: string;
   note: string | null;

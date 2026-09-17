@@ -20,7 +20,7 @@ function isLocale(value: string | null): value is Locale {
 }
 
 /** Best guess at a first-time visitor's language: time zone, then browser language, then English. */
-export function detectLocale(): Locale {
+function detectLocale(): Locale {
   try {
     if (ID_TIME_ZONES.has(Intl.DateTimeFormat().resolvedOptions().timeZone)) return 'id';
   } catch {

@@ -15,7 +15,7 @@ export interface TickerHandlers {
   open(): void;
 }
 
-export interface TickerItem {
+interface TickerItem {
   tick: number;
   title: string;
   lane: NewsItem['lane'];

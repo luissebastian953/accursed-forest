@@ -10,12 +10,5 @@
  * larger change to the sim's own contract, not attempted in this pass.
  */
 
-export {
-  detectLocale,
-  LOCALES,
-  locale,
-  localeTag,
-  setLocale,
-  type Locale,
-} from './locale.svelte.ts';
+export { LOCALES, locale, localeTag, setLocale, type Locale } from './locale.svelte.ts';
 export { t } from './t.ts';
