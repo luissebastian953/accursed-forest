@@ -146,7 +146,7 @@ export default defineConfig({
       output: {
         // three.js in its own long-lived chunk: it changes far less often than
         // the game, and it is the one the boot shell is waiting on.
-        advancedChunks: {
+        codeSplitting: {
           groups: [{ name: 'three', test: /node_modules[\\/]three[\\/]/ }],
         },
       },
