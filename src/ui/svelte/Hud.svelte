@@ -72,6 +72,30 @@
     note?: string;
   }
 
+  /**
+   * The bar grows with the event chips, so anything that hangs under it
+   * (the controls card, the ISPO checklist, the year-end card) is told where
+   * its bottom edge is rather than guessing a fixed offset.
+   */
+  let bar = $state<HTMLElement | null>(null);
+  $effect(() => {
+    const element = bar;
+    if (!element) return;
+    const hidden = ui.hidden;
+    const publish = () => {
+      const top = hidden ? 12 : element.getBoundingClientRect().bottom + 8;
+      document.documentElement.style.setProperty('--panel-top', `${Math.round(top)}px`);
+    };
+    publish();
+    const observer = new ResizeObserver(publish);
+    observer.observe(element);
+    window.addEventListener('resize', publish);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', publish);
+    };
+  });
+
   const cover = $derived(v ? Math.round(v.forestCover * 100) : 0);
   const inDebt = $derived(v ? v.cash < 0 : false);
   const fireOver = $derived(v ? v.wildfire || v.firePressure > v.fireThreshold : false);
@@ -116,6 +140,7 @@
 <div
   class="ui-slide chrome-right pointer-events-none absolute left-0 top-0 z-10 flex flex-col items-start gap-2 p-3"
   class:ui-hidden-top={ui.hidden}
+  bind:this={bar}
 >
   {#if v}
     {#snippet priceBody()}

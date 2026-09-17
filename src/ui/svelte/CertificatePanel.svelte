@@ -47,8 +47,9 @@
 
 {#if state.conditions}
   <div
-    class="card absolute left-1/2 top-28 z-30 w-[min(24rem,calc(100%-2rem))] -translate-x-1/2 p-4"
+    class="card absolute left-1/2 z-30 w-[min(24rem,calc(100%-2rem))] -translate-x-1/2 p-4"
     data-testid="certificate-panel"
+    style="top: var(--panel-top, 7rem)"
   >
     <div class="mb-1 flex items-center justify-between">
       <div class="flex items-center gap-2 font-extrabold">

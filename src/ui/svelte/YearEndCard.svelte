@@ -18,7 +18,11 @@
 
 {#if state.view}
   {@const s = state.view.summary}
-  <div class="card absolute right-3 top-28 z-20 w-64 p-4 text-sm" data-testid="year-end-card">
+  <div
+    class="card absolute right-3 z-20 w-64 p-4 text-sm"
+    style="top: var(--panel-top, 7rem)"
+    data-testid="year-end-card"
+  >
     <div class="mb-2 flex items-center justify-between">
       <div class="font-extrabold">{t('certificate.yearClosed', { year: s.year })}</div>
       <button class="btn btn-close" data-testid="year-end-dismiss" onclick={() => card.hide()}

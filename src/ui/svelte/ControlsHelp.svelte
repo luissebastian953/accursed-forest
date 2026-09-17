@@ -31,8 +31,9 @@
 
 {#if state.open}
   <div
-    class="card absolute left-3 top-28 z-30 w-[min(20rem,calc(100%-1.5rem))] p-4 text-sm"
+    class="card absolute left-3 z-30 w-[min(20rem,calc(100%-1.5rem))] p-4 text-sm"
     data-testid="controls-help"
+    style="top: var(--panel-top, 7rem)"
   >
     <div class="mb-2 flex items-center justify-between">
       <div class="text-base font-extrabold">{t('controlsHelp.title')}</div>

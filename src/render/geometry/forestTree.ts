@@ -1,30 +1,59 @@
 /**
- * Reforestation trees, in the same box language and palette as the wild
- * forest (`models/trees/rainforestTree.ts`), at slot scale: 1 world unit is
- * one planting slot, so a mature tree's crown overlaps its neighbours and the
- * block reads as closed canopy rather than a plantation.
+ * Reforestation, slot by slot. A block holds 144 planting slots, which is
+ * palm spacing, so the forms are what grows in one slot:
  *
- *   seedling  a planted sapling: a thin stem and a few leaves, tied to a
- *             wooden stake in a ring of mulch, the way replanting crews
- *             leave them;
- *   immature  a young tree with its first crown;
- *   mature    a small forest tree.
+ *   sapling  a planted sapling: a thin stem and a few leaves, tied to a
+ *            wooden stake in a ring of mulch, the way replanting crews
+ *            leave them;
+ *   tree     one of the wild forest's own trees, at its own size; a young
+ *            one is the same mesh at a fraction of the scale;
+ *   shrub    undergrowth: the saplings that lose the race for light.
  *
- * Two variants per stage (a rounded broadleaf and a tiered crown) plus
- * per-instance scale and yaw keep a block of 144 from looking stamped.
+ * Trees and shrubs are the scenery models the wild forest is drawn from,
+ * built once with a fixed draw instead of per spot, so a block that has
+ * grown back is the same forest as the one next door rather than a
+ * lookalike. A wild forest block carries about a dozen trees and a few
+ * bushes over its 144 columns, so `Palms.ts` lets about that many slots
+ * reach the canopy and leaves the forest floor clear under them; drawing a
+ * crown in every slot is what made a green mound of it.
  */
 
 import { Euler, Matrix4, Quaternion, Vector3, type BufferGeometry } from 'three';
 
 import { Palette } from '../materials/paletteSlots.ts';
+import { MODELS } from '../models/index.ts';
+import { ModelKit, type Model } from '../models/kit.ts';
 
 import { BoxBuilder, type BoxFaces } from './boxBuilder.ts';
 
-export type ForestStage = 'seedling' | 'immature' | 'mature';
-export type ForestVariant = 'broadleaf' | 'tiered';
+export type ForestForm = 'sapling' | 'shrub' | 'tree';
+/** Two draws of the small forms, so neighbours are not identical. */
+export type ForestVariant = 'a' | 'b';
 
-export const FOREST_STAGES: readonly ForestStage[] = ['seedling', 'immature', 'mature'];
-export const FOREST_VARIANTS: readonly ForestVariant[] = ['broadleaf', 'tiered'];
+/** What grows back, from the wild forest's own models. */
+export type ForestSpecies = 'rainforest' | 'fig' | 'willow' | 'pine' | 'giant';
+
+export const FOREST_VARIANTS: readonly ForestVariant[] = ['a', 'b'];
+export const FOREST_SPECIES: readonly ForestSpecies[] = [
+  'rainforest',
+  'fig',
+  'willow',
+  'pine',
+  'giant',
+];
+
+/**
+ * How often each species comes up, and the scale that brings it into one
+ * size class: a giant tree is four times a slot wide at its natural size.
+ */
+export const SPECIES_DRAW: Record<ForestSpecies, { weight: number; model: Model; scale: number }> =
+  {
+    rainforest: { weight: 0.42, model: MODELS.rainforestTree, scale: 1 },
+    fig: { weight: 0.16, model: MODELS.weepingFig, scale: 0.8 },
+    willow: { weight: 0.16, model: MODELS.willowTree, scale: 0.95 },
+    pine: { weight: 0.16, model: MODELS.pineTree, scale: 1.05 },
+    giant: { weight: 0.1, model: MODELS.giantTree, scale: 0.7 },
+  };
 
 const _m = new Matrix4();
 const _q = new Quaternion();
@@ -48,19 +77,16 @@ function turned(
   b.addBox(_m.compose(_p.set(x, y, z), _q.setFromEuler(_e), _s.set(sx, sy, sz)), faces);
 }
 
-const LEAF: BoxFaces = { side: Palette.Canopy, top: Palette.CanopyLight };
 const LEAF_LIGHT: BoxFaces = { side: Palette.CanopyLight, top: Palette.ForestLight };
-const LEAF_DARK: BoxFaces = { side: Palette.CanopyDark, top: Palette.Canopy };
 const BARK: BoxFaces = { side: Palette.Bark };
 
+/** The crews' handiwork: a stem on a stake, in a ring of mulch. */
 function sapling(b: BoxBuilder, variant: ForestVariant): void {
-  // Mulch ring, the stake and its tie.
   b.addAABox(0, 0.012, 0, 0.28, 0.024, 0.28, { side: Palette.Dirt });
   b.addAABox(0.08, 0.2, 0.02, 0.024, 0.4, 0.024, { side: Palette.HouseWood });
   b.addAABox(0.045, 0.22, 0.01, 0.08, 0.022, 0.034, { side: Palette.Sand });
-  // Stem.
   b.addAABox(0, 0.15, 0, 0.024, 0.3, 0.024, BARK);
-  if (variant === 'broadleaf') {
+  if (variant === 'a') {
     b.addAABox(0, 0.33, 0, 0.16, 0.12, 0.16, LEAF_LIGHT);
     turned(b, -0.07, 0.25, 0.05, 0.11, 0.08, 0.11, 0.6, LEAF_LIGHT);
     turned(b, 0.06, 0.28, -0.06, 0.1, 0.08, 0.1, 0.3, LEAF_LIGHT);
@@ -71,43 +97,31 @@ function sapling(b: BoxBuilder, variant: ForestVariant): void {
   }
 }
 
-function youngTree(b: BoxBuilder, variant: ForestVariant): void {
-  if (variant === 'broadleaf') {
-    b.addAABox(0, 0.28, 0, 0.05, 0.56, 0.05, BARK);
-    turned(b, 0.08, 0.42, 0, 0.18, 0.03, 0.03, 0.4, BARK);
-    turned(b, 0, 0.64, 0, 0.46, 0.36, 0.46, 0.2, LEAF);
-    turned(b, 0.08, 0.86, -0.05, 0.3, 0.26, 0.3, 0.7, LEAF_LIGHT);
-    turned(b, -0.17, 0.55, 0.09, 0.24, 0.2, 0.24, 1.1, LEAF);
-  } else {
-    b.addAABox(0, 0.33, 0, 0.05, 0.66, 0.05, BARK);
-    turned(b, 0, 0.52, 0, 0.58, 0.14, 0.58, 0.3, LEAF_DARK);
-    turned(b, 0, 0.66, 0, 0.42, 0.13, 0.42, 0.9, LEAF);
-    turned(b, 0, 0.79, 0, 0.24, 0.13, 0.24, 0.5, LEAF_LIGHT);
-  }
-}
-
-function matureTree(b: BoxBuilder, variant: ForestVariant): void {
-  if (variant === 'broadleaf') {
-    b.addAABox(0, 0.48, 0, 0.1, 0.96, 0.1, BARK);
-    turned(b, 0.12, 0.72, 0.04, 0.3, 0.05, 0.05, 0.5, BARK);
-    turned(b, 0, 1.06, 0, 1.05, 0.55, 1.05, 0.15, LEAF);
-    turned(b, 0.1, 1.4, -0.08, 0.7, 0.4, 0.7, 0.8, LEAF_LIGHT);
-    turned(b, -0.3, 0.9, 0.26, 0.5, 0.36, 0.5, 1.2, LEAF_DARK);
-  } else {
-    b.addAABox(0, 0.66, 0, 0.1, 1.32, 0.1, BARK);
-    turned(b, 0, 1.2, 0, 1.15, 0.3, 1.0, 0.3, LEAF_DARK);
-    turned(b, 0.06, 1.43, -0.04, 0.72, 0.28, 0.66, 1.0, LEAF);
-    turned(b, 0, 1.62, 0, 0.36, 0.2, 0.36, 0.6, LEAF_LIGHT);
-  }
-}
-
-export function buildForestTreeGeometry(
-  stage: ForestStage,
-  variant: ForestVariant,
-): BufferGeometry {
+/** One fixed draw of a scenery model, as instanced geometry. */
+function modelGeometry(model: Model, seed: number, scale: number): BufferGeometry {
   const b = new BoxBuilder();
-  if (stage === 'seedling') sapling(b, variant);
-  else if (stage === 'immature') youngTree(b, variant);
-  else matureTree(b, variant);
+  // A small LCG: the models want a 0..1 source, and this one never changes.
+  let state = seed * 2654435761 + 1;
+  const rand = (): number => {
+    state = (state * 1103515245 + 12345) & 0x7fffffff;
+    return state / 0x80000000;
+  };
+  const kit = new ModelKit(b).at({ x: 0, y: 0, z: 0, scale, turn: 0 });
+  model.build(kit, rand);
   return b.build();
+}
+
+export function buildSaplingGeometry(variant: ForestVariant): BufferGeometry {
+  const b = new BoxBuilder();
+  sapling(b, variant);
+  return b.build();
+}
+
+export function buildShrubGeometry(variant: ForestVariant): BufferGeometry {
+  return modelGeometry(variant === 'a' ? MODELS.bush : MODELS.floweringBush, 3, 0.8);
+}
+
+export function buildForestTreeGeometry(species: ForestSpecies): BufferGeometry {
+  const draw = SPECIES_DRAW[species];
+  return modelGeometry(draw.model, 7, draw.scale);
 }

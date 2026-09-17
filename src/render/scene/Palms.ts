@@ -23,10 +23,13 @@ import type { World } from '@sim/worldgen/index';
 
 import { DURATION, cascadeDelay, easeOutBack, squashStretch } from '../anim/easing.ts';
 import {
-  FOREST_STAGES,
+  FOREST_SPECIES,
   FOREST_VARIANTS,
+  SPECIES_DRAW,
   buildForestTreeGeometry,
-  type ForestStage,
+  buildSaplingGeometry,
+  buildShrubGeometry,
+  type ForestSpecies,
   type ForestVariant,
 } from '../geometry/forestTree.ts';
 import {
@@ -51,9 +54,34 @@ interface Entry {
 
 /** Mesh keys: palms by stage and health, forest trees by stage and variant, and `stump`. */
 type MeshKey =
-  `${PalmStage}:healthy` | `${PalmStage}:sick` | `forest:${ForestStage}:${ForestVariant}` | 'stump';
+  | `${PalmStage}:healthy`
+  | `${PalmStage}:sick`
+  | `forest:sapling:${ForestVariant}`
+  | `forest:shrub:${ForestVariant}`
+  | `forest:tree:${ForestSpecies}`
+  | 'stump';
 
 const INITIAL_CAPACITY = 24 * WORLD.blockSide * WORLD.blockSide;
+/**
+ * A wild forest block carries about a dozen trees and a few bushes over its
+ * 144 columns (`props.ts`: 36 spots, a third of them trees), so a block that
+ * has grown back aims for the same: the rest of the slots are bare forest
+ * floor once the canopy closes.
+ */
+const CANOPY_SHARE = 0.09;
+const SHRUB_SHARE = 0.12;
+/** A young tree is the same tree, not yet grown. */
+const YOUNG_SCALE = 0.45;
+
+/** Which of the wild forest's trees came back in this slot. */
+function speciesFor(roll: number): ForestSpecies {
+  let left = roll;
+  for (const species of FOREST_SPECIES) {
+    left -= SPECIES_DRAW[species].weight;
+    if (left <= 0) return species;
+  }
+  return 'rainforest';
+}
 
 const _m = new Matrix4();
 const _q = new Quaternion();
@@ -70,9 +98,10 @@ function slotHash(block: BlockId, slot: number): number {
 function allKeys(): MeshKey[] {
   const keys: MeshKey[] = [];
   for (const stage of PALM_STAGES) keys.push(`${stage}:healthy`, `${stage}:sick`);
-  for (const stage of FOREST_STAGES) {
-    for (const variant of FOREST_VARIANTS) keys.push(`forest:${stage}:${variant}`);
+  for (const variant of FOREST_VARIANTS) {
+    keys.push(`forest:sapling:${variant}`, `forest:shrub:${variant}`);
   }
+  for (const species of FOREST_SPECIES) keys.push(`forest:tree:${species}`);
   keys.push('stump');
   return keys;
 }
@@ -119,18 +148,34 @@ export class Palms {
           animate && key !== 'stump' ? nowMs + cascadeDelay(row * 2 + col * 0.5) : -1;
 
         if (forest) {
-          // Forest stages stop at mature; anything else is a dead tree's stump.
-          const key: MeshKey =
-            stage === 'seedling' || stage === 'immature' || stage === 'mature'
-              ? `forest:${stage}:${slotHash(id + 7919, slot) < 0.35 ? 'tiered' : 'broadleaf'}`
-              : 'stump';
+          // Every slot is planted, but only a few reach the canopy: the rest
+          // are undergrowth or, once the crowns close, open floor.
+          const role = slotHash(id + 32452843, slot);
+          const small: MeshKey = `forest:sapling:${slotHash(id + 7919, slot) < 0.5 ? 'a' : 'b'}`;
+          let key: MeshKey;
+          let size = 0.78 + slotHash(id + 15485863, slot) * 0.5;
+          if (stage === 'dead') {
+            key = 'stump';
+            size = 1;
+          } else if (stage === 'seedling') {
+            key = small;
+          } else if (role < CANOPY_SHARE) {
+            key = `forest:tree:${speciesFor(slotHash(id + 49979687, slot))}`;
+            if (stage === 'immature') size *= YOUNG_SCALE;
+          } else if (role < CANOPY_SHARE + SHRUB_SHARE) {
+            key = `forest:shrub:${slotHash(id + 86028157, slot) < 0.5 ? 'a' : 'b'}`;
+          } else if (stage === 'immature') {
+            key = small;
+          } else {
+            continue;
+          }
           // Planted by hand, not on a grid: a little scatter in both directions.
           this.entries.get(key)!.push({
-            x: originX + col + 0.5 + (slotHash(id + 104729, slot) - 0.5) * 0.5,
+            x: originX + col + 0.5 + (slotHash(id + 104729, slot) - 0.5) * 0.7,
             y,
-            z: originZ + row + 0.5 + (slotHash(id + 1299709, slot) - 0.5) * 0.5,
+            z: originZ + row + 0.5 + (slotHash(id + 1299709, slot) - 0.5) * 0.7,
             yaw: slotHash(id, slot) * Math.PI * 2,
-            size: key === 'stump' ? 1 : 0.8 + slotHash(id + 15485863, slot) * 0.4,
+            size,
             animStart: animStart(key),
           });
           continue;
@@ -223,8 +268,10 @@ export class Palms {
   private geometryFor(key: MeshKey) {
     if (key === 'stump') return buildStumpGeometry();
     if (key.startsWith('forest:')) {
-      const [, stage, variant] = key.split(':') as ['forest', ForestStage, ForestVariant];
-      return buildForestTreeGeometry(stage, variant);
+      const [, form, name] = key.split(':');
+      if (form === 'tree') return buildForestTreeGeometry(name as ForestSpecies);
+      if (form === 'shrub') return buildShrubGeometry(name as ForestVariant);
+      return buildSaplingGeometry(name as ForestVariant);
     }
     const [stage, variant] = key.split(':') as [PalmStage, 'healthy' | 'sick'];
     return buildPalmGeometry(stage, variant);
