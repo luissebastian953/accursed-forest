@@ -394,7 +394,8 @@ canvas {
 
   /* The title screen: sky over the estate, and the card's fade on start. */
   .start-screen {
-    background: linear-gradient(180deg, rgb(120 180 230 / 0.82) 0%, rgb(60 110 60 / 0.55) 100%);
+    background: rgb(28 52 26 / 0.58);
+    backdrop-filter: blur(3px);
     transition:
       opacity 650ms ease,
       transform 650ms ease;

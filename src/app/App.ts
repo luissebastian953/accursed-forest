@@ -37,6 +37,7 @@ import { BIOMES } from '@sim/balance/biomes';
 import { BANKRUPTCY, ISPO } from '@sim/balance/endings';
 import { FIRE } from '@sim/balance/fire';
 import { GROWTH } from '@sim/balance/growth';
+import { BEETLES } from '@sim/balance/pests';
 import { MACRO_PREFIX } from '@sim/balance/society';
 import { WORLD } from '@sim/balance/world';
 import { settleCost } from '@sim/commands/settleInvestigation';
@@ -65,7 +66,7 @@ import { KopdesShop } from '@ui/KopdesShop';
 import { Menu } from '@ui/Menu';
 import { NewsPanel } from '@ui/NewsPanel';
 import { NewsTicker } from '@ui/NewsTicker';
-import { START_FADE_MS, StartScreen } from '@ui/StartScreen';
+import { START_FADE_MS, StartScreen, type SaveSummary } from '@ui/StartScreen';
 import { Toasts } from '@ui/Toasts';
 
 import { GameLoop } from './loop.ts';
@@ -1185,9 +1186,55 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     );
   // A run that is already over reopens on its epilogue, not the title.
   const titleScreen = !params.has('seed') && !params.has('fresh') && !runOver(sim.state);
+  /** What the welcome-back card says about the loaded save. */
+  function saveSummary(): SaveSummary {
+    const { state } = sim;
+    let savedAt: string | null = null;
+    const manifest = storage.get(slot.manifestKey);
+    if (manifest) {
+      try {
+        savedAt = (JSON.parse(manifest) as { savedAt?: string }).savedAt ?? null;
+      } catch {
+        savedAt = null;
+      }
+    }
+    let planted = 0;
+    let beetleBlocks = 0;
+    for (const block of state.blocks.values()) {
+      if (block.phase === 'planted') planted += 1;
+      if (block.phase === 'planted' && block.beetles > BEETLES.seedPopulation) beetleBlocks += 1;
+    }
+    const chips: SaveSummary['chips'] = eventChips().map((c) => ({
+      icon: c.tone === 'water' ? 'rain' : c.tone === 'fire' ? 'fire' : 'haze',
+      label: c.daysLeft === null ? c.label : `${c.label} · ${c.daysLeft} d`,
+      tone: c.tone,
+    }));
+    if (beetleBlocks > 0)
+      chips.push({
+        icon: 'beetle',
+        label: `Beetles on ${beetleBlocks} ${beetleBlocks === 1 ? 'block' : 'blocks'}`,
+        tone: 'pest',
+      });
+    const met = ispoConditions(state, sim.world).filter((c) => c.met).length;
+    chips.push({ icon: 'certificate-ispo', label: `ISPO ${met} / 5`, tone: 'plain' });
+    return {
+      code: sim.world.estateCode,
+      savedAt,
+      year: Math.floor(state.tick / GROWTH.daysPerYear) + 1,
+      day: (state.tick % GROWTH.daysPerYear) + 1,
+      plantedHectares: planted,
+      cash: state.economy.cash,
+      chips,
+    };
+  }
   const startScreen = new StartScreen(root, {
     start: () => beginPlay(),
     resume: () => beginPlay(),
+    newEstate: () => {
+      switchSim(freshSim(randomSeed()));
+      beginPlay();
+    },
+    loadOther: () => menu.toggle(),
     useCode: (code) => {
       const seed = seedFromEstateCode(code);
       if (seed === null) return 'That is not an estate code — seven letters, like ABC-DEFG.';
@@ -1212,14 +1259,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     rig.setZoom(0.62);
     startScreen.show({
       estateCode: sim.world.estateCode,
-      savedCode: slot.exists() ? sim.world.estateCode : null,
+      save: slot.exists() ? saveSummary() : null,
+      build: `v${__APP_VERSION__} · ${handle.backend === 'webgpu' ? 'WebGPU' : 'WebGL 2'} · saves in this browser`,
     });
-    // "Start a new estate" on the continue card swaps the world underneath first.
-    const startNew = () => {
-      switchSim(freshSim(randomSeed()));
-      beginPlay();
-    };
-    if (slot.exists()) startScreen.onNewEstate = startNew;
   } else if (!slot.exists()) {
     welcome();
   }
