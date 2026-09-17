@@ -392,6 +392,30 @@ canvas {
     }
   }
 
+  /* The title screen: sky over the estate, and the card's fade on start. */
+  .start-screen {
+    background: linear-gradient(180deg, rgb(120 180 230 / 0.82) 0%, rgb(60 110 60 / 0.55) 100%);
+    transition:
+      opacity 650ms ease,
+      transform 650ms ease;
+  }
+
+  .start-out {
+    opacity: 0;
+    transform: scale(1.06);
+    pointer-events: none;
+  }
+
+  .title-extrude {
+    color: #fff6e0;
+    text-shadow:
+      0 2px 0 #2f7a2b,
+      0 4px 0 #2f7a2b,
+      0 6px 0 #2f7a2b,
+      0 8px 0 #2f7a2b,
+      0 12px 16px rgb(0 0 0 / 0.28);
+  }
+
   /* Toasts slide in from the left edge and settle. */
   .toast-in {
     animation: toast-in 340ms cubic-bezier(0.2, 0.8, 0.2, 1) both;

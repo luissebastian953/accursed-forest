@@ -49,7 +49,7 @@ import {
   burningBlocks,
   isWildfire,
 } from '@sim/fire';
-import { createSim, restoreSim, type Sim } from '@sim/index';
+import { createSim, restoreSim, seedFromEstateCode, type Sim } from '@sim/index';
 import { estateForestCover } from '@sim/landscape';
 import { runOver } from '@sim/run';
 import { creditLine, ispoConditions, matureHectares } from '@sim/systems/endings';
@@ -65,6 +65,7 @@ import { KopdesShop } from '@ui/KopdesShop';
 import { Menu } from '@ui/Menu';
 import { NewsPanel } from '@ui/NewsPanel';
 import { NewsTicker } from '@ui/NewsTicker';
+import { START_FADE_MS, StartScreen } from '@ui/StartScreen';
 import { Toasts } from '@ui/Toasts';
 
 import { GameLoop } from './loop.ts';
@@ -1176,10 +1177,51 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   loop.start();
 
-  if (!slot.exists() && !params.has('seed')) {
+  // The title screen, over the estate pulled back to a backdrop. Dev and
+  // test URLs that name a world (`?seed`, `?fresh`) go straight in.
+  const welcome = () =>
     toasts.push(
-      `New estate ${sim.world.estateCode}. Click a block to begin — press H or ? for controls.`,
+      `Estate ${sim.world.estateCode}. Click a block to begin — press H or ? for controls.`,
     );
+  // A run that is already over reopens on its epilogue, not the title.
+  const titleScreen = !params.has('seed') && !params.has('fresh') && !runOver(sim.state);
+  const startScreen = new StartScreen(root, {
+    start: () => beginPlay(),
+    resume: () => beginPlay(),
+    useCode: (code) => {
+      const seed = seedFromEstateCode(code);
+      if (seed === null) return 'That is not an estate code — seven letters, like ABC-DEFG.';
+      switchSim(freshSim(seed));
+      beginPlay();
+      return null;
+    },
+    howToPlay: () => help.toggle(),
+    settings: () => menu.toggle(),
+  });
+  /** Fade the title out and pull the camera in on the estate; the clock starts with it. */
+  function beginPlay(): void {
+    startScreen.dismiss();
+    const now = performance.now();
+    if (sim.state.kopdes) focusBlock(sim.state.kopdes.blockId);
+    rig.zoomTo(1.5, now, START_FADE_MS + 900);
+    time.set(1);
+    welcome();
+  }
+  if (titleScreen) {
+    time.set(0);
+    rig.setZoom(0.62);
+    startScreen.show({
+      estateCode: sim.world.estateCode,
+      savedCode: slot.exists() ? sim.world.estateCode : null,
+    });
+    // "Start a new estate" on the continue card swaps the world underneath first.
+    const startNew = () => {
+      switchSim(freshSim(randomSeed()));
+      beginPlay();
+    };
+    if (slot.exists()) startScreen.onNewEstate = startNew;
+  } else if (!slot.exists()) {
+    welcome();
   }
 
   return () => {
@@ -1198,6 +1240,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     newsPanel.dispose();
     cards.dispose();
     epilogue.dispose();
+    startScreen.dispose();
     certificate.dispose();
     help.dispose();
     yearEnd.dispose();

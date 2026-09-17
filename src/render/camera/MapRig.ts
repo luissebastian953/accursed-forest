@@ -59,6 +59,7 @@ export class MapRig {
   private azimuth = Math.PI / 4;
   private azimuthTween: Tween | null = null;
   private focusTween: { from: Vector3; to: Vector3; start: number; duration: number } | null = null;
+  private zoomTween: Tween | null = null;
 
   private readonly direction = new Vector3();
   private readonly corner = new Vector3();
@@ -115,6 +116,23 @@ export class MapRig {
     };
   }
 
+  /** Set the zoom now (orthographic: bigger is closer). */
+  setZoom(zoom: number): void {
+    this.zoomTween = null;
+    this.camera.zoom = clamp(zoom, this.controls.minZoom, this.controls.maxZoom);
+    this.applyFrustum();
+  }
+
+  /** Ease the zoom to a level: the title screen's pull-in onto the estate. */
+  zoomTo(zoom: number, nowMs: number, durationMs: number = DURATION.cameraFocus): void {
+    this.zoomTween = {
+      from: this.camera.zoom,
+      to: clamp(zoom, this.controls.minZoom, this.controls.maxZoom),
+      start: nowMs,
+      duration: durationMs,
+    };
+  }
+
   /** Snap-rotate a quarter turn (§6.2: four diagonals). */
   rotate(direction: 1 | -1, nowMs: number): void {
     this.diagonal = (this.diagonal + direction + DIAGONALS) % DIAGONALS;
@@ -136,6 +154,11 @@ export class MapRig {
       const t = clamp((nowMs - this.azimuthTween.start) / this.azimuthTween.duration, 0, 1);
       this.azimuth = lerp(this.azimuthTween.from, this.azimuthTween.to, easeOutCubic(t));
       if (t >= 1) this.azimuthTween = null;
+    }
+    if (this.zoomTween) {
+      const t = clamp((nowMs - this.zoomTween.start) / this.zoomTween.duration, 0, 1);
+      this.camera.zoom = lerp(this.zoomTween.from, this.zoomTween.to, easeOutCubic(t));
+      if (t >= 1) this.zoomTween = null;
     }
 
     this.controls.update();

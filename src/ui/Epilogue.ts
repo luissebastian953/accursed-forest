@@ -138,6 +138,9 @@ const LOOK: Record<Ending, Look> = {
   },
 };
 
+/** How many ways a run can end, for the title screen's fact pill. */
+export const ENDING_COUNT = Object.keys(LOOK).length;
+
 const TONE_CLASS: Record<Tone, string> = {
   plain: 'bg-[var(--pill)] border-transparent',
   good: 'bg-[#e4f6dc] border-[var(--green)] text-[#2f7a2b]',

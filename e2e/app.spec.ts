@@ -184,6 +184,7 @@ test.describe('Sawit Simulator', () => {
     await expect(page.getByTestId('toast').filter({ hasText: 'Saved' })).toBeVisible();
 
     await page.goto('/play.html?webgl&turbo');
+    await tid(page, 'start-continue').click();
     await expect(tid(page, 'hud-cash')).toContainText('Rp');
     // The clock is already running at 1× (two ticks a second under turbo), so
     // the date may have moved a few days by the time we read it: the save is
