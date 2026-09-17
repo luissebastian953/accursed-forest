@@ -8,13 +8,98 @@
       name="description"
       content="Turn wild land into a working oil-palm estate: clear, plant, harvest, sell — and live with the fires, pests, landslides and letters your clearing choices invite. Free, in the browser."
     />
-    <meta property="og:title" content="Sawit Simulator" />
+    <link rel="canonical" href="__SITE_URL__/" />
+    <meta property="og:site_name" content="Sawit Simulator" />
+    <meta property="og:title" content="Sawit Simulator — a palm-oil farming sim" />
     <meta
       property="og:description"
-      content="A browser management sim about turning wild land into an oil-palm estate, and what that costs."
+      content="Turn wild land into a working estate. Every shortcut has a price. Free, in the browser."
     />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="__SITE_URL__/" />
+    <meta property="og:image" content="__SITE_URL__/og-1200x630.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Sawit Simulator logo: an oil palm growing out of a gold coin"
+    />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Sawit Simulator — a palm-oil farming sim" />
+    <meta
+      name="twitter:description"
+      content="Turn wild land into a working estate. Every shortcut has a price. Free, in the browser."
+    />
+    <meta name="twitter:image" content="__SITE_URL__/og-1200x630.png" />
     <meta name="theme-color" content="#fff6e0" />
+    <meta name="application-name" content="Sawit Simulator" />
+    <meta name="apple-mobile-web-app-title" content="Sawit" />
+    <link rel="icon" href="/icon-32.png" sizes="32x32" type="image/png" />
+    <link rel="icon" href="/brand/sawit-mark.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icon-180.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "VideoGame",
+            "@id": "__SITE_URL__/#game",
+            "name": "Sawit Simulator",
+            "alternateName": "Sawit Sim",
+            "url": "__SITE_URL__/",
+            "image": "__SITE_URL__/og-1200x630.png",
+            "description": "A browser management sim about turning wild land into a working oil-palm estate: clear, plant, harvest, sell — and live with the fires, pests, landslides and letters your clearing choices invite.",
+            "genre": ["Simulation", "Management", "Strategy"],
+            "gamePlatform": ["Web browser"],
+            "applicationCategory": "GameApplication",
+            "operatingSystem": "Any (WebGPU or WebGL 2)",
+            "playMode": "SinglePlayer",
+            "numberOfPlayers": { "@type": "QuantitativeValue", "value": 1 },
+            "inLanguage": "en",
+            "isAccessibleForFree": true,
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD",
+              "availability": "https://schema.org/InStock"
+            },
+            "author": { "@id": "__SITE_URL__/#publisher" },
+            "publisher": { "@id": "__SITE_URL__/#publisher" }
+          },
+          {
+            "@type": "Organization",
+            "@id": "__SITE_URL__/#publisher",
+            "name": "Sawit Simulator",
+            "url": "__SITE_URL__/",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "__SITE_URL__/icon-512.png",
+              "width": 512,
+              "height": 512
+            }
+          },
+          {
+            "@type": "WebSite",
+            "@id": "__SITE_URL__/#website",
+            "url": "__SITE_URL__/",
+            "name": "Sawit Simulator",
+            "publisher": { "@id": "__SITE_URL__/#publisher" },
+            "inLanguage": "en"
+          },
+          {
+            "@type": "WebPage",
+            "@id": "__SITE_URL__/#page",
+            "url": "__SITE_URL__/",
+            "name": "Sawit Simulator — a palm-oil estate sim about the choices that clear a forest",
+            "isPartOf": { "@id": "__SITE_URL__/#website" },
+            "about": { "@id": "__SITE_URL__/#game" },
+            "primaryImageOfPage": { "@type": "ImageObject", "url": "__SITE_URL__/og-1200x630.png" }
+          }
+        ]
+      }
+    </script>
     <link rel="preload" href="/fonts/baloo2-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/fonts/fonts.css" />
     <style>
@@ -62,6 +147,16 @@
         display: grid;
         gap: 1rem;
         padding: 2rem 1.75rem;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      .brand img {
+        width: 84px;
+        height: 84px;
+        flex: none;
       }
       .kicker {
         font-size: 0.72rem;
@@ -183,7 +278,10 @@
     <main>
       <section class="card hero">
         <p class="kicker">A browser management sim · free · no account</p>
-        <h1>Sawit Simulator</h1>
+        <div class="brand">
+          <img src="/brand/sawit-mark.svg" width="84" height="84" alt="" />
+          <h1>Sawit Simulator</h1>
+        </div>
         <p class="lede">
           Turn wild land into a working oil-palm estate: clear, plant <i>bibit</i>, wait out the
           immature years, harvest <i>TBS</i> on a rotation, sell through your <i>Kopdes</i> — and

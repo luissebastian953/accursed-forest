@@ -1,0 +1,14 @@
+{
+  "name": "Sawit Simulator",
+  "short_name": "Sawit",
+  "description": "A browser management sim about turning wild land into an oil-palm estate, and what that costs.",
+  "start_url": "/play.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fff6e0",
+  "theme_color": "#fff6e0",
+  "icons": [
+    { "src": "/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

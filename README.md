@@ -73,6 +73,14 @@ Vitals (LCP, INP, CLS, FCP, TTFB) are measured with `web-vitals` and sent to
 Google Analytics 4 as events when `VITE_GA_ID` is set at build time (see
 `.env.example`); with it empty the pages load no third-party script at all.
 
+For search and social: the landing page carries a description, canonical
+link, Open Graph and Twitter cards (the 1200×630 image in `public/`), the
+favicon set and web manifest from the brand kit (`public/brand`, `icon-*.png`),
+and JSON-LD (`VideoGame` + `Organization` + `WebSite` + `WebPage`). Set
+`VITE_SITE_URL` at build time to make those URLs absolute and to emit
+`sitemap.xml` and a `robots.txt` that points at it (the game page itself is
+`noindex`); with it empty the tags fall back to relative URLs.
+
 The interface follows the cartoon UI kit: cream cards with a hard bottom
 edge, inset pills, Baloo 2 (Google Fonts, with a rounded system fallback if
 it cannot be fetched), and the 35 flat icons in `public/icons`. The tokens

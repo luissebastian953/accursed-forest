@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none">
+
+
+<polygon points="128,26 218,78 218,182 128,234 38,182 38,78" fill="#8a5a10" transform="translate(0,12)"></polygon>
+
+<polygon points="128,26 218,78 218,182 128,234 38,182 38,78" fill="#f4b731" stroke="#8a5a10" stroke-width="8" stroke-linejoin="round"></polygon>
+<polygon points="128,50 197,90 197,170 128,210 59,170 59,90" fill="#ffe08a" stroke="#d99a1a" stroke-width="6" stroke-linejoin="round"></polygon>
+
+<path d="M78 176c10-14 90-14 100 0v10H78z" fill="#9c4a24" stroke="#6e3016" stroke-width="6" stroke-linejoin="round"></path>
+
+<path d="M128 176V112" stroke="#6e3016" stroke-width="14" stroke-linecap="round"></path>
+<path d="M128 176V112" stroke="#b86a3a" stroke-width="6" stroke-linecap="round"></path>
+
+<g stroke="#1e5a1a" stroke-width="6" stroke-linejoin="round">
+<path d="M128 108c-30 2-52-14-58-40 24-2 46 12 58 40z" fill="#4caf50"></path>
+<path d="M128 108c30 2 52-14 58-40-24-2-46 12-58 40z" fill="#4caf50"></path>
+<path d="M128 108c-24-14-30-38-18-60 16 12 24 34 18 60z" fill="#5fd06a"></path>
+<path d="M128 108c24-14 30-38 18-60-16 12-24 34-18 60z" fill="#5fd06a"></path>
+<path d="M128 108c-2-22 4-40 14-54 8 16 4 38-14 54z" fill="#7fe07a"></path>
+</g>
+
+<circle cx="116" cy="118" r="11" fill="#ff6a4d" stroke="#9e2e20" stroke-width="5"></circle>
+<circle cx="140" cy="118" r="11" fill="#ff6a4d" stroke="#9e2e20" stroke-width="5"></circle>
+<circle cx="128" cy="132" r="11" fill="#ff8a5c" stroke="#9e2e20" stroke-width="5"></circle>
+
+<path d="M70 96l16-12" stroke="#fff6e0" stroke-width="6" stroke-linecap="round" opacity=".8"></path>
+</svg>
