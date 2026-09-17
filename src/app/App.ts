@@ -58,7 +58,6 @@ import type { BlockId, Command } from '@sim/types';
 import { AuthorityCards, type CardKind } from '@ui/AuthorityCards';
 import { BlockPanel } from '@ui/BlockPanel';
 import { CertificatePanel, YearEndCard } from '@ui/Certificate';
-import { ControlsHelp } from '@ui/ControlsHelp';
 import { Epilogue } from '@ui/Epilogue';
 import { formatKg, formatRp } from '@ui/format';
 import { Hud, type EventChip } from '@ui/Hud';
@@ -66,6 +65,7 @@ import { KopdesShop } from '@ui/KopdesShop';
 import { Menu } from '@ui/Menu';
 import { NewsPanel } from '@ui/NewsPanel';
 import { START_FADE_MS, StartScreen, type SaveSummary } from '@ui/StartScreen';
+import { ControlsHelp } from '@ui/svelte/controlsHelpState.svelte.ts';
 import { NewsTicker } from '@ui/svelte/newsTickerState.svelte.ts';
 import { Toasts } from '@ui/svelte/toastsState.svelte.ts';
 

@@ -1,0 +1,18 @@
+{
+  "title": "Kontrol",
+  "mouse": "Mouse",
+  "keyboard": "Papan ketik",
+  "tip": "Mulai dengan mengklik petak cokelat kosong: bangun Kopdes di sana, lalu tebang atau bakar sebuah petak, beli bibit, tanam, dan panen begitu sawit berbuah.",
+  "mouseClickDesc": "Pilih petak dan buka panelnya",
+  "mouseDoubleClickDesc": "Pilih dan pindahkan kamera ke petak itu",
+  "mouseDragDesc": "Geser peta",
+  "mouseScrollDesc": "Perbesar dan perkecil",
+  "keySpaceDesc": "Jeda / lanjutkan",
+  "keySpeedDesc": "Kecepatan 1×, 10×, 50×",
+  "keyTurnDesc": "Putar tampilan",
+  "keyKopdesJumpDesc": "Lompat ke Kopdes",
+  "keyShopDesc": "Toko Kopdes",
+  "keyNewsDesc": "Umpan berita",
+  "keyHelpDesc": "Bantuan ini",
+  "keyEscDesc": "Tutup panel"
+}

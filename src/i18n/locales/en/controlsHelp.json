@@ -1,0 +1,18 @@
+{
+  "title": "Controls",
+  "mouse": "Mouse",
+  "keyboard": "Keyboard",
+  "tip": "Start by clicking the bare brown block: build the Kopdes there, then chop or burn a block, buy bibit, plant, and harvest when the palms bear.",
+  "mouseClickDesc": "Select a block and open its panel",
+  "mouseDoubleClickDesc": "Select and move the camera to it",
+  "mouseDragDesc": "Pan the map",
+  "mouseScrollDesc": "Zoom in and out",
+  "keySpaceDesc": "Pause / resume",
+  "keySpeedDesc": "Speed 1×, 10×, 50×",
+  "keyTurnDesc": "Turn the view",
+  "keyKopdesJumpDesc": "Jump to the Kopdes",
+  "keyShopDesc": "Kopdes shop",
+  "keyNewsDesc": "News feed",
+  "keyHelpDesc": "This help",
+  "keyEscDesc": "Close panels"
+}
