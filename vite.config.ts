@@ -70,6 +70,13 @@ function siteUrlPlugin(): Plugin {
  * "encrypts" the game; it raises the cost of reading and reusing the code.
  */
 const obfuscate = process.env['VITE_OBFUSCATE'] !== '0';
+/**
+ * The string array halves the sim's tick rate (measured: 24.8 to 12.5 days a
+ * second at 50×): every literal in the per-block loops becomes a call and a
+ * lookup. So it applies only to the app and UI chunks, where the strings are
+ * copy and markup; the sim, the loop and the mesher get the rest of the pass.
+ */
+const STRING_ARRAY_CHUNKS = new Set(['App', 'play']);
 
 function obfuscatePlugin(): Plugin {
   return {
@@ -86,7 +93,7 @@ function obfuscatePlugin(): Plugin {
         identifierNamesGenerator: 'hexadecimal',
         renameGlobals: false,
         ignoreImports: true,
-        stringArray: true,
+        stringArray: STRING_ARRAY_CHUNKS.has(chunk.name),
         stringArrayThreshold: 0.8,
         stringArrayEncoding: ['base64'],
         stringArrayRotate: true,
