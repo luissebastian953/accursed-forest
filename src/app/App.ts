@@ -67,7 +67,7 @@ import { Menu } from '@ui/Menu';
 import { NewsPanel } from '@ui/NewsPanel';
 import { NewsTicker } from '@ui/NewsTicker';
 import { START_FADE_MS, StartScreen, type SaveSummary } from '@ui/StartScreen';
-import { Toasts } from '@ui/Toasts';
+import { Toasts } from '@ui/svelte/toastsState.svelte.ts';
 
 import { GameLoop } from './loop.ts';
 import { FIRE_LOCK_SPEED, TimeControl } from './timeControl.ts';

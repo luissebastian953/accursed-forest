@@ -158,6 +158,20 @@ export default tseslint.config(
     },
   },
 
+  // ── `.svelte.ts` / `.svelte.js` modules ─────────────────────────────────
+  // Svelte 5 runes (`$state`, `$derived`) work outside a `.svelte` file in a
+  // module named `*.svelte.ts`; `eslint-plugin-svelte`'s own setup for these
+  // sets a parser but not what it hands TS syntax to, so it chokes on
+  // ordinary `import { type X } from` and worse. Point it at the real one.
+  {
+    files: ['**/*.svelte.ts'],
+    languageOptions: {
+      parserOptions: {
+        parser: tseslint.parser,
+      },
+    },
+  },
+
   // ── sim/ is pure: no Three.js, no DOM, no wall clock, no timers ─────────
   {
     files: ['src/sim/**/*.ts'],
