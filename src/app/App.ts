@@ -1434,6 +1434,22 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       redrawPalms: () => {
         palmsDirty = true;
       },
+      // What the renderer is holding, for watching a long run for leaks. The
+      // workbench shows the same numbers with a UI around them.
+      gpu: () => {
+        const info = handle.renderer.info as unknown as {
+          render: { drawCalls: number; triangles: number };
+          memory: { geometries: number; textures: number; programs: number; total: number };
+        };
+        return {
+          geometries: info.memory.geometries,
+          textures: info.memory.textures,
+          programs: info.memory.programs,
+          bytes: info.memory.total,
+          drawCalls: info.render.drawCalls,
+          triangles: info.render.triangles,
+        };
+      },
       timber,
       mobField,
       police,
