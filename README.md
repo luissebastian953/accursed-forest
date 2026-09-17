@@ -81,6 +81,13 @@ and JSON-LD (`VideoGame` + `Organization` + `WebSite` + `WebPage`). Set
 `sitemap.xml` and a `robots.txt` that points at it (the game page itself is
 `noindex`); with it empty the tags fall back to relative URLs.
 
+The landing page exists in English (`/`) and Indonesian (`/id/`), cross-linked
+with `hreflang` (also in the sitemap), each with scenario sections (forest
+fire / kebakaran hutan, deforestation / penebangan hutan, reboisasi, petani
+sawit, minyak sawit, pests), a bilingual glossary and an FAQ with `FAQPage`
+schema — the terms people search for, used where they mean something, rather
+than a keyword list.
+
 The interface follows the cartoon UI kit: cream cards with a hard bottom
 edge, inset pills, Baloo 2 (Google Fonts, with a rounded system fallback if
 it cannot be fetched), and the 35 flat icons in `public/icons`. The tokens

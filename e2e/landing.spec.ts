@@ -16,7 +16,7 @@ test.describe('landing page', () => {
     });
     await page.goto('/');
     await expect(page).toHaveTitle(/Sawit Simulator/);
-    await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /estate/);
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /sawit/i);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Sawit Simulator');
     await expect(page.getByTestId('play-link')).toBeVisible();
     // Nothing but the inline GA stub, which is a no-op without an id.
@@ -46,6 +46,7 @@ test.describe('landing page', () => {
       'VideoGame',
       'Organization',
       'WebSite',
+      'FAQPage',
       'WebPage',
     ]);
     // The assets the head points at actually exist.
@@ -53,6 +54,27 @@ test.describe('landing page', () => {
       const response = await page.request.get(path);
       expect(response.status(), path).toBe(200);
     }
+  });
+
+  test('has an Indonesian twin that links both ways and carries its own FAQ schema', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await page.getByRole('link', { name: 'Bahasa Indonesia' }).first().click();
+    await expect(page).toHaveURL(/\/id\/$/);
+    await expect(page.locator('html')).toHaveAttribute('lang', 'id');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Sawit Simulator');
+    await expect(
+      page
+        .locator('h2', { hasText: 'Kebakaran hutan' })
+        .or(page.locator('b', { hasText: 'Kebakaran hutan' }))
+        .first(),
+    ).toBeVisible();
+    const ld = await page.locator('script[type="application/ld+json"]').textContent();
+    const graph = (JSON.parse(ld ?? '{}') as { '@graph': { '@type': string }[] })['@graph'];
+    expect(graph.map((n) => n['@type'])).toContain('FAQPage');
+    await page.getByRole('link', { name: 'English' }).first().click();
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   });
 
   test('Play opens the game: the boot shell paints first, then comes down', async ({ page }) => {

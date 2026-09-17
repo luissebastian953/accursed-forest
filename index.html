@@ -6,8 +6,11 @@
     <title>Sawit Simulator — a palm-oil estate sim about the choices that clear a forest</title>
     <meta
       name="description"
-      content="Turn wild land into a working oil-palm estate: clear, plant, harvest, sell — and live with the fires, pests, landslides and letters your clearing choices invite. Free, in the browser."
+      content="A free browser sim about oil palm (kelapa sawit): clear land, plant, harvest fruit, sell palm oil — and live with the forest fires, deforestation, pests and reforestation (reboisasi) your choices invite."
     />
+    <link rel="alternate" hreflang="en" href="__SITE_URL__/" />
+    <link rel="alternate" hreflang="id" href="__SITE_URL__/id/" />
+    <link rel="alternate" hreflang="x-default" href="__SITE_URL__/" />
     <link rel="canonical" href="__SITE_URL__/" />
     <meta property="og:site_name" content="Sawit Simulator" />
     <meta property="og:title" content="Sawit Simulator — a palm-oil farming sim" />
@@ -47,7 +50,8 @@
             "@type": "VideoGame",
             "@id": "__SITE_URL__/#game",
             "name": "Sawit Simulator",
-            "alternateName": "Sawit Sim",
+            "alternateName": ["Sawit Sim", "Simulator Kelapa Sawit", "Palm Oil Simulator"],
+            "keywords": "sawit, kelapa sawit, palm oil, oil palm, palm tree farm, palm oil simulator, farming simulator, lahan sawit, petani sawit, minyak sawit, buah sawit, reboisasi, reforestation, deforestation, penebangan hutan, kebakaran hutan, forest fire, wildfire, Kalimantan, ISPO",
             "url": "__SITE_URL__/",
             "image": "__SITE_URL__/og-1200x630.png",
             "description": "A browser management sim about turning wild land into a working oil-palm estate: clear, plant, harvest, sell — and live with the fires, pests, landslides and letters your clearing choices invite.",
@@ -89,12 +93,59 @@
             "inLanguage": "en"
           },
           {
+            "@type": "FAQPage",
+            "@id": "__SITE_URL__/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Is Sawit Simulator free?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. It runs in the browser, needs no account, and saves in your browser."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What kind of game is Sawit Simulator?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "A management simulation about a palm-oil (kelapa sawit) estate: land, weather, pests, money and the authorities. Single-player; a day passes every ten seconds at normal speed."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Is burning land allowed in the game?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "It is possible, cheap and fast. It also raises fire pressure, invites letters from the district office, and can end the run in a wildfire (kebakaran hutan) or an arrest."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I win without clearing forest?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. The ISPO certificate rewards forest on the slopes and five years without a burn, and reboisasi — more land back to forest than under palms — is its own ending."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Is Sawit Simulator available in Indonesian?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "The landing page is available in Bahasa Indonesia at /id/. The game's interface is in English for now."
+                }
+              }
+            ]
+          },
+          {
             "@type": "WebPage",
             "@id": "__SITE_URL__/#page",
             "url": "__SITE_URL__/",
             "name": "Sawit Simulator — a palm-oil estate sim about the choices that clear a forest",
             "isPartOf": { "@id": "__SITE_URL__/#website" },
             "about": { "@id": "__SITE_URL__/#game" },
+            "inLanguage": "en",
             "primaryImageOfPage": { "@type": "ImageObject", "url": "__SITE_URL__/og-1200x630.png" }
           }
         ]
@@ -226,6 +277,26 @@
       dl {
         margin: 0;
       }
+      .glossary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+        gap: 0.25rem 1.5rem;
+      }
+      .glossary > div {
+        break-inside: avoid;
+      }
+      .glossary dt {
+        margin-top: 0.5rem;
+      }
+      .lang {
+        font-size: 0.8rem;
+        color: var(--ink-2);
+        text-decoration: none;
+        font-weight: 800;
+      }
+      .lang:hover {
+        text-decoration: underline;
+      }
       dt {
         font-weight: 800;
         margin-top: 0.75rem;
@@ -277,7 +348,10 @@
   <body>
     <main>
       <section class="card hero">
-        <p class="kicker">A browser management sim · free · no account</p>
+        <p class="kicker">
+          A browser management sim · free · no account ·
+          <a class="lang" href="/id/" hreflang="id" lang="id">Bahasa Indonesia</a>
+        </p>
         <div class="brand">
           <img src="/brand/sawit-mark.svg" width="84" height="84" alt="" />
           <h1>Sawit Simulator</h1>
@@ -343,6 +417,149 @@
         </dl>
       </section>
 
+      <section class="card" id="scenarios">
+        <h2>Scenarios you will play through</h2>
+        <p class="lede">
+          Every system in the game is built on a real one. These are the situations the estate puts
+          you in, with the Indonesian terms the game itself uses.
+        </p>
+        <div class="grid">
+          <div class="pill">
+            <b>Forest fire — <i>kebakaran hutan</i></b>
+            Burning is the cheapest way to clear land, and the fire pressure meter shows how close
+            the estate is to a wildfire. Lightning starts fires nobody lit; a man-made burn reaches
+            into standing forest far more readily. Haze closes the schools. The fire seasons of
+            Kalimantan and Sumatra are the model.
+          </div>
+          <div class="pill">
+            <b>Deforestation — <i>penebangan hutan</i></b>
+            Chopping forest (<i>tebang pohon</i>) pays in timber and costs forest cover. Strip a
+            hillside and the next wet year takes it down in a landslide; strip the slopes around the
+            estate and the ISPO certificate is out of reach.
+          </div>
+          <div class="pill">
+            <b>Reforestation — <i>reboisasi</i></b>
+            Plant saplings instead of palms (<i>tanam pohon</i>) and forest grows back over eight
+            years, counting toward cover from the sapling stage. Put more land back to forest than
+            you hold in palms and the run ends in <i>reboisasi</i>, the ending nobody planned for.
+          </div>
+          <div class="pill">
+            <b>Smallholder — <i>petani sawit</i></b>
+            You are one estate among neighbours, selling fresh fruit bunches (<i>TBS</i>,
+            <i>buah sawit</i>) through a village cooperative, the <i>Kopdes</i>. Its range, level
+            and crews decide what your land is worth.
+          </div>
+          <div class="pill">
+            <b>Palm oil — <i>minyak sawit</i></b>
+            The fruit price walks with a world market priced in dollars: an El Niño forecast, a mill
+            strike, a weak rupiah. Fertilizer and seedlings get dearer when the currency does.
+          </div>
+          <div class="pill">
+            <b>Pests and disease</b>
+            Ganoderma spreads palm to palm through the roots; rhinoceros beetles breed in the debris
+            a burn leaves behind. Sanitation, traps, Trichoderma and a plant doctor are the answers,
+            and none of them is free.
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="glossary">
+        <h2>A short glossary — <i>kamus singkat</i></h2>
+        <dl class="glossary">
+          <div>
+            <dt>Sawit · kelapa sawit</dt>
+            <dd>The oil palm, <i>Elaeis guineensis</i>. The tree, the crop and the industry.</dd>
+          </div>
+          <div>
+            <dt>Lahan sawit · kebun sawit</dt>
+            <dd>Palm land: the estate you are building, one hectare per block.</dd>
+          </div>
+          <div>
+            <dt>TBS · tandan buah segar · buah sawit</dt>
+            <dd>Fresh fruit bunches, the harvest. Sold by the kilogram at the day's price.</dd>
+          </div>
+          <div>
+            <dt>Minyak sawit</dt>
+            <dd>
+              Palm oil, pressed from the fruit at the mill. You sell fruit; the mill sells oil.
+            </dd>
+          </div>
+          <div>
+            <dt>Petani sawit</dt>
+            <dd>A smallholder palm farmer. That is you.</dd>
+          </div>
+          <div>
+            <dt>Hutan</dt>
+            <dd>Forest. Wild, protected, or the <i>hutan sawit</i> that used to be one.</dd>
+          </div>
+          <div>
+            <dt>Penebangan · tebang</dt>
+            <dd>
+              Felling. <i>Penebangan hutan</i> is clearing forest; <i>tebang sawit</i> is
+              replanting.
+            </dd>
+          </div>
+          <div>
+            <dt>Kebakaran hutan</dt>
+            <dd>
+              Forest fire. In the game: burn-to-clear, spread, wildfire, haze, and the letters
+              after.
+            </dd>
+          </div>
+          <div>
+            <dt>Reboisasi</dt>
+            <dd>Reforestation. Planting forest back on cleared land.</dd>
+          </div>
+          <div>
+            <dt>Kopdes</dt>
+            <dd>
+              The village cooperative that buys your fruit and sells you seedlings and fertilizer.
+            </dd>
+          </div>
+          <div>
+            <dt>ISPO</dt>
+            <dd>
+              Indonesian Sustainable Palm Oil, the certificate. Five conditions; the run's win.
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="card" id="faq">
+        <h2>Questions people ask</h2>
+        <dl>
+          <dt>Is Sawit Simulator free?</dt>
+          <dd>Yes. It runs in the browser, needs no account, and saves in your browser.</dd>
+          <dt>What kind of game is it?</dt>
+          <dd>
+            A management simulation about a palm-oil estate: land, weather, pests, money, and the
+            authorities. Single-player, turn-free — a day passes every ten seconds at normal speed.
+          </dd>
+          <dt>Is burning land allowed in the game?</dt>
+          <dd>
+            It is possible, cheap, and fast. It also raises fire pressure, invites letters from the
+            district office, and can end the run in a wildfire or an arrest. The game lets you
+            choose and then shows the bill.
+          </dd>
+          <dt>Can I win without clearing forest?</dt>
+          <dd>
+            Yes. The ISPO certificate rewards forest on the slopes and five years without a burn,
+            and <i>reboisasi</i> — more land back to forest than under palms — is its own ending.
+          </dd>
+          <dt>Does it work on a phone?</dt>
+          <dd>
+            It loads, but the map wants a mouse and a wide screen. Desktop is recommended. WebGPU
+            where available, WebGL 2 otherwise.
+          </dd>
+          <dt>Is it available in Indonesian?</dt>
+          <dd>
+            This page is:
+            <a href="/id/" hreflang="id" lang="id">Sawit Simulator dalam Bahasa Indonesia</a>. The
+            game's interface is in English for now.
+          </dd>
+        </dl>
+      </section>
+
       <section class="card">
         <h2>Controls</h2>
         <p>
@@ -353,6 +570,9 @@
         </p>
       </section>
     </main>
-    <footer>Sawit Simulator · <a href="./play.html">Play</a></footer>
+    <footer>
+      Sawit Simulator · <a href="./play.html">Play</a> ·
+      <a href="/id/" hreflang="id" lang="id">Bahasa Indonesia</a>
+    </footer>
   </body>
 </html>
