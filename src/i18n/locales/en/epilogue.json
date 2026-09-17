@@ -55,5 +55,10 @@
   "yearStart": "Year {year}, start",
   "keepPlaying": "▸ Keep playing",
   "sandbox": "sandbox, no more endings",
-  "newEstate": "New estate"
+  "newEstate": "New estate",
+  "kickerRedemption": "You won: redemption",
+  "titleRedemption": "Redemption",
+  "lineRedemption": "You lit it, and then you spent years putting it back.",
+  "redemptionQuote": "You burned this forest, and then you gave it back, hectare by hectare, and took nothing out of the ground you cleared. The land keeps no grudge and sends no thanks. It simply grows again, which is the only apology it accepts.",
+  "statHectaresBurnedBack": "Burned, then planted back"
 }

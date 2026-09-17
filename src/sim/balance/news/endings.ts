@@ -70,6 +70,17 @@ export const ENDINGS: Record<string, NewsTemplate> = {
     ],
     effects: ['Reboisasi'],
   },
+  'ending.redemption': {
+    lane: 'natural',
+    severity: 'notice',
+    chronicle: true,
+    cooldownDays: 0,
+    titles: ['The land {estate} burned is forest again, and was never planted'],
+    bodies: [
+      'Fire cleared these hectares years ago. Nothing was ever planted on them: the owner put seedlings in the ash instead, and kept at it until the canopy closed. No crop has left the estate.',
+    ],
+    effects: ['Redemption'],
+  },
   'ending.fade': {
     lane: 'economic',
     severity: 'notice',

@@ -8,7 +8,7 @@
  * horizon, calls the fade.
  */
 
-import { BANKRUPTCY, ISPO, REBOISASI } from '../balance/endings.ts';
+import { BANKRUPTCY, ISPO, REBOISASI, REDEMPTION } from '../balance/endings.ts';
 import { LANDSLIDE } from '../balance/events.ts';
 import { GROWTH } from '../balance/growth.ts';
 import { ECONOMY } from '../balance/prices.ts';
@@ -220,6 +220,17 @@ export function reforestedHectares(state: SimState): number {
   return n;
 }
 
+/**
+ * Redemption's test (secret): fire was set here, the forest has been put
+ * back, and the estate never became an estate. Nothing standing in palms,
+ * and not a kilogram of fruit ever sold off the land that was cleared.
+ */
+export function redemptionReached(state: SimState): boolean {
+  if (state.run.stats.burns < REDEMPTION.burnsAtLeast) return false;
+  if (palmHectares(state) > 0 || state.economy.soldKgTotal > 0) return false;
+  return reforestedHectares(state) >= REDEMPTION.hectares;
+}
+
 /** The reboisasi ending's test: more land back to forest than under palms, by a margin. */
 export function reboisasiReached(state: SimState): boolean {
   const forest = reforestedHectares(state);
@@ -348,7 +359,15 @@ function closeYear(ctx: SimContext, year: number): void {
     });
   }
 
-  // The forest first: someone who put the land back is not waiting on a certificate.
+  // Redemption first: it is the narrower story, and the one that says why the
+  // forest went back. Reboisasi is the same act without the fire beforehand.
+  if (year >= ISPO.progressFromYear && redemptionReached(state)) {
+    endRun(state, 'redemption');
+    events.push({ type: 'RunEnded', ending: 'redemption' });
+    return;
+  }
+
+  // The forest next: someone who put the land back is not waiting on a certificate.
   if (year >= ISPO.progressFromYear && reboisasiReached(state)) {
     endRun(state, 'reboisasi');
     events.push({ type: 'RunEnded', ending: 'reboisasi' });

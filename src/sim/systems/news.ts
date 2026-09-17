@@ -222,6 +222,7 @@ export function newsSystem(ctx: SimContext): void {
         if (
           event.ending === 'fade' ||
           event.ending === 'reboisasi' ||
+          event.ending === 'redemption' ||
           event.ending === 'bankrupt' ||
           event.ending === 'banned'
         )

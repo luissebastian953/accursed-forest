@@ -38,16 +38,23 @@ const _forward = new Vector3();
 const _drift = new Vector3();
 const _up = new Vector3(0, 1, 0);
 
-/** One puffy chunk: a few flattened boxes, offset so it is not a brick. */
+/**
+ * One chunk: slabs that sit against each other rather than through each
+ * other. Two translucent faces over the same pixel blend twice and read as a
+ * hard cut across the cloud, so nothing here overlaps: the tiers stack on the
+ * slab below, and the lobes stand beside it.
+ */
 function cloudGeometry(): ReturnType<BoxBuilder['build']> {
   const b = new BoxBuilder();
-  const puffs: [number, number, number, number, number, number][] = [
-    [0, 0, 0, 7.5, 2.2, 5.5],
-    [2.6, 0.7, -0.9, 4.6, 1.8, 3.6],
-    [-2.9, 0.4, 0.8, 4.2, 1.6, 3.4],
-    [0.4, 1.5, 0.3, 3.8, 1.5, 3],
-  ];
-  for (const [x, y, z, w, h, d] of puffs) {
+  const slabs: [number, number, number, number, number, number][] = [
+    // The body, then a tier resting on its top face.
+    [0, 0.9, 0, 9, 1.8, 6, 0],
+    [-0.6, 2.4, -0.3, 5.4, 1.2, 3.6, 0],
+    // Lobes flush against the body's ends, lower and smaller.
+    [6, 0.6, 0.8, 3, 1.2, 3.4, 0],
+    [-6, 0.7, -0.6, 3, 1.4, 3, 0],
+  ].map(([x, y, z, w, h, d]) => [x!, y!, z!, w!, h!, d!]);
+  for (const [x, y, z, w, h, d] of slabs) {
     b.addAABox(x, y, z, w, h, d, { side: Palette.Cloud, top: Palette.CloudTop });
   }
   return b.build();
@@ -59,7 +66,6 @@ export class Clouds {
   private readonly y = new Float32Array(COUNT);
   private readonly z = new Float32Array(COUNT);
   private readonly scale = new Float32Array(COUNT);
-  private readonly turn = new Float32Array(COUNT);
   private seed = 1_770_419;
 
   constructor(material: Material) {
@@ -71,7 +77,6 @@ export class Clouds {
       this.z[i] = this.random() * TILE;
       this.y[i] = HEIGHT.min + this.random() * (HEIGHT.max - HEIGHT.min);
       this.scale[i] = 0.9 + this.random() * 1.1;
-      this.turn[i] = this.random() * Math.PI * 2;
     }
   }
 
@@ -107,7 +112,9 @@ export class Clouds {
       this.x[i] = x;
       this.z[i] = z;
       _p.set(x, this.y[i]!, z);
-      _q.setFromAxisAngle(_up, this.turn[i]!);
+      // Every cloud lies the same way: a sky full of parallel slabs, square to
+      // the world grid, which is the diagonal on screen.
+      _q.setFromAxisAngle(_up, 0);
       _s.setScalar(this.scale[i]!);
       this.mesh.setMatrixAt(i, _m.compose(_p, _q, _s));
     }

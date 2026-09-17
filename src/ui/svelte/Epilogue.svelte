@@ -95,6 +95,23 @@
           settled(t('epilogue.statFinesNeverPaid')),
           profit(view.profitTotal),
         ];
+      case 'redemption':
+        return [
+          { label: t('epilogue.statYears'), value: years },
+          {
+            label: t('epilogue.statHectaresBurnedBack'),
+            value: String(s.blocksBurned),
+            tone: 'good',
+          },
+          { label: t('epilogue.statForestPlanted'), value: ha(s.forestPlanted), tone: 'good' },
+          {
+            label: t('epilogue.statForestCover'),
+            value: formatPercent(view.forestCover),
+            tone: 'good',
+          },
+          { label: t('epilogue.statDisasters'), value: String(s.disasters) },
+          profit(view.profitTotal),
+        ];
       case 'reboisasi':
         return [
           { label: t('epilogue.statYears'), value: years },
@@ -145,7 +162,7 @@
 
   const look = $derived(v ? LOOK[v.ending] : null);
   const certified = $derived(v ? v.ending === 'clean' || v.ending === 'dirty' : false);
-  const win = $derived(certified || v?.ending === 'reboisasi');
+  const win = $derived(certified || v?.ending === 'reboisasi' || v?.ending === 'redemption');
   const sandbox = $derived(win || v?.ending === 'fade');
   const rewind = $derived(v ? !win && v.rewindYears.length > 0 : false);
   const oldest = $derived(v ? Math.min(...v.rewindYears) : 0);
@@ -180,6 +197,11 @@
         {t('epilogue.presentedWith', { sponsor: '' })}
         <span class="italic">{t('epilogue.sponsorTba')}</span>
       {/if}
+    </div>
+  {/snippet}
+  {#snippet redemptionBody()}
+    <div class="text-base font-extrabold leading-snug text-[#2f7a2b]">
+      “{t('epilogue.redemptionQuote')}”
     </div>
   {/snippet}
   {#snippet presidentBody()}
@@ -226,6 +248,14 @@
       <div class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-5 py-4">
         {#if v.headline}
           {@render note('news', headlineBody, 'bg-[var(--pill)] border-[var(--card-edge)]')}
+        {/if}
+        {#if v.ending === 'redemption'}
+          {@render note(
+            'shop-sapling',
+            redemptionBody,
+            'bg-[#eef7e4] border-[var(--green)]',
+            'epilogue-redemption',
+          )}
         {/if}
         {#if v.ending === 'reboisasi'}
           {@render note(

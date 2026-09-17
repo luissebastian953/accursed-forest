@@ -55,5 +55,10 @@
   "yearStart": "Tahun {year}, awal",
   "keepPlaying": "▸ Lanjut bermain",
   "sandbox": "mode bebas, tak ada akhir lagi",
-  "newEstate": "Kebun baru"
+  "newEstate": "Kebun baru",
+  "kickerRedemption": "Kamu menang: penebusan",
+  "titleRedemption": "Penebusan",
+  "lineRedemption": "Kamu yang membakarnya, dan kamu pula yang bertahun-tahun menanamnya kembali.",
+  "redemptionQuote": "Kamu membakar hutan ini, lalu mengembalikannya, hektare demi hektare, dan tidak mengambil apa pun dari tanah yang kamu buka. Alam tidak menyimpan dendam dan tidak berterima kasih. Ia hanya tumbuh lagi, dan itulah satu-satunya permintaan maaf yang ia terima.",
+  "statHectaresBurnedBack": "Dibakar, lalu ditanami kembali"
 }

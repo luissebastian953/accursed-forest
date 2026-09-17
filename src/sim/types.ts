@@ -204,7 +204,8 @@ export type ItemId =
   | 'sanitationCrew'
   | 'forestSapling';
 
-export type Ending = 'clean' | 'dirty' | 'reboisasi' | 'fade' | 'bankrupt' | 'banned' | 'arrested';
+export type Ending =
+  'clean' | 'dirty' | 'reboisasi' | 'redemption' | 'fade' | 'bankrupt' | 'banned' | 'arrested';
 
 // ── Mobs ──────────────────────────────────────────────────────────────────
 

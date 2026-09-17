@@ -2,7 +2,14 @@ import { describe, expect, it } from 'vitest';
 
 import { autoplay } from '@sim/autoplay.ts';
 import { BIOMES } from '@sim/balance/biomes.ts';
-import { BANKRUPTCY, CHRONICLE, ISPO, OPERATING_BAN, REBOISASI } from '@sim/balance/endings.ts';
+import {
+  BANKRUPTCY,
+  CHRONICLE,
+  ISPO,
+  OPERATING_BAN,
+  REBOISASI,
+  REDEMPTION,
+} from '@sim/balance/endings.ts';
 import { FOREST_GROWTH, GROWTH } from '@sim/balance/growth.ts';
 import { ECONOMY, ITEM_PRICES } from '@sim/balance/prices.ts';
 import { SLOTS_PER_BLOCK } from '@sim/balance/world.ts';
@@ -394,6 +401,40 @@ describe('reboisasi (§3.8, the ending nobody planned for)', () => {
     expect(tickFor(token, 'RunEnded', 3)).toBeNull();
     const even = forestEstate(REBOISASI.minHectares + 4, REBOISASI.minHectares + 3);
     expect(tickFor(even, 'RunEnded', 3)).toBeNull();
+  });
+
+  it('redemption: fire, then the forest back, and never a palm', () => {
+    const sim = forestEstate(REDEMPTION.hectares, 0);
+    sim.state.run.stats.burns = REDEMPTION.burnsAtLeast;
+    sim.state.run.stats.blocksBurned = REDEMPTION.hectares;
+    const ended = tickFor(sim, 'RunEnded', 3);
+    expect(ended?.ending).toBe('redemption');
+    expect(sim.state.society.news.some((n) => n.key === 'ending.redemption')).toBe(true);
+    // A win: the estate can be played on.
+    expect(sim.dispatch({ type: 'KeepPlaying' })).toEqual({ ok: true });
+  });
+
+  it('redemption asks for the fire, the forest, and an estate that never traded', () => {
+    // Trees back, but nothing was ever burned: there is nothing to atone for.
+    const noFire = forestEstate(REDEMPTION.hectares, 0);
+    expect(tickFor(noFire, 'RunEnded', 3)).toBeNull();
+
+    // Burned and replanted, but palms are standing: that is somebody's estate.
+    const withPalms = forestEstate(REDEMPTION.hectares, 2);
+    withPalms.state.run.stats.burns = 1;
+    expect(tickFor(withPalms, 'RunEnded', 3)).toBeNull();
+
+    // Burned, replanted, no palms left, but fruit was sold off it once.
+    const traded = forestEstate(REDEMPTION.hectares, 0);
+    traded.state.run.stats.burns = 1;
+    traded.state.economy.soldKgTotal = 1;
+    expect(tickFor(traded, 'RunEnded', 3)).toBeNull();
+  });
+
+  it('a big replant after a burn is redemption, not reboisasi', () => {
+    const sim = forestEstate(REBOISASI.minHectares + 2, 0);
+    sim.state.run.stats.burns = 1;
+    expect(tickFor(sim, 'RunEnded', 3)?.ending).toBe('redemption');
   });
 
   it('saplings do not count as forest yet', () => {

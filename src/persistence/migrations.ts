@@ -218,6 +218,15 @@ export const MIGRATIONS: readonly Migration[] = [
       }
     },
   },
+  {
+    /**
+     * Redemption: nothing in an old save changes. The bump is so a build that
+     * has never heard of the ending refuses the save rather than choking on
+     * it when it reads `run.ending`.
+     */
+    from: 12,
+    up() {},
+  },
 ];
 
 /**

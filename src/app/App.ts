@@ -443,6 +443,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       clean: ['ispo.clean'],
       dirty: ['ispo.dirty'],
       reboisasi: ['ending.reboisasi'],
+      redemption: ['ending.redemption', 'ending.reboisasi'],
       fade: ['ending.fade'],
       bankrupt: ['ending.bankrupt'],
       banned: ['ending.banned'],

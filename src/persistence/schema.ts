@@ -52,8 +52,9 @@ export const KEY_PREFIX = 'accursed-forest';
  *     reboisasi ending.
  * 12. The canopy: pangolins join the wildlife, mobs carry how far up a tree
  *     they are, and a capybara can be the golden one.
+ * 13. Redemption: a run can end in a way older builds have no name for.
  */
-export const CURRENT_SCHEMA = 12;
+export const CURRENT_SCHEMA = 13;
 
 export type SaveErrorCode = 'missing' | 'corrupt' | 'newerSchema' | 'quota';
 
@@ -254,7 +255,7 @@ const RunSchema = z.object({
   sandbox: z.boolean(),
   endedAt: Tick.optional(),
   ending: z
-    .enum(['clean', 'dirty', 'reboisasi', 'fade', 'bankrupt', 'banned', 'arrested'])
+    .enum(['clean', 'dirty', 'reboisasi', 'redemption', 'fade', 'bankrupt', 'banned', 'arrested'])
     .optional(),
 });
 

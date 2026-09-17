@@ -86,6 +86,16 @@ export const LOOK: Record<Ending, Look> = {
     titleColor: '#2f7a2b',
     numbers: 'epilogue.numbers',
   },
+  redemption: {
+    kicker: 'epilogue.kickerRedemption',
+    title: 'epilogue.titleRedemption',
+    line: 'epilogue.lineRedemption',
+    icon: 'shop-sapling',
+    band: 'linear-gradient(180deg, #ffe9c9, #d9edbe)',
+    badge: '#f6fbec',
+    titleColor: '#2f7a2b',
+    numbers: 'epilogue.numbers',
+  },
   fade: {
     kicker: 'epilogue.kickerFade',
     title: 'epilogue.titleFade',

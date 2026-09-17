@@ -47,6 +47,19 @@ export const REBOISASI = {
 } as const;
 
 /**
+ * Redemption (§3.10, secret): the run of someone who cleared land with fire,
+ * thought better of it, and put the forest back without ever taking a crop
+ * off the ground they burned. Rarer than reboisasi and quieter: it asks for
+ * less land back, but it asks that the estate never became an estate.
+ */
+export const REDEMPTION = {
+  /** At least one burn lit by hand: an accident of lightning is not a sin to atone for. */
+  burnsAtLeast: 1,
+  /** Hectares of grown-back forest, counted the same way reboisasi counts them. */
+  hectares: 2,
+} as const;
+
+/**
  * The bank's patience (§3.8). Palms planted within Kopdes range are collateral:
  * the estate may sit this far in the red per hectare of them. Below that line
  * for `daysInRed` straight days, or below zero with no collateral at all, or
