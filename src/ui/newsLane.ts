@@ -1,8 +1,6 @@
 /**
- * The news feed's three lanes (§8 panels 3, 8, 13): a colour and a label,
- * shared by the ticker and the full feed panel. Plain data, not a
- * component, so either can import it regardless of which has moved to
- * Svelte.
+ * The news feed's three lanes (§8 panels 3, 8, 13): a colour and a message
+ * key, shared by the ticker and the full feed panel.
  */
 
 import type { NewsItem } from '@sim/types';
@@ -13,8 +11,8 @@ export const LANE_TONE: Record<NewsItem['lane'], string> = {
   government: 'bg-[#e04a3a]',
 };
 
-export const LANE_LABEL: Record<NewsItem['lane'], string> = {
-  natural: 'Natural',
-  economic: 'Economic',
-  government: 'Government',
+export const LANE_LABEL_KEY: Record<NewsItem['lane'], string> = {
+  natural: 'news.laneNatural',
+  economic: 'news.laneEconomic',
+  government: 'news.laneGovernment',
 };

@@ -1,0 +1,15 @@
+{
+  "title": "Berita",
+  "newCount": "{n} baru",
+  "filterAll": "Semua",
+  "filterNatural": "Alam",
+  "filterEconomic": "Ekonomi",
+  "filterGovernment": "Negara",
+  "laneNatural": "Alam",
+  "laneEconomic": "Ekonomi",
+  "laneGovernment": "Pemerintah",
+  "severityCritical": "kritis",
+  "severityWarning": "peringatan",
+  "empty": "Belum ada berita.",
+  "markRead": "Tandai semua sudah dibaca"
+}

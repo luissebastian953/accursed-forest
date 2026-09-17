@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'node:url';
+
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig, type Plugin } from 'vite';
@@ -66,8 +68,16 @@ export default defineConfig({
     }),
   ],
   resolve: {
-    // Vite 8 resolves the `@sim/*` style aliases from tsconfig natively.
+    // Vite 8 resolves the `@sim/*` style aliases from tsconfig natively, but
+    // only for imports made from TypeScript; a `.svelte` file's imports go
+    // through the plain resolver, so the same map is spelled out here.
     tsconfigPaths: true,
+    alias: Object.fromEntries(
+      ['app', 'sim', 'render', 'ui', 'input', 'persistence', 'workers', 'shared'].map((layer) => [
+        `@${layer}`,
+        fileURLToPath(new URL(`./src/${layer}`, import.meta.url)),
+      ]),
+    ),
   },
   worker: {
     format: 'es',

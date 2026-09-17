@@ -59,13 +59,13 @@ import { BlockPanel } from '@ui/BlockPanel';
 import { Epilogue } from '@ui/Epilogue';
 import { formatKg, formatRp } from '@ui/format';
 import { Hud, type EventChip } from '@ui/Hud';
-import { KopdesShop } from '@ui/KopdesShop';
-import { NewsPanel } from '@ui/NewsPanel';
 import { START_FADE_MS, StartScreen, type SaveSummary } from '@ui/StartScreen';
 import { AuthorityCards, type CardKind } from '@ui/svelte/authorityCardsState.svelte.ts';
 import { CertificatePanel, YearEndCard } from '@ui/svelte/certificateState.svelte.ts';
 import { ControlsHelp } from '@ui/svelte/controlsHelpState.svelte.ts';
+import { KopdesShop } from '@ui/svelte/kopdesShopState.svelte.ts';
 import { Menu } from '@ui/svelte/menuState.svelte.ts';
+import { NewsPanel } from '@ui/svelte/newsPanelState.svelte.ts';
 import { NewsTicker } from '@ui/svelte/newsTickerState.svelte.ts';
 import { Toasts } from '@ui/svelte/toastsState.svelte.ts';
 

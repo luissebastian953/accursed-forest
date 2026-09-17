@@ -1,0 +1,15 @@
+{
+  "title": "News",
+  "newCount": "{n} new",
+  "filterAll": "All",
+  "filterNatural": "Natural",
+  "filterEconomic": "Economic",
+  "filterGovernment": "Gov't",
+  "laneNatural": "Natural",
+  "laneEconomic": "Economic",
+  "laneGovernment": "Government",
+  "severityCritical": "critical",
+  "severityWarning": "warning",
+  "empty": "Nothing in the news yet.",
+  "markRead": "Mark all as read"
+}
