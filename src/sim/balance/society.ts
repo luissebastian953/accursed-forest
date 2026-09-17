@@ -17,11 +17,11 @@ export const INTEGRITY = {
 
 /**
  * Attention (§3.9): how much the authorities have noticed you, 0..100.
- * Increases are scaled by `0.5 + integrity` — with low integrity the meter
+ * Increases are scaled by `0.5 + integrity`; with low integrity the meter
  * climbs slower (three quarters speed at the starting 0.25).
  */
 export const ATTENTION = {
-  /** Each forest block chopped — small, cumulative. */
+  /** Each forest block chopped; small, cumulative. */
   chopForest: 4,
   /** Each burn, by intensity. */
   burn: { 1: 5, 2: 10, 3: 16 } as Record<1 | 2 | 3, number>,

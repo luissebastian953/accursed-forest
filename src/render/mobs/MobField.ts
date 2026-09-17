@@ -15,7 +15,7 @@
  * The instanced alternative (one `InstancedMesh` per species part) looked
  * cheaper on paper but three's node renderer keys a program on each instanced
  * object, so every part of every species that appeared compiled a fresh
- * shader — seconds of stall each on the software renderer, a hitch on real
+ * shader; seconds of stall each on the software renderer, a hitch on real
  * GPUs. The `nodes` mode (a scene node per part) is kept for the POC's
  * comparison.
  */

@@ -6,7 +6,7 @@
  * an event tint (haze amber-grey, ash grey) on top. Two floats shift the mood of
  * the entire world.
  *
- * Lambert, flat-shaded, no specular — §6.1.
+ * Lambert, flat-shaded, no specular; §6.1.
  */
 
 import { attribute, mix, texture, uniform, vec2, vec4 } from 'three/tsl';

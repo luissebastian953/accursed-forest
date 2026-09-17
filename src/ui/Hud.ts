@@ -124,7 +124,7 @@ interface Tile {
   note?: string;
 }
 
-/** One read-out in the top bar: icon, label, value — and an alert when it bites. */
+/** One read-out in the top bar: icon, label, value, and an alert when it bites. */
 function tile(t: Tile) {
   const tone = t.tone === 'gold' ? 'hud-tile-gold' : t.tone === 'danger' ? 'hud-tile-danger' : '';
   return html`
@@ -174,7 +174,7 @@ export class Hud {
           <div class="flex flex-wrap items-center justify-start gap-2.5">
             ${tile({
               icon: 'coin',
-              label: inDebt ? 'Cash · in debt' : 'Cash',
+              label: inDebt ? 'Cash, in debt' : 'Cash',
               value: html`${formatRp(view.cash)}`,
               tone: inDebt ? 'danger' : 'gold',
               alert: inDebt,
@@ -211,7 +211,7 @@ export class Hud {
               label: 'Forest',
               value: html`<span class=${cover < 25 ? 'text-[#b85e12]' : ''}>${cover}%</span>`,
               testId: 'hud-forest',
-              title: 'Forest cover around the estate — forest holds the slopes when the rains come',
+              title: 'Forest cover around the estate: forest holds the slopes when the rains come',
             })}
             ${
               view.inputIndex > 1.005
@@ -241,7 +241,7 @@ export class Hud {
                     alert: view.attention >= 70,
                     testId: 'attention-gauge',
                     title:
-                      'Attention from the authorities — a letter at 40, police at 70, arrest at 100',
+                      'Attention from the authorities: a letter at 40, police at 70, arrest at 100',
                   })
                 : nothing
             }
@@ -249,7 +249,7 @@ export class Hud {
               view.firePressure > 0.01 || view.wildfire
                 ? tile({
                     icon: 'fire',
-                    label: view.wildfire ? 'Fire · wildfire' : 'Fire',
+                    label: view.wildfire ? 'Fire, wildfire' : 'Fire',
                     value: html`<span class="flex items-center gap-2">
                       <span class="gauge w-20"
                         ><i
@@ -261,7 +261,7 @@ export class Hud {
                     tone: fireOver ? 'danger' : 'plain',
                     alert: fireOver,
                     testId: 'fire-gauge',
-                    title: 'Fire pressure — past the line the fire is no longer yours',
+                    title: 'Fire pressure: past the line the fire is no longer yours',
                   })
                 : nothing
             }
@@ -342,7 +342,7 @@ export class Hud {
             </button>
 
             <div class="label flex items-center gap-2">
-              <span title="Estate code — share it to replay this world">${view.estateCode}</span>
+              <span title="Estate code: share it to replay this world">${view.estateCode}</span>
               <span class="pill-muted px-1.5 py-0.5">${view.backend}</span>
               ${
                 view.saveError
@@ -371,7 +371,7 @@ export class Hud {
                         ${CHIP_ICON[chip.id] ? icon(CHIP_ICON[chip.id]!) : nothing}
                         ${chip.label}${
                           chip.daysLeft !== null
-                            ? html` · <span class="num">${chip.daysLeft} d</span>`
+                            ? html`, <span class="num">${chip.daysLeft} d</span>`
                             : nothing
                         }
                       </span>

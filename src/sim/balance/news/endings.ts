@@ -1,6 +1,6 @@
 /**
- * How a run ends, in the papers (§3.8): the operating ban, the certificate —
- * clean or bought — the fade, and the bank. Every one goes into the chronicle.
+ * How a run ends, in the papers (§3.8): the operating ban, the certificate;
+ * clean or bought; the fade, and the bank. Every one goes into the chronicle.
  */
 
 import type { NewsTemplate } from './types.ts';

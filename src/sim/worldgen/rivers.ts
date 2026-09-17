@@ -2,7 +2,7 @@
  * River tracing (§4.6).
  *
  * One to three rivers run from interior ridge cells to the coast, one block
- * wide. The coast is the border edge with the lowest mean height — all of a
+ * wide. The coast is the border edge with the lowest mean height; all of a
  * map's drainage heads the same way, as a real kabupaten's does. Each river is
  * the least-cost path from its source to any coast cell, where the cost of
  * entering a cell is a step charge plus its weighted height plus a small
@@ -20,7 +20,7 @@
  * and the tests all rely on. The result is a set of water cells plus a distance
  * field, which biome selection uses for the riverbank strip and moisture uses
  * for the wetness boost. Unlike elevation and moisture this cannot be a pure
- * per-cell function — a river is a path — so it is computed once per world.
+ * per-cell function; a river is a path; so it is computed once per world.
  */
 
 import { RIVERS } from '../balance/world.ts';

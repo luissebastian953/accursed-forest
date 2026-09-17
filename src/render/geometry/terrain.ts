@@ -3,7 +3,7 @@
  *
  * The world is a grid of 1-unit columns whose heights are quantised to half-unit
  * steps. Top faces are painted by biome/height, exposed sides by depth. Only
- * faces exposed to a lower neighbour are emitted — at estate scale that culls
+ * faces exposed to a lower neighbour are emitted; at estate scale that culls
  * most of the geometry, which is what keeps a 48x48 chunk inside the
  * ~6-10k triangle budget.
  *
@@ -26,7 +26,7 @@ export interface ColumnField {
   sideSlot: number;
   /** Palette slot for the deepest exposed band (rock under the soil). */
   deepSlot?: number;
-  /** Y below which nothing is drawn — the underside of the diorama slab. */
+  /** Y below which nothing is drawn; the underside of the diorama slab. */
   floorY: number;
   /**
    * Columns within `inset` of the field's edge are neighbour context only:
@@ -47,7 +47,7 @@ function heightAt(field: ColumnField, x: number, z: number): number {
 }
 
 /**
- * Mesh a column field. `decorate` may add more boxes to the same builder —
+ * Mesh a column field. `decorate` may add more boxes to the same builder;
  * the chunk mesher grows its trees and rocks there, so they ship as one mesh.
  */
 export function buildColumnArrays(

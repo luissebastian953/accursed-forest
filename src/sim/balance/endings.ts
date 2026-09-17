@@ -28,9 +28,9 @@ export const ISPO = {
 
 /**
  * Reboisasi: the ending nobody planned for. An estate that has put more of
- * its land back to forest than it holds in palms — by a clear margin, and not
- * a token strip — is called at the close of the year, from the same year the
- * ISPO checklist opens. Young forest counts; saplings do not.
+ * its land back to forest than it holds in palms, by a clear margin and not
+ * a token strip, is called at the close of the year, from the same year the
+ * ISPO checklist opens. Young forest counts, saplings do not.
  */
 export const REBOISASI = {
   /** Reforested hectares must beat palm hectares by at least this many. */
@@ -49,8 +49,8 @@ export const REBOISASI = {
 /**
  * The bank's patience (§3.8). Palms planted within Kopdes range are collateral:
  * the estate may sit this far in the red per hectare of them. Below that line
- * for `daysInRed` straight days — or below zero with no collateral at all, or
- * with the licence suspended — the loans are called.
+ * for `daysInRed` straight days, or below zero with no collateral at all, or
+ * with the licence suspended, the loans are called.
  */
 export const BANKRUPTCY = {
   daysInRed: 90,
@@ -59,7 +59,7 @@ export const BANKRUPTCY = {
 
 /**
  * The enforcement roll on burn-to-clear (§3.8). It only rolls while integrity
- * is high — which only happens after a scandal made the news — so an operating
+ * is high, which only happens after a scandal made the news, so an operating
  * ban is rare and always has a headline before it.
  */
 export const OPERATING_BAN = {

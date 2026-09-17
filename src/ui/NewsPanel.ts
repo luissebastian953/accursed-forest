@@ -173,7 +173,7 @@ export class NewsPanel {
                             ? html`<div
                                 class="mt-2 rounded-xl bg-[var(--card)] px-3 py-1.5 text-xs font-extrabold text-[#b85e12]"
                               >
-                                → ${item.effects.join(' · ')}
+                                → ${item.effects.join(', ')}
                               </div>`
                             : nothing
                         }

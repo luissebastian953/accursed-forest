@@ -2,7 +2,7 @@
  * From world + estate to a column field for one chunk (§6.3, §6.7).
  *
  * Column height for wild land is the bilinear blend of the four nearest
- * blocks' continuous heights, quantised to half-unit steps — smooth ground
+ * blocks' continuous heights, quantised to half-unit steps; smooth ground
  * that reads as staircases, and never a one-column pit (bilinear is monotone
  * between samples; the art spike learned that lesson the hard way). Planted,
  * cleared and Kopdes blocks are levelled terraces at the block's base height,
@@ -120,7 +120,7 @@ const TERRACED: ReadonlySet<BlockPhase> = new Set(['cleared', 'planted', 'refore
  * The height of the land the mesher draws under world point (x, z): a flat
  * terrace on cleared, planted and Kopdes blocks, otherwise the same bilinear
  * blend of neighbouring block heights the columns use, snapped to the same
- * quantum. Anything standing on the ground — mobs, cars, felled trees — must
+ * quantum. Anything standing on the ground; mobs, cars, felled trees; must
  * use this, or it floats or sinks wherever the two formulas disagree. (The
  * river's cut is not applied; nothing should be standing in the river.)
  */
@@ -344,7 +344,7 @@ function warpedBiome(
   return sampled === 'river' ? biome : sampled;
 }
 
-/** Field + mesh + props in one call — what the worker runs per request. */
+/** Field + mesh + props in one call; what the worker runs per request. */
 export function buildChunkArrays(
   world: World,
   cx: number,

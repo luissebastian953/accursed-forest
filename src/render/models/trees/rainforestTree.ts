@@ -1,6 +1,6 @@
 /**
  * Lowland rainforest tree: a tall, bare trunk carrying flat umbrella layers
- * of canopy — the dipterocarp silhouette of a Kalimantan forest.
+ * of canopy; the dipterocarp silhouette of a Kalimantan forest.
  */
 
 import { Palette } from '../../materials/paletteSlots.ts';

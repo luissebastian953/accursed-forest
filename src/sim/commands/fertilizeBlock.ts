@@ -30,7 +30,7 @@ export const fertilizeBlock: CommandHandler<FertilizeBlock> = {
       );
     }
     if (state.inventory.fertilizer < 1) {
-      return reject('noInventory', 'No fertilizer in stock — buy some at the Kopdes.');
+      return reject('noInventory', 'No fertilizer in stock; buy some at the Kopdes.');
     }
     return null;
   },

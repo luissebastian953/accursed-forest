@@ -1,7 +1,7 @@
 /**
  * HireWorker / DismissWorker: the Kopdes puts people on the payroll. A hired
  * worker is a mob that stays until dismissed, is paid every day, and finds
- * its own jobs — debris for the sanitizer, sick palms for the plant doctor,
+ * its own jobs; debris for the sanitizer, sick palms for the plant doctor,
  * ripe blocks and thieves for the guard.
  */
 
@@ -19,7 +19,7 @@ export const hireWorker: CommandHandler<HireWorker> = {
     const { state } = ctx;
     const spec = WORKERS[command.kind];
     if (!state.kopdes)
-      return reject('noKopdes', 'Build a Kopdes first — that is where workers report.');
+      return reject('noKopdes', 'Build a Kopdes first; that is where workers report.');
     if (state.mobs.some((m) => m.hired && m.species === command.kind)) {
       return reject('occupied', `You already employ a ${spec.label.toLowerCase()}.`);
     }

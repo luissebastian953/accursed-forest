@@ -3,7 +3,7 @@
 A browser management sim about turning wild land into a working oil-palm estate:
 clear terrain, plant _bibit_, wait out the immature years, harvest _TBS_ on a
 rotation, sell through your _Kopdes_, and live with what your clearing choices
-invite — pests, landslides, haze, and the letters from the district office.
+invite: pests, landslides, haze, and the letters from the district office.
 
 Vite + TypeScript + Three.js (WebGPU with a WebGL 2 fallback). No backend; saves
 live in `localStorage`.
@@ -15,14 +15,14 @@ Section references in the code (`§6.5`, `§4.1`, …) point into it.
 
 **M1a–M1g done: skeleton, loop, terrain & expansion, pests, weather & events,
 news & authority, endings.** A run now has an end. Meet the five ISPO
-conditions — profit, bearing hectares, no burns, forest on the slopes, a
-full Kopdes — and the Ministry sends a banner; with low integrity the burn
+conditions: profit, bearing hectares, no burns, forest on the slopes, a
+full Kopdes, and the Ministry sends a banner. With low integrity the burn
 and forest conditions can be waived, and the epilogue tells that dirty win
 plainly. Fall below the bank's credit line (Rp 20M per planted hectare in
 Kopdes range) for 90 days and the loans are called; burn while an honest
 enforcement team is in office and the estate can be shut for two years.
-Put more land back to young forest than you hold in palms — by two clear
-hectares, six at least — and the run ends in _reboisasi_, the ending nobody
+Put more land back to young forest than you hold in palms, by two clear
+hectares and six at least, and the run ends in _reboisasi_, the ending nobody
 planned for. Twenty-five years without a certificate is the fade. Every ending replays
 the run as a chain of headlines, and losses offer "Return to Year N" from
 start-of-year snapshots. M1h (polish: toasts, block panel rejections, the stats
@@ -53,7 +53,7 @@ panel, the balance sweep, README) is next.
 | Endgame: on a win the President's motorcade pulls up to the Kopdes door        | done                     |
 | Far-LOD heatmap tiles, GPU per-instance animation, forest box-trees            | deferred until they bite |
 
-Tests: 323 unit (Vitest) and 12 browser (Playwright, WebGL fallback) — the
+Tests: 323 unit (Vitest) and 12 browser (Playwright, WebGL fallback). The
 browser suite plays the loop end to end, lights a wildfire on purpose, and
 lets beetles loose on an unsanitized block.
 
@@ -61,7 +61,7 @@ lets beetles loose on an unsanitized block.
 
 ```bash
 pnpm install
-pnpm dev            # http://localhost:5173 — the landing page; the game is /play.html
+pnpm dev            # http://localhost:5173, the landing page; the game is /play.html
 ```
 
 Two pages: `index.html` is a static landing page (real HTML for search
@@ -85,7 +85,7 @@ The landing page exists in English (`/`) and Indonesian (`/id/`), cross-linked
 with `hreflang` (also in the sitemap), each with scenario sections (forest
 fire / kebakaran hutan, deforestation / penebangan hutan, reboisasi, petani
 sawit, minyak sawit, pests), a bilingual glossary and an FAQ with `FAQPage`
-schema — the terms people search for, used where they mean something, rather
+schema: the terms people search for, used where they mean something, rather
 than a keyword list.
 
 The interface follows the cartoon UI kit: cream cards with a hard bottom
@@ -94,23 +94,23 @@ it cannot be fetched), and the 35 flat icons in `public/icons`. The tokens
 and the handful of component classes live in `src/ui/styles.css`.
 
 Mobs walk the estate: wild boar, pigs, mice, cows, a capybara by the river,
-monkeys and orangutans in the forest. They live on a small repertoire —
+monkeys and orangutans in the forest. They live on a small repertoire:
 stand about, mill around a spot, cross the estate or circle a patch, and
-sleep on their side with Zs drifting up — at a stroll, and pick the next
+sleep on their side with Zs drifting up, at a stroll, and pick the next
 thing when the last runs out. A thief comes for ripe fruit now and then:
 creeps to the trees by the block, waits a day or three crouched in the
 canopy, dashes in low, and dashes back with the sack. A security guard from
 the Kopdes gets a post hut on the corner of the block, patrols the estate at
 a walk between rests there, keeps most thieves away and catches the rest.
 Rarer still, a pig ambles up to the Kopdes, stands on two legs, the cash box
-is lighter — and the babi ngepet runs the estate upright for three days, then
+is lighter, and the babi ngepet runs the estate upright for three days, then
 is simply gone. Workers hired at the Kopdes (sanitation, plant doctor,
 security) cost a wage a day and find their own jobs; a crew of four works
 every block being chopped or burned, each swinging at a tree for a few days
 before moving to the next, and a forest block gives up a tree at each quarter of the chop. Every mob lives in the sim as
 data, drawn from its own random stream, so a save replays the same visitors.
 The renderer poses every body part on the CPU and skins the whole crowd into
-one merged mesh per material — two draw calls, no new shaders
+one merged mesh per material: two draw calls, no new shaders
 (`src/render/mobs/`); the `?mobs` page measures why.
 
 URL flags: `?webgl` forces the WebGL 2 fallback CI uses; `?seed=42` picks a
@@ -136,7 +136,7 @@ block, double-click to focus it, **space** pauses, **1/2/3** set speed,
 | `pnpm lint`      | ESLint + Prettier check                                   |
 | `pnpm format`    | Prettier write                                            |
 | `pnpm knip`      | unused files, exports and dependencies                    |
-| `pnpm commit`    | Commitizen — Conventional Commits with layer scopes       |
+| `pnpm commit`    | Commitizen, Conventional Commits with layer scopes        |
 
 ## Architecture
 
@@ -149,7 +149,7 @@ sim/          pure TS: state, commands, systems, events, RNG
 shared/       math, event bus, typed-array helpers
 ```
 
-`sim/` imports nothing from above it — no Three.js, no DOM, no timers, no
+`sim/` imports nothing from above it: no Three.js, no DOM, no timers, no
 `Date.now()`, no `Math.random()`. This is enforced by `eslint-plugin-boundaries`
 and a set of restricted-global rules, so a violation fails the build. See
 `docs/adr/0001-pure-sim-core.md`.
@@ -163,7 +163,7 @@ so a seed plus a command log replays a run exactly.
 src/
 ├── app/          composition root, game loop, time control, the art spike
 ├── sim/          the simulation (pure)
-│   ├── rng.ts    xoshiro128** — the only source of randomness
+│   ├── rng.ts    xoshiro128**, the only source of randomness
 │   ├── worldgen/ f(seed, x, y)
 │   ├── commands/ one file per command
 │   ├── systems/  weather → worldEvents → terrain → growth → pest → …
@@ -179,6 +179,6 @@ src/
 
 - TypeScript strict, plus `noUncheckedIndexedAccess` and
   `exactOptionalPropertyTypes`.
-- No magic numbers in systems — tunables live in `sim/balance/*`.
+- No magic numbers in systems: tunables live in `sim/balance/*`.
 - Conventional Commits, scoped by layer (`feat(sim):`, `fix(render):`).
 - One ADR in `docs/adr/` per decision that would be expensive to reverse.

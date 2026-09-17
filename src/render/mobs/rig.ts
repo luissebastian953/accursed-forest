@@ -1,14 +1,14 @@
 /**
  * The mob rig (POC).
  *
- * A mob is a tree of box parts — body, head, legs, tail — each with a pivot
+ * A mob is a tree of box parts; body, head, legs, tail; each with a pivot
  * and a role. `pose()` is the whole animation system: it reads the clock, the
  * mob's phase and how fast it is moving, and returns a local transform per
  * part. A walk is legs swinging out of phase, a body bobbing on the step, a
  * head that sways and a tail that wags.
  *
  * Nothing here touches the scene graph, so the same rig drives both ways of
- * drawing a crowd — a node per part, or every part skinned into one mesh.
+ * drawing a crowd; a node per part, or every part skinned into one mesh.
  * `MobField` measures the two against each other; see `app/MobPoc.ts`.
  * Beyond the walk it knows how to sleep (rolled on one side), crouch (the
  * thief) and work (a two-armed swing at whatever is in front of it).

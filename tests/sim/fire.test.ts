@@ -192,8 +192,8 @@ describe('wildfire (§3.1.1)', () => {
       code: 'noFuel',
     });
 
-    // Light it the way a wildfire would — in the dry season, so rain does not
-    // save the palms — and let it burn through.
+    // Light it the way a wildfire would; in the dry season, so rain does not
+    // save the palms; and let it burn through.
     toDrySeason(sim);
     const ctx = { state: sim.state, world: sim.world, events: new EventSink() };
     ignite(ctx, block, 3);
@@ -233,7 +233,7 @@ describe('fire spread (§3.1.1)', () => {
     expect(high).toBeGreaterThan(0);
   });
 
-  it('fire that spreads into unowned land materialises it — you own the consequences', () => {
+  it('fire that spreads into unowned land materialises it; you own the consequences', () => {
     const sim = createSim(42);
     toDrySeason(sim);
     sim.state.weather.regime = 'elNino';

@@ -4,7 +4,7 @@
  * It does the sensible, boring thing: build the Kopdes on day one, chop the
  * nearest owned blocks, buy bibit and plant as soon as land is cleared, and
  * harvest every block the day it is ripe. With `managePests` it also does the
- * sanitation and pest work a careful player would. Nothing clever — the point
+ * sanitation and pest work a careful player would. Nothing clever; the point
  * is to see what the numbers do to a player who simply follows the loop.
  */
 
@@ -63,7 +63,7 @@ export interface YearRow {
 export interface AutoplayResult {
   sim: Sim;
   rows: YearRow[];
-  /** Lowest cash seen at any tick — the reserve a player needed to survive. */
+  /** Lowest cash seen at any tick; the reserve a player needed to survive. */
   lowestCash: number;
   /** How the run ended, if it did, and in which year. */
   ending: Ending | null;

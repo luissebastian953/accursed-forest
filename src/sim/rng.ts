@@ -1,5 +1,5 @@
 /**
- * xoshiro128** — the single seeded PRNG for the whole simulation (§4.3).
+ * xoshiro128**; the single seeded PRNG for the whole simulation (§4.3).
  *
  * Hand-written on purpose: the state must be plain, serialisable numbers so a
  * save file can restore the exact stream position, and every random draw in
@@ -16,7 +16,7 @@ export interface RngState {
   d: number;
 }
 
-/** splitmix32 — expands a single seed into well-mixed 32-bit words. */
+/** splitmix32; expands a single seed into well-mixed 32-bit words. */
 function splitmix32(seed: number): () => number {
   let x = seed | 0;
   return () => {
@@ -69,7 +69,7 @@ export function nextUint32(state: RngState): number {
   return result;
 }
 
-/** Uniform in [0, 1). 24 bits of mantissa — plenty for game randomness. */
+/** Uniform in [0, 1). 24 bits of mantissa; plenty for game randomness. */
 export function nextFloat(state: RngState): number {
   return (nextUint32(state) >>> 8) / 0x1000000;
 }
@@ -98,7 +98,7 @@ export function pick<T>(state: RngState, items: readonly T[]): T | undefined {
 }
 
 /**
- * Pick an index by weight — the event deck draw (§3.6) and the news template
+ * Pick an index by weight; the event deck draw (§3.6) and the news template
  * picker both need this. Returns -1 if every weight is zero.
  */
 export function pickWeighted(state: RngState, weights: readonly number[]): number {

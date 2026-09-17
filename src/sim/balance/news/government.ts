@@ -127,7 +127,7 @@ export const GOVERNMENT: Record<string, NewsTemplate> = {
     bodies: [
       'Sources describe a "coordination fee" of {cost}. The case file could not be found this morning.',
     ],
-    effects: ['Ban lifted', 'Attention eased — for now'],
+    effects: ['Ban lifted', 'Attention eased; for now'],
   },
   'authority.closed': {
     lane: 'government',

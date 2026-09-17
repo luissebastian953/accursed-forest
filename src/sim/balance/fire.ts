@@ -30,14 +30,14 @@ export const FIRE = {
    * of standing forest: dry canopy and litter catch where grass would not.
    * Lightning and drought fires do not spread at all (`weather.naturalFires`):
    * they burn their block out and stop, so an act of God never costs the
-   * player the hillside — only their own matches do.
+   * player the hillside; only their own matches do.
    */
   forestSpreadFactor: 3,
 
   /**
    * A wildfire's own daily spread chance per neighbour, replacing the block's
    * intensity. Tuned by burned area over a dry season: ~50 blocks in two
-   * months and ~95 over the season in a normal year — a disaster for a
+   * months and ~95 over the season in a normal year; a disaster for a
    * 64-block estate, not a map reset. (0.4 burned a quarter of the map.)
    */
   wildfireSpreadPerDay: 0.3,
@@ -52,7 +52,7 @@ export const FIRE = {
   /**
    * The same for a wildfire, gentler: its reproduction rate sits near 1, so
    * doubling it burned two thirds of the map, ×1.25 a fifth, ×1.1 a few hundred
-   * blocks — the bad-year haze story without erasing the world.
+   * blocks; the bad-year haze story without erasing the world.
    */
   wildfireRegimeMultiplier: {
     normal: 1,
@@ -64,7 +64,7 @@ export const FIRE = {
    * Fuel dryness from block moisture: 1 at or below `fuelWetAt − fuelDryRange`,
    * 0 at or above `fuelWetAt`, raised to `moistureResistance`. Dry-season
    * ground (~0.4) reads ~0.6; riverbanks and irrigated blocks are firebreaks.
-   * Soil moisture is not fuel dryness — an earlier (1 − moisture) term choked
+   * Soil moisture is not fuel dryness; an earlier (1 − moisture) term choked
    * every fire and made the wildfire a hair-trigger between 3 and 600 blocks.
    */
   fuelWetAt: 0.7,

@@ -184,7 +184,7 @@ export interface Economy {
   /** 1.0 baseline; shop prices are `base * index` (§3.7). */
   inputPriceIndex: number;
   ledger: LedgerEntry[];
-  /** Recent daily prices, newest last — the HUD trend and sparkline. */
+  /** Recent daily prices, newest last; the HUD trend and sparkline. */
   tbsPriceHistory: number[];
   /**
    * Kilograms harvested this tick, awaiting sale. The economy system sells

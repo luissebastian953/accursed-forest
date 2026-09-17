@@ -1,7 +1,7 @@
 /**
  * Economy system (§3.3, §3.5): sell the day's TBS, charge upkeep, walk the price.
  *
- * The price is a bounded random walk pulled back toward a long-run mean — mild
+ * The price is a bounded random walk pulled back toward a long-run mean; mild
  * market pressure, not a market. Macro shocks and the input price index move
  * with the news system (M1f).
  */

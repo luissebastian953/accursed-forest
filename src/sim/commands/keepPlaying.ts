@@ -1,5 +1,5 @@
 /**
- * KeepPlaying (§3.8): after the certificate or the fade, carry on in sandbox —
+ * KeepPlaying (§3.8): after the certificate or the fade, carry on in sandbox;
  * the same estate, no further end checks. Losses have no sandbox; they have
  * the rewind.
  */

@@ -29,7 +29,7 @@ export function chopCost(biome: keyof typeof BIOMES, state?: SimState): number {
 
 export function investigationReason(state: SimState): string {
   const until = state.society.investigationUntil;
-  return `Under police investigation — no chopping or burning until year ${Math.floor(until / 360) + 1}, day ${(until % 360) + 1}.`;
+  return `Under police investigation; no chopping or burning until year ${Math.floor(until / 360) + 1}, day ${(until % 360) + 1}.`;
 }
 
 export const chopBlock: CommandHandler<ChopBlock> = {

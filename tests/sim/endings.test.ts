@@ -205,7 +205,7 @@ describe('ISPO certification (§3.8)', () => {
     expect(sim.dispatch({ type: 'BuyItem', item: 'bibit', quantity: 1 })).toEqual({ ok: true });
     expect(sim.dispatch({ type: 'KeepPlaying' })).toMatchObject({ code: 'wrongPhase' });
 
-    // Sandbox: time runs, and nothing ends the run again — not even bankruptcy.
+    // Sandbox: time runs, and nothing ends the run again; not even bankruptcy.
     sim.state.economy.cash = -1e12;
     for (let i = 0; i < BANKRUPTCY.daysInRed + 10; i++) sim.tick();
     expect(sim.state.tick).toBe(tick + BANKRUPTCY.daysInRed + 10);
@@ -316,7 +316,7 @@ describe('the operating ban (§3.8)', () => {
     }
   });
 
-  it('shuts clearing and palm planting — not reforestation — and the bank lends nothing', () => {
+  it('shuts clearing and palm planting; not reforestation; and the bank lends nothing', () => {
     let sim: Sim | null = null;
     for (let seed = 1; seed <= 32 && !sim; seed++) {
       const candidate = burnUnderHonestOffice(seed);

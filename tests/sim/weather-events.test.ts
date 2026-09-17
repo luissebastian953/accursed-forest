@@ -28,7 +28,7 @@ function ownedWild(sim: Sim): BlockId[] {
   return out;
 }
 
-/** The owned, wild, clearable block nearest the Kopdes block — inside its range. */
+/** The owned, wild, clearable block nearest the Kopdes block; inside its range. */
 function nearWild(sim: Sim): BlockId {
   const [kx, ky] = sim.world.toXY(sim.state.worldGen.kopdesBlock);
   let best = -1;

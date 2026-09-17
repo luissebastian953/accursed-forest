@@ -117,7 +117,7 @@ describe('save round-trip (§7)', () => {
     expect(fingerprint(loaded)).toBe(fingerprint(sim.state));
   });
 
-  it('a restored sim continues identically — the RNG position survives the trip', () => {
+  it('a restored sim continues identically; the RNG position survives the trip', () => {
     const sim = workedEstate();
     const slot = slotFor();
     slot.save(sim.state);

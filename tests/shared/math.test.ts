@@ -23,7 +23,7 @@ describe('shared math', () => {
   it('lerps and inverse-lerps', () => {
     expect(lerp(10, 20, 0.25)).toBe(12.5);
     expect(invLerp(10, 20, 12.5)).toBe(0.25);
-    // Degenerate range must not produce NaN — balance tables can be flat.
+    // Degenerate range must not produce NaN; balance tables can be flat.
     expect(invLerp(5, 5, 5)).toBe(0);
     expect(remap(5, 0, 10, 100, 200)).toBe(150);
   });
@@ -34,7 +34,7 @@ describe('shared math', () => {
     expect(smoothstep(0, 1, 0.5)).toBeCloseTo(0.5, 10);
   });
 
-  it('mod is always non-negative — wrapping dayOfYear depends on it', () => {
+  it('mod is always non-negative; wrapping dayOfYear depends on it', () => {
     expect(mod(-1, 360)).toBe(359);
     expect(mod(360, 360)).toBe(0);
     expect(mod(721, 360)).toBe(1);

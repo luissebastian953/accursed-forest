@@ -41,7 +41,7 @@ import { clamp01, lerp } from '@shared/math.ts';
 
 /** Palms per block side (§2: block = 1 ha = 12x12 = 144 palms). */
 const BLOCK = 12;
-/** Terrain columns per side — the block plus a margin so the edges can step down. */
+/** Terrain columns per side; the block plus a margin so the edges can step down. */
 const FIELD = 18;
 const MARGIN = (FIELD - BLOCK) / 2;
 const PALM_COUNT = BLOCK * BLOCK;
@@ -141,7 +141,7 @@ export async function startSpike(root: HTMLElement): Promise<() => void> {
   const basePosition: Vector3[] = [];
   for (let row = 0; row < BLOCK; row++) {
     for (let col = 0; col < BLOCK; col++) {
-      // Slight triangular offset per row — real palms are not on a square grid.
+      // Slight triangular offset per row; real palms are not on a square grid.
       const x = MARGIN + col + 0.5 + (row % 2 === 0 ? 0 : 0.5);
       const z = MARGIN + row + 0.5;
       basePosition.push(new Vector3(x, 0, z));
@@ -306,7 +306,7 @@ interface OverlayHandlers {
   onReplant: () => void;
 }
 
-/** Plain DOM overlay — the real HUD is lit-html + Tailwind (§8, §10.2). */
+/** Plain DOM overlay; the real HUD is lit-html + Tailwind (§8, §10.2). */
 function buildOverlay(root: HTMLElement, handlers: OverlayHandlers): HTMLElement {
   const panel = document.createElement('div');
   panel.className =

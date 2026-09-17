@@ -76,7 +76,7 @@ const HALO_SPILL = 0.35;
 /**
  * The selection ring (§8 #11): a flat blue frame on the block with an
  * additive halo glowing out of it, pulsing gently. Unlit and brighter than
- * white, so it reads against any ground — and blooms when the glow pass is on.
+ * white, so it reads against any ground; and blooms when the glow pass is on.
  */
 export class SelectionRing {
   readonly group = new Group();

@@ -16,7 +16,7 @@ export function formatKg(kilograms: number): string {
 export function formatDate(tick: number): string {
   const year = Math.floor(tick / GROWTH.daysPerYear) + 1;
   const day = (tick % GROWTH.daysPerYear) + 1;
-  return `Year ${year} · Day ${day}`;
+  return `Year ${year}, Day ${day}`;
 }
 
 export function formatPercent(value: number): string {

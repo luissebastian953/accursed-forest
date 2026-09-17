@@ -4,8 +4,8 @@
  * A real estate (seed 42, streamed chunks) with a crowd of rigged mobs walking
  * over it, and a readout of what they cost: frame time, the time spent posing
  * them, draw calls and triangles. Buttons set the crowd size and switch between
- * the two ways of drawing it — one scene node per body part, or every part
- * skinned on the CPU into one merged mesh — so the question "will this make
+ * the two ways of drawing it; one scene node per body part, or every part
+ * skinned on the CPU into one merged mesh; so the question "will this make
  * the game heavy?" gets a
  * number rather than an opinion. "Chop a tree" plays the tree-fall animation.
  *
@@ -144,7 +144,7 @@ export async function startMobPoc(root: HTMLElement): Promise<() => void> {
       const tree = falling[i]!;
       const t = nowMs - tree.startedAt;
       if (t < FALL_MS) {
-        // Tips slowly, then accelerates — and bounces once on the ground.
+        // Tips slowly, then accelerates; and bounces once on the ground.
         const f = t / FALL_MS;
         const angle =
           f < 0.8 ? easeInQuad(f / 0.8) : 1 - (1 - easeOutBounce((f - 0.8) / 0.2)) * 0.08;
@@ -214,12 +214,12 @@ export async function startMobPoc(root: HTMLElement): Promise<() => void> {
       <div class="flex gap-1">${modeButtons}</div>
       <div class="flex gap-1">${button('Chop a tree', false, 'mobs-chop')}</div>
       <div class="pill num text-xs leading-relaxed" data-testid="mobs-stats">
-        <div>mobs <b>${mobs.count}</b> · ${SPECIES_IDS.length} species · ${handle.backend}</div>
-        <div>frame <b id="stat-frame">–</b> ms · <b id="stat-fps">–</b> fps</div>
+        <div>mobs <b>${mobs.count}</b>, ${SPECIES_IDS.length} species, ${handle.backend}</div>
+        <div>frame <b id="stat-frame">–</b> ms, <b id="stat-fps">–</b> fps</div>
         <div>posing <b id="stat-update">–</b> ms/frame</div>
-        <div>draw calls <b id="stat-calls">–</b> · tris <b id="stat-tris">–</b></div>
+        <div>draw calls <b id="stat-calls">–</b>, tris <b id="stat-tris">–</b></div>
       </div>
-      <div class="muted text-xs">Drag to pan · wheel to zoom</div>
+      <div class="muted text-xs">Drag to pan, wheel to zoom</div>
     `;
     panel.querySelectorAll<HTMLButtonElement>('button[data-act]').forEach((el) => {
       el.addEventListener('click', () => actions.get(el.dataset['act']!)?.());

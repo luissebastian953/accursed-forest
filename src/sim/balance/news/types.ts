@@ -1,7 +1,7 @@
 /**
  * A headline template (§3.7). Templates are data with slot variables and
  * several phrasings each, so the feed does not repeat itself. Institutions
- * and people are fictional and generic — the Palace, the Ministry, a governor,
+ * and people are fictional and generic; the Palace, the Ministry, a governor,
  * a regional police chief. Satire targets institutions, never persons.
  *
  * Slots: {region} {estate} {n} {days} {pct} {price} {block} {until} {cost}

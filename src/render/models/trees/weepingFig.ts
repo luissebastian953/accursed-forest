@@ -1,6 +1,6 @@
 /**
  * Weeping fig (beringin): a short, massive trunk under a wide dome, with
- * aerial roots dropping from the crown to the ground — the village tree.
+ * aerial roots dropping from the crown to the ground; the village tree.
  */
 
 import { Palette } from '../../materials/paletteSlots.ts';

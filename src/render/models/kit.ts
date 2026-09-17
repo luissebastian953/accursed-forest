@@ -1,7 +1,7 @@
 /**
  * The model kit (§6.3): every scenery model is a function that adds boxes to
- * a `BoxBuilder` at a placement. Models describe themselves in local space —
- * origin on the ground at the model's foot, +Y up — and the kit applies the
+ * a `BoxBuilder` at a placement. Models describe themselves in local space;
+ * origin on the ground at the model's foot, +Y up; and the kit applies the
  * placement's position, turn and scale.
  *
  * Models draw from `rand`, a 0..1 source the caller seeds per spot, so the

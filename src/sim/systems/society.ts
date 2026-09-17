@@ -1,7 +1,7 @@
 /**
  * Society system (§3.7, §3.9): the macro-economic deck, the hidden integrity
  * stat, and the authority meter. Runs after the economy and before the news,
- * reading everything that happened this tick — including commands dispatched
+ * reading everything that happened this tick; including commands dispatched
  * since the last one, whose events wait in the same sink.
  */
 
@@ -218,7 +218,7 @@ function authority(ctx: SimContext): void {
     s.warningLevel = 0;
   }
 
-  // Quiet days forget — after the checks, so a meter sitting at a threshold still trips it.
+  // Quiet days forget; after the checks, so a meter sitting at a threshold still trips it.
   s.attention -= ATTENTION.decayPerDay + reforesting * ATTENTION.reforestTricklePerBlock;
   s.attention = clamp(s.attention, 0, ATTENTION.max);
 }
@@ -235,7 +235,7 @@ export function operatingBanned(state: SimState): boolean {
 
 export function operatingBanReason(state: SimState): string {
   const until = state.society.operatingBanUntil;
-  return `Operating licence suspended — no clearing, palm planting or harvest until year ${Math.floor(until / 360) + 1}, day ${(until % 360) + 1}.`;
+  return `Operating licence suspended; no clearing, palm planting or harvest until year ${Math.floor(until / 360) + 1}, day ${(until % 360) + 1}.`;
 }
 
 /** Clearing costs while a letter or investigation stands (§3.9). */

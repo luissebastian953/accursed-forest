@@ -1,6 +1,6 @@
 /**
  * Where the scenery grows (§6.1, §6.3). The models live in `render/models/`;
- * this file is the ecology — which of them each kind of land carries, and
+ * this file is the ecology; which of them each kind of land carries, and
  * how thickly.
  *
  * - forest: rainforest trees, the odd emergent giant hung with vines, fallen

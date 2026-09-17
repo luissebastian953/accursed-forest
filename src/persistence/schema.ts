@@ -34,21 +34,21 @@ export const KEY_PREFIX = 'accursed-forest';
 /**
  * Bump on any breaking change to the save shape; add a migration alongside.
  *
- * 1 — M1a: blocks, palms, economy, weather, society, run, command log.
- * 2 — M1b: economy gains tbsPriceHistory, tbsPending, soldKgTotal.
- *     M1c added command variants (burn, sanitize, irrigate, drain) without a
- *     bump: a v2 save's command log only ever holds commands that existed.
- * 3 — M1d: palm arrays gain ganodermaSince and trenched.
- * 4 — M1f: news items gain a template key; society gains lettersReceived.
- * 5 — M1g: run gains profit books, stats, year summaries, the chronicle and
- *     sandbox, and loses yearSnapshots (the snapshots are storage keys);
- *     society gains operatingBanUntil; the ledger gains the `capital` kind.
- * 6 — M1 balance pass: the Kopdes gains the auto-harvest toggle.
- * 7 — M1 weather pass: the weather carries the day's sky.
- * 8 — Mobs: the head carries the mobs on the estate and the next mob id.
- * 9 — Weather spells: the weather carries how long the sky holds.
- * 10 — Mob repertoire: mobs carry a behaviour timer, an anchor and a heading.
- * 11 — Natural fires: the weather lists the blocks lightning lit; the
+ * 1. M1a: blocks, palms, economy, weather, society, run, command log.
+ * 2. M1b: economy gains tbsPriceHistory, tbsPending, soldKgTotal.
+ *    M1c added command variants (burn, sanitize, irrigate, drain) without a
+ *    bump: a v2 save's command log only ever holds commands that existed.
+ * 3. M1d: palm arrays gain ganodermaSince and trenched.
+ * 4. M1f: news items gain a template key; society gains lettersReceived.
+ * 5. M1g: run gains profit books, stats, year summaries, the chronicle and
+ *    sandbox, and loses yearSnapshots (the snapshots are storage keys);
+ *    society gains operatingBanUntil; the ledger gains the `capital` kind.
+ * 6. M1 balance pass: the Kopdes gains the auto-harvest toggle.
+ * 7. M1 weather pass: the weather carries the day's sky.
+ * 8. Mobs: the head carries the mobs on the estate and the next mob id.
+ * 9. Weather spells: the weather carries how long the sky holds.
+ * 10. Mob repertoire: mobs carry a behaviour timer, an anchor and a heading.
+ * 11. Natural fires: the weather lists the blocks lightning lit, and the
  *     reboisasi ending.
  */
 export const CURRENT_SCHEMA = 11;

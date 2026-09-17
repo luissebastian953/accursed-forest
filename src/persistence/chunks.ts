@@ -3,7 +3,7 @@
  * diverged block. Autosave rewrites only chunks flagged dirty since the last
  * write, so a large estate's autosave is a few small writes.
  *
- * Chunk payloads are lz-string compressed to UTF-16 — `localStorage` stores
+ * Chunk payloads are lz-string compressed to UTF-16; `localStorage` stores
  * UTF-16, so that is the encoding that actually shrinks the footprint. The
  * manifest stays plain JSON by default, readable when debugging; year
  * snapshots compress it too, because 25 copies of a late-game command log
@@ -12,7 +12,7 @@
  *
  * Writes are not atomic across keys. A crash between a chunk write and the
  * manifest write leaves the old manifest pointing at the same chunk keys with
- * one chunk newer than the rest — a block or two a tick ahead, not a corrupt
+ * one chunk newer than the rest; a block or two a tick ahead, not a corrupt
  * save. The alternative (versioned chunk keys and a swap) is not worth it for
  * a 30-day autosave cadence.
  */
@@ -75,7 +75,7 @@ export class SaveSlot {
   }
 
   /**
-   * Write the manifest and the given chunks. `'all'` rewrites every chunk —
+   * Write the manifest and the given chunks. `'all'` rewrites every chunk;
    * the first save, and the save after a load, must do this. Returns the
    * storage keys written, chunks first, manifest last.
    */
@@ -174,7 +174,7 @@ export class DirtyChunks {
     return out;
   }
 
-  /** Put a taken set back — a save that failed must not lose its dirt. */
+  /** Put a taken set back; a save that failed must not lose its dirt. */
   restore(keys: ReadonlySet<string>): void {
     for (const key of keys) this.set.add(key);
   }

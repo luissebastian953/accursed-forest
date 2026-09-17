@@ -1,6 +1,6 @@
 /**
  * Mesher worker (§6.7): builds one chunk's column mesh per request and posts
- * the arrays back as transferables. World generation happens here too — the
+ * the arrays back as transferables. World generation happens here too; the
  * worker has the same seeded generator, so the main thread never serialises
  * terrain.
  */

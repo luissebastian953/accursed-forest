@@ -59,7 +59,7 @@ export function forestCoverAround(
 }
 
 /**
- * Forest cover across the estate's neighbourhood — every owned block and
+ * Forest cover across the estate's neighbourhood; every owned block and
  * everything within the cover radius of one (§8 top bar).
  */
 export function estateForestCover(state: SimState, world: World): number {

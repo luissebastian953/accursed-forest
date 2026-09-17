@@ -27,7 +27,7 @@ describe('seeded RNG (§4.3)', () => {
     expect(draw(createRng(1), 16)).not.toEqual(draw(createRng(2), 16));
   });
 
-  it('restores an in-flight stream exactly — this is what makes saves safe', () => {
+  it('restores an in-flight stream exactly; this is what makes saves safe', () => {
     const live = createRng(99);
     draw(live, 37);
 
@@ -55,7 +55,7 @@ describe('seeded RNG (§4.3)', () => {
 
     expect(a).not.toEqual(b);
     expect(parent).toEqual(before);
-    // A fork is itself reproducible — worldgen relies on this.
+    // A fork is itself reproducible; worldgen relies on this.
     expect(draw(forkRng(7, 0), 8)).toEqual(a);
   });
 

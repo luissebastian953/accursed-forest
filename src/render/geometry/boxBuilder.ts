@@ -78,7 +78,7 @@ export class BoxBuilder {
   private readonly normals: number[] = [];
   private readonly us: number[] = [];
 
-  /** Triangle count so far — useful for asserting mesher budgets (§6.7). */
+  /** Triangle count so far; useful for asserting mesher budgets (§6.7). */
   get triangleCount(): number {
     return this.positions.length / 9;
   }
@@ -88,7 +88,7 @@ export class BoxBuilder {
    *
    * @param matrix  places the unit cube (centre origin, size 1) in local space
    * @param faces   palette slot per face
-   * @param skip    faces to omit — the column mesher culls faces that abut a
+   * @param skip    faces to omit; the column mesher culls faces that abut a
    *                taller neighbour, which is most of them at estate scale
    */
   addBox(matrix: Matrix4, faces: BoxFaces, skip?: Partial<Record<FaceKey, boolean>>): this {

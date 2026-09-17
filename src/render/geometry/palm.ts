@@ -85,7 +85,7 @@ export function palmParams(stage: PalmStage): Readonly<PalmParams> {
   return PARAMS[stage];
 }
 
-/** Height of the crown for a stage — where bunches hang and wind bob pivots. */
+/** Height of the crown for a stage; where bunches hang and wind bob pivots. */
 export function palmCrownHeight(stage: PalmStage): number {
   return PARAMS[stage].trunkHeight;
 }

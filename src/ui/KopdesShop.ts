@@ -56,7 +56,7 @@ const ROWS: ShopRow[] = [
   {
     item: 'bibit',
     label: 'Bibit',
-    note: 'field-ready palm seedlings · 144 fill a block',
+    note: 'field-ready palm seedlings, 144 fill a block',
     bundles: [144, 12],
   },
   {
@@ -74,7 +74,7 @@ const ROWS: ShopRow[] = [
   {
     item: 'sanitationCrew',
     label: 'Sanitation crew',
-    note: 'clears 60 debris from one block — the only real fix for beetles',
+    note: 'clears 60 debris from one block; the only real fix for beetles',
     bundles: [1],
   },
   {
@@ -154,7 +154,7 @@ export class KopdesShop {
           subtitle: html`<div class="label">
             ${
               kopdes
-                ? html`Koperasi Desa · level ${kopdes.level} · sells within
+                ? html`Koperasi Desa, level ${kopdes.level}, sells within
                   ${kopdesRange(kopdes.level)} blocks`
                 : 'Koperasi Desa'
             }
@@ -286,7 +286,7 @@ export class KopdesShop {
                   <div>
                     <div class="text-sm font-extrabold">${spec.label}</div>
                     <div class="muted text-xs">
-                      ${WORKER_BLURB[kind]} · ${formatRp(spec.wagePerDay)}/day
+                      ${WORKER_BLURB[kind]}, ${formatRp(spec.wagePerDay)}/day
                     </div>
                   </div>
                 </div>
@@ -300,7 +300,7 @@ export class KopdesShop {
                     this.refresh();
                   }}
                 >
-                  ${hired ? 'Dismiss' : html`Hire · ${formatRp(spec.hireFee)}`}
+                  ${hired ? 'Dismiss' : html`Hire, ${formatRp(spec.hireFee)}`}
                 </button>
               </div>
             `;

@@ -82,7 +82,7 @@ export class AuthorityCards {
 
   private letter(v: CardView) {
     return html`
-      <div class="label mb-1 text-[#b85e12]">District office · ${formatDate(v.tick)}</div>
+      <div class="label mb-1 text-[#b85e12]">District office, ${formatDate(v.tick)}</div>
       <div class="mb-3 text-xl font-extrabold">Summons: cease land clearing pending review</div>
       <p class="mb-3 text-sm leading-relaxed">
         The office has taken note of clearing on your estate. Until the matter is reviewed, every
@@ -104,7 +104,7 @@ export class AuthorityCards {
 
   private investigation(v: CardView) {
     return html`
-      <div class="label mb-1 text-[#c94a30]">Regional police · ${formatDate(v.tick)}</div>
+      <div class="label mb-1 text-[#c94a30]">Regional police, ${formatDate(v.tick)}</div>
       <div class="mb-3 text-xl font-extrabold">
         ${v.headline?.title ?? 'Police open an investigation'}
       </div>
@@ -112,7 +112,7 @@ export class AuthorityCards {
       <ul class="mb-4 space-y-1 text-sm">
         <li>
           🚫 No chopping or burning until
-          <strong>${v.until !== null ? formatDate(v.until) : '—'}</strong>.
+          <strong>${v.until !== null ? formatDate(v.until) : 'further notice'}</strong>.
         </li>
         <li>✅ Harvests and sales continue.</li>
         <li>⚠️ A second wildfire while the police are here is an arrest.</li>
@@ -158,7 +158,7 @@ export class AuthorityCards {
 
   private ban(v: CardView) {
     return html`
-      <div class="label mb-1 text-[#c94a30]">Ministry enforcement team · ${formatDate(v.tick)}</div>
+      <div class="label mb-1 text-[#c94a30]">Ministry enforcement team, ${formatDate(v.tick)}</div>
       <div class="mb-3 text-xl font-extrabold">
         ${v.headline?.title ?? 'Operating licence suspended'}
       </div>
@@ -166,7 +166,7 @@ export class AuthorityCards {
       <ul class="mb-4 space-y-1 text-sm">
         <li>
           🚫 No clearing, palm planting or harvest until
-          <strong>${v.until !== null ? formatDate(v.until) : '—'}</strong>.
+          <strong>${v.until !== null ? formatDate(v.until) : 'further notice'}</strong>.
         </li>
         <li>🌱 Planting forest back is allowed.</li>
         <li>💸 Upkeep runs at half, and the bank will not lend against a shut estate.</li>

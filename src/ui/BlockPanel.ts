@@ -3,7 +3,7 @@
  * do with it. Invalid actions stay visible with the sim's own rejection
  * reason, so the player learns the rules by reading, not by guessing.
  *
- * Planted blocks get a pest section with a clickable 12×12 slot grid — the
+ * Planted blocks get a pest section with a clickable 12×12 slot grid; the
  * per-palm panel of §8 #10 without needing per-palm 3D picking.
  */
 
@@ -96,7 +96,7 @@ export function autoHarvestToggle(sim: Sim, act: (command: Command) => void) {
     >
       <span>Auto-harvest</span>
       <span class=${`num rounded-lg px-1.5 py-0.5 text-xs ${on ? 'bg-black/15' : 'bg-[#efe1bf]'}`}>
-        ${on ? `ON · +${formatRp(HARVEST.autoSurchargePerRound)}/round` : 'OFF'}
+        ${on ? `ON, +${formatRp(HARVEST.autoSurchargePerRound)}/round` : 'OFF'}
       </span>
     </button>
   `;
@@ -333,7 +333,7 @@ export class BlockPanel {
 
     const tiles: TemplateResult[] = [
       tile('Title', block.owned ? 'Yours' : block.forSale ? 'For sale' : 'Not for sale'),
-      tile('Elevation', `${block.elevation}${block.slope ? ' · slope' : ''}`),
+      tile('Elevation', `${block.elevation}${block.slope ? ', slope' : ''}`),
       tile(
         'Moisture',
         html`<span class="flex items-center gap-2">
@@ -345,7 +345,7 @@ export class BlockPanel {
           <span class="num">${formatPercent(block.moisture)}</span>
         </span>`,
         block.irrigated || block.drained
-          ? `${block.irrigated ? 'irrigated' : ''}${block.irrigated && block.drained ? ' · ' : ''}${block.drained ? 'drained' : ''}`
+          ? `${block.irrigated ? 'irrigated' : ''}${block.irrigated && block.drained ? ', ' : ''}${block.drained ? 'drained' : ''}`
           : null,
       ),
     ];
@@ -357,8 +357,8 @@ export class BlockPanel {
           html`<span data-testid="block-range"
             >${
               inKopdesRange(state, world, id)
-                ? `In range · ${distance} block${distance === 1 ? '' : 's'}`
-                : `Out of range · ${distance} of ${kopdesRange(state.kopdes.level)}`
+                ? `In range: ${distance} block${distance === 1 ? '' : 's'}`
+                : `Out of range: ${distance} of ${kopdesRange(state.kopdes.level)}`
             }</span
           >`,
           inKopdesRange(state, world, id) ? null : 'TBS would spoil on the road',
@@ -500,7 +500,7 @@ export class BlockPanel {
         <div class="mb-1.5 flex items-baseline justify-between text-xs">
           <span class="flex items-center gap-1.5 font-extrabold">${icon('fire')} Burn</span>
           <span class="muted num"
-            >${formatRp(FIRE.burnCost)} · pressure ${pressure.toFixed(1)} / ${threshold}</span
+            >${formatRp(FIRE.burnCost)}, pressure ${pressure.toFixed(1)} / ${threshold}</span
           >
         </div>
         <div class="flex gap-1.5">
@@ -518,7 +518,7 @@ export class BlockPanel {
               >
                 ${INTENSITY_LABEL[intensity]}
                 <span class="block text-[0.68rem] font-bold opacity-90"
-                  >${FIRE.burnDays[intensity]} d · +${FIRE.pressure[intensity]}</span
+                  >${FIRE.burnDays[intensity]} d, +${FIRE.pressure[intensity]}</span
                 >
               </button>
             `;
@@ -528,7 +528,7 @@ export class BlockPanel {
           ${
             fuel.length === 0
               ? 'Nothing next door will catch.'
-              : `Could spread to ${fuel.length} neighbour${fuel.length === 1 ? '' : 's'}${state.weather.regime === 'elNino' ? ' — doubled this El Niño year' : ''}.`
+              : `Could spread to ${fuel.length} neighbour${fuel.length === 1 ? '' : 's'}${state.weather.regime === 'elNino' ? '; doubled this El Niño year' : ''}.`
           }
           ${wildfire ? html`<span class="text-[#9e2e20]"> A wildfire is burning: any new fire joins it.</span>` : nothing}
         </div>
@@ -587,12 +587,12 @@ export class BlockPanel {
       <div class="rounded-2xl border-2 border-[#bfe3a8] bg-[#eaf7dd] p-3 text-xs">
         <div class="mb-1 flex items-center justify-between gap-2">
           <div class="text-base font-extrabold">
-            ${block.species === 'forest' ? 'Forest' : 'Palms'} · <span class="num">${growthN}</span>
+            ${block.species === 'forest' ? 'Forest' : 'Palms'}: <span class="num">${growthN}</span>
           </div>
           <span class="chip chip-cream"
             >${STAGE_ORDER.filter((s) => stageCounts.has(s))
               .map((s) => `${stageCounts.get(s)} ${s}`)
-              .join(' · ')}</span
+              .join(', ')}</span
           >
         </div>
         ${
@@ -690,16 +690,16 @@ export class BlockPanel {
           ${
             counts
               ? html`<span data-testid="pest-ganoderma"
-                  >Ganoderma: ${counts.symptomatic} sick · ${counts.dead} dead</span
+                  >Ganoderma: ${counts.symptomatic} sick, ${counts.dead} dead</span
                 >`
               : nothing
           }
         </div>
-        ${windows.length > 0 ? html`<div class="mt-0.5 opacity-70">${windows.join(' · ')}</div>` : nothing}
+        ${windows.length > 0 ? html`<div class="mt-0.5 opacity-70">${windows.join(', ')}</div>` : nothing}
         ${
           block.debris > 0 && block.beetles > 5
             ? html`<div class="mt-0.5 text-amber-200/90">
-                Debris is breeding beetles — sanitize it.
+                Debris is breeding beetles; sanitize it.
               </div>`
             : nothing
         }
@@ -734,7 +734,7 @@ export class BlockPanel {
       cells.push(html`
         <button
           class=${`h-4 w-4 rounded-[3px] ${cls}${ring}${selected}`}
-          title=${`slot ${slotRow(slot)},${slotCol(slot)} · ${stage}${g === 2 ? ' · sick' : ''}`}
+          title=${`slot ${slotRow(slot)},${slotCol(slot)}, ${stage}${g === 2 ? ', sick' : ''}`}
           data-testid=${`slot-cell-${slot}`}
           @click=${() => {
             this.slot = this.slot === slot ? null : slot;
@@ -766,11 +766,11 @@ export class BlockPanel {
       detail = html`
         <div class="pill mt-2" data-testid="slot-detail">
           <div class="flex justify-between">
-            <span>Slot ${slotRow(slot)},${slotCol(slot)} · ${stage}</span>
+            <span>Slot ${slotRow(slot)},${slotCol(slot)}: ${stage}</span>
             <span class="muted num">health ${Math.round((palms.health[slot]! / 255) * 100)}%</span>
           </div>
-          ${g === 2 ? html`<div class="text-[#b85e12]">Ganoderma — visibly sick. Remove it before it spreads.</div>` : nothing}
-          ${g === 3 ? html`<div class="text-[#b85e12]">Dead stump — still infectious until removed.</div>` : nothing}
+          ${g === 2 ? html`<div class="text-[#b85e12]">Ganoderma; visibly sick. Remove it before it spreads.</div>` : nothing}
+          ${g === 3 ? html`<div class="text-[#b85e12]">Dead stump; still infectious until removed.</div>` : nothing}
           ${palms.trenched[slot] === 1 ? html`<div class="text-[#2f56b8]">Trenched: root links cut.</div>` : nothing}
           <div class="mt-1.5 flex flex-wrap gap-1.5">
             ${[remove, trench].map((a) => this.actionButton(sim, a))}
@@ -779,13 +779,13 @@ export class BlockPanel {
       `;
     } else if (slot !== null) {
       detail = html`<div class="pill muted mt-2" data-testid="slot-detail">
-        Slot ${slotRow(slot)},${slotCol(slot)} is empty — Replant gaps fills it.
+        Slot ${slotRow(slot)},${slotCol(slot)} is empty; Replant gaps fills it.
       </div>`;
     }
 
     return html`
       <div class="mt-2">
-        <div class="label mb-1">Palms by slot — click one</div>
+        <div class="label mb-1">Palms by slot; click one</div>
         <div class="grid grid-cols-12 gap-[3px]" data-testid="slot-grid">${cells}</div>
         ${detail}
       </div>
@@ -800,12 +800,12 @@ export class BlockPanel {
 
 function phaseLabel(phase: string, progress: number, burning: boolean, intensity: number): string {
   if (burning)
-    return `Burning · ${['', 'low', 'medium', 'high'][intensity] ?? ''} · ${Math.round(progress * 100)}%`;
+    return `Burning, ${['', 'low', 'medium', 'high'][intensity] ?? ''}, ${Math.round(progress * 100)}%`;
   switch (phase) {
     case 'wild':
       return 'Wild';
     case 'clearing':
-      return `Clearing · ${Math.round(progress * 100)}%`;
+      return `Clearing, ${Math.round(progress * 100)}%`;
     case 'cleared':
       return 'Cleared';
     case 'planted':
@@ -825,15 +825,15 @@ function slopeLine(sim: Sim, id: BlockId): string {
   const block = readBlock(state, world, id);
   const cover = Math.round(forestCoverAround(state, world, id) * 100);
   const crop = coverCropEstablished(block, state.tick)
-    ? ' · cover crop holding'
+    ? ', cover crop holding'
     : block.coverCropUntil > state.tick
-      ? ' · cover crop establishing'
+      ? ', cover crop establishing'
       : '';
   // Risk over a wet season at an ordinary wet streak, so the number is stable to read.
   const probe = { ...state, weather: { ...state.weather, wetStreak: 3 } };
   const daily = landslideChance(probe, world, block, true);
   const season = 1 - Math.pow(1 - daily, 150);
   const risk = season > 0.3 ? 'high' : season > 0.1 ? 'moderate' : 'low';
-  const now = isWetSeason(state.weather.dayOfYear) ? ' — wet season now' : '';
-  return `${cover}% forest around · landslide risk ${risk} (${Math.round(season * 100)}%/wet season)${crop}${now}`;
+  const now = isWetSeason(state.weather.dayOfYear) ? ', wet season now' : '';
+  return `${cover}% forest around, landslide risk ${risk} (${Math.round(season * 100)}%/wet season)${crop}${now}`;
 }

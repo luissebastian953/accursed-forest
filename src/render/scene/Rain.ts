@@ -1,6 +1,6 @@
 /**
  * Rain (§6.1): streaks falling over the part of the world in view, as thick
- * as the day's rain. One instanced mesh; positions are stepped on the CPU —
+ * as the day's rain. One instanced mesh; positions are stepped on the CPU;
  * a couple of thousand drops is nothing next to the terrain.
  */
 

@@ -27,7 +27,7 @@ export interface PhoneShell {
 }
 
 export function phoneShell(shell: PhoneShell): TemplateResult {
-  const date = formatDate(shell.tick).replace('Year ', 'Y').replace(' · Day ', ' · D');
+  const date = formatDate(shell.tick).replace('Year ', 'Y').replace(', Day ', ', D');
   return html`
     <div class=${`@container ${PHONE_PLACEMENT}`} data-testid=${shell.testId}>
       <img class="absolute inset-0 h-full w-full select-none" src=${FRAME_URL} alt="" />

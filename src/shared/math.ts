@@ -39,7 +39,7 @@ export function mod(a: number, n: number): number {
   return ((a % n) + n) % n;
 }
 
-/** Quantise to the nearest multiple of `step` — used by the column mesher (§6.3). */
+/** Quantise to the nearest multiple of `step`; used by the column mesher (§6.3). */
 export function quantise(v: number, step: number): number {
   return Math.round(v / step) * step;
 }

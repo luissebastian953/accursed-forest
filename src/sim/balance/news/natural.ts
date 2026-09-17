@@ -105,7 +105,7 @@ export const NATURAL: Record<string, NewsTemplate> = {
       'Dry storm starts a fire near {estate}',
     ],
     bodies: [
-      'A bolt found something that would burn. Nobody lit this one — which will not stop it spreading.',
+      'A bolt found something that would burn. Nobody lit this one; which will not stop it spreading.',
     ],
     effects: ['A fire nobody lit'],
   },

@@ -5,7 +5,7 @@
  * the road (§2: TBS must reach the mill within a day).
  *
  * The crew's wage is charged but never gated on cash: a harvest pays for
- * itself, and the first balance sweep showed what happens otherwise — an
+ * itself, and the first balance sweep showed what happens otherwise; an
  * estate that dipped below zero on the eve of its first round could not
  * afford to pick, and spiralled to −Rp 74M with fruit rotting on the trees.
  *
@@ -44,27 +44,27 @@ export const harvestBlock: CommandHandler<HarvestBlock> = {
       return reject('wrongPhase', 'Nothing to harvest here.');
     }
     if (!state.kopdes) {
-      return reject('noKopdes', 'Build a Kopdes first — harvested fruit has nowhere to go.');
+      return reject('noKopdes', 'Build a Kopdes first; harvested fruit has nowhere to go.');
     }
     if (state.kopdes.autoHarvest) {
-      return reject('halted', 'Auto-harvest is on — the Kopdes crew picks this block itself.');
+      return reject('halted', 'Auto-harvest is on; the Kopdes crew picks this block itself.');
     }
     if (!inKopdesRange(state, world, command.block)) {
       const distance = distanceToKopdes(state, world, command.block) ?? 0;
       const range = kopdesRange(state.kopdes.level);
       return reject(
         'outOfRange',
-        `Out of Kopdes range (${distance} blocks, range ${range}) — TBS would spoil before it sells. Upgrade the Kopdes.`,
+        `Out of Kopdes range (${distance} blocks, range ${range}); TBS would spoil before it sells. Upgrade the Kopdes.`,
       );
     }
 
     const palms = state.palms.get(command.block);
     if (!palms) return reject('nothingToHarvest', 'No palms on this block.');
     if (bearingCount(palms, 'palm', state.tick) === 0) {
-      return reject('nothingToHarvest', 'No ripe fruit yet — the palms are still immature.');
+      return reject('nothingToHarvest', 'No ripe fruit yet; the palms are still immature.');
     }
     if (activeEvent(state, ASH_EVENT)) {
-      return reject('halted', 'Ash is falling — crews cannot work until it stops.');
+      return reject('halted', 'Ash is falling; crews cannot work until it stops.');
     }
     if (!isRipe(block, state.tick)) {
       const days = daysUntilRipe(block, state.tick) ?? 0;

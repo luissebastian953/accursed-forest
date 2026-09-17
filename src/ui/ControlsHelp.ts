@@ -14,7 +14,7 @@ const MOUSE: readonly (readonly [string, string])[] = [
 
 const KEYS: readonly (readonly [string, string])[] = [
   ['Space', 'Pause / resume'],
-  ['1  2  3', 'Speed 1× · 10× · 50×'],
+  ['1  2  3', 'Speed 1×, 10×, 50×'],
   ['Q  E', 'Turn the view'],
   ['F', 'Jump to the Kopdes'],
   ['K', 'Kopdes shop'],

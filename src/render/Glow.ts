@@ -1,6 +1,6 @@
 /**
  * Bloom (§6.4 "Fire"): a post-processing pass that makes anything brighter
- * than white glow — the fire's HDR particles and nothing else, because lit
+ * than white glow; the fire's HDR particles and nothing else, because lit
  * land never gets that bright. It costs a few full-screen passes, so the app
  * only renders through it while something is burning.
  */

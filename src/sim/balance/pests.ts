@@ -79,7 +79,7 @@ export const GANODERMA = {
 
 /**
  * Plague (§3.4): pressure = beetles / beetleScale + infectedShare × infectedScale.
- * Flagged at `onAt`, cleared at `offAt` — hysteresis so it does not flicker.
+ * Flagged at `onAt`, cleared at `offAt`; hysteresis so it does not flicker.
  */
 export const PLAGUE = {
   beetleScale: 80,

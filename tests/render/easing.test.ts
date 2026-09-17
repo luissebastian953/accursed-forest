@@ -78,7 +78,7 @@ describe('easing curves (§6.5)', () => {
     for (let i = 0; i <= 200; i++) expect(easeOutBounce(i / 200)).toBeLessThanOrEqual(1 + 1e-9);
   });
 
-  it('easeOutCubic is monotonic — the camera must never reverse (§6.5)', () => {
+  it('easeOutCubic is monotonic; the camera must never reverse (§6.5)', () => {
     let previous = -Infinity;
     for (let i = 0; i <= 200; i++) {
       const v = easeOutCubic(i / 200);
@@ -126,7 +126,7 @@ describe('cascade timing (§6.5)', () => {
 describe('spring integrator (§6.5)', () => {
   it('is visually settled by ~600 ms and numerically settled by ~1.2 s', () => {
     // §6.5 promises a ~600 ms settle. Measured, the toy preset (zeta ~= 0.54)
-    // is within ~1.3% of target at 600 ms — settled to the eye — and converges
+    // is within ~1.3% of target at 600 ms; settled to the eye; and converges
     // properly a few hundred ms later.
     const spring = createSpring(0);
     for (let i = 0; i < 36; i++) stepSpring(spring, 1, 1 / 60);
@@ -136,7 +136,7 @@ describe('spring integrator (§6.5)', () => {
     expect(isSettled(spring, 1, 5e-3)).toBe(true);
   });
 
-  it('overshoots on the way — that is the toy feel', () => {
+  it('overshoots on the way; that is the toy feel', () => {
     const spring = createSpring(0);
     let peak = 0;
     for (let i = 0; i < 60; i++) {
@@ -146,7 +146,7 @@ describe('spring integrator (§6.5)', () => {
     expect(peak).toBeGreaterThan(1);
   });
 
-  it('the calm preset does not visibly overshoot — the camera uses it', () => {
+  it('the calm preset does not visibly overshoot; the camera uses it', () => {
     const spring = createSpring(0);
     let peak = 0;
     for (let i = 0; i < 120; i++) {

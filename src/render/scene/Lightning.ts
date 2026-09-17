@@ -1,6 +1,6 @@
 /**
  * Lightning (§3.6): a boxy bolt over the block a storm just hit, fading in a
- * few hundred milliseconds. Unlit and brighter than white, so it glows — and
+ * few hundred milliseconds. Unlit and brighter than white, so it glows; and
  * blooms when the glow pass is on. `Sky.flash` lights the rest of the world.
  */
 

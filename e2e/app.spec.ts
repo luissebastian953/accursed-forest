@@ -13,7 +13,7 @@ import { expect, test, type Page } from '@playwright/test';
 
 const URL = '/play.html?webgl&seed=42&fresh&turbo';
 
-/** What `?debug` exposes on window — only the parts the suite touches. */
+/** What `?debug` exposes on window; only the parts the suite touches. */
 interface DebugWindow {
   __sawit: {
     sim: () => {
@@ -191,7 +191,7 @@ test.describe('Sawit Simulator', () => {
     // proven by landing within a fortnight of where we left, not to the day.
     await tid(page, 'speed-0').click();
     const days = (text: string | null): number => {
-      const m = /Year (\d+) · Day (\d+)/.exec(text ?? '');
+      const m = /Year (\d+), Day (\d+)/.exec(text ?? '');
       return m ? Number(m[1]) * 360 + Number(m[2]) : NaN;
     };
     const drift = days(await tid(page, 'hud-date').textContent()) - days(dateBefore);
@@ -252,10 +252,10 @@ test.describe('Sawit Simulator', () => {
     await tid(page, 'speed-0').click();
     await tid(page, 'action-BurnBlock-2').click();
 
-    await expect(tid(page, 'block-phase')).toContainText('Burning · medium');
+    await expect(tid(page, 'block-phase')).toContainText('Burning, medium');
     await expect(tid(page, 'fire-gauge')).toBeVisible();
     await expect(tid(page, 'burning-chip')).toBeVisible();
-    // §3.1.1: the clock is capped while anything burns — 10×, not a crawl.
+    // §3.1.1: the clock is capped while anything burns; 10×, not a crawl.
     await expect(tid(page, 'speed-50')).toBeDisabled();
     await expect(tid(page, 'speed-10')).toBeEnabled();
     await expect(tid(page, 'wildfire-badge')).toHaveCount(0);
@@ -383,8 +383,8 @@ test.describe('Sawit Simulator', () => {
 
     await tid(page, 'speed-1').click();
     await expect(tid(page, 'events-strip')).toBeVisible();
-    await expect(tid(page, 'event-chip-haze')).toContainText(/Haze · \d+ d/);
-    await expect(tid(page, 'event-chip-flood')).toContainText(`Flood · ${flooded} block`);
+    await expect(tid(page, 'event-chip-haze')).toContainText(/Haze, \d+ d/);
+    await expect(tid(page, 'event-chip-flood')).toContainText(`Flood: ${flooded} block`);
     await tid(page, 'speed-0').click();
 
     // Select a slope block: its panel explains the landslide risk.

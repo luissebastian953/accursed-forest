@@ -2,7 +2,7 @@
  * World events system (§3.6): the event deck, drought, floods, ash fall,
  * sparks, landslides, and fire spread with its pressure and wildfire.
  *
- * Every effect goes through moisture, light, fertility or damage — nothing
+ * Every effect goes through moisture, light, fertility or damage; nothing
  * affects the trees by decree (§3.6). Light is applied in `weather.ts`, which
  * reads the events this system keeps in `state.weather.activeEvents`.
  */
@@ -235,7 +235,7 @@ function applyAsh(ctx: SimContext): void {
 /**
  * A thunderstorm throws bolts at the estate and the land around it. Most hit
  * wet ground and do nothing but light up the sky; one in four finds something
- * that will burn, and unless it is pouring, that is a fire nobody lit — no
+ * that will burn, and unless it is pouring, that is a fire nobody lit; no
  * pressure on the meter, and nothing for the authorities to read into it.
  */
 function strikeLightning(ctx: SimContext): void {
@@ -264,7 +264,7 @@ function strikeLightning(ctx: SimContext): void {
 /**
  * Where a bolt lands: anywhere over the estate's box, widened by the storm's
  * reach. Drawing from the box rather than a list of blocks keeps this O(1) on
- * a storm day, and independent of the order the sparse map happens to be in —
+ * a storm day, and independent of the order the sparse map happens to be in;
  * a restored save must throw its bolts at the same places.
  */
 function strikeTarget(ctx: SimContext): BlockId | null {

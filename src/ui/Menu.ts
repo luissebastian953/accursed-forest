@@ -111,7 +111,7 @@ export class Menu {
                   ? html`<span class="text-[#9e2e20]">${v.saveError}</span>`
                   : v.lastSavedAt
                     ? html`Last saved ${new Date(v.lastSavedAt).toLocaleString()}`
-                    : 'Not saved yet — autosave runs every 30 days.'
+                    : 'Not saved yet; autosave runs every 30 days.'
               }
             </div>
 

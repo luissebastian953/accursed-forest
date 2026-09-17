@@ -17,7 +17,7 @@ import { slotStage } from '@sim/palms.ts';
 import { tbsMeanFactor } from '@sim/systems/society.ts';
 import type { BlockId } from '@sim/types.ts';
 
-/** The owned, wild, clearable block nearest the Kopdes — inside its range. */
+/** The owned, wild, clearable block nearest the Kopdes; inside its range. */
 function firstOwnedWild(sim: Sim): BlockId {
   let best: BlockId | null = null;
   let bestDistance = Infinity;
@@ -354,7 +354,7 @@ describe('price walk (§3.3)', () => {
 });
 
 describe('the loop closes (§3.5, M1b done-criterion)', () => {
-  it('one block, played plainly, is cash-positive once bearing — but the immature years bite', () => {
+  it('one block, played plainly, is cash-positive once bearing; but the immature years bite', () => {
     const { rows, lowestCash } = autoplay({ seed: 42, years: 8, blocks: 1 });
     const byYear = new Map(rows.map((r) => [r.year, r]));
 

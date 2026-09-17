@@ -5,7 +5,7 @@
  * Each river's cell path becomes a polyline through block centres, is rounded
  * with Chaikin corner cutting, resampled, and pushed sideways by low-frequency
  * noise so long runs bend. The channel widens from source to mouth. The
- * mesher asks one question per column — how far is it from the water's edge —
+ * mesher asks one question per column; how far is it from the water's edge;
  * which a per-block bucket of nearby segments answers cheaply.
  *
  * Only the picture changes. Which blocks are river is still `world.rivers`;

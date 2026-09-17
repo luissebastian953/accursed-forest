@@ -1,7 +1,7 @@
 /**
  * Damped harmonic oscillator (§6.5), integrated semi-implicit Euler.
  *
- * Springs are for interruptible motion — hover, selection, squash settle —
+ * Springs are for interruptible motion; hover, selection, squash settle;
  * where the target can change mid-flight. One-shot motion uses a curve from
  * `easing.ts` instead.
  */
@@ -56,7 +56,7 @@ export function stepSpring(
   return spring;
 }
 
-/** Kick a spring without moving it — the "shiver" feedback on a treated palm. */
+/** Kick a spring without moving it; the "shiver" feedback on a treated palm. */
 export function impulse(spring: Spring, velocity: number): Spring {
   spring.v += velocity;
   return spring;

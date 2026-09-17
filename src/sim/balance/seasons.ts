@@ -18,7 +18,7 @@ export const SEASONS = {
    * Calibrated so a grassfield block under the normal regime averages G ≈ 1.0
    * over a year and reaches 900 growth-days in ~900 calendar days (§3.6.1);
    * El Niño (×0.55 rain) stretches that to ~1000 days. The Kalimantan dry
-   * season is "less wet", not arid — an earlier 0.2 mean starved growth to
+   * season is "less wet", not arid; an earlier 0.2 mean starved growth to
    * G ≈ 0.6 and pushed first harvest past four years.
    */
   rain: {
@@ -37,7 +37,7 @@ export const SEASONS = {
   },
 
   /**
-   * `dryStreak` counts consecutive ticks with rain below this — a day drier
+   * `dryStreak` counts consecutive ticks with rain below this; a day drier
    * than an ordinary dry-season day, not a day with no rain at all. Daily rain
    * is drawn independently, so a strict "no rain" threshold (0.1) never
    * produced a fortnight's streak even under El Niño.
@@ -79,7 +79,7 @@ export const SKY = {
 
   /**
    * Dry storms: after a run of dry days, a middling sky can still turn to
-   * thunder. These are the storms that start fires — a wet one douses its own
+   * thunder. These are the storms that start fires; a wet one douses its own
    * lightning within a day or two.
    */
   dryStormStreak: 5,

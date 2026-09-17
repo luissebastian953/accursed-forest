@@ -2,10 +2,10 @@
  * The title screen (§8 panel 1, design kit 5a): a modal over the live estate,
  * pulled back so the terrain reads as a dimmed backdrop. Two states:
  *
- *   - first launch, or nothing saved in this browser: the large start card —
+ *   - first launch, or nothing saved in this browser: the large start card;
  *     Start a game, an estate code to share a world, How to play, Settings,
  *     and three facts drawn from the balance tables;
- *   - a save in this browser: the medium "welcome back" card — the estate,
+ *   - a save in this browser: the medium "welcome back" card; the estate,
  *     when it was saved, where it stands, what is going on there, Continue,
  *     and the ways out (the menu's saves and codes, or a new estate).
  *
@@ -200,7 +200,7 @@ export class StartScreen {
             <span aria-hidden="true">🔒</span>
             <input
               class="min-w-0 flex-1 bg-transparent text-sm font-bold outline-none placeholder:text-[var(--ink-3)]"
-              placeholder="Estate code · e.g. ABC-DEFG"
+              placeholder="Estate code, e.g. ABC-DEFG"
               data-testid="start-code"
               .value=${this.code}
               @input=${(e: Event) => {
@@ -276,7 +276,7 @@ export class StartScreen {
                 >
               </div>
               <div class="num text-sm font-extrabold">
-                Year ${save.year} · Day ${save.day} · ${save.plantedHectares} ha planted ·
+                Year ${save.year}, Day ${save.day}, ${save.plantedHectares} ha planted,
                 ${formatRp(save.cash)}
               </div>
             </div>

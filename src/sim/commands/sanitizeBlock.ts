@@ -1,5 +1,5 @@
 /**
- * SanitizeBlock (§3.1, §3.4): a sanitation crew from stock clears debris —
+ * SanitizeBlock (§3.1, §3.4): a sanitation crew from stock clears debris;
  * the only real fix for beetles, and what makes a cleared forest block's
  * organic soil safe to plant.
  */
@@ -23,7 +23,7 @@ export const sanitizeBlock: CommandHandler<SanitizeBlock> = {
     if (block.burning) return reject('burning', 'Wait for the fire to go out.');
     if (block.debris <= 0) return reject('wrongPhase', 'No debris to clear here.');
     if (state.inventory.sanitationCrew < 1) {
-      return reject('noInventory', 'No sanitation crew on hand — hire one at the Kopdes.');
+      return reject('noInventory', 'No sanitation crew on hand; hire one at the Kopdes.');
     }
     return null;
   },

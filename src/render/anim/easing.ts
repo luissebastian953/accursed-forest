@@ -79,7 +79,7 @@ export function easeOutBounce(t: number): number {
  * two horizontal axes take `1/sqrt(sy)` so the product `sy · sxz² === 1`.
  *
  * Note this is a modulation *around 1*, applied on top of whatever base scale
- * the animation already has — not the base scale itself. (The abbreviated TSL
+ * the animation already has; not the base scale itself. (The abbreviated TSL
  * sketch in design doc §6.5 folds the two together and is degenerate at t = 0,
  * where `1/sqrt(0)` is infinite.)
  */

@@ -4,7 +4,7 @@
  * Events are data: a weight, the conditions that allow a draw, a duration
  * range, and the effects the world-events system applies while they run. The
  * deck is drawn at most once every `drawEveryDays`, so a bad month is a bad
- * month rather than a stack of five disasters. Drought is not drawn — it is
+ * month rather than a stack of five disasters. Drought is not drawn; it is
  * what a long enough dry streak *is*.
  */
 
@@ -21,7 +21,7 @@ export const DECK = {
   /**
    * The weights are shares of this fixed total; whatever they do not claim is
    * "nothing happens". Without it, an event that cannot be drawn (already
-   * running, wrong season) handed its share to the others — with a flood
+   * running, wrong season) handed its share to the others; with a flood
    * running in the wet season, a draw was a certain ash fall.
    */
   referenceWeight: 1.6,
@@ -86,7 +86,7 @@ export const FLOOD = {
   riverDistance: 2,
   /** Health an immature palm loses per day under water; mature palms stand. */
   immatureDamagePerDay: 30,
-  /** Debris the water leaves behind — beetle food, again. */
+  /** Debris the water leaves behind; beetle food, again. */
   debrisPerDay: 1.5,
   /** Ganoderma likes wet roots: spontaneous infection multiplier while flooded. */
   ganodermaSeedFactor: 3,

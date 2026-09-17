@@ -4,7 +4,7 @@
  *
  * Palms are struct-of-arrays over the block's slots. Growth is accumulated
  * growth-days; the stage is a threshold on that, except senescence, which is
- * calendar age — palms get tall whether or not they grew well.
+ * calendar age; palms get tall whether or not they grew well.
  *
  * Slots form a 12×12 triangular lattice: odd rows are offset half a slot, so
  * every palm has six neighbours. Ganoderma spreads root to root along it.

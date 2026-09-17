@@ -90,7 +90,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   root.style.position = 'relative';
   // The world fills the root; the block panel is an aside laid over its right
   // edge that slides in with a selection (§8 panel 9). Laying it over rather
-  // than docking it means the canvas never resizes when it comes and goes —
+  // than docking it means the canvas never resizes when it comes and goes;
   // the HUD and ticker shift left by its width instead (`--chrome-right`).
   // Modals mount on the root so they cover both.
   const stage = document.createElement('div');
@@ -581,7 +581,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     if (activeEvent(state, ASH_EVENT))
       chips.push({
         id: 'ash',
-        label: 'Ash fall — harvest halted',
+        label: 'Ash fall, harvest halted',
         daysLeft: left(ASH_EVENT),
         tone: 'ash',
       });
@@ -589,7 +589,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       const n = activeEvent(state, FLOOD_EVENT)!.blocks?.length ?? 0;
       chips.push({
         id: 'flood',
-        label: n > 0 ? `Flood · ${n} block${n === 1 ? '' : 's'}` : 'Flood downstream',
+        label: n > 0 ? `Flood: ${n} block${n === 1 ? '' : 's'}` : 'Flood downstream',
         daysLeft: left(FLOOD_EVENT),
         tone: 'water',
       });
@@ -597,7 +597,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     if (activeEvent(state, DROUGHT_EVENT)) {
       chips.push({
         id: 'drought',
-        label: `Drought · ${state.weather.dryStreak} dry days`,
+        label: `Drought: ${state.weather.dryStreak} dry days`,
         daysLeft: null,
         tone: 'dry',
       });
@@ -606,7 +606,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     if (plagued > 0)
       chips.push({
         id: 'plague',
-        label: `Plague · ${plagued} block${plagued === 1 ? '' : 's'}`,
+        label: `Plague: ${plagued} block${plagued === 1 ? '' : 's'}`,
         daysLeft: null,
         tone: 'pest',
       });
@@ -639,8 +639,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         id: 'insolvent',
         label:
           creditLine(state, sim.world) > 0
-            ? 'Past the credit line — the bank calls the loans'
-            : 'In the red with nothing to lend against — the bank calls the loans',
+            ? 'Past the credit line; the bank calls the loans'
+            : 'In the red with nothing to lend against; the bank calls the loans',
         daysLeft: BANKRUPTCY.daysInRed - state.run.insolventFor,
         tone: 'pest',
       });
@@ -741,8 +741,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         hazardRing.hide();
         toasts.push(
           isWildfire(sim.state)
-            ? 'Fire pressure over the line — this is a wildfire now.'
-            : `${blockName(command.block)} burning — speed capped at ${FIRE_LOCK_SPEED}×.`,
+            ? 'Fire pressure over the line; this is a wildfire now.'
+            : `${blockName(command.block)} burning; speed capped at ${FIRE_LOCK_SPEED}×.`,
           isWildfire(sim.state) ? 'error' : 'warn',
         );
       }
@@ -834,11 +834,11 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     if (d.kopdesChanged) kopdes.sync(sim.state, sim.world);
 
     if (d.yearPassed !== null)
-      toasts.push(`Year ${d.yearPassed + 1} begins — ${regimeLine(sim.state.weather.regime)}`);
+      toasts.push(`Year ${d.yearPassed + 1} begins; ${regimeLine(sim.state.weather.regime)}`);
     for (const block of d.ripeBlocks) toasts.push(`Ripe: ${blockName(block)} is ready to harvest.`);
     for (const sale of d.sold) {
       toasts.push(
-        `Sold ${formatKg(sale.kilograms)} of TBS at ${formatRp(sale.price)}/kg — ${formatRp(sale.revenue)}.`,
+        `Sold ${formatKg(sale.kilograms)} of TBS at ${formatRp(sale.price)}/kg: ${formatRp(sale.revenue)}.`,
       );
     }
     for (const t of d.timber)
@@ -848,10 +848,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       if (shop.isOpen) rangeRing.show(sim.state, sim.world);
     }
     if (d.wildfireStarted)
-      toasts.push(
-        'Wildfire. The fire is no longer yours — it burns until the rain comes.',
-        'error',
-      );
+      toasts.push('Wildfire. The fire is no longer yours; it burns until the rain comes.', 'error');
     if (d.wildfireEnded) toasts.push('The wildfire is out. The smoke will take a while to clear.');
     // Fire news is aggregated: a wildfire tick can touch dozens of blocks.
     if (d.fireSpread.length === 1)
@@ -869,9 +866,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       toasts.push(`Rain put out fires on ${d.extinguished.size} blocks.`);
     const burnedClear = [...d.burnFinished].filter((b) => !d.extinguished.has(b));
     if (burnedClear.length === 1)
-      toasts.push(
-        `${blockName(burnedClear[0]!)} burned clear — the ash will feed it for a season.`,
-      );
+      toasts.push(`${blockName(burnedClear[0]!)} burned clear; the ash will feed it for a season.`);
     else if (burnedClear.length > 1) toasts.push(`${burnedClear.length} blocks burned clear.`);
 
     // The authorities.
@@ -944,7 +939,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     for (const slide of d.landslides) {
       toasts.push(
         slide.palmsLost > 0
-          ? `Landslide on ${blockName(slide.block)} — ${slide.palmsLost} palms buried. Bare slopes do not hold in the rains.`
+          ? `Landslide on ${blockName(slide.block)}; ${slide.palmsLost} palms buried. Bare slopes do not hold in the rains.`
           : `Landslide on ${blockName(slide.block)}. Bare slopes do not hold in the rains.`,
         'error',
       );
@@ -1000,7 +995,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     const byGanoderma = d.palmsDied.filter((p) => p.cause === 'ganoderma').length;
     if (byBeetles > 0) {
       toasts.push(
-        `${byBeetles} young palm${byBeetles === 1 ? '' : 's'} killed by beetles — sanitize the debris.`,
+        `${byBeetles} young palm${byBeetles === 1 ? '' : 's'} killed by beetles; sanitize the debris.`,
         'error',
       );
     }
@@ -1011,7 +1006,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       );
     }
     for (const block of d.plagueStarted)
-      toasts.push(`Plague on ${blockName(block)} — pests are out of hand there.`, 'error');
+      toasts.push(`Plague on ${blockName(block)}; pests are out of hand there.`, 'error');
     for (const block of d.plagueEnded)
       toasts.push(`The plague on ${blockName(block)} has been pushed back.`);
     for (const r of d.replanted)
@@ -1194,7 +1189,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   // test URLs that name a world (`?seed`, `?fresh`) go straight in.
   const welcome = () =>
     toasts.push(
-      `Estate ${sim.world.estateCode}. Click a block to begin — press H or ? for controls.`,
+      `Estate ${sim.world.estateCode}. Click a block to begin; press H or ? for controls.`,
     );
   // A run that is already over reopens on its epilogue, not the title.
   const titleScreen = !params.has('seed') && !params.has('fresh') && !runOver(sim.state);
@@ -1218,7 +1213,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     }
     const chips: SaveSummary['chips'] = eventChips().map((c) => ({
       icon: c.tone === 'water' ? 'rain' : c.tone === 'fire' ? 'fire' : 'haze',
-      label: c.daysLeft === null ? c.label : `${c.label} · ${c.daysLeft} d`,
+      label: c.daysLeft === null ? c.label : `${c.label}, ${c.daysLeft} d`,
       tone: c.tone,
     }));
     if (beetleBlocks > 0)
@@ -1249,7 +1244,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     loadOther: () => menu.toggle(),
     useCode: (code) => {
       const seed = seedFromEstateCode(code);
-      if (seed === null) return 'That is not an estate code — seven letters, like ABC-DEFG.';
+      if (seed === null) return 'That is not an estate code: seven letters, like ABC-DEFG.';
       switchSim(freshSim(seed));
       beginPlay();
       return null;
@@ -1278,7 +1273,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     startScreen.show({
       estateCode: sim.world.estateCode,
       save: slot.exists() ? saveSummary() : null,
-      build: `v${__APP_VERSION__} · ${handle.backend === 'webgpu' ? 'WebGPU' : 'WebGL 2'} · saves in this browser`,
+      build: `v${__APP_VERSION__}, ${handle.backend === 'webgpu' ? 'WebGPU' : 'WebGL 2'}, saves in this browser`,
     });
   } else if (!slot.exists()) {
     welcome();
@@ -1344,7 +1339,7 @@ function regimeLine(regime: 'normal' | 'elNino' | 'laNina'): string {
 function weatherStartLine(id: string, days: number): string {
   switch (id) {
     case 'haze':
-      return `Haze has drifted over the province — less sun and lower prices for about ${days} days.`;
+      return `Haze has drifted over the province; less sun and lower prices for about ${days} days.`;
     case 'ash':
       return `Ash is falling from a distant eruption. Harvest is halted for about ${days} days.`;
     case 'flood':

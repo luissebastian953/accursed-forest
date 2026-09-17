@@ -1,6 +1,6 @@
 /**
  * SettleInvestigation (§3.9): while integrity is low, a large payment makes the
- * police cars leave. It resets attention to 30 and lifts the ban — and the
+ * police cars leave. It resets attention to 30 and lifts the ban; and the
  * news makes it clear exactly what happened.
  */
 

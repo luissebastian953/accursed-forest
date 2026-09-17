@@ -1,7 +1,7 @@
 /**
  * BurnBlock (§3.1.1): the tempting way to clear. Nearly free, fast, and it
  * spreads. Each burn adds its intensity's pressure; past the wildfire
- * threshold the fire stops being yours. The game never forbids it — it makes
+ * threshold the fire stops being yours. The game never forbids it; it makes
  * the consequences legible.
  */
 
@@ -35,7 +35,7 @@ export const burnBlock: CommandHandler<BurnBlock> = {
       return reject(
         'noFuel',
         block.phase === 'cleared'
-          ? 'Nothing left to burn — not enough debris.'
+          ? 'Nothing left to burn; not enough debris.'
           : block.phase === 'planted'
             ? 'You would be burning your own palms.'
             : 'Nothing here will burn.',

@@ -5,7 +5,7 @@ import type { Biome, ItemId } from '../types.ts';
 export const ECONOMY = {
   /**
    * Enough to build the Kopdes and get five or six blocks planted before the
-   * first harvest — a start with room to make decisions, not just survive.
+   * first harvest; a start with room to make decisions, not just survive.
    */
   startingCash: 250_000_000,
 

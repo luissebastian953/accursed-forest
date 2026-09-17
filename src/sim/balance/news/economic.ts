@@ -9,7 +9,7 @@ export const ECONOMIC: Record<string, NewsTemplate> = {
     cooldownDays: 30,
     titles: ['Rupiah slides against the dollar', 'Currency weakens; importers pass costs on'],
     bodies: [
-      'Fertilizer and seedlings cost more from today. Palm oil is priced in dollars, so fruit prices rise too — but by less.',
+      'Fertilizer and seedlings cost more from today. Palm oil is priced in dollars, so fruit prices rise too; but by less.',
     ],
     effects: ['Input prices ×{pct}', 'TBS price rises by half as much'],
   },

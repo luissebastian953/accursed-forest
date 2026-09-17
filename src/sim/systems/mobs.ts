@@ -8,7 +8,7 @@
  *
  * Positions are in block units. A mob walks toward its target a fraction of
  * a block a day; the renderer walks it there between ticks. Animals live on
- * a small repertoire — stand, mill about, cross the estate, circle, sleep —
+ * a small repertoire; stand, mill about, cross the estate, circle, sleep;
  * and pick the next thing when the current one runs out.
  */
 
@@ -240,7 +240,7 @@ function spawnWildlife(ctx: SimContext, rng: RngState): void {
 function spawnVisitors(ctx: SimContext, rng: RngState): void {
   const { state, world } = ctx;
 
-  // The thief comes for ripe fruit — less often, and less successfully, when guarded.
+  // The thief comes for ripe fruit; less often, and less successfully, when guarded.
   const ripe = bearingBlocks(state);
   const hasThief = state.mobs.some((m) => m.species === 'thief');
   if (ripe.length > 0 && !hasThief) {
@@ -337,7 +337,7 @@ function spawnGhost(ctx: SimContext, rng: RngState): void {
  * Keep every worked block's crew topped up. A chop is always the player's
  * order, so every clearing block is staffed. A fire is only the player's if
  * the burn command staffed it: lightning, a drought spark and a fire that
- * spread in from next door burn with nobody standing round them — and once
+ * spread in from next door burn with nobody standing round them; and once
  * the pressure tips into a wildfire, nobody works any fire at all.
  */
 function spawnCrews(ctx: SimContext, rng: RngState): void {
@@ -365,7 +365,7 @@ export function workedBlocks(state: SimState): Set<BlockId> {
 /**
  * Top a block's crew up to `crewSize`. The chop and burn commands call this
  * the moment the order is given, so the crew is on the block before the
- * next day's tick — at ten seconds a day, waiting for it read as a delay.
+ * next day's tick; at ten seconds a day, waiting for it read as a delay.
  */
 export function staffBlock(ctx: SimContext, id: BlockId, rng?: RngState): void {
   const { state } = ctx;

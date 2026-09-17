@@ -58,7 +58,7 @@ export function localStorageAdapter(backing: Storage = window.localStorage): Key
 }
 
 export interface MemoryStorage extends KeyValueStorage {
-  /** Every `set` call so far, in order — tests assert on what was written. */
+  /** Every `set` call so far, in order; tests assert on what was written. */
   readonly writes: string[];
   /** Simulate a full disk: every `set` after this throws `QuotaError`. */
   failWrites: boolean;

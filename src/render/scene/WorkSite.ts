@@ -1,6 +1,6 @@
 /**
  * The work site (§6.5): while a crew is chopping or burning a block, four
- * timber pillars go up at its corners with ropes strung between them — the
+ * timber pillars go up at its corners with ropes strung between them; the
  * crew's scaffolding and cordon. Up when the work starts, gone when the block
  * clears or the crew walks off. A fire with no crew (lightning, a spread, a
  * wildfire) is just a fire. Purely visual; one mesh per worked block.
@@ -71,7 +71,7 @@ export class WorkSite {
 
   /**
    * Put a site on every block a crew is working, and take down the rest. A
-   * fire nobody ordered — lightning, a spark, a spread — gets no scaffolding.
+   * fire nobody ordered; lightning, a spark, a spread; gets no scaffolding.
    */
   sync(state: SimState, world: World): void {
     const working = workedBlocks(state);

@@ -8,7 +8,7 @@ import { expect, test } from '@playwright/test';
  * (§6.4); `?spike` selects the spike over the game. The WebGPU path is
  * exercised by hand in a real browser.
  *
- * Note: the canvas cannot be read back with `drawImage` — the renderer runs
+ * Note: the canvas cannot be read back with `drawImage`; the renderer runs
  * without `preserveDrawingBuffer`, so the backbuffer is empty by the time a 2D
  * context could sample it. Playwright's compositor-level screenshot is the
  * reliable way to see what was actually drawn.

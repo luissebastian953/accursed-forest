@@ -2,7 +2,7 @@
  * The active set (§4.6): which blocks the systems tick this turn.
  *
  * Owned blocks, their one-block ring, and any diverged block that is still
- * doing something — burning, carrying debris, hosting beetles, or simply not
+ * doing something; burning, carrying debris, hosting beetles, or simply not
  * wild any more. Rebuilt every tick; at estate scale it is a few hundred ids.
  */
 

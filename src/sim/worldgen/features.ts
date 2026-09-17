@@ -1,8 +1,8 @@
 /**
  * Map-scale features (§4.6): protected forest, and where the player starts.
  *
- * Both need to see the whole map at once — the largest contiguous forest
- * cluster, and a start site with a river in reach — so unlike elevation and
+ * Both need to see the whole map at once; the largest contiguous forest
+ * cluster, and a start site with a river in reach; so unlike elevation and
  * moisture they are computed once when the world is created rather than
  * per-cell on demand.
  */
@@ -28,7 +28,7 @@ export interface FeatureInputs {
 
 /**
  * The largest contiguous cluster of high forest, plus a one-block buffer ring,
- * becomes protected forest — the map's fixed boundary. Returns an empty set if
+ * becomes protected forest; the map's fixed boundary. Returns an empty set if
  * no cluster reaches the minimum size, which is a legitimate world.
  */
 export function findProtectedForest(input: FeatureInputs): Set<number> {
@@ -101,7 +101,7 @@ const ALLOWED: ReadonlySet<Biome> = new Set(START_SITE.allowed);
 /**
  * Search outward from the map centre for somewhere to put the estate: a core
  * that is plantable, off the slopes, clear of protected forest and water, with
- * a river within reach and standing forest in or around it. Always returns a site — if nothing scores well the best
+ * a river within reach and standing forest in or around it. Always returns a site; if nothing scores well the best
  * candidate found wins, because a world with nowhere to start is not playable.
  */
 export function findStartSite(

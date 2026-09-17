@@ -105,7 +105,7 @@ export class CertificatePanel {
         >
           <div class="mb-1 flex items-center justify-between">
             <div class="flex items-center gap-2 font-extrabold">
-              ${icon('certificate-ispo')} ISPO certificate ·
+              ${icon('certificate-ispo')} ISPO certificate:
               <span class="num">${met}/${conditions.length}</span>
             </div>
             <button

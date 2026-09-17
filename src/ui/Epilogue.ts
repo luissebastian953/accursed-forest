@@ -67,9 +67,9 @@ interface Look {
 
 const LOOK: Record<Ending, Look> = {
   clean: {
-    kicker: 'You won · certified',
+    kicker: 'You won: certified',
     title: 'ISPO certified',
-    line: 'A model estate — and this time the papers mean it.',
+    line: 'A model estate, and this time the papers mean it.',
     icon: 'certificate-ispo',
     band: 'linear-gradient(180deg, #fff3cd, #ffe9a8)',
     badge: '#fff9e6',
@@ -77,7 +77,7 @@ const LOOK: Record<Ending, Look> = {
     numbers: 'The numbers',
   },
   dirty: {
-    kicker: 'You won · certified',
+    kicker: 'You won: certified',
     title: 'ISPO certified',
     line: 'Same banner, same ceremony. Someone at the Ministry was persuaded.',
     icon: 'certificate-ispo',
@@ -87,7 +87,7 @@ const LOOK: Record<Ending, Look> = {
     numbers: 'The numbers',
   },
   reboisasi: {
-    kicker: 'You won · reboisasi',
+    kicker: 'You won: reboisasi',
     title: 'Reboisasi',
     line: 'More of the land went back to forest than ever went to palms.',
     icon: 'forest-cover',
@@ -97,7 +97,7 @@ const LOOK: Record<Ending, Look> = {
     numbers: 'The numbers',
   },
   fade: {
-    kicker: 'Run over · the horizon',
+    kicker: 'Run over: the horizon',
     title: 'Twenty-five years',
     line: 'Survived every season, never certified. The first palms are too tall to harvest.',
     icon: 'calendar',
@@ -107,7 +107,7 @@ const LOOK: Record<Ending, Look> = {
     numbers: 'The numbers',
   },
   bankrupt: {
-    kicker: 'Run over · loss',
+    kicker: 'Run over: loss',
     title: 'Bankrupt',
     line: 'The bank stopped waiting.',
     icon: 'coin',
@@ -117,7 +117,7 @@ const LOOK: Record<Ending, Look> = {
     numbers: 'What went wrong',
   },
   banned: {
-    kicker: 'Run over · loss',
+    kicker: 'Run over: loss',
     title: 'Shut down',
     line: 'The operating ban outlasted the cash.',
     icon: 'police-warning',
@@ -127,7 +127,7 @@ const LOOK: Record<Ending, Look> = {
     numbers: 'What went wrong',
   },
   arrested: {
-    kicker: 'Run over · loss',
+    kicker: 'Run over: loss',
     title: 'Under arrest',
     line: 'The fires were set on purpose, and the letters were ignored.',
     icon: 'police-warning',
@@ -223,7 +223,7 @@ export class Epilogue {
           { label: 'Forest chopped', value: `${s.forestChopped} ha` },
           {
             label: 'Fines never paid',
-            value: s.settled > 0 ? formatRp(s.settled) : '—',
+            value: s.settled > 0 ? formatRp(s.settled) : 'None',
             tone: s.settled > 0 ? 'warn' : 'plain',
           },
           profit(v.profitTotal),
@@ -269,7 +269,7 @@ export class Epilogue {
           { label: 'Forest chopped', value: `${s.forestChopped} ha` },
           {
             label: 'Coordination fees',
-            value: s.settled > 0 ? formatRp(s.settled) : '—',
+            value: s.settled > 0 ? formatRp(s.settled) : 'None',
             tone: s.settled > 0 ? 'warn' : 'plain',
           },
         ];
@@ -338,7 +338,7 @@ export class Epilogue {
                 <div class="flex flex-wrap items-center gap-2">
                   <span class="label !text-[var(--ink)] opacity-70">${look.kicker}</span>
                   <span class="pill label !py-0.5 !text-[var(--ink)]">
-                    Estate ${v.estateCode} · ${formatDate(v.endedAt)}
+                    Estate ${v.estateCode}, ${formatDate(v.endedAt)}
                   </span>
                 </div>
                 <div
@@ -355,7 +355,7 @@ export class Epilogue {
             <div class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-5 py-4">
               ${
                 v.headline
-                  ? this.note('news', html`<b>“${v.headline.title}”</b> — ${v.headline.body}`)
+                  ? this.note('news', html`<b>“${v.headline.title}”</b>; ${v.headline.body}`)
                   : nothing
               }
               ${
@@ -374,9 +374,9 @@ export class Epilogue {
                         >
                           ${
                             sponsor
-                              ? html`Presented with ${sponsor.name} · ${sponsor.line}`
-                              : html`Presented with —
-                                  <span class="italic">sponsor to be announced</span>`
+                              ? html`Presented with ${sponsor.name}, ${sponsor.line}`
+                              : html`Presented with
+                                  <span class="italic">a sponsor to be announced</span>`
                           }
                         </div>
                       `,
@@ -435,7 +435,7 @@ export class Epilogue {
                 >
                   <span class="text-sm font-extrabold">How it went</span>
                   <span class="pill-muted label !py-0.5">
-                    ${v.chronicle.length} events · ${years} ${years === 1 ? 'year' : 'years'}
+                    ${v.chronicle.length} events, ${years} ${years === 1 ? 'year' : 'years'}
                   </span>
                   <span class="ml-auto text-sm font-extrabold opacity-70">
                     ${this.timelineOpen ? 'Hide ▴' : 'Show ▾'}
@@ -483,7 +483,7 @@ export class Epilogue {
                           <span aria-hidden="true">↺</span> Try again from an earlier year
                         </div>
                         <div class="text-xs font-bold opacity-80">
-                          Same seed, same weather ahead — different decisions.
+                          Same seed, same weather ahead; different decisions.
                         </div>
                         <div class="mt-2 flex flex-wrap gap-2">
                           ${v.rewindYears
@@ -495,7 +495,7 @@ export class Epilogue {
                                   data-testid=${`epilogue-rewind-${year}`}
                                   @click=${() => this.handlers.rewind(year)}
                                 >
-                                  Year ${year}${year === oldest && year === 1 ? ' · start' : ''}
+                                  Year ${year}${year === oldest && year === 1 ? ', start' : ''}
                                 </button>
                               `,
                             )}
@@ -517,7 +517,7 @@ export class Epilogue {
                     >
                       <span class="uppercase tracking-wide">▸ Keep playing</span>
                       <span class="text-[0.68rem] font-bold opacity-85"
-                        >sandbox · no more endings</span
+                        >sandbox, no more endings</span
                       >
                     </button>`
                   : nothing

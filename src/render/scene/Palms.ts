@@ -1,7 +1,7 @@
 /**
  * Instanced palms (§6.6): one `InstancedMesh` per growth stage and variant,
  * plus stumps, rebuilt from sim state whenever a planted block changes. At
- * estate scale that is a few thousand matrices — cheap enough to redo
+ * estate scale that is a few thousand matrices; cheap enough to redo
  * wholesale rather than track slots.
  *
  * Pop-in and grow animations run on the CPU here (§6.5 CPU timeline). The GPU

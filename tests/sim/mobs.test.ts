@@ -75,7 +75,7 @@ describe('wildlife (mobs)', () => {
     expect(sim.state.mobs.every((m) => sim.state.tick - m.born < longest)).toBe(true);
   });
 
-  it('animals live on a repertoire — stand, mill about, cross, circle, sleep — at a walk', () => {
+  it('animals live on a repertoire; stand, mill about, cross, circle, sleep; at a walk', () => {
     const sim = createSim(42);
     sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
     const seen = new Set<string>();

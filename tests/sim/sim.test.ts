@@ -10,7 +10,7 @@ import { slotStage, stageOf } from '@sim/palms.ts';
 import { growthMultiplier } from '@sim/systems/growth.ts';
 import type { Block, BlockId, Command } from '@sim/types.ts';
 
-/** First owned, wild block of the given biome — the natural first target. */
+/** First owned, wild block of the given biome; the natural first target. */
 function firstOwnedWild(sim: Sim, biome: Block['biome'] = 'grassfield'): BlockId {
   for (const block of sim.state.blocks.values()) {
     if (block.owned && block.phase === 'wild' && block.biome === biome) return block.id;

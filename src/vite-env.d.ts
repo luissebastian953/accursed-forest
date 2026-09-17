@@ -4,7 +4,7 @@
 declare const __APP_VERSION__: string;
 
 /**
- * `tsc --noEmit` does not parse `.svelte` files itself — `svelte-check` does
+ * `tsc --noEmit` does not parse `.svelte` files itself; `svelte-check` does
  * that, with real prop types. This just satisfies a `.ts` file's `import`.
  */
 declare module '*.svelte' {
