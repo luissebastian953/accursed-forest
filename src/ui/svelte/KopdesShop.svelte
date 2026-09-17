@@ -73,23 +73,21 @@
         {/if}
         {#each v.rows as row (row.item)}
           <div class="pill-muted p-2.5">
-            <div class="flex items-baseline justify-between gap-2">
-              <div class="flex items-start gap-2">
-                <span class="pill flex h-9 w-9 shrink-0 items-center justify-center">
-                  <Icon name={row.icon} />
-                </span>
-                <div>
-                  <div class="font-extrabold">{t(`shop.item_${row.item}`)}</div>
-                  <div class="muted text-xs">{t(`shop.note_${row.item}`)}</div>
-                </div>
+            <div class="flex items-center gap-2">
+              <span class="pill flex h-9 w-9 shrink-0 items-center justify-center">
+                <Icon name={row.icon} />
+              </span>
+              <div class="min-w-0 flex-1 font-extrabold">{t(`shop.item_${row.item}`)}</div>
+              <div class="num shrink-0 text-right text-xs">
+                {t('shop.each', { price: formatRp(row.unit) })}
               </div>
-              <div class="shrink-0 text-right text-xs">
-                <div class="num">{t('shop.each', { price: formatRp(row.unit) })}</div>
-                <div class="muted">
-                  {t('shop.inStock')}
-                  <span data-testid={`stock-${row.item}`}>{row.stock}</span>
-                </div>
-              </div>
+            </div>
+            <div class="mt-1 flex items-baseline justify-between gap-2 text-xs">
+              <span class="muted min-w-0 flex-1">{t(`shop.note_${row.item}`)}</span>
+              <span class="muted shrink-0">
+                {t('shop.inStock')}
+                <span data-testid={`stock-${row.item}`}>{row.stock}</span>
+              </span>
             </div>
             <div class="mt-2 flex gap-1.5">
               {#each row.bundles as bundle (bundle.quantity)}

@@ -1,7 +1,7 @@
 {
   "title": "Kopdes shop",
   "noKopdes": "No Kopdes yet",
-  "subtitle": "Koperasi Desa, level {level}, sells within {range} blocks",
+  "subtitle": "Level {level}, sells within {range} blocks",
   "subtitleNone": "Koperasi Desa",
   "tabBuy": "Buy",
   "tabSell": "Sell & upgrade",

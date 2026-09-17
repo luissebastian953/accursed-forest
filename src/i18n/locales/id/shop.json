@@ -1,7 +1,7 @@
 {
   "title": "Toko Kopdes",
   "noKopdes": "Belum ada Kopdes",
-  "subtitle": "Koperasi Desa, tingkat {level}, melayani sejauh {range} petak",
+  "subtitle": "Tingkat {level}, melayani {range} petak",
   "subtitleNone": "Koperasi Desa",
   "tabBuy": "Beli",
   "tabSell": "Jual & tingkatkan",

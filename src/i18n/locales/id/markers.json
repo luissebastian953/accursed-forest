@@ -1,0 +1,9 @@
+{
+  "workshop": "Toko Kopdes",
+  "workshopDetail": "Petak {at}, tingkat {level}",
+  "ganoderma": "Ganoderma",
+  "ganodermaDetail": "{sick} dari {total} sawit, menyebar",
+  "ganodermaHeld": "{sick} dari {total} sawit, diobati",
+  "beetle": "Kumbang",
+  "beetleDetail": "{beetles} kumbang, sisa tebangan {debris}"
+}

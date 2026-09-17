@@ -60,6 +60,7 @@ import { estateForestCover } from '@sim/landscape';
 import { runOver } from '@sim/run';
 import { creditLine, ispoConditions, matureHectares } from '@sim/systems/endings';
 import { workedBlocks } from '@sim/systems/mobs';
+import { ganodermaCounts } from '@sim/systems/pest';
 import type { BlockId, Command } from '@sim/types';
 import { formatKg, formatRp } from '@ui/format';
 import { AuthorityCards, type CardKind } from '@ui/svelte/authorityCardsState.svelte.ts';
@@ -67,6 +68,7 @@ import { BlockPanel } from '@ui/svelte/blockPanelState.svelte.ts';
 import { CertificatePanel, YearEndCard } from '@ui/svelte/certificateState.svelte.ts';
 import { ControlsHelp } from '@ui/svelte/controlsHelpState.svelte.ts';
 import { Epilogue } from '@ui/svelte/epilogueState.svelte.ts';
+import { HudMarkers, type HudMarker } from '@ui/svelte/hudMarkersState.svelte.ts';
 import { Hud, type EventChip } from '@ui/svelte/hudState.svelte.ts';
 import { KopdesShop } from '@ui/svelte/kopdesShopState.svelte.ts';
 import { Menu } from '@ui/svelte/menuState.svelte.ts';
@@ -314,6 +316,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   // ── UI ──────────────────────────────────────────────────────────────────
   const workMarkers = new WorkMarkers(stage);
+  const hudMarkers = new HudMarkers(stage, { select: (block) => select(block) });
   const hud = new Hud(stage, {
     setSpeed: (speed) => time.set(speed),
     openMenu: () => {
@@ -1094,6 +1097,103 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     }
   }
 
+  /**
+   * The pin layer (design kit 6a): the Kopdes, and any block the pests have
+   * got into. Beetles only matter once there are enough of them to bore a
+   * palm, so a stray one does not plant a pin on the map.
+   */
+  const PIN_LIFT = 9;
+  const BEETLES_WORTH_A_PIN = 12;
+  /** An estate in trouble everywhere is not helped by a screen full of pins. */
+  const MAX_PEST_PINS = 10;
+  const pinPoint = new Vector3();
+  const hudMarkerItems: HudMarker[] = [];
+
+  function syncHudMarkers(): void {
+    hudMarkerItems.length = 0;
+    const { state, world } = sim;
+    const width = handle.canvas.clientWidth;
+    const height = handle.canvas.clientHeight;
+    rig.camera.updateMatrixWorld();
+    const side = WORLD.blockSide;
+    const pin = (
+      block: BlockId,
+      kind: HudMarker['kind'],
+      label: string,
+      detail: string,
+      alert: boolean,
+    ) => {
+      const [bx, by] = world.toXY(block);
+      const cx = bx * side + side / 2;
+      const cz = by * side + side / 2;
+      pinPoint.set(cx, groundAt(cx, cz) + PIN_LIFT, cz).project(rig.camera);
+      // Behind the camera, or off the edge: no pin, and no work done for one.
+      if (pinPoint.z > 1) return;
+      hudMarkerItems.push({
+        id: `${kind}:${block}`,
+        kind,
+        block,
+        x: ((pinPoint.x + 1) / 2) * width,
+        y: ((1 - pinPoint.y) / 2) * height,
+        label,
+        detail,
+        alert,
+      });
+    };
+
+    if (state.kopdes) {
+      pin(
+        state.kopdes.blockId,
+        'workshop',
+        t('markers.workshop'),
+        t('markers.workshopDetail', {
+          at: blockLabel(world, state.kopdes.blockId),
+          level: state.kopdes.level,
+        }),
+        false,
+      );
+    }
+
+    for (const [id, palms] of state.palms) {
+      const block = state.blocks.get(id);
+      if (!block?.owned || block.species !== 'palm') continue;
+      const counts = ganodermaCounts(palms);
+      const sick = counts.symptomatic + counts.dead;
+      if (sick > 0) {
+        const treated = block.trichodermaUntil > state.tick;
+        pin(
+          id,
+          'ganoderma',
+          t('markers.ganoderma'),
+          t(treated ? 'markers.ganodermaHeld' : 'markers.ganodermaDetail', {
+            sick,
+            total: palms.plantedAt.length,
+          }),
+          !treated,
+        );
+      }
+      if (block.beetles >= BEETLES_WORTH_A_PIN) {
+        pin(
+          id,
+          'beetle',
+          t('markers.beetle'),
+          t('markers.beetleDetail', {
+            beetles: Math.round(block.beetles),
+            debris: Math.round(block.debris),
+          }),
+          block.trapsUntil <= state.tick,
+        );
+      }
+    }
+    // The Kopdes always keeps its pin; the pest ones give way to the worst.
+    const workshop = hudMarkerItems.filter((m) => m.kind === 'workshop');
+    const pests = hudMarkerItems
+      .filter((m) => m.kind !== 'workshop')
+      .sort((a, b) => Number(b.alert) - Number(a.alert))
+      .slice(0, MAX_PEST_PINS);
+    hudMarkers.update([...workshop, ...pests]);
+  }
+
   /** Head-room above the work site's pillars for the progress ring. */
   const MARKER_LIFT = 7;
   const markerPoint = new Vector3();
@@ -1154,6 +1254,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     clouds.update(dt, rig.camera, visible);
     syncSparkles(nowMs);
     syncWorkMarkers();
+    syncHudMarkers();
 
     // The panels are DOM: ten refreshes a second is plenty, and it leaves the
     // frame budget to the world. (Every frame cost the sim a third of its
@@ -1425,6 +1526,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     observer.disconnect();
     hud.dispose();
     workMarkers.dispose();
+    hudMarkers.dispose();
     coins.dispose();
     sparkles.dispose();
     clouds.dispose();

@@ -1,0 +1,9 @@
+{
+  "workshop": "Workshop",
+  "workshopDetail": "Block {at}, level {level}",
+  "ganoderma": "Ganoderma",
+  "ganodermaDetail": "{sick} of {total} palms, spreading",
+  "ganodermaHeld": "{sick} of {total} palms, treated",
+  "beetle": "Beetles",
+  "beetleDetail": "{beetles} beetles, debris {debris}"
+}
