@@ -18,7 +18,7 @@ import { mount, unmount, type Component } from 'svelte';
 import { BIOMES } from '@sim/balance/biomes';
 import { COVER_CROP } from '@sim/balance/events';
 import { FIRE } from '@sim/balance/fire';
-import { GROWTH } from '@sim/balance/growth';
+import { FOREST_GROWTH, GROWTH } from '@sim/balance/growth';
 import { PEST_LABOUR, PLAGUE } from '@sim/balance/pests';
 import { DRAINAGE_COST, IRRIGATION_COST, KOPDES_BUILD_COST } from '@sim/balance/prices';
 import { isWetSeason } from '@sim/balance/seasons';
@@ -109,7 +109,8 @@ export interface BlockView {
     breeding: boolean;
     treatments: ActionView[];
     grid: {
-      cells: { slot: number; cls: string; title: string }[];
+      /** `sick`: Ganoderma is showing; the cell carries a warning mark. */
+      cells: { slot: number; cls: string; title: string; sick: boolean }[];
       detail:
         | { kind: 'palm'; head: string; health: string; lines: string[]; actions: ActionView[] }
         | { kind: 'empty'; text: string }
@@ -139,7 +140,8 @@ export interface BlockView {
 /** Which icon heads the panel: what is on the block, or what it is. */
 function blockIcon(biome: Biome, phase: string): IconName {
   if (phase === 'kopdes') return 'kopdes';
-  if (phase === 'planted' || phase === 'reforesting') return 'biome-palm-planted';
+  if (phase === 'reforesting') return 'shop-sapling';
+  if (phase === 'planted') return 'biome-palm-planted';
   if (phase === 'cleared' || phase === 'clearing') return 'biome-forest-cleared';
   switch (biome) {
     case 'forest':
@@ -474,20 +476,24 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
       growthN += 1;
     }
     const meanGrowth = growthN > 0 ? growthSum / growthN : 0;
+    const forest = block.species === 'forest';
+    // Forest has its own thresholds: sapling to young tree, young to mature.
+    const [firstStage, secondStage] = forest
+      ? [FOREST_GROWTH.saplingDays, FOREST_GROWTH.matureDays]
+      : [GROWTH.seedlingDays, GROWTH.immatureDays];
     const nextStage =
-      meanGrowth < GROWTH.seedlingDays
-        ? GROWTH.seedlingDays
-        : meanGrowth < GROWTH.immatureDays
-          ? GROWTH.immatureDays
-          : null;
-    const bearing = (stageCounts.mature ?? 0) + (stageCounts.senile ?? 0);
+      meanGrowth < firstStage ? firstStage : meanGrowth < secondStage ? secondStage : null;
+    // Trees carry no fruit: only palms have a harvest line.
+    const bearing = forest ? 0 : (stageCounts.mature ?? 0) + (stageCounts.senile ?? 0);
     const kg = block.species === 'palm' ? harvestableKg(palms, 'palm', state.tick) : 0;
     const days = daysUntilRipe(block, state.tick);
     palmsView = {
       heading: block.species === 'forest' ? t('block.forest') : t('block.palms'),
       count: growthN,
       stages: STAGE_ORDER.filter((s) => stageCounts[s] !== undefined)
-        .map((s) => `${stageCounts[s]} ${t(`block.stage_${s}`)}`)
+        .map(
+          (s) => `${stageCounts[s]} ${t(forest ? `block.forestStage_${s}` : `block.stage_${s}`)}`,
+        )
         .join(', '),
       growth:
         nextStage !== null
@@ -509,13 +515,26 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     };
   }
 
+  // Reforested trees are not palms: beetles and Ganoderma never touch them, so
+  // no slot grid and no palm treatments. A gap can still be replanted.
+  const palmTrees = palms && block.species === 'palm' ? palms : undefined;
+  if (palms && !palmTrees && block.owned) {
+    const replant = action(
+      t('block.replantGaps'),
+      { type: 'ReplantBlock', block: id },
+      'action-ReplantBlock',
+      { minor: true },
+    );
+    if (replant.rejection === null) actions.push(replant);
+  }
+
   // Beetles, Ganoderma, treatments, the slot grid and per-palm actions (§3.4).
   let pests: BlockView['pests'] = null;
-  if (block.owned && (palms || block.debris > 0 || block.beetles > 0)) {
+  if (block.owned && (palmTrees || block.debris > 0 || block.beetles > 0)) {
     const tick = state.tick;
     const capacity = beetleCapacity(block.debris);
-    const pressure = pestPressure(block, palms);
-    const counts = palms ? ganodermaCounts(palms) : null;
+    const pressure = pestPressure(block, palmTrees);
+    const counts = palmTrees ? ganodermaCounts(palmTrees) : null;
     const treatments: ActionView[] = [
       action(t('block.setTraps'), { type: 'SetTrap', block: id }, 'action-SetTrap', {
         minor: true,
@@ -529,7 +548,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
         },
       ),
     ];
-    if (palms) {
+    if (palmTrees) {
       treatments.push(
         action(
           t('block.trichoderma'),
@@ -555,24 +574,25 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     }
 
     let grid: SlotGrid | null = null;
-    if (palms) {
+    if (palmTrees) {
       const cells = [];
-      for (let slot = 0; slot < palms.plantedAt.length; slot++) {
-        const stage = slotStage(palms, slot, block.species, state.tick);
-        const g = palms.ganoderma[slot]!;
+      for (let slot = 0; slot < palmTrees.plantedAt.length; slot++) {
+        const stage = slotStage(palmTrees, slot, block.species, state.tick);
+        const g = palmTrees.ganoderma[slot]!;
         let cls = 'bg-[#efe1bf]';
         if (stage === 'dead') cls = 'bg-[#6f6f6f]';
         else if (g === 2) cls = 'bg-[#ffb03a]';
         else if (stage === 'mature' || stage === 'senile') cls = 'bg-[#3faa4c]';
         else if (stage === 'immature') cls = 'bg-[#7fb03a]';
         else if (stage === 'seedling') cls = 'bg-[#cbe08a]';
-        const health = palms.health[slot]!;
+        const health = palmTrees.health[slot]!;
         if (stage !== 'empty' && stage !== 'dead' && health < 128) cls += ' opacity-60';
-        if (palms.trenched[slot] === 1) cls += ' ring-2 ring-[#5a8bff]';
+        if (palmTrees.trenched[slot] === 1) cls += ' ring-2 ring-[#5a8bff]';
         if (selectedSlot === slot) cls += ' outline outline-2 outline-[#4a3320]';
         cells.push({
           slot,
           cls,
+          sick: g === 2,
           title: t('block.slotTitle', {
             r: slotRow(slot),
             c: slotCol(slot),
@@ -582,14 +602,14 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
         });
       }
       let detail: SlotDetail = null;
-      if (selectedSlot !== null && palms.plantedAt[selectedSlot]! >= 0) {
+      if (selectedSlot !== null && palmTrees.plantedAt[selectedSlot]! >= 0) {
         const slot = selectedSlot;
-        const stage = slotStage(palms, slot, block.species, state.tick);
-        const g = palms.ganoderma[slot]!;
+        const stage = slotStage(palmTrees, slot, block.species, state.tick);
+        const g = palmTrees.ganoderma[slot]!;
         const lines: string[] = [];
         if (g === 2) lines.push(t('block.ganoSick'));
         if (g === 3) lines.push(t('block.deadStump'));
-        if (palms.trenched[slot] === 1) lines.push(t('block.trenched'));
+        if (palmTrees.trenched[slot] === 1) lines.push(t('block.trenched'));
         detail = {
           kind: 'palm',
           head: t('block.slotHead', {
@@ -597,7 +617,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
             c: slotCol(slot),
             stage: t(`block.stage_${stage}`),
           }),
-          health: t('block.health', { pct: Math.round((palms.health[slot]! / 255) * 100) }),
+          health: t('block.health', { pct: Math.round((palmTrees.health[slot]! / 255) * 100) }),
           lines,
           actions: [
             action(

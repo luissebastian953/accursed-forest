@@ -1220,6 +1220,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       redrawTerrain: (blocks: BlockId[]) => {
         for (const block of blocks) chunks.markBlockDirty(block);
       },
+      redrawPalms: () => {
+        palmsDirty = true;
+      },
       timber,
       mobField,
       police,

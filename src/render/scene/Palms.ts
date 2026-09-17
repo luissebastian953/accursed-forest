@@ -7,8 +7,10 @@
  * Pop-in and grow animations run on the CPU here (§6.5 CPU timeline). The GPU
  * per-instance path (`InstanceAnim`) takes over when palm counts justify it.
  *
- * Reforested blocks reuse the palm meshes for now; the box-tree generator for
- * forest stages arrives with the forest-cover work.
+ * Reforested blocks draw forest trees instead (`geometry/forestTree.ts`): a
+ * staked sapling, a young tree, a small mature tree, in two variants, with a
+ * little jitter, scale and yaw per slot so the block reads as woodland and
+ * not as a second plantation.
  */
 
 import { Group, InstancedMesh, Matrix4, Quaternion, Vector3, type Material } from 'three/webgpu';
@@ -20,6 +22,13 @@ import type { BlockId, SimState } from '@sim/types';
 import type { World } from '@sim/worldgen/index';
 
 import { DURATION, cascadeDelay, easeOutBack, squashStretch } from '../anim/easing.ts';
+import {
+  FOREST_STAGES,
+  FOREST_VARIANTS,
+  buildForestTreeGeometry,
+  type ForestStage,
+  type ForestVariant,
+} from '../geometry/forestTree.ts';
 import {
   PALM_STAGES,
   buildPalmGeometry,
@@ -34,12 +43,15 @@ interface Entry {
   y: number;
   z: number;
   yaw: number;
+  /** Uniform size factor: 1 for palms, varied for forest trees. */
+  size: number;
   /** Wall-clock ms the pop-in started, or -1 when at rest. */
   animStart: number;
 }
 
-/** Mesh keys: `${stage}:healthy`, `${stage}:sick`, and `stump`. */
-type MeshKey = `${PalmStage}:healthy` | `${PalmStage}:sick` | 'stump';
+/** Mesh keys: palms by stage and health, forest trees by stage and variant, and `stump`. */
+type MeshKey =
+  `${PalmStage}:healthy` | `${PalmStage}:sick` | `forest:${ForestStage}:${ForestVariant}` | 'stump';
 
 const INITIAL_CAPACITY = 24 * WORLD.blockSide * WORLD.blockSide;
 
@@ -58,6 +70,9 @@ function slotHash(block: BlockId, slot: number): number {
 function allKeys(): MeshKey[] {
   const keys: MeshKey[] = [];
   for (const stage of PALM_STAGES) keys.push(`${stage}:healthy`, `${stage}:sick`);
+  for (const stage of FOREST_STAGES) {
+    for (const variant of FOREST_VARIANTS) keys.push(`forest:${stage}:${variant}`);
+  }
   keys.push('stump');
   return keys;
 }
@@ -71,7 +86,8 @@ export class Palms {
   constructor(private readonly material: Material) {
     for (const key of allKeys()) {
       this.entries.set(key, []);
-      this.ensureCapacity(key, key === 'stump' ? INITIAL_CAPACITY / 4 : INITIAL_CAPACITY);
+      const forest = key.startsWith('forest:');
+      this.ensureCapacity(key, key === 'stump' || forest ? INITIAL_CAPACITY / 4 : INITIAL_CAPACITY);
     }
   }
 
@@ -91,17 +107,39 @@ export class Palms {
       const originZ = by * WORLD.blockSide;
       const y = terraceHeight(block.elevation);
       const animate = animateBlocks?.has(id) ?? false;
+      const forest = block.species === 'forest';
 
       for (let slot = 0; slot < palms.plantedAt.length; slot++) {
         const stage = slotStage(palms, slot, block.species, state.tick);
         if (stage === 'empty') continue;
 
-        let key: MeshKey;
-        if (stage === 'dead') key = 'stump';
-        else key = `${stage}:${palms.ganoderma[slot] === 2 ? 'sick' : 'healthy'}`;
-
         const row = Math.floor(slot / WORLD.blockSide);
         const col = slot % WORLD.blockSide;
+        const animStart = (key: MeshKey) =>
+          animate && key !== 'stump' ? nowMs + cascadeDelay(row * 2 + col * 0.5) : -1;
+
+        if (forest) {
+          // Forest stages stop at mature; anything else is a dead tree's stump.
+          const key: MeshKey =
+            stage === 'seedling' || stage === 'immature' || stage === 'mature'
+              ? `forest:${stage}:${slotHash(id + 7919, slot) < 0.35 ? 'tiered' : 'broadleaf'}`
+              : 'stump';
+          // Planted by hand, not on a grid: a little scatter in both directions.
+          this.entries.get(key)!.push({
+            x: originX + col + 0.5 + (slotHash(id + 104729, slot) - 0.5) * 0.5,
+            y,
+            z: originZ + row + 0.5 + (slotHash(id + 1299709, slot) - 0.5) * 0.5,
+            yaw: slotHash(id, slot) * Math.PI * 2,
+            size: key === 'stump' ? 1 : 0.8 + slotHash(id + 15485863, slot) * 0.4,
+            animStart: animStart(key),
+          });
+          continue;
+        }
+
+        const key: MeshKey =
+          stage === 'dead'
+            ? 'stump'
+            : `${stage}:${palms.ganoderma[slot] === 2 ? 'sick' : 'healthy'}`;
         // Alternate rows shift a quarter slot: real palms are on a triangle.
         const jitter = row % 2 === 0 ? -0.2 : 0.2;
 
@@ -110,7 +148,8 @@ export class Palms {
           y,
           z: originZ + row + 0.5,
           yaw: slotHash(id, slot) * Math.PI * 2,
-          animStart: animate && key !== 'stump' ? nowMs + cascadeDelay(row * 2 + col * 0.5) : -1,
+          size: 1,
+          animStart: animStart(key),
         });
       }
     }
@@ -161,7 +200,7 @@ export class Palms {
   }
 
   private writeMatrix(mesh: InstancedMesh, index: number, entry: Entry, nowMs: number): void {
-    let scale = 1;
+    let scale = entry.size;
     let sy = 1;
     let sxz = 1;
 
@@ -169,7 +208,7 @@ export class Palms {
       const t = clamp01((nowMs - entry.animStart) / DURATION.popIn);
       const curve = easeOutBack(t);
       const squash = squashStretch(curve, 0.9);
-      scale = t <= 0 ? 0 : curve;
+      scale = t <= 0 ? 0 : curve * entry.size;
       sy = squash.sy;
       sxz = squash.sxz;
     }
@@ -183,6 +222,10 @@ export class Palms {
 
   private geometryFor(key: MeshKey) {
     if (key === 'stump') return buildStumpGeometry();
+    if (key.startsWith('forest:')) {
+      const [, stage, variant] = key.split(':') as ['forest', ForestStage, ForestVariant];
+      return buildForestTreeGeometry(stage, variant);
+    }
     const [stage, variant] = key.split(':') as [PalmStage, 'healthy' | 'sick'];
     return buildPalmGeometry(stage, variant);
   }

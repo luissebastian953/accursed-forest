@@ -186,12 +186,20 @@
                 <div class="grid grid-cols-12 gap-[3px]" data-testid="slot-grid">
                   {#each p.grid.cells as cell (cell.slot)}
                     <button
-                      class="h-4 w-4 rounded-[3px] {cell.cls}"
+                      class="flex h-4 w-4 items-center justify-center rounded-[3px] {cell.cls}"
                       title={cell.title}
                       aria-label={cell.title}
                       data-testid={`slot-cell-${cell.slot}`}
+                      data-sick={cell.sick || undefined}
                       onclick={() => panel.toggleSlot(cell.slot)}
-                    ></button>
+                    >
+                      {#if cell.sick}
+                        <span
+                          class="text-[11px] font-black leading-none text-[#7a2a12]"
+                          aria-hidden="true">!</span
+                        >
+                      {/if}
+                    </button>
                   {/each}
                 </div>
                 {#if p.grid.detail?.kind === 'palm'}
