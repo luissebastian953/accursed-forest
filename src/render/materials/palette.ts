@@ -114,6 +114,10 @@ const COLOURS: Partial<Record<number, [Hex, Hex]>> = {
   // A clear, bright light blue that holds up under rain light, with deeper pools.
   [Palette.River]: [0x5ec3f2, 0x6ccaf4],
   [Palette.RiverDeep]: [0x3a97da, 0x45a1e0],
+
+  [Palette.FurPangolin]: [0x9c7a4a, 0xb08a55],
+  [Palette.FurPangolinDark]: [0x6f5432, 0x7f613b],
+  [Palette.FurCapybaraGold]: [0xe0a63a, 0xf0bb4a],
 };
 
 const FALLBACK: [Hex, Hex] = [0xff00ff, 0xff00ff];

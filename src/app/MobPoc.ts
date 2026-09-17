@@ -36,6 +36,9 @@ const COUNTS = [25, 100, 250, 500] as const;
 
 /** A wild mix, weighted the way an estate would see them. */
 const MIX: readonly SpeciesId[] = [
+  'pangolin',
+  'pangolin',
+  'shinyCapybara',
   'wildBoar',
   'wildBoar',
   'pig',

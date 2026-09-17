@@ -37,6 +37,7 @@ import { BIOMES } from '@sim/balance/biomes';
 import { BANKRUPTCY, ISPO } from '@sim/balance/endings';
 import { FIRE } from '@sim/balance/fire';
 import { GROWTH } from '@sim/balance/growth';
+import { SHINY } from '@sim/balance/mobs';
 import { BEETLES } from '@sim/balance/pests';
 import { MACRO_PREFIX } from '@sim/balance/society';
 import { WORLD } from '@sim/balance/world';
@@ -743,6 +744,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       ) {
         palmsDirty = true;
       }
+      if (command.type === 'TapMob') {
+        toasts.push(t('mobs.golden', { amount: formatRp(SHINY.reward) }));
+      }
       if (command.type === 'ChopBlock' || command.type === 'BurnBlock') {
         // The crew and their scaffolding are on the block before the next tick.
         mobField.syncSim(sim.state);
@@ -1152,8 +1156,44 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     frame: onFrame,
   });
 
+  /**
+   * The golden capybara is the one thing on the map you click rather than a
+   * block: rare, worth something, and gone once seen. Its drawn position is
+   * projected each click; the crowd mesh itself cannot be picked apart.
+   */
+  const TAP_RADIUS_PX = 42;
+  const tapPoint = new Vector3();
+  function tapMobAt(ndcX: number, ndcY: number): boolean {
+    const width = handle.canvas.clientWidth;
+    const height = handle.canvas.clientHeight;
+    const clickX = ((ndcX + 1) / 2) * width;
+    const clickY = ((1 - ndcY) / 2) * height;
+    rig.camera.updateMatrixWorld();
+    let best: { id: number; distance: number } | null = null;
+    for (const mob of sim.state.mobs) {
+      if (!mob.shiny) continue;
+      const x = mob.x * WORLD.blockSide;
+      const z = mob.z * WORLD.blockSide;
+      tapPoint.set(x, groundAt(x, z) + 1, z).project(rig.camera);
+      const distance = Math.hypot(
+        ((tapPoint.x + 1) / 2) * width - clickX,
+        ((1 - tapPoint.y) / 2) * height - clickY,
+      );
+      if (distance <= TAP_RADIUS_PX && (!best || distance < best.distance)) {
+        best = { id: mob.id, distance };
+      }
+    }
+    if (!best) return false;
+    if (!dispatch({ type: 'TapMob', mob: best.id }).ok) return false;
+    mobField.syncSim(sim.state);
+    return true;
+  }
+
   const detachPointer = attachPointer(handle.canvas, {
-    onClick: (ndc) => select(picker.pickBlock(ndc.x, ndc.y)),
+    onClick: (ndc) => {
+      if (tapMobAt(ndc.x, ndc.y)) return;
+      select(picker.pickBlock(ndc.x, ndc.y));
+    },
     onDoubleClick: (ndc) => {
       const block = picker.pickBlock(ndc.x, ndc.y);
       if (block !== null) {

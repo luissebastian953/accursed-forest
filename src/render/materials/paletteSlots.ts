@@ -98,6 +98,11 @@ export const Palette = {
   // River surface: its own light blue, and the darker patches that texture it.
   River: 77,
   RiverDeep: 78,
+
+  FurPangolin: 79,
+  FurPangolinDark: 80,
+  /** The capybara nobody believes you saw. */
+  FurCapybaraGold: 81,
 } as const;
 
 export type PaletteSlot = (typeof Palette)[keyof typeof Palette];

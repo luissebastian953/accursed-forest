@@ -75,10 +75,13 @@ interface Mob {
   /** Sim-driven mobs glide; POC mobs walk at their species' speed. */
   glide: boolean;
   /** What the sim says it is doing, and how far the body has got there (0..1 each). */
-  wants: { sleep: number; crouch: number; work: number };
+  wants: { sleep: number; crouch: number; work: number; sit: number; climb: number };
   sleep: number;
   crouch: number;
   work: number;
+  sit: number;
+  /** How far up a trunk the body has climbed, 0..1; the lift is applied here. */
+  climb: number;
   /** World-unit height of the body's top, for the Zs. */
   crown: number;
   /** `nodes` mode only: the part nodes, parent-first. */
@@ -203,6 +206,7 @@ const _worlds = Array.from({ length: 64 }, () => new Matrix4());
  */
 function drawnAs(mob: SimMob, state: SimState): SpeciesId {
   if (mob.species === 'babiNgepet' && !mob.standing) return 'pig';
+  if (mob.species === 'capybara' && mob.shiny) return 'shinyCapybara';
   if (mob.species === 'crew') {
     const block = mob.target === null ? undefined : state.blocks.get(mob.target);
     return block?.burning ? 'burner' : 'chopper';
@@ -213,11 +217,14 @@ function drawnAs(mob: SimMob, state: SimState): SpeciesId {
 /** What the body should be doing for a sim intent. */
 function wantsFor(mob: SimMob): Mob['wants'] {
   const thief = mob.species === 'thief';
+  const climbing = mob.intent === 'climb' || mob.intent === 'climbJump';
   return {
     sleep: mob.intent === 'sleep' ? 1 : 0,
     crouch:
       thief && (mob.intent === 'hide' || mob.intent === 'raid' || mob.intent === 'flee') ? 1 : 0,
     work: mob.intent === 'work' ? (mob.species === 'crew' ? 1 : 0.6) : 0,
+    sit: mob.intent === 'sit' ? 1 : 0,
+    climb: climbing ? Math.max(0, Math.min(1, mob.climb)) : 0,
   };
 }
 
@@ -252,6 +259,8 @@ function zGeometry(): PartArrays {
   };
 }
 
+/** World units from the ground to the canopy a climber settles in. */
+const CANOPY_LIFT = 4.2;
 const Z_COUNT = 3;
 const Z_PERIOD = 2.4;
 const _zMatrix = new Matrix4();
@@ -385,10 +394,12 @@ export class MobField {
       gait: 0,
       stand: 0,
       glide: false,
-      wants: { sleep: 0, crouch: 0, work: 0 },
+      wants: { sleep: 0, crouch: 0, work: 0, sit: 0, climb: 0 },
       sleep: 0,
       crouch: 0,
       work: 0,
+      sit: 0,
+      climb: 0,
       crown: crownOf(spec),
     });
   }
@@ -431,6 +442,8 @@ export class MobField {
           sleep: 0,
           crouch: 0,
           work: 0,
+          sit: 0,
+          climb: 0,
           crown: crownOf(spec),
         };
         this.attach(mob);
@@ -484,6 +497,9 @@ export class MobField {
       mob.sleep += (mob.wants.sleep - mob.sleep) * Math.min(1, dtSeconds * 1.5);
       mob.crouch += (mob.wants.crouch - mob.crouch) * Math.min(1, dtSeconds * 4);
       mob.work += (mob.wants.work - mob.work) * Math.min(1, dtSeconds * 3);
+      mob.sit += (mob.wants.sit - mob.sit) * Math.min(1, dtSeconds * 2.5);
+      // Up and down a trunk is a climb, not a jump cut.
+      mob.climb += (mob.wants.climb - mob.climb) * Math.min(1, dtSeconds * 0.9);
 
       if (mob.glide) {
         // Sim-driven: spread the gap to the latest sim position over the rest
@@ -522,7 +538,7 @@ export class MobField {
         }
       }
 
-      const y = groundAt(mob.x, mob.z);
+      const y = groundAt(mob.x, mob.z) + mob.climb * CANOPY_LIFT;
       const input: PoseInput = {
         time: mob.age,
         gait: mob.gait,
@@ -531,6 +547,8 @@ export class MobField {
         sleep: mob.sleep,
         crouch: mob.crouch,
         work: mob.work,
+        sit: mob.sit,
+        climb: mob.climb,
       };
       _facing.makeRotationY(mob.facing);
       _facing.setPosition(mob.x, y, mob.z);

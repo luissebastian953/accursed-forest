@@ -20,6 +20,39 @@ describe('mob rig (POC)', () => {
     }
   });
 
+  it('the new arrivals have bodies: a pangolin and the golden capybara', () => {
+    for (const id of ['pangolin', 'shinyCapybara']) {
+      const spec = SPECIES[id];
+      expect(spec, id).toBeDefined();
+      expect(spec!.parts.length, id).toBeGreaterThanOrEqual(6);
+      expect(partOrder(spec!)[0]!.part.role, id).toBe('body');
+    }
+    // The golden one is the capybara in another coat, not another animal.
+    expect(SPECIES['shinyCapybara']!.parts.length).toBe(SPECIES['capybara']!.parts.length);
+    expect(SPECIES['shinyCapybara']!.parts[0]!.slot).not.toBe(SPECIES['capybara']!.parts[0]!.slot);
+  });
+
+  it('sitting and climbing move the body: back tips up, and the climber rises', () => {
+    const monkey = SPECIES['monkey']!;
+    const body = monkey.parts[0]!;
+    const m = new Matrix4();
+    /** The body's pitch and height this pose. */
+    const read = (input: Parameters<typeof pose>[2]): { pitch: number; y: number } => {
+      pose(monkey, body, input, m);
+      const e = m.elements;
+      return { pitch: Math.atan2(-e[9]!, e[10]!), y: e[13]! };
+    };
+
+    const still = read({ time: 0, gait: 0, phase: 0 });
+    const sitting = read({ time: 0, gait: 0, phase: 0, sit: 1 });
+    const climbing = read({ time: 0, gait: 0, phase: 0, climb: 1 });
+
+    // Sitting tips the chest up a little; climbing swings it upright and lifts it.
+    expect(sitting.pitch).toBeLessThan(still.pitch);
+    expect(climbing.pitch).toBeLessThan(sitting.pitch);
+    expect(climbing.y).toBeGreaterThan(still.y);
+  });
+
   it('a walk swings the legs out of phase and never breaks the rig', () => {
     const boar = SPECIES['wildBoar']!;
     const fl = boar.parts.find((p) => p.role === 'legFL')!;

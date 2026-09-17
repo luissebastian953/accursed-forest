@@ -84,6 +84,10 @@ export interface PoseInput {
   crouch?: number;
   /** 0 hands down, 1 swinging an axe or a torch at the block. */
   work?: number;
+  /** 0 on all fours, 1 sitting up on the haunches. */
+  sit?: number;
+  /** 0 on the ground, 1 clinging to a trunk. The lift itself is the field's. */
+  climb?: number;
 }
 
 /** The chop cycle: a slow lift, a fast drop, 0..1 raised. */
@@ -123,6 +127,8 @@ export function pose(spec: SpeciesSpec, part: PartSpec, input: PoseInput, out: M
   const sleep = input.sleep ?? 0;
   const crouch = input.crouch ?? 0;
   const work = input.work ?? 0;
+  const sit = input.sit ?? 0;
+  const climb = input.climb ?? 0;
   const breath = Math.sin(input.time * 1.3 + input.phase);
   let rz = tz;
 
@@ -150,15 +156,30 @@ export function pose(spec: SpeciesSpec, part: PartSpec, input: PoseInput, out: M
       }
       // Working: leans into each swing.
       if (work > 0) rx += work * (0.1 + (1 - chopLift(input.time, input.phase)) * 0.25);
+      // Sitting up on the haunches, back sloped, weight over the hind legs.
+      if (sit > 0) {
+        rx -= sit * 0.55;
+        py -= sit * part.size[1] * 0.12;
+        pz -= sit * part.size[2] * 0.1;
+      }
+      // Up a trunk: head up, belly to the bark, swaying with the tree.
+      if (climb > 0) {
+        rx -= climb * 1.15;
+        py += climb * part.size[2] * 0.3;
+        rz += climb * Math.sin(input.time * 0.9 + input.phase) * 0.06;
+      }
       break;
     case 'head':
       ry += Math.sin(input.time * 0.7 + input.phase) * 0.35 * (1 - input.gait * 0.6);
       rx += Math.sin(step) * 0.05 * input.gait;
-      // Asleep the head rests down; crouched it looks up from under the brim.
-      rx += sleep * 0.4 - crouch * 0.35;
+      // Asleep the head rests down; crouched it looks up from under the brim;
+      // climbing it comes back up to look along the trunk.
+      rx += sleep * 0.4 - crouch * 0.35 - climb * 0.75 + sit * 0.3;
       break;
     case 'tail':
       ry += Math.sin(step * 1.5) * 0.5 * (0.35 + input.gait) * (1 - sleep);
+      // Hooked round the trunk, or curled along the ground behind a sitter.
+      rx += climb * 0.7 + sit * 0.4;
       break;
     case 'ear':
       rx += Math.sin(step * 2 + 1) * 0.25 * input.gait;
@@ -170,12 +191,19 @@ export function pose(spec: SpeciesSpec, part: PartSpec, input: PoseInput, out: M
       rx += stand * 0.9;
       // Asleep the legs tuck in; crouched (a biped's legs) they fold.
       rx += sleep * 1.3 - crouch * 0.9;
+      // Sitting, the forelegs prop the chest; climbing, they reach round the trunk.
+      rx -= sit * 0.5;
+      rx -= climb * 1.5;
+      rz += (part.role === 'legFL' ? -1 : 1) * climb * 0.35;
       break;
     case 'legBL':
     case 'legBR':
       rx += Math.sin(step + (LEG_PHASE[part.role] ?? 0)) * spec.swing * input.gait;
       // ...and the hind legs straighten under the body.
       rx += stand * 1.25 + sleep * 1.3;
+      // Sitting, they fold under; climbing, they grip lower down the trunk.
+      rx += sit * 1.3 + climb * 0.9;
+      rz += (part.role === 'legBL' ? -1 : 1) * climb * 0.3;
       break;
     case 'armL':
     case 'armR': {
