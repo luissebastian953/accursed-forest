@@ -66,7 +66,7 @@ test.describe('landing page', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Sawit Simulator');
     await expect(
       page
-        .locator('h2', { hasText: 'Kebakaran hutan' })
+        .locator('h2, h3', { hasText: 'Kebakaran hutan' })
         .or(page.locator('b', { hasText: 'Kebakaran hutan' }))
         .first(),
     ).toBeVisible();

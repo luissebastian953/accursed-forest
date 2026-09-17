@@ -28,6 +28,7 @@
       content="Sawit Simulator logo: an oil palm growing out of a gold coin"
     />
     <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="id_ID" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Sawit Simulator: a palm-oil farming sim" />
     <meta
@@ -35,7 +36,7 @@
       content="Turn wild land into a working estate. Every shortcut has a price. Free, in the browser."
     />
     <meta name="twitter:image" content="__SITE_URL__/og-1200x630.png" />
-    <meta name="theme-color" content="#fff6e0" />
+    <meta name="theme-color" content="#2f4f2d" />
     <meta name="application-name" content="Sawit Simulator" />
     <meta name="apple-mobile-web-app-title" content="Sawit" />
     <link rel="icon" href="/icon-32.png" sizes="32x32" type="image/png" />
@@ -54,6 +55,7 @@
             "keywords": "sawit, kelapa sawit, palm oil, oil palm, palm tree farm, palm oil simulator, farming simulator, lahan sawit, petani sawit, minyak sawit, buah sawit, reboisasi, reforestation, deforestation, penebangan hutan, kebakaran hutan, forest fire, wildfire, Kalimantan, ISPO",
             "url": "__SITE_URL__/",
             "image": "__SITE_URL__/og-1200x630.png",
+            "screenshot": "__SITE_URL__/brand/hero-estate-1600.webp",
             "description": "A browser management sim about turning wild land into a working oil-palm estate: clear, plant, harvest, sell, and live with the fires, pests, landslides and letters your clearing choices invite.",
             "genre": ["Simulation", "Management", "Strategy"],
             "gamePlatform": ["Web browser"],
@@ -61,7 +63,7 @@
             "operatingSystem": "Any (WebGPU or WebGL 2)",
             "playMode": "SinglePlayer",
             "numberOfPlayers": { "@type": "QuantitativeValue", "value": 1 },
-            "inLanguage": "en",
+            "inLanguage": ["en", "id"],
             "isAccessibleForFree": true,
             "offers": {
               "@type": "Offer",
@@ -90,11 +92,12 @@
             "url": "__SITE_URL__/",
             "name": "Sawit Simulator",
             "publisher": { "@id": "__SITE_URL__/#publisher" },
-            "inLanguage": "en"
+            "inLanguage": ["en", "id"]
           },
           {
             "@type": "FAQPage",
             "@id": "__SITE_URL__/#faq",
+            "inLanguage": "en",
             "mainEntity": [
               {
                 "@type": "Question",
@@ -130,10 +133,18 @@
               },
               {
                 "@type": "Question",
+                "name": "How does a run of Sawit Simulator end?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Six ways: the ISPO certificate and the President's visit, reboisasi, bankruptcy, an operating ban that outlasts the cash, an arrest after a second wildfire, or twenty-five years survived without a certificate, which opens the sandbox."
+                }
+              },
+              {
+                "@type": "Question",
                 "name": "Is Sawit Simulator available in Indonesian?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "The landing page is available in Bahasa Indonesia at /id/. The game's interface is in English for now."
+                  "text": "Yes. This page has an Indonesian twin at /id/, and the game itself plays in English or Bahasa Indonesia: it opens in Indonesian for visitors in Indonesia, and the menu switches languages."
                 }
               }
             ]
@@ -152,6 +163,14 @@
       }
     </script>
     <link rel="preload" href="/fonts/baloo2-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link
+      rel="preload"
+      as="image"
+      href="/brand/hero-estate-1600.webp"
+      imagesrcset="/brand/hero-estate-960.webp 960w, /brand/hero-estate-1600.webp 1600w, /brand/hero-estate-1826.webp 1826w"
+      imagesizes="100vw"
+      fetchpriority="high"
+    />
     <link rel="stylesheet" href="/fonts/fonts.css" />
     <style>
       :root {
@@ -159,13 +178,21 @@
         --card-edge: #f2e0b0;
         --card-shadow: #d9c48d;
         --pill: #f7ebc9;
+        --rule: #efe1bf;
         --ink: #4a3320;
-        --ink-2: #8f7a52;
+        --ink-2: #6b5a3e;
+        --ink-3: #8f7a52;
+        --ink-4: #a08a5e;
+        --ink-nav: #7a6440;
         --green: #5fd06a;
         --green-2: #3faa4c;
         --green-edge: #2f7a2b;
+        --green-deep: #1e5a1a;
         --coral: #ff8a70;
+        --coral-2: #ff6a4d;
         --coral-edge: #c94a30;
+        --cream: #ffe9a8;
+        --bg: #243d22;
       }
       * {
         box-sizing: border-box;
@@ -173,153 +200,497 @@
       html,
       body {
         margin: 0;
-        background: #2f4f2d;
+        background: var(--bg);
         color: var(--ink);
         font-family: 'Baloo 2', ui-rounded, 'Segoe UI Rounded', system-ui, sans-serif;
-        font-weight: 700;
+        font-weight: 600;
         line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
       }
-      main {
-        max-width: 60rem;
+      body {
+        position: relative;
+      }
+      a {
+        color: var(--coral-edge);
+        font-weight: 800;
+      }
+      a:hover {
+        color: var(--coral-2);
+      }
+      h1,
+      h2,
+      h3,
+      p,
+      dl,
+      dt,
+      dd {
+        margin: 0;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      .backdrop {
+        position: absolute;
+        inset: 0 0 auto;
+        height: min(115vh, 1150px);
+        overflow: hidden;
+        z-index: 0;
+      }
+      .backdrop img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center top;
+      }
+      .backdrop::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          180deg,
+          rgba(30, 50, 25, 0.55) 0%,
+          rgba(30, 50, 25, 0.82) 55%,
+          var(--bg) 100%
+        );
+      }
+      .page {
+        position: relative;
+        z-index: 1;
+        max-width: 1120px;
         margin: 0 auto;
-        padding: 2rem 1.25rem 4rem;
+        padding: 24px 20px 72px;
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+      }
+      .stack {
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
       }
       .card {
         background: var(--card);
-        border: 2px solid var(--card-edge);
-        border-radius: 22px;
+        border: 4px solid var(--card-edge);
+        border-radius: 24px;
+        box-shadow:
+          0 8px 0 var(--card-shadow),
+          0 16px 30px rgba(0, 0, 0, 0.3);
+        padding: 28px;
+      }
+      nav.card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        border-radius: 18px;
         box-shadow:
           0 5px 0 var(--card-shadow),
-          0 14px 30px rgb(0 0 0 / 0.25);
-        padding: 1.5rem;
-        margin-bottom: 1.25rem;
-      }
-      .hero {
-        display: grid;
-        gap: 1rem;
-        padding: 2rem 1.75rem;
+          0 12px 24px rgba(0, 0, 0, 0.25);
+        padding: 10px 12px 10px 14px;
       }
       .brand {
         display: flex;
         align-items: center;
-        gap: 1rem;
+        gap: 10px;
+        text-decoration: none;
+        color: var(--ink);
+        font-weight: 800;
+        font-size: 20px;
+        white-space: nowrap;
+      }
+      .brand:hover {
+        color: var(--ink);
       }
       .brand img {
-        width: 84px;
-        height: 84px;
-        flex: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 9px;
       }
-      .kicker {
-        font-size: 0.72rem;
+      .links {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+        font-size: 14px;
         font-weight: 800;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: var(--ink-2);
-        margin: 0;
+      }
+      .links a {
+        color: var(--ink-nav);
+        text-decoration: none;
+        padding: 6px 12px;
+        border-radius: 10px;
+      }
+      .links a:hover {
+        background: var(--pill);
+        color: var(--ink);
+      }
+      .links .alt {
+        border: 2px solid var(--card-shadow);
+      }
+      .links .play {
+        color: #fff;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        padding: 0 18px;
+        background: linear-gradient(var(--coral), var(--coral-2));
+        border: 2px solid var(--coral-edge);
+        box-shadow: 0 3px 0 var(--coral-edge);
+        letter-spacing: 0.04em;
+      }
+      .links .play:hover {
+        color: #fff;
+        background: linear-gradient(var(--coral-2), var(--coral-edge));
+      }
+      .lang-hint {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        background: var(--cream);
+        border: 3px solid var(--card-shadow);
+        border-radius: 14px;
+        padding: 8px 14px;
+        font-size: 14px;
+        font-weight: 800;
+        color: var(--ink);
+        margin-bottom: -16px;
+      }
+      .lang-hint button {
+        font: inherit;
+        color: var(--ink-3);
+        background: none;
+        border: 0;
+        cursor: pointer;
+        padding: 2px 6px;
+      }
+      .hero {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        align-items: center;
+        text-align: center;
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 40px 0 16px;
       }
       h1 {
-        font-size: clamp(2.2rem, 6vw, 3.6rem);
         font-weight: 800;
-        line-height: 1.05;
-        margin: 0;
-      }
-      h2 {
-        font-size: 1.4rem;
-        font-weight: 800;
-        margin: 0 0 0.5rem;
-      }
-      p {
-        margin: 0.4rem 0;
+        font-size: clamp(52px, 7vw, 92px);
+        line-height: 0.92;
+        color: var(--card);
+        text-shadow:
+          0 5px 0 var(--green-edge),
+          0 10px 0 var(--green-deep),
+          0 18px 28px rgba(0, 0, 0, 0.5);
+        letter-spacing: -0.01em;
       }
       .lede {
-        font-size: 1.15rem;
-        color: var(--ink-2);
+        font-size: 19px;
+        font-weight: 700;
+        line-height: 1.45;
+        color: var(--card);
+        text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+        max-width: 680px;
+        text-wrap: pretty;
       }
-      .play {
+      .btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 0.5rem;
-        min-height: 3.4rem;
-        padding: 0.7rem 2rem;
-        border-radius: 16px;
-        font-size: 1.25rem;
-        font-weight: 800;
+        gap: 12px;
         color: #fff;
         text-decoration: none;
-        background: linear-gradient(180deg, var(--green), var(--green-2));
-        box-shadow: 0 4px 0 var(--green-edge);
-        width: fit-content;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        border: 4px solid var(--cream);
       }
-      .play:active {
-        transform: translateY(2px);
-        box-shadow: 0 2px 0 var(--green-edge);
+      .btn:hover {
+        color: #fff;
       }
-      .note {
-        font-size: 0.85rem;
-        color: var(--ink-2);
+      .btn-green {
+        height: 68px;
+        padding: 0 34px;
+        border-radius: 18px;
+        font-size: 24px;
+        background: linear-gradient(var(--green), var(--green-2));
+        box-shadow:
+          0 7px 0 var(--green-edge),
+          0 12px 20px rgba(0, 0, 0, 0.3),
+          inset 0 3px 0 rgba(255, 255, 255, 0.35);
+      }
+      .btn-green:active {
+        transform: translateY(4px);
+        box-shadow: 0 3px 0 var(--green-edge);
+      }
+      .btn-coral {
+        height: 56px;
+        padding: 0 26px;
+        border-radius: 16px;
+        font-size: 19px;
+        background: linear-gradient(var(--coral), var(--coral-2));
+        box-shadow:
+          0 6px 0 var(--coral-edge),
+          0 10px 18px rgba(0, 0, 0, 0.25),
+          inset 0 3px 0 rgba(255, 255, 255, 0.35);
+      }
+      .btn-coral:active {
+        transform: translateY(3px);
+        box-shadow: 0 3px 0 var(--coral-edge);
+      }
+      .ic {
+        width: 18px;
+        height: 18px;
+        flex: none;
+      }
+      .btn .ic {
+        width: 22px;
+        height: 22px;
+      }
+      .chips {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 246, 224, 0.92);
+        border: 3px solid var(--card-edge);
+        border-radius: 12px;
+        padding: 5px 12px;
+        font-size: 14px;
+        font-weight: 800;
+        color: #5a4a3a;
+      }
+      h2 {
+        font-weight: 800;
+        font-size: 32px;
+        line-height: 1;
+      }
+      h2 i,
+      h3 i {
+        color: var(--ink-3);
+        font-weight: 700;
+      }
+      .head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+      }
+      .eyebrow {
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--ink-4);
+      }
+      .intro {
+        font-size: 17px;
+        color: var(--ink-3);
+        font-weight: 700;
+        margin: 8px 0 18px;
+        max-width: 760px;
+        text-wrap: pretty;
       }
       .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+        gap: 14px;
       }
-      .pill {
+      .step,
+      .scene {
         background: var(--pill);
-        border-radius: 14px;
-        padding: 0.9rem 1rem;
+        border-radius: 18px;
+        padding: 18px;
       }
-      .pill b {
-        display: block;
+      .step {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .step-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .badge {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: #fff;
+        border: 3px solid var(--card-shadow);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: none;
+      }
+      .badge .ic {
+        width: 26px;
+        height: 26px;
+      }
+      h3 {
         font-weight: 800;
-        margin-bottom: 0.2rem;
+        font-size: 20px;
+        line-height: 1.1;
       }
-      dl {
-        margin: 0;
+      .step p,
+      .scene p,
+      .glossary dd,
+      .faq dd {
+        font-size: 15px;
+        color: var(--ink-2);
+        text-wrap: pretty;
+      }
+      .scene {
+        display: grid;
+        grid-template-columns: 48px minmax(0, 1fr);
+        gap: 14px;
+        align-items: start;
+      }
+      .scene .badge {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+      }
+      .scene .badge .ic {
+        width: 28px;
+        height: 28px;
+      }
+      .scene h3 {
+        font-size: 19px;
+        line-height: 1.15;
+      }
+      .scene p {
+        margin-top: 6px;
       }
       .glossary {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
-        gap: 0.25rem 1.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+        gap: 10px 24px;
+        margin-top: 18px;
       }
-      .glossary > div {
-        break-inside: avoid;
+      .glossary div {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 10px 0;
+        border-bottom: 3px dashed var(--rule);
       }
       .glossary dt {
-        margin-top: 0.5rem;
-      }
-      .lang {
-        font-size: 0.8rem;
-        color: var(--ink-2);
-        text-decoration: none;
         font-weight: 800;
+        font-size: 16px;
+        color: var(--green-edge);
       }
-      .lang:hover {
-        text-decoration: underline;
+      .two {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+        gap: 24px;
+        align-items: start;
       }
-      dt {
+      .faq {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 18px;
+      }
+      .faq div {
+        background: var(--pill);
+        border-radius: 16px;
+        padding: 14px 16px;
+      }
+      .faq dt {
         font-weight: 800;
-        margin-top: 0.75rem;
+        font-size: 17px;
       }
-      dd {
-        margin: 0.15rem 0 0;
+      .faq dd {
+        margin-top: 4px;
+      }
+      .controls {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .controls p {
+        font-size: 16px;
         color: var(--ink-2);
+        line-height: 1.9;
+        text-wrap: pretty;
       }
       kbd {
         font: inherit;
         font-weight: 800;
-        background: var(--pill);
+        background: #fff;
+        border: 2px solid var(--card-shadow);
+        border-bottom-width: 4px;
         border-radius: 8px;
-        padding: 0 0.4rem;
+        padding: 0 8px;
+        color: var(--ink-nav);
+      }
+      .cta {
+        border-top: 4px dashed var(--rule);
+        padding-top: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      .cta p {
+        font-weight: 800;
+        font-size: 20px;
+        line-height: 1.1;
+        color: var(--ink);
       }
       footer {
-        color: #dbe7d6;
-        font-size: 0.85rem;
-        text-align: center;
-        margin-top: 2rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 18px;
+        flex-wrap: wrap;
+        color: #d7e3cf;
+        font-size: 14px;
+        font-weight: 700;
+        padding-top: 8px;
+      }
+      footer .brand {
+        color: #d7e3cf;
+        font-size: 14px;
+        font-weight: 700;
+      }
+      footer .brand img {
+        width: 22px;
+        height: 22px;
+        border-radius: 5px;
       }
       footer a {
-        color: inherit;
+        color: var(--cream);
+      }
+      @media (max-width: 640px) {
+        .page {
+          padding: 16px 16px 56px;
+          gap: 24px;
+        }
+        .card {
+          padding: 20px;
+          border-radius: 20px;
+        }
+        .hero {
+          padding-top: 24px;
+        }
+        .btn-green {
+          height: 60px;
+          padding: 0 24px;
+          font-size: 20px;
+        }
       }
     </style>
     <script>
@@ -338,7 +709,7 @@
             window.dataLayer.push(arguments);
           };
           window.gtag('js', new Date());
-          window.gtag('config', id);
+          window.gtag('config', id, { page_language: 'en' });
         };
         if ('requestIdleCallback' in window) requestIdleCallback(go, { timeout: 4000 });
         else setTimeout(go, 2000);
@@ -346,233 +717,555 @@
     </script>
   </head>
   <body>
-    <main>
-      <section class="card hero">
-        <p class="kicker">
-          A browser management sim, free, no account,
-          <a class="lang" href="/id/" hreflang="id" lang="id">Bahasa Indonesia</a>
-        </p>
-        <div class="brand">
-          <img src="/brand/sawit-mark.svg" width="84" height="84" alt="" />
-          <h1>Sawit Simulator</h1>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <symbol id="i-play" viewBox="0 0 24 24">
+        <path
+          d="M7 5v14l12-7z"
+          fill="#fff"
+          stroke="#2f7a2b"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+      </symbol>
+      <symbol id="i-coin" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" fill="#f4b731" stroke="#d99a1a" stroke-width="3" />
+        <circle cx="12" cy="12" r="5" fill="#ffd54a" stroke="#d99a1a" stroke-width="2" />
+      </symbol>
+      <symbol id="i-palm" viewBox="0 0 30 30">
+        <path d="M15 26V13" stroke="#6e3016" stroke-width="3" stroke-linecap="round" />
+        <path
+          d="M15 13c-6-1-9-5-9-9 5 0 8 3 9 9zM15 13c6-1 9-5 9-9-5 0-8 3-9 9zM15 13c-1-5 1-8 4-10 1 4 0 8-4 10zM15 13c1-5-1-8-4-10-1 4 0 8 4 10z"
+          fill="#4caf50"
+          stroke="#2f7a2b"
+          stroke-width="1.8"
+          stroke-linejoin="round"
+        />
+        <circle cx="13" cy="14" r="2" fill="#ff8a5c" />
+        <circle cx="17" cy="14" r="2" fill="#ff8a5c" />
+      </symbol>
+      <symbol id="i-news" viewBox="0 0 24 24">
+        <rect
+          x="4"
+          y="3"
+          width="16"
+          height="14"
+          rx="2"
+          fill="#fff6e0"
+          stroke="#7a6440"
+          stroke-width="2"
+        />
+        <path d="M8 8h8M8 12h5" stroke="#7a6440" stroke-width="1.8" stroke-linecap="round" />
+        <circle cx="16" cy="17" r="3" fill="#f4b731" stroke="#d99a1a" stroke-width="1.5" />
+        <path d="M14.5 19.5 14 23l2-1 2 1-.5-3.5" fill="#ff6a4d" />
+      </symbol>
+      <symbol id="i-axe" viewBox="0 0 24 24">
+        <path d="M5 21 15 11" stroke="#7a6440" stroke-width="3" stroke-linecap="round" />
+        <path
+          d="M13 5c3-2 6-2 8 0-1 3-3 5-6 6l-3-3c0-1 0-2 1-3z"
+          fill="#9a9a9a"
+          stroke="#4a4a4a"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+      </symbol>
+      <symbol id="i-basket" viewBox="0 0 24 24">
+        <path
+          d="M3 10h18l-2 10H5z"
+          fill="#c9a06a"
+          stroke="#7a5a2a"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+        <circle cx="9" cy="8" r="3" fill="#ff8a5c" stroke="#b8482a" stroke-width="1.5" />
+        <circle cx="15" cy="8" r="3" fill="#ff8a5c" stroke="#b8482a" stroke-width="1.5" />
+      </symbol>
+      <symbol id="i-rain" viewBox="0 0 22 22">
+        <path
+          d="M6 12a4 4 0 0 1 .5-8 5 5 0 0 1 9.5 1 3.5 3.5 0 0 1 0 7z"
+          fill="#cddbe0"
+          stroke="#3f5fa8"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M7 15v3M11 15v4M15 15v3"
+          stroke="#5a8bff"
+          stroke-width="2.2"
+          stroke-linecap="round"
+        />
+      </symbol>
+      <symbol id="i-warn" viewBox="0 0 24 24">
+        <path
+          d="M12 3 3 20h18z"
+          fill="#ffd54a"
+          stroke="#d99a1a"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+        <path d="M12 9v5" stroke="#5a3a12" stroke-width="2.5" stroke-linecap="round" />
+        <circle cx="12" cy="17" r="1.4" fill="#5a3a12" />
+      </symbol>
+      <symbol id="i-fire" viewBox="0 0 20 20">
+        <path
+          d="M10 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-6 1 1 2 2 3 1-1-2 0-4 0-5z"
+          fill="#ff7a3a"
+          stroke="#c2410c"
+          stroke-width="1.8"
+        />
+        <path d="M10 11c1 2 2 2 2 4a2 2 0 0 1-4 0c0-1 1-2 2-4z" fill="#ffd54a" />
+      </symbol>
+      <symbol id="i-tree" viewBox="0 0 26 26">
+        <path
+          d="M13 3 6 13h4l-4 7h14l-4-7h4zM13 20v4"
+          fill="#3faa4c"
+          stroke="#2f7a2b"
+          stroke-width="2"
+          stroke-linejoin="round"
+          stroke-linecap="round"
+        />
+      </symbol>
+      <symbol id="i-house" viewBox="0 0 32 32">
+        <path
+          d="M4 14 16 5l12 9"
+          stroke="#9e2e20"
+          stroke-width="3"
+          stroke-linejoin="round"
+          fill="#c94a30"
+        />
+        <rect
+          x="8"
+          y="14"
+          width="16"
+          height="12"
+          fill="#f4ecdc"
+          stroke="#7a6440"
+          stroke-width="2"
+        />
+        <rect x="14" y="19" width="4" height="7" fill="#7a6440" />
+      </symbol>
+      <symbol id="i-drop" viewBox="0 0 20 20">
+        <circle cx="10" cy="11" r="6" fill="#ff8a5c" stroke="#b8482a" stroke-width="2" />
+        <path d="M10 5V2" stroke="#2f7a2b" stroke-width="2.5" stroke-linecap="round" />
+      </symbol>
+      <symbol id="i-bug" viewBox="0 0 26 26">
+        <path
+          d="M3 13a10 8 0 0 1 20 0zM9 13v6a4 3 0 0 0 8 0v-6"
+          fill="#ff6a4d"
+          stroke="#9e2e20"
+          stroke-width="2"
+          stroke-linejoin="round"
+          stroke-linecap="round"
+        />
+      </symbol>
+    </svg>
+
+    <div class="backdrop" aria-hidden="true">
+      <img
+        src="/brand/hero-estate-1600.webp"
+        srcset="
+          /brand/hero-estate-960.webp   960w,
+          /brand/hero-estate-1600.webp 1600w,
+          /brand/hero-estate-1826.webp 1826w
+        "
+        sizes="100vw"
+        width="1826"
+        height="1336"
+        alt=""
+        fetchpriority="high"
+        decoding="async"
+      />
+    </div>
+
+    <div class="page">
+      <div class="lang-hint" id="lang-hint" hidden>
+        <span lang="id">Halaman ini juga tersedia dalam Bahasa Indonesia.</span>
+        <a href="/id/" hreflang="id" lang="id">Buka versi Indonesia</a>
+        <button type="button" aria-label="Tutup">✕</button>
+      </div>
+
+      <nav class="card" aria-label="Site">
+        <a class="brand" href="/">
+          <img src="/brand/sawit-mark.svg" width="40" height="40" alt="" />
+          <span>Sawit Simulator</span>
+        </a>
+        <div class="links">
+          <a href="#how">How a run goes</a>
+          <a href="#scenarios">Scenarios</a>
+          <a href="#glossary">Glossary</a>
+          <a href="#faq">FAQ</a>
+          <a class="alt" href="/id/" hreflang="id" lang="id">Bahasa Indonesia</a>
+          <a class="play" href="/play.html">PLAY</a>
         </div>
+      </nav>
+
+      <header class="hero">
+        <h1>
+          Sawit
+          <br />
+          Simulator
+        </h1>
         <p class="lede">
           Turn wild land into a working oil-palm estate: clear, plant <i>bibit</i>, wait out the
           immature years, harvest <i>TBS</i> on a rotation, sell through your <i>Kopdes</i>, and
           live with what your clearing choices invite: fires, pests, landslides, and the letters
           from the district office.
         </p>
-        <a class="play" href="./play.html" data-testid="play-link">▶ Play in your browser</a>
-        <p class="note">
-          Runs on WebGPU with a WebGL 2 fallback. Desktop recommended; saves live in your browser.
-        </p>
-      </section>
-
-      <section class="card">
-        <h2>How a run goes</h2>
-        <div class="grid">
-          <div class="pill">
-            <b>Clear and plant</b>
-            Chop forest for timber, or burn it, cheaper and faster, and watch the fire pressure
-            meter. Plant palms, fertilise, irrigate, and wait about a year and a half for the first
-            fruit.
-          </div>
-          <div class="pill">
-            <b>Harvest and sell</b>
-            A round every six days once the palms bear. The Kopdes buys at the day's price; upgrade
-            it, widen its range, hire a crew to pick for you.
-          </div>
-          <div class="pill">
-            <b>Live with the land</b>
-            El Niño years, droughts, floods, Ganoderma and rhinoceros beetles, landslides where the
-            forest was stripped, lightning that starts fires nobody lit.
-          </div>
-          <div class="pill">
-            <b>Answer for it</b>
-            Burn and the letters come. Integrity, attention, investigations, an operating ban, or a
-            certificate, if the estate earns one.
-          </div>
+        <a class="btn btn-green" href="/play.html" data-testid="play-link">
+          <svg class="ic" aria-hidden="true"><use href="#i-play" /></svg>
+          Play in your browser
+        </a>
+        <div class="chips">
+          <span class="chip">
+            <svg class="ic" aria-hidden="true"><use href="#i-coin" /></svg>
+            Start with Rp 250.000.000
+          </span>
+          <span class="chip">
+            <svg class="ic" aria-hidden="true"><use href="#i-palm" /></svg>
+            Palms bear fruit in year 2
+          </span>
+          <span class="chip">
+            <svg class="ic" aria-hidden="true"><use href="#i-news" /></svg>
+            Six ways it can end
+          </span>
         </div>
-      </section>
+      </header>
 
-      <section class="card">
-        <h2>How it ends</h2>
-        <dl>
-          <dt>ISPO certified</dt>
-          <dd>
-            Profit, twenty bearing hectares, five years without a burn, forest on the slopes, a full
-            Kopdes, and the President's motorcade pulls up to the door.
-          </dd>
-          <dt>Reboisasi</dt>
-          <dd>
-            Put more land back to forest than you hold in palms. The ending nobody planned for.
-          </dd>
-          <dt>Bankrupt, shut down, arrested</dt>
-          <dd>
-            The bank stops waiting, the ban outlasts the cash, or the second wildfire brings the
-            police truck. Rewind to any earlier year and try different decisions.
-          </dd>
-          <dt>Twenty-five years</dt>
-          <dd>Survived every season, never certified. Keep playing in sandbox.</dd>
-        </dl>
-      </section>
+      <main class="stack">
+        <section class="card" id="how">
+          <div class="head">
+            <h2>How a run goes</h2>
+            <span class="eyebrow">Four stages, one estate</span>
+          </div>
+          <div class="grid">
+            <div class="step">
+              <div class="step-head">
+                <span class="badge"
+                  ><svg class="ic" aria-hidden="true"><use href="#i-axe" /></svg
+                ></span>
+                <span class="eyebrow">Step 1</span>
+              </div>
+              <h3>Clear and plant</h3>
+              <p>
+                Chop forest for timber, or burn it, cheaper and faster, and watch the fire pressure
+                meter. Plant palms, fertilise, irrigate, and wait about a year and a half for the
+                first fruit.
+              </p>
+            </div>
+            <div class="step">
+              <div class="step-head">
+                <span class="badge"
+                  ><svg class="ic" aria-hidden="true"><use href="#i-basket" /></svg
+                ></span>
+                <span class="eyebrow">Step 2</span>
+              </div>
+              <h3>Harvest and sell</h3>
+              <p>
+                A round every six days once the palms bear. The Kopdes buys at the day's price;
+                upgrade it, widen its range, hire a crew to pick for you.
+              </p>
+            </div>
+            <div class="step">
+              <div class="step-head">
+                <span class="badge"
+                  ><svg class="ic" aria-hidden="true"><use href="#i-rain" /></svg
+                ></span>
+                <span class="eyebrow">Step 3</span>
+              </div>
+              <h3>Live with the land</h3>
+              <p>
+                El Niño years, droughts, floods, Ganoderma and rhinoceros beetles, landslides where
+                the forest was stripped, lightning that starts fires nobody lit.
+              </p>
+            </div>
+            <div class="step">
+              <div class="step-head">
+                <span class="badge"
+                  ><svg class="ic" aria-hidden="true"><use href="#i-warn" /></svg
+                ></span>
+                <span class="eyebrow">Step 4</span>
+              </div>
+              <h3>Answer for it</h3>
+              <p>
+                Burn and the letters come. Integrity, attention, investigations, an operating ban,
+                or a certificate, if the estate earns one.
+              </p>
+            </div>
+          </div>
+        </section>
 
-      <section class="card" id="scenarios">
-        <h2>Scenarios you will play through</h2>
-        <p class="lede">
-          Every system in the game is built on a real one. These are the situations the estate puts
-          you in, with the Indonesian terms the game itself uses.
-        </p>
-        <div class="grid">
-          <div class="pill">
-            <b>Forest fire: <i>kebakaran hutan</i></b>
-            Burning is the cheapest way to clear land, and the fire pressure meter shows how close
-            the estate is to a wildfire. Lightning starts fires nobody lit; a man-made burn reaches
-            into standing forest far more readily. Haze closes the schools. The fire seasons of
-            Kalimantan and Sumatra are the model.
+        <section class="card" id="scenarios">
+          <h2>Scenarios you will play through</h2>
+          <p class="intro">
+            Every system in the game is built on a real one. These are the situations the estate
+            puts you in, with the Indonesian terms the game itself uses.
+          </p>
+          <div class="grid">
+            <div class="scene">
+              <span class="badge" style="background: #ffe3c2">
+                <svg class="ic" aria-hidden="true"><use href="#i-fire" /></svg>
+              </span>
+              <div>
+                <h3>Forest fire: <i>kebakaran hutan</i></h3>
+                <p>
+                  Burning is the cheapest way to clear land, and the fire pressure meter shows how
+                  close the estate is to a wildfire. Lightning starts fires nobody lit; a man-made
+                  burn reaches into standing forest far more readily. Haze closes the schools. The
+                  fire seasons of Kalimantan and Sumatra are the model.
+                </p>
+              </div>
+            </div>
+            <div class="scene">
+              <span class="badge" style="background: #f7e4c6">
+                <svg class="ic" aria-hidden="true"><use href="#i-axe" /></svg>
+              </span>
+              <div>
+                <h3>Deforestation: <i>penebangan hutan</i></h3>
+                <p>
+                  Chopping forest (<i>tebang pohon</i>) pays in timber and costs forest cover. Strip
+                  a hillside and the next wet year takes it down in a landslide; strip the slopes
+                  around the estate and the ISPO certificate is out of reach.
+                </p>
+              </div>
+            </div>
+            <div class="scene">
+              <span class="badge" style="background: #e6f4d2">
+                <svg class="ic" aria-hidden="true"><use href="#i-tree" /></svg>
+              </span>
+              <div>
+                <h3>Reforestation: <i>reboisasi</i></h3>
+                <p>
+                  Plant saplings instead of palms (<i>tanam pohon</i>) and forest grows back over
+                  eight years, counting toward cover from the sapling stage. Put more land back to
+                  forest than you hold in palms and the run ends in <i>reboisasi</i>, the ending
+                  nobody planned for.
+                </p>
+              </div>
+            </div>
+            <div class="scene">
+              <span class="badge" style="background: #ffd9c9">
+                <svg class="ic" aria-hidden="true"><use href="#i-house" /></svg>
+              </span>
+              <div>
+                <h3>Smallholder: <i>petani sawit</i></h3>
+                <p>
+                  You are one estate among neighbours, selling fresh fruit bunches (<i>TBS</i>,
+                  <i>buah sawit</i>) through a village cooperative, the <i>Kopdes</i>. Its range,
+                  level and crews decide what your land is worth.
+                </p>
+              </div>
+            </div>
+            <div class="scene">
+              <span class="badge" style="background: #ffe9a8">
+                <svg class="ic" aria-hidden="true"><use href="#i-drop" /></svg>
+              </span>
+              <div>
+                <h3>Palm oil: <i>minyak sawit</i></h3>
+                <p>
+                  The fruit price walks with a world market priced in dollars: an El Niño forecast,
+                  a mill strike, a weak rupiah. Fertilizer and seedlings get dearer when the
+                  currency does.
+                </p>
+              </div>
+            </div>
+            <div class="scene">
+              <span class="badge" style="background: #ffe3d8">
+                <svg class="ic" aria-hidden="true"><use href="#i-bug" /></svg>
+              </span>
+              <div>
+                <h3>Pests and disease: <i>hama dan penyakit</i></h3>
+                <p>
+                  Ganoderma spreads palm to palm through the roots; rhinoceros beetles breed in the
+                  debris a burn leaves behind. Sanitation, traps, Trichoderma and a plant doctor are
+                  the answers, and none of them is free.
+                </p>
+              </div>
+            </div>
           </div>
-          <div class="pill">
-            <b>Deforestation: <i>penebangan hutan</i></b>
-            Chopping forest (<i>tebang pohon</i>) pays in timber and costs forest cover. Strip a
-            hillside and the next wet year takes it down in a landslide; strip the slopes around the
-            estate and the ISPO certificate is out of reach.
-          </div>
-          <div class="pill">
-            <b>Reforestation: <i>reboisasi</i></b>
-            Plant saplings instead of palms (<i>tanam pohon</i>) and forest grows back over eight
-            years, counting toward cover from the sapling stage. Put more land back to forest than
-            you hold in palms and the run ends in <i>reboisasi</i>, the ending nobody planned for.
-          </div>
-          <div class="pill">
-            <b>Smallholder: <i>petani sawit</i></b>
-            You are one estate among neighbours, selling fresh fruit bunches (<i>TBS</i>,
-            <i>buah sawit</i>) through a village cooperative, the <i>Kopdes</i>. Its range, level
-            and crews decide what your land is worth.
-          </div>
-          <div class="pill">
-            <b>Palm oil: <i>minyak sawit</i></b>
-            The fruit price walks with a world market priced in dollars: an El Niño forecast, a mill
-            strike, a weak rupiah. Fertilizer and seedlings get dearer when the currency does.
-          </div>
-          <div class="pill">
-            <b>Pests and disease</b>
-            Ganoderma spreads palm to palm through the roots; rhinoceros beetles breed in the debris
-            a burn leaves behind. Sanitation, traps, Trichoderma and a plant doctor are the answers,
-            and none of them is free.
-          </div>
+        </section>
+
+        <section class="card" id="glossary">
+          <h2>A short glossary: <i>kamus singkat</i></h2>
+          <dl class="glossary">
+            <div>
+              <dt>Sawit, kelapa sawit</dt>
+              <dd>The oil palm, <i>Elaeis guineensis</i>. The tree, the crop and the industry.</dd>
+            </div>
+            <div>
+              <dt>Lahan sawit, kebun sawit</dt>
+              <dd>Palm land: the estate you are building, one hectare per block.</dd>
+            </div>
+            <div>
+              <dt>TBS, tandan buah segar, buah sawit</dt>
+              <dd>Fresh fruit bunches, the harvest. Sold by the kilogram at the day's price.</dd>
+            </div>
+            <div>
+              <dt>Minyak sawit</dt>
+              <dd>
+                Palm oil, pressed from the fruit at the mill. You sell fruit; the mill sells oil.
+              </dd>
+            </div>
+            <div>
+              <dt>Petani sawit</dt>
+              <dd>A smallholder palm farmer. That is you.</dd>
+            </div>
+            <div>
+              <dt>Hutan</dt>
+              <dd>Forest. Wild, protected, or the <i>hutan sawit</i> that used to be one.</dd>
+            </div>
+            <div>
+              <dt>Penebangan, tebang</dt>
+              <dd>
+                Felling. <i>Penebangan hutan</i> is clearing forest; <i>tebang sawit</i> is
+                replanting.
+              </dd>
+            </div>
+            <div>
+              <dt>Kebakaran hutan</dt>
+              <dd>
+                Forest fire. In the game: burn-to-clear, spread, wildfire, haze, and the letters
+                after.
+              </dd>
+            </div>
+            <div>
+              <dt>Reboisasi</dt>
+              <dd>Reforestation. Planting forest back on cleared land.</dd>
+            </div>
+            <div>
+              <dt>Kopdes</dt>
+              <dd>
+                The village cooperative that buys your fruit and sells you seedlings and fertilizer.
+              </dd>
+            </div>
+            <div>
+              <dt>ISPO</dt>
+              <dd>
+                Indonesian Sustainable Palm Oil, the certificate. Five conditions; the run's win.
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <div class="two">
+          <section class="card" id="faq">
+            <h2>Questions people ask</h2>
+            <dl class="faq">
+              <div>
+                <dt>Is Sawit Simulator free?</dt>
+                <dd>Yes. It runs in the browser, needs no account, and saves in your browser.</dd>
+              </div>
+              <div>
+                <dt>What kind of game is it?</dt>
+                <dd>
+                  A management simulation about a palm-oil estate: land, weather, pests, money, and
+                  the authorities. Single-player, turn-free, a day passes every ten seconds at
+                  normal speed.
+                </dd>
+              </div>
+              <div>
+                <dt>Is burning land allowed in the game?</dt>
+                <dd>
+                  It is possible, cheap, and fast. It also raises fire pressure, invites letters
+                  from the district office, and can end the run in a wildfire or an arrest. The game
+                  lets you choose and then shows the bill.
+                </dd>
+              </div>
+              <div>
+                <dt>Can I win without clearing forest?</dt>
+                <dd>
+                  Yes. The ISPO certificate rewards forest on the slopes and five years without a
+                  burn, and <i>reboisasi</i>, more land back to forest than under palms, is its own
+                  ending.
+                </dd>
+              </div>
+              <div>
+                <dt>How does a run end?</dt>
+                <dd>
+                  Six ways. The ISPO certificate: profit, twenty bearing hectares, five years
+                  without a burn, forest on the slopes, a full Kopdes, and the President's motorcade
+                  at the door. <i>Reboisasi</i>, the ending nobody planned for. Bankrupt, shut down
+                  or arrested, when the bank stops waiting, the ban outlasts the cash, or a second
+                  wildfire brings the police truck. Or twenty-five years survived, never certified,
+                  and the sandbox opens. You can rewind to any earlier year and try again.
+                </dd>
+              </div>
+              <div>
+                <dt>Does it work on a phone?</dt>
+                <dd>
+                  It loads, but the map wants a mouse and a wide screen. Desktop is recommended.
+                  WebGPU where available, WebGL 2 otherwise.
+                </dd>
+              </div>
+              <div>
+                <dt>Is it available in Indonesian?</dt>
+                <dd>
+                  Yes. This page has a twin:
+                  <a href="/id/" hreflang="id" lang="id">Sawit Simulator dalam Bahasa Indonesia</a>,
+                  and the game itself plays in English or Bahasa Indonesia. It opens in Indonesian
+                  for visitors in Indonesia, and the menu switches languages.
+                </dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="card controls" id="controls">
+            <h2>Controls</h2>
+            <p>
+              Drag to pan, wheel to zoom, <kbd>Q</kbd>/<kbd>E</kbd> rotate. Click a block,
+              double-click to focus it. <kbd>Space</kbd> pauses; <kbd>1</kbd> <kbd>2</kbd>
+              <kbd>3</kbd> set the speed (a day is ten seconds at 1×). <kbd>F</kbd> jumps to the
+              Kopdes, <kbd>K</kbd> opens its shop, <kbd>N</kbd> the news, <kbd>?</kbd> this list in
+              game.
+            </p>
+            <div class="cta">
+              <p>Ready when you are.</p>
+              <a class="btn btn-coral" href="/play.html">Start a game</a>
+            </div>
+          </section>
         </div>
-      </section>
+      </main>
 
-      <section class="card" id="glossary">
-        <h2>A short glossary: <i>kamus singkat</i></h2>
-        <dl class="glossary">
-          <div>
-            <dt>Sawit, kelapa sawit</dt>
-            <dd>The oil palm, <i>Elaeis guineensis</i>. The tree, the crop and the industry.</dd>
-          </div>
-          <div>
-            <dt>Lahan sawit, kebun sawit</dt>
-            <dd>Palm land: the estate you are building, one hectare per block.</dd>
-          </div>
-          <div>
-            <dt>TBS, tandan buah segar, buah sawit</dt>
-            <dd>Fresh fruit bunches, the harvest. Sold by the kilogram at the day's price.</dd>
-          </div>
-          <div>
-            <dt>Minyak sawit</dt>
-            <dd>
-              Palm oil, pressed from the fruit at the mill. You sell fruit; the mill sells oil.
-            </dd>
-          </div>
-          <div>
-            <dt>Petani sawit</dt>
-            <dd>A smallholder palm farmer. That is you.</dd>
-          </div>
-          <div>
-            <dt>Hutan</dt>
-            <dd>Forest. Wild, protected, or the <i>hutan sawit</i> that used to be one.</dd>
-          </div>
-          <div>
-            <dt>Penebangan, tebang</dt>
-            <dd>
-              Felling. <i>Penebangan hutan</i> is clearing forest; <i>tebang sawit</i> is
-              replanting.
-            </dd>
-          </div>
-          <div>
-            <dt>Kebakaran hutan</dt>
-            <dd>
-              Forest fire. In the game: burn-to-clear, spread, wildfire, haze, and the letters
-              after.
-            </dd>
-          </div>
-          <div>
-            <dt>Reboisasi</dt>
-            <dd>Reforestation. Planting forest back on cleared land.</dd>
-          </div>
-          <div>
-            <dt>Kopdes</dt>
-            <dd>
-              The village cooperative that buys your fruit and sells you seedlings and fertilizer.
-            </dd>
-          </div>
-          <div>
-            <dt>ISPO</dt>
-            <dd>
-              Indonesian Sustainable Palm Oil, the certificate. Five conditions; the run's win.
-            </dd>
-          </div>
-        </dl>
-      </section>
+      <footer>
+        <a class="brand" href="/">
+          <img src="/brand/sawit-mark.svg" width="22" height="22" alt="" />
+          <span>Sawit Simulator</span>
+        </a>
+        <a href="/play.html">Play</a>
+        <a href="/id/" hreflang="id" lang="id">Bahasa Indonesia</a>
+      </footer>
+    </div>
 
-      <section class="card" id="faq">
-        <h2>Questions people ask</h2>
-        <dl>
-          <dt>Is Sawit Simulator free?</dt>
-          <dd>Yes. It runs in the browser, needs no account, and saves in your browser.</dd>
-          <dt>What kind of game is it?</dt>
-          <dd>
-            A management simulation about a palm-oil estate: land, weather, pests, money, and the
-            authorities. Single-player, turn-free, a day passes every ten seconds at normal speed.
-          </dd>
-          <dt>Is burning land allowed in the game?</dt>
-          <dd>
-            It is possible, cheap, and fast. It also raises fire pressure, invites letters from the
-            district office, and can end the run in a wildfire or an arrest. The game lets you
-            choose and then shows the bill.
-          </dd>
-          <dt>Can I win without clearing forest?</dt>
-          <dd>
-            Yes. The ISPO certificate rewards forest on the slopes and five years without a burn,
-            and <i>reboisasi</i>, more land back to forest than under palms, is its own ending.
-          </dd>
-          <dt>Does it work on a phone?</dt>
-          <dd>
-            It loads, but the map wants a mouse and a wide screen. Desktop is recommended. WebGPU
-            where available, WebGL 2 otherwise.
-          </dd>
-          <dt>Is it available in Indonesian?</dt>
-          <dd>
-            This page is:
-            <a href="/id/" hreflang="id" lang="id">Sawit Simulator dalam Bahasa Indonesia</a>. The
-            game's interface is in English for now.
-          </dd>
-        </dl>
-      </section>
-
-      <section class="card">
-        <h2>Controls</h2>
-        <p>
-          Drag to pan, wheel to zoom, <kbd>Q</kbd>/<kbd>E</kbd> rotate. Click a block, double-click
-          to focus it. <kbd>Space</kbd> pauses; <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> set the speed
-          (a day is ten seconds at 1×). <kbd>F</kbd> jumps to the Kopdes, <kbd>K</kbd> opens its
-          shop, <kbd>N</kbd> the news, <kbd>?</kbd> this list in game.
-        </p>
-      </section>
-    </main>
-    <footer>
-      Sawit Simulator. <a href="./play.html">Play</a>.
-      <a href="/id/" hreflang="id" lang="id">Bahasa Indonesia</a>
-    </footer>
+    <script>
+      // A visitor who reads Indonesian gets a pointer to the twin page, never
+      // a redirect: crawlers and shared links must land where they point.
+      (function () {
+        try {
+          if (localStorage.getItem('sawit:lang-hint') === 'off') return;
+          var want = localStorage.getItem('sawit:locale');
+          if (want !== 'en' && want !== 'id') {
+            var zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            var langs = navigator.languages || [navigator.language];
+            var indonesian =
+              /^Asia\/(Jakarta|Pontianak|Makassar|Jayapura)$/.test(zone) ||
+              langs.some(function (l) {
+                return /^id\b/i.test(l);
+              });
+            want = indonesian ? 'id' : 'en';
+          }
+          if (want !== 'id') return;
+          var hint = document.getElementById('lang-hint');
+          hint.hidden = false;
+          hint.querySelector('button').onclick = function () {
+            hint.hidden = true;
+            try {
+              localStorage.setItem('sawit:lang-hint', 'off');
+            } catch (e) {
+              /* storage off */
+            }
+          };
+        } catch (e) {
+          /* no storage, no Intl: no hint */
+        }
+      })();
+    </script>
   </body>
 </html>
