@@ -32,7 +32,9 @@ export const BEHAVIOUR = {
   circleTurn: 0.35,
   /** Lying down, days. */
   sleepDays: { min: 2, max: 5 },
-  /** How likely each is when the last one ends. */
+  /** Sitting on its haunches, days. */
+  sitDays: { min: 1, max: 4 },
+  /** How likely each is when the last one ends, for an animal with no habits of its own. */
   weights: { idle: 3, pace: 3, wander: 2, circle: 1, sleep: 1 },
   /** A leaving mob that has not made the edge in this long has slipped off anyway. */
   leaveGraceDays: 45,
@@ -55,8 +57,9 @@ export const WILDLIFE = {
     pig: { weight: 2, biomes: ['grassfield', 'scrub', 'village'] },
     mouse: { weight: 3, biomes: ['grassfield', 'scrub'], onPlanted: true },
     cow: { weight: 2, biomes: ['grassfield', 'village'] },
-    monkey: { weight: 3, biomes: ['forest', 'protected'] },
+    monkey: { weight: 3, biomes: ['forest', 'protected', 'hills'] },
     orangutan: { weight: 1, biomes: ['forest', 'protected'] },
+    pangolin: { weight: 2, biomes: ['forest', 'protected', 'hills'] },
     capybara: { weight: 2, biomes: ['riverbank'] },
   } satisfies Partial<
     Record<MobSpecies, { weight: number; biomes: readonly string[]; onPlanted?: boolean }>
@@ -64,6 +67,49 @@ export const WILDLIFE = {
   /** Blocks per day: milling about, and crossing the estate. */
   paceSpeed: 0.1,
   wanderSpeed: 0.28,
+} as const;
+
+/**
+ * What each animal actually does with its day. A species with no habits of
+ * its own falls back to `BEHAVIOUR.weights`; anything left out of its table
+ * it never does, so a pangolin never circles and only a climber climbs.
+ */
+export const HABITS = {
+  /** Orangutans and monkeys: up in the trees as much as on the ground. */
+  climber: { idle: 2, sit: 2, pace: 2, wander: 2, sleep: 1, climb: 3, climbJump: 2 },
+  /** Pangolins and capybaras: low, slow, and fond of a nap. */
+  crawler: { idle: 3, sit: 1, pace: 3, wander: 2, sleep: 3 },
+} as const;
+
+export const SPECIES_HABITS: Partial<Record<MobSpecies, keyof typeof HABITS>> = {
+  monkey: 'climber',
+  orangutan: 'climber',
+  pangolin: 'crawler',
+  capybara: 'crawler',
+};
+
+/** Life in the canopy (§POC): sitting in a tree, and swinging between two. */
+export const CLIMB = {
+  climbDays: { min: 2, max: 6 },
+  jumpDays: { min: 2, max: 5 },
+  /** How far apart the two trees of a jumping pair are, blocks. */
+  jumpSpan: { min: 0.5, max: 1.6 },
+  /** Blocks a day, swinging across. */
+  jumpSpeed: 0.5,
+  /** How far up the tree it settles, 0 ground to 1 canopy. */
+  height: { min: 0.55, max: 1 },
+  /** Only where there is something to climb. */
+  biomes: ['forest', 'protected', 'rubber'] as readonly string[],
+} as const;
+
+/**
+ * The golden capybara: a rare one turns up with the others, and is worth
+ * something to whoever spots it and clicks on it before it wanders off.
+ */
+export const SHINY = {
+  /** Share of capybaras that come up golden. */
+  chance: 0.12,
+  reward: 5_000_000,
 } as const;
 
 export const THIEF = {

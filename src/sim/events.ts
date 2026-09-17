@@ -92,6 +92,7 @@ export type SimEvent =
     }
   | { type: 'MobArrived'; id: number; species: MobSpecies; block: BlockId }
   | { type: 'MobLeft'; id: number; species: MobSpecies }
+  | { type: 'MobTapped'; id: number; species: MobSpecies; amount: number }
   | { type: 'HarvestStolen'; block: BlockId; kilograms: number }
   | { type: 'CashStolen'; amount: number }
   | { type: 'ThiefCaught'; block: BlockId }

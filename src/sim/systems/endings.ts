@@ -13,6 +13,7 @@ import { LANDSLIDE } from '../balance/events.ts';
 import { GROWTH } from '../balance/growth.ts';
 import { ECONOMY } from '../balance/prices.ts';
 import { inKopdesRange } from '../kopdes.ts';
+import { blockLabel } from '../labels.ts';
 import { estateForestCover, forestCoverAround } from '../landscape.ts';
 import { slotStage } from '../palms.ts';
 import { chronicle, endRun, runOver } from '../run.ts';
@@ -146,10 +147,7 @@ function keepBooks(ctx: SimContext): number | null {
 }
 
 function blockList(world: World, blocks: readonly BlockId[]): string {
-  const names = blocks.map((id) => {
-    const [x, y] = world.toXY(id);
-    return `${x}, ${y}`;
-  });
+  const names = blocks.map((id) => blockLabel(world, id));
   if (names.length === 1) return `block ${names[0]}`;
   if (names.length <= 3) return `blocks ${names.join('; ')}`;
   return `${names.length} blocks`;

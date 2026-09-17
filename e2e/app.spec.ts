@@ -334,7 +334,7 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'action-SetTrap')).toHaveAttribute('title', /buy a kit at the Kopdes/);
 
     await tid(page, 'slot-cell-60').click();
-    await expect(tid(page, 'slot-detail')).toContainText('Slot 5,0');
+    await expect(tid(page, 'slot-detail')).toContainText('Slot 6, 1');
     await expect(tid(page, 'action-RemovePalm')).toBeEnabled();
     await tid(page, 'action-RemovePalm').click();
     await expect(tid(page, 'slot-detail')).toContainText('empty');

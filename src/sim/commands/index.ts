@@ -22,6 +22,7 @@ import { plantBlock } from './plantBlock.ts';
 import { sanitizeBlock } from './sanitizeBlock.ts';
 import { setAutoHarvest } from './setAutoHarvest.ts';
 import { settleInvestigation } from './settleInvestigation.ts';
+import { tapMob } from './tapMob.ts';
 import { applyMetarhizium, applyTrichoderma, setTrap } from './treatments.ts';
 import { upgradeKopdes } from './upgradeKopdes.ts';
 import { dismissWorker, hireWorker } from './workers.ts';
@@ -52,6 +53,7 @@ const registry: Partial<Record<CommandType, CommandHandler>> = {
   SetAutoHarvest: setAutoHarvest as CommandHandler,
   HireWorker: hireWorker as CommandHandler,
   DismissWorker: dismissWorker as CommandHandler,
+  TapMob: tapMob as CommandHandler,
   KeepPlaying: keepPlaying as CommandHandler,
 };
 

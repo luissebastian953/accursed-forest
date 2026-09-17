@@ -113,15 +113,15 @@
   "metarhizium": "Metarhizium",
   "trichoderma": "Trichoderma",
   "replantGaps": "Tanam sulam",
-  "slotTitle": "slot {r},{c}, {stage}{sick}",
+  "slotTitle": "slot {at}, {stage}{sick}",
   "sick": ", sakit",
   "removePalm": "Cabut sawit",
   "trench": "Parit",
-  "slotHead": "Slot {r},{c}: {stage}",
+  "slotHead": "Slot {at}: {stage}",
   "health": "kesehatan {pct}%",
   "ganoSick": "Ganoderma; tampak sakit. Cabut sebelum menyebar.",
   "deadStump": "Tunggul mati; masih menular sampai dicabut.",
   "trenched": "Diparit: akar terputus.",
-  "slotEmpty": "Slot {r},{c} kosong; Tanam sulam mengisinya.",
+  "slotEmpty": "Slot {at} kosong; Tanam sulam mengisinya.",
   "bySlot": "Sawit per slot; klik salah satu"
 }

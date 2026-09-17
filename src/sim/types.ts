@@ -215,6 +215,7 @@ export type MobSpecies =
   | 'cow'
   | 'monkey'
   | 'orangutan'
+  | 'pangolin'
   | 'capybara'
   | 'thief'
   | 'babiNgepet'
@@ -227,11 +228,15 @@ export type MobSpecies =
 /** What a mob is up to. */
 /**
  * What a mob is doing. Animals and ghosts cycle through `idle`, `pace`,
- * `wander`, `circle` and (animals only) `sleep`; visitors `travel`, `hide`,
+ * `wander`, `circle` and (animals only) `sleep`; the climbers add `sit`,
+ * `climb` and `climbJump` among the trees; visitors `travel`, `hide`,
  * `raid` and `flee`; workers `travel` and `work`; everyone eventually `leave`s.
  */
 export type MobIntent =
   | 'idle'
+  | 'sit'
+  | 'climb'
+  | 'climbJump'
   | 'pace'
   | 'wander'
   | 'circle'
@@ -266,6 +271,10 @@ export interface Mob {
   phase: number;
   /** Reared up on two legs (the babi ngepet's tell). */
   standing: boolean;
+  /** How far up a tree it is, 0 on the ground to 1 in the canopy. */
+  climb: number;
+  /** The golden capybara: rare, and worth something to whoever spots it. */
+  shiny: boolean;
   /** Hired workers stay until dismissed and are paid daily. */
   hired: boolean;
   /** Tick the current behaviour runs out and a new one is picked. */
@@ -417,6 +426,7 @@ export type Command =
   | { type: 'SetAutoHarvest'; on: boolean }
   | { type: 'HireWorker'; kind: 'sanitizer' | 'plantDoctor' | 'security' }
   | { type: 'DismissWorker'; kind: 'sanitizer' | 'plantDoctor' | 'security' }
+  | { type: 'TapMob'; mob: number }
   | { type: 'KeepPlaying' };
 
 export type CommandType = Command['type'];

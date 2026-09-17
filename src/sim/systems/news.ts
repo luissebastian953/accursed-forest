@@ -8,6 +8,7 @@
 import { GROWTH } from '../balance/growth.ts';
 import { NEWS, NEWS_TEMPLATES, regionName, type NewsTemplate } from '../balance/news/index.ts';
 import { MACRO } from '../balance/society.ts';
+import { blockLabel } from '../labels.ts';
 import { forestCoverAround } from '../landscape.ts';
 import { chance, forkRng, pick, type RngState } from '../rng.ts';
 import { chronicle } from '../run.ts';
@@ -144,17 +145,22 @@ export function newsSystem(ctx: SimContext): void {
         if (event.id === 'drought') add('drought.end');
         break;
       case 'Landslide': {
-        const [x, y] = world.toXY(event.block);
         const bare = forestCoverAround(state, world, event.block) < 0.3;
         if (bare || event.palmsLost > 0)
-          add('landslide', { n: event.palmsLost, block: `block ${x}, ${y}` }, [event.block]);
+          add(
+            'landslide',
+            { n: event.palmsLost, block: `block ${blockLabel(world, event.block)}` },
+            [event.block],
+          );
         break;
       }
-      case 'HarvestStolen': {
-        const [x, y] = world.toXY(event.block);
-        add('estate.theft', { n: event.kilograms, block: `block ${x}, ${y}` }, [event.block]);
+      case 'HarvestStolen':
+        add(
+          'estate.theft',
+          { n: event.kilograms, block: `block ${blockLabel(world, event.block)}` },
+          [event.block],
+        );
         break;
-      }
       case 'ThiefCaught':
         add('estate.thiefCaught');
         break;

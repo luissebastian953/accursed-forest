@@ -30,8 +30,9 @@ import { kopdesUpgradeCost } from '@sim/commands/upgradeKopdes';
 import { isFuel, isWildfire } from '@sim/fire';
 import type { Sim } from '@sim/index';
 import { distanceToKopdes, inKopdesRange, kopdesRange } from '@sim/kopdes';
+import { slotLabel } from '@sim/labels';
 import { coverCropEstablished, forestCoverAround, landslideChance } from '@sim/landscape';
-import { slotCol, slotRow, slotStage } from '@sim/palms';
+import { slotStage } from '@sim/palms';
 import { neighbourIds, readBlock } from '@sim/state';
 import { daysUntilRipe, harvestableKg } from '@sim/systems/harvest';
 import { beetleCapacity, ganodermaCounts, pestPressure } from '@sim/systems/pest';
@@ -594,8 +595,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
           cls,
           sick: g === 2,
           title: t('block.slotTitle', {
-            r: slotRow(slot),
-            c: slotCol(slot),
+            at: slotLabel(slot),
             stage: t(`block.stage_${stage}`),
             sick: g === 2 ? t('block.sick') : '',
           }),
@@ -613,8 +613,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
         detail = {
           kind: 'palm',
           head: t('block.slotHead', {
-            r: slotRow(slot),
-            c: slotCol(slot),
+            at: slotLabel(slot),
             stage: t(`block.stage_${stage}`),
           }),
           health: t('block.health', { pct: Math.round((palmTrees.health[slot]! / 255) * 100) }),
@@ -643,7 +642,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
       } else if (selectedSlot !== null) {
         detail = {
           kind: 'empty',
-          text: t('block.slotEmpty', { r: slotRow(selectedSlot), c: slotCol(selectedSlot) }),
+          text: t('block.slotEmpty', { at: slotLabel(selectedSlot) }),
         };
       }
       grid = { cells, detail };
@@ -712,8 +711,8 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
 
   const kopdes = state.kopdes;
   return {
-    x,
-    y,
+    x: x + 1,
+    y: y + 1,
     icon: blockIcon(block.biome, block.phase),
     title: block.phase === 'kopdes' ? t('block.kopdes') : t(`block.biome_${block.biome}`),
     phase: phaseLabel(block.phase, block.clearProgress, block.burning, block.fireIntensity),

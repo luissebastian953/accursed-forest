@@ -18,6 +18,10 @@ import { BIOMES } from '../balance/biomes.ts';
 import {
   BABI_NGEPET,
   BEHAVIOUR,
+  CLIMB,
+  HABITS,
+  SHINY,
+  SPECIES_HABITS,
   GHOST,
   MOB_STREAM,
   ROAM,
@@ -177,6 +181,8 @@ function spawn(
     until: options.until,
     phase: nextFloat(rng),
     standing: false,
+    climb: 0,
+    shiny: false,
     hired: options.hired ?? false,
     intentUntil: state.tick,
     ax: x,
@@ -234,6 +240,8 @@ function spawnWildlife(ctx: SimContext, rng: RngState): void {
   if (at === null) return;
   const stay = days(rng, WILDLIFE.stayDays);
   const mob = spawn(ctx, kind, at, rng, { until: state.tick + stay, target: at });
+  // Every so often the capybara that turns up is the golden one.
+  if (kind === 'capybara' && chance(rng, SHINY.chance)) mob.shiny = true;
   pickBehaviour(ctx, mob, rng, true);
 }
 
@@ -415,14 +423,44 @@ function step(ctx: SimContext, mob: Mob, rng: RngState): void {
   }
 }
 
-const REPERTOIRE = ['idle', 'pace', 'wander', 'circle', 'sleep'] as const;
+const REPERTOIRE = [
+  'idle',
+  'sit',
+  'pace',
+  'wander',
+  'circle',
+  'sleep',
+  'climb',
+  'climbJump',
+] as const;
+
+/** Is there anything here to climb? */
+function overTrees(ctx: SimContext, mob: Mob): boolean {
+  const { state, world } = ctx;
+  const bx = Math.floor(mob.x);
+  const bz = Math.floor(mob.z);
+  if (!world.inBounds(bx, bz)) return false;
+  const block = readBlock(state, world, world.toId(bx, bz));
+  if (block.phase === 'reforesting') return true;
+  return block.phase === 'wild' && CLIMB.biomes.includes(block.biome);
+}
 
 /** Choose what an animal does next, and for how long. */
 function pickBehaviour(ctx: SimContext, mob: Mob, rng: RngState, canSleep: boolean): void {
   const { state } = ctx;
-  const weights = REPERTOIRE.map((k) => (k === 'sleep' && !canSleep ? 0 : BEHAVIOUR.weights[k]));
+  const habit = SPECIES_HABITS[mob.species];
+  const table: Partial<Record<(typeof REPERTOIRE)[number], number>> = habit
+    ? HABITS[habit]
+    : BEHAVIOUR.weights;
+  const trees = overTrees(ctx, mob);
+  const weights = REPERTOIRE.map((k) => {
+    if (k === 'sleep' && !canSleep) return 0;
+    if ((k === 'climb' || k === 'climbJump') && !trees) return 0;
+    return table[k] ?? 0;
+  });
   const next = REPERTOIRE[pickWeighted(rng, weights)] ?? 'idle';
   mob.standing = false;
+  mob.climb = 0;
   mob.tx = mob.x;
   mob.tz = mob.z;
   switch (next) {
@@ -430,6 +468,32 @@ function pickBehaviour(ctx: SimContext, mob: Mob, rng: RngState, canSleep: boole
       mob.intent = 'idle';
       mob.intentUntil = state.tick + days(rng, BEHAVIOUR.idleDays);
       break;
+    case 'sit':
+      mob.intent = 'sit';
+      mob.intentUntil = state.tick + days(rng, BEHAVIOUR.sitDays);
+      break;
+    case 'climb':
+      // Up the tree it is standing under, and it stays there a while.
+      mob.intent = 'climb';
+      mob.climb = CLIMB.height.min + nextFloat(rng) * (CLIMB.height.max - CLIMB.height.min);
+      mob.ax = mob.x;
+      mob.az = mob.z;
+      mob.intentUntil = state.tick + days(rng, CLIMB.climbDays);
+      break;
+    case 'climbJump': {
+      // Two trees a short way apart, and back and forth between them.
+      const a = nextFloat(rng) * Math.PI * 2;
+      const span = CLIMB.jumpSpan.min + nextFloat(rng) * (CLIMB.jumpSpan.max - CLIMB.jumpSpan.min);
+      mob.intent = 'climbJump';
+      mob.climb = CLIMB.height.min + nextFloat(rng) * (CLIMB.height.max - CLIMB.height.min);
+      mob.ax = mob.x;
+      mob.az = mob.z;
+      mob.tx = mob.x + Math.cos(a) * span;
+      mob.tz = mob.z + Math.sin(a) * span;
+      mob.heading = a;
+      mob.intentUntil = state.tick + days(rng, CLIMB.jumpDays);
+      break;
+    }
     case 'sleep':
       mob.intent = 'sleep';
       mob.intentUntil = state.tick + days(rng, BEHAVIOUR.sleepDays);
@@ -491,8 +555,22 @@ function stepRepertoire(
   if (state.tick >= mob.intentUntil) pickBehaviour(ctx, mob, rng, canSleep);
   switch (mob.intent) {
     case 'idle':
+    case 'sit':
     case 'sleep':
+    case 'climb':
       return;
+    case 'climbJump': {
+      // At the far tree, it turns round and goes back to the near one.
+      if (atTarget(mob)) {
+        const [tx, tz] = [mob.ax, mob.az];
+        mob.ax = mob.tx;
+        mob.az = mob.tz;
+        mob.tx = tx;
+        mob.tz = tz;
+      }
+      walk(mob, CLIMB.jumpSpeed);
+      return;
+    }
     case 'pace':
       if (atTarget(mob)) {
         // A pause at each turn, now and then a longer one.
@@ -526,10 +604,11 @@ function stepWild(ctx: SimContext, mob: Mob, rng: RngState): void {
     return;
   }
   if (state.tick >= mob.until) {
-    // Time to go: walk off the edge of the ring.
+    // Time to go: down out of the tree, and off the edge of the ring.
     const away = edgeNear(ctx, rng, mob.target ?? world.toId(Math.floor(mob.x), Math.floor(mob.z)));
     [mob.tx, mob.tz] = centre(world, away);
     mob.intent = 'leave';
+    mob.climb = 0;
     return;
   }
   stepRepertoire(ctx, mob, rng, { pace: WILDLIFE.paceSpeed, wander: WILDLIFE.wanderSpeed }, true);

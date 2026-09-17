@@ -5,6 +5,8 @@ import { GROWTH } from '@sim/balance/growth.ts';
 import {
   BABI_NGEPET,
   BEHAVIOUR,
+  CLIMB,
+  SHINY,
   THIEF,
   WILDLIFE,
   WORKERS,
@@ -90,8 +92,87 @@ describe('wildlife (mobs)', () => {
     });
     for (const intent of ['idle', 'pace', 'wander', 'circle', 'sleep'])
       expect(seen).toContain(intent);
-    // Nobody covers more than a third of a block in a day: a stroll, not a teleport.
-    expect(fastest).toBeLessThanOrEqual(WILDLIFE.wanderSpeed + 1e-9);
+    // Nobody covers more than half a block in a day: a stroll or a swing between
+    // two trees, never a teleport.
+    expect(fastest).toBeLessThanOrEqual(Math.max(WILDLIFE.wanderSpeed, CLIMB.jumpSpeed) + 1e-9);
+  });
+
+  it('climbers take to the trees, and the low ones never do', () => {
+    const sim = createSim(42);
+    sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
+    const intents = new Map<string, Set<string>>();
+    let highest = 0;
+    let groundedWhileClimbing = 0;
+    run(sim, 6 * YEAR, (mob) => {
+      if (!wildKinds().includes(mob.species)) return;
+      const seen = intents.get(mob.species) ?? new Set<string>();
+      seen.add(mob.intent);
+      intents.set(mob.species, seen);
+      if (mob.intent === 'climb' || mob.intent === 'climbJump') {
+        highest = Math.max(highest, mob.climb);
+        if (mob.climb <= 0) groundedWhileClimbing += 1;
+      } else if (mob.climb !== 0) {
+        groundedWhileClimbing += 1;
+      }
+    });
+
+    for (const climber of ['monkey', 'orangutan']) {
+      const seen = intents.get(climber);
+      expect(seen, climber).toBeDefined();
+      expect(
+        [...seen!].some((i) => i === 'climb' || i === 'climbJump'),
+        climber,
+      ).toBe(true);
+    }
+    // Up a tree means up a tree, and only while climbing.
+    expect(highest).toBeGreaterThanOrEqual(CLIMB.height.min);
+    expect(highest).toBeLessThanOrEqual(CLIMB.height.max);
+    expect(groundedWhileClimbing).toBe(0);
+
+    // The ones that keep to the floor stay on it, and never wheel about.
+    for (const low of ['pangolin', 'capybara']) {
+      const seen = intents.get(low);
+      if (!seen) continue;
+      expect([...seen], low).not.toContain('climb');
+      expect([...seen], low).not.toContain('climbJump');
+      expect([...seen], low).not.toContain('circle');
+    }
+  });
+
+  it('a pangolin turns up in the forest, and idles, crawls or sleeps', () => {
+    const sim = createSim(7);
+    sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
+    const intents = new Set<string>();
+    let seen = 0;
+    run(sim, 8 * YEAR, (mob) => {
+      if (mob.species !== 'pangolin') return;
+      seen += 1;
+      intents.add(mob.intent);
+    });
+    expect(seen).toBeGreaterThan(0);
+    expect(
+      [...intents].every((i) => ['idle', 'sit', 'pace', 'wander', 'sleep', 'leave'].includes(i)),
+    ).toBe(true);
+  });
+
+  it('the golden capybara pays out once, to whoever clicks it', () => {
+    const sim = createSim(42);
+    const { state } = sim;
+    sim.dispatch({ type: 'PlaceKopdes', block: state.worldGen.kopdesBlock });
+    run(sim, 30);
+    const plain = state.mobs.find((m) => wildKinds().includes(m.species));
+    expect(plain).toBeDefined();
+    // An ordinary animal is just an animal.
+    expect(sim.validate({ type: 'TapMob', mob: plain!.id })).toMatchObject({ code: 'wrongPhase' });
+    expect(sim.validate({ type: 'TapMob', mob: 999_999 })).toMatchObject({ code: 'wrongPhase' });
+
+    plain!.shiny = true;
+    const cash = state.economy.cash;
+    expect(sim.dispatch({ type: 'TapMob', mob: plain!.id })).toEqual({ ok: true });
+    expect(state.economy.cash - cash).toBe(SHINY.reward);
+    // It is gone, and cannot be clicked twice.
+    expect(state.mobs.some((m) => m.id === plain!.id)).toBe(false);
+    expect(sim.validate({ type: 'TapMob', mob: plain!.id })).toMatchObject({ code: 'wrongPhase' });
   });
 
   it('the ghost drifts through the same repertoire but never sleeps', () => {
@@ -114,17 +195,22 @@ describe('wildlife (mobs)', () => {
     expect(intents.size).toBeGreaterThan(1);
   });
 
-  it('monkeys and orangutans spawn only on forest', () => {
+  it('monkeys, orangutans and pangolins keep to the forest and the pine hills', () => {
     const sim = createSim(7);
     sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
     let checked = 0;
     for (let i = 0; i < 3 * YEAR; i++) {
       for (const e of sim.tick()) {
         if (e.type !== 'MobArrived') continue;
-        if (e.species !== 'monkey' && e.species !== 'orangutan') continue;
+        if (e.species !== 'monkey' && e.species !== 'orangutan' && e.species !== 'pangolin')
+          continue;
         const [x, y] = sim.world.toXY(e.block);
         const biome = sim.world.generated(x, y).biome;
-        expect(['forest', 'protected']).toContain(biome);
+        // Orangutans keep to the rainforest; monkeys and pangolins also take
+        // to the hills, where the pines are.
+        expect(
+          e.species === 'orangutan' ? ['forest', 'protected'] : ['forest', 'protected', 'hills'],
+        ).toContain(biome);
         checked += 1;
       }
     }

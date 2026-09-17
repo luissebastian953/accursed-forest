@@ -51,6 +51,7 @@ import {
   isWildfire,
 } from '@sim/fire';
 import { createSim, restoreSim, seedFromEstateCode, type Sim } from '@sim/index';
+import { blockLabel } from '@sim/labels';
 import { estateForestCover } from '@sim/landscape';
 import { runOver } from '@sim/run';
 import { creditLine, ispoConditions, matureHectares } from '@sim/systems/endings';
@@ -831,8 +832,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   }
 
   function blockName(block: BlockId): string {
-    const [x, y] = sim.world.toXY(block);
-    return `block ${x}, ${y}`;
+    return `block ${blockLabel(sim.world, block)}`;
   }
 
   function onTick(): void {

@@ -47,6 +47,8 @@ export const hireWorker: CommandHandler<HireWorker> = {
       until: Infinity,
       phase: (state.nextMobId % 13) / 13,
       standing: false,
+      climb: 0,
+      shiny: false,
       hired: true,
       intentUntil: state.tick,
       ax: bx + 0.5,

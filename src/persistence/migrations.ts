@@ -206,6 +206,18 @@ export const MIGRATIONS: readonly Migration[] = [
       head.weather['naturalFires'] ??= [];
     },
   },
+  {
+    // The canopy: nobody was up a tree, and no capybara was golden.
+    from: 11,
+    up(save) {
+      const head = save.manifest['head'] as { mobs?: Record<string, unknown>[] } | undefined;
+      if (!head?.mobs) throw new SaveError('corrupt', 'v11 manifest has no mobs');
+      for (const mob of head.mobs) {
+        mob['climb'] ??= 0;
+        mob['shiny'] ??= false;
+      }
+    },
+  },
 ];
 
 /**

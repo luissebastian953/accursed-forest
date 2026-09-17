@@ -113,15 +113,15 @@
   "metarhizium": "Metarhizium",
   "trichoderma": "Trichoderma",
   "replantGaps": "Replant gaps",
-  "slotTitle": "slot {r},{c}, {stage}{sick}",
+  "slotTitle": "slot {at}, {stage}{sick}",
   "sick": ", sick",
   "removePalm": "Remove palm",
   "trench": "Trench",
-  "slotHead": "Slot {r},{c}: {stage}",
+  "slotHead": "Slot {at}: {stage}",
   "health": "health {pct}%",
   "ganoSick": "Ganoderma; visibly sick. Remove it before it spreads.",
   "deadStump": "Dead stump; still infectious until removed.",
   "trenched": "Trenched: root links cut.",
-  "slotEmpty": "Slot {r},{c} is empty; Replant gaps fills it.",
+  "slotEmpty": "Slot {at} is empty; Replant gaps fills it.",
   "bySlot": "Palms by slot; click one"
 }

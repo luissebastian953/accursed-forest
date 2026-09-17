@@ -50,8 +50,10 @@ export const KEY_PREFIX = 'accursed-forest';
  * 10. Mob repertoire: mobs carry a behaviour timer, an anchor and a heading.
  * 11. Natural fires: the weather lists the blocks lightning lit, and the
  *     reboisasi ending.
+ * 12. The canopy: pangolins join the wildlife, mobs carry how far up a tree
+ *     they are, and a capybara can be the golden one.
  */
-export const CURRENT_SCHEMA = 11;
+export const CURRENT_SCHEMA = 12;
 
 export type SaveErrorCode = 'missing' | 'corrupt' | 'newerSchema' | 'quota';
 
@@ -290,6 +292,7 @@ const CommandSchema = z.discriminatedUnion('type', [
     type: z.literal('DismissWorker'),
     kind: z.enum(['sanitizer', 'plantDoctor', 'security']),
   }),
+  z.object({ type: z.literal('TapMob'), mob: z.int().positive() }),
   z.object({ type: z.literal('KeepPlaying') }),
 ]);
 
@@ -319,6 +322,7 @@ const MobSchema = z.object({
     'cow',
     'monkey',
     'orangutan',
+    'pangolin',
     'capybara',
     'thief',
     'babiNgepet',
@@ -334,6 +338,9 @@ const MobSchema = z.object({
   tz: z.number(),
   intent: z.enum([
     'idle',
+    'sit',
+    'climb',
+    'climbJump',
     'pace',
     'wander',
     'circle',
@@ -351,6 +358,8 @@ const MobSchema = z.object({
   until: z.number().nullable(),
   phase: z.number(),
   standing: z.boolean(),
+  climb: z.number(),
+  shiny: z.boolean(),
   hired: z.boolean(),
   intentUntil: Tick,
   ax: z.number(),
