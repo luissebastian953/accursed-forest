@@ -61,8 +61,17 @@ lets beetles loose on an unsanitized block.
 
 ```bash
 pnpm install
-pnpm dev            # http://localhost:5173
+pnpm dev            # http://localhost:5173 — the landing page; the game is /play.html
 ```
+
+Two pages: `index.html` is a static landing page (real HTML for search
+engines, no engine loaded), and `play.html` is the game. The game page paints
+a boot shell first and loads the engine behind it; three.js ships as its own
+long-lived chunk (~250 KB gzipped) apart from the sim and the UI. Baloo 2 is
+self-hosted from `public/fonts` (one variable woff2, preloaded). Core Web
+Vitals (LCP, INP, CLS, FCP, TTFB) are measured with `web-vitals` and sent to
+Google Analytics 4 as events when `VITE_GA_ID` is set at build time (see
+`.env.example`); with it empty the pages load no third-party script at all.
 
 The interface follows the cartoon UI kit: cream cards with a hard bottom
 edge, inset pills, Baloo 2 (Google Fonts, with a rounded system fallback if

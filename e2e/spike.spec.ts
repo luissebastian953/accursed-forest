@@ -21,7 +21,7 @@ test.describe('art spike', () => {
     });
     page.on('pageerror', (error) => errors.push(error.message));
 
-    await page.goto('/?webgl&spike');
+    await page.goto('/play.html?webgl&spike');
 
     const canvas = page.locator('canvas');
     await expect(canvas).toBeVisible();
@@ -42,7 +42,7 @@ test.describe('art spike', () => {
   });
 
   test('the haze slider visibly changes the frame', async ({ page }) => {
-    await page.goto('/?webgl&spike');
+    await page.goto('/play.html?webgl&spike');
     await expect(page.locator('canvas')).toBeVisible();
     await page.waitForTimeout(1500);
 
@@ -60,7 +60,7 @@ test.describe('art spike', () => {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
 
-    await page.goto('/?webgl&spike');
+    await page.goto('/play.html?webgl&spike');
     await expect(page.locator('#spike-replant')).toBeVisible();
     await page.locator('#spike-replant').click();
     await page.waitForTimeout(800);

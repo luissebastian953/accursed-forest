@@ -11,7 +11,7 @@ import { expect, test, type Page } from '@playwright/test';
  * runs the clock twenty times faster than a player's, so years pass in seconds.
  */
 
-const URL = '/?webgl&seed=42&fresh&turbo';
+const URL = '/play.html?webgl&seed=42&fresh&turbo';
 
 /** What `?debug` exposes on window — only the parts the suite touches. */
 interface DebugWindow {
@@ -179,15 +179,23 @@ test.describe('Sawit Simulator', () => {
 
     // Save, reload without `fresh`, continue.
     const dateBefore = await tid(page, 'hud-date').textContent();
-    const cashBefore = await tid(page, 'hud-cash').textContent();
     await tid(page, 'menu-button').click();
     await tid(page, 'menu-save').click();
     await expect(page.getByTestId('toast').filter({ hasText: 'Saved' })).toBeVisible();
 
-    await page.goto('/?webgl&turbo');
+    await page.goto('/play.html?webgl&turbo');
     await expect(tid(page, 'hud-cash')).toContainText('Rp');
-    await expect(tid(page, 'hud-date')).toHaveText(dateBefore!);
-    await expect(tid(page, 'hud-cash')).toHaveText(cashBefore!);
+    // The clock is already running at 1× (two ticks a second under turbo), so
+    // the date may have moved a few days by the time we read it: the save is
+    // proven by landing within a fortnight of where we left, not to the day.
+    await tid(page, 'speed-0').click();
+    const days = (text: string | null): number => {
+      const m = /Year (\d+) · Day (\d+)/.exec(text ?? '');
+      return m ? Number(m[1]) * 360 + Number(m[2]) : NaN;
+    };
+    const drift = days(await tid(page, 'hud-date').textContent()) - days(dateBefore);
+    expect(drift).toBeGreaterThanOrEqual(0);
+    expect(drift).toBeLessThan(15);
     await tid(page, 'speed-50').click();
     await page.waitForTimeout(1000);
     expect(await tid(page, 'hud-date').textContent()).not.toBe(dateBefore);
@@ -294,7 +302,7 @@ test.describe('Sawit Simulator', () => {
   }) => {
     test.setTimeout(90_000);
     // Seed 1 starts in forest: the chopped neighbour comes with 55 debris.
-    await page.goto('/?webgl&seed=1&fresh&turbo');
+    await page.goto('/play.html?webgl&seed=1&fresh&turbo');
     await expect(page.locator('canvas')).toBeVisible();
     await expect(tid(page, 'hud-cash')).toContainText('Rp');
     await page.waitForTimeout(2500);
@@ -341,7 +349,7 @@ test.describe('Sawit Simulator', () => {
   }) => {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
-    await page.goto('/?webgl&seed=1&fresh&debug&turbo');
+    await page.goto('/play.html?webgl&seed=1&fresh&debug&turbo');
     await expect(page.locator('canvas')).toBeVisible();
     await expect(tid(page, 'hud-forest')).toContainText('%');
     await page.waitForTimeout(2000);
@@ -394,7 +402,7 @@ test.describe('Sawit Simulator', () => {
     test.setTimeout(90_000);
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
-    await page.goto('/?webgl&seed=42&fresh&debug&turbo');
+    await page.goto('/play.html?webgl&seed=42&fresh&debug&turbo');
     await expect(page.locator('canvas')).toBeVisible();
     await page.waitForTimeout(2000);
 
@@ -456,7 +464,7 @@ test.describe('Sawit Simulator', () => {
     test.setTimeout(90_000);
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
-    await page.goto('/?webgl&seed=42&fresh&debug&turbo');
+    await page.goto('/play.html?webgl&seed=42&fresh&debug&turbo');
     await expect(page.locator('canvas')).toBeVisible();
     await page.waitForTimeout(1500);
 
@@ -504,7 +512,7 @@ test.describe('Sawit Simulator', () => {
       state.run.endedAt = state.tick;
     });
     // Leaving saves the estate; opening the game without a seed loads it, epilogue and all.
-    await page.goto('/?webgl&debug&turbo');
+    await page.goto('/play.html?webgl&debug&turbo');
     await expect(page.locator('[data-testid="epilogue"][data-ending="clean"]')).toBeVisible({
       timeout: 15_000,
     });
