@@ -379,7 +379,7 @@ describe('landslides (§3.6.2)', () => {
     }
   });
 
-  it('the block keeps the scar, with what it buried, until it is planted again', () => {
+  it('the block keeps the scar, with what it buried, and refuses to be planted', () => {
     const sim = createSim(1);
     const high = [...sim.state.blocks.values()].find(
       (b) => b.owned && b.slope && b.phase === 'wild',
@@ -395,17 +395,32 @@ describe('landslides (§3.6.2)', () => {
     expect(scarred.landslideAt).toBe(sim.state.tick);
     expect(scarred.landslidePalms).toBe(planted);
 
-    // Debris has to go before anything is planted, and then the scar goes too.
+    // Nothing takes root in spoil: neither palms nor forest, debris or no debris.
     writeBlock(sim.state, sim.world, high!.id).debris = 0;
     sim.state.economy.cash = 1_000_000_000;
     expect(sim.dispatch({ type: 'BuyItem', item: 'bibit', quantity: SLOTS_PER_BLOCK })).toEqual({
       ok: true,
     });
+    expect(
+      sim.dispatch({ type: 'BuyItem', item: 'forestSapling', quantity: SLOTS_PER_BLOCK }),
+    ).toEqual({ ok: true });
+    for (const species of ['palm', 'forest'] as const) {
+      expect(sim.validate({ type: 'PlantBlock', block: high!.id, species })).toMatchObject({
+        code: 'wrongPhase',
+      });
+    }
+    expect(sim.state.blocks.get(high!.id)!.landslideAt).toBe(scarred.landslideAt);
+
+    // Dug out, it takes seedlings again.
+    expect(sim.dispatch({ type: 'BuyItem', item: 'excavationCrew', quantity: 1 })).toEqual({
+      ok: true,
+    });
+    expect(sim.dispatch({ type: 'ExcavateBlock', block: high!.id })).toEqual({ ok: true });
+    for (let day = 0; day <= EXCAVATION.days; day++) sim.tick();
+    expect(sim.state.blocks.get(high!.id)!.landslideAt).toBe(-1);
     expect(sim.dispatch({ type: 'PlantBlock', block: high!.id, species: 'palm' })).toEqual({
       ok: true,
     });
-    expect(sim.state.blocks.get(high!.id)!.landslideAt).toBe(-1);
-    expect(sim.state.blocks.get(high!.id)!.landslidePalms).toBe(0);
   });
 
   it('an excavation crew digs the slide out, and the hectare is ground again', () => {

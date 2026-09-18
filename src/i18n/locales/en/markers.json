@@ -7,6 +7,6 @@
   "beetle": "Beetles",
   "beetleDetail": "{beetles} beetles, debris {debris}",
   "landslide": "Landslide",
-  "landslideDetail": "{palms} palms lost, replant",
-  "landslideBare": "Slope gave way, replant"
+  "landslideDetail": "{palms} palms lost, dig it out",
+  "landslideBare": "Slope gave way, dig it out"
 }

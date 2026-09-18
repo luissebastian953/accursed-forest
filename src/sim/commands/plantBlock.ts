@@ -55,6 +55,10 @@ export const plantBlock: CommandHandler<PlantBlock> = {
         block.phase === 'wild' ? 'Clear the block first.' : 'This block is already in use.',
       );
     }
+    // Nothing takes root in spoil: the slide comes off the hectare first.
+    if (block.landslideAt >= 0) {
+      return reject('wrongPhase', 'Dig the slide out before planting anything here.');
+    }
 
     const item = seedlingItem(command.species);
     const needed = seedlingsNeeded(block.biome);
@@ -82,9 +86,6 @@ export const plantBlock: CommandHandler<PlantBlock> = {
 
     block.species = command.species;
     block.phase = command.species === 'forest' ? 'reforesting' : 'planted';
-    // Replanting answers a landslide: the scar, and its pin, come off.
-    block.landslideAt = -1;
-    block.landslidePalms = 0;
 
     events.push({ type: 'BlockPlanted', block: command.block, species: command.species, count });
   },

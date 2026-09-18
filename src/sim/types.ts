@@ -72,7 +72,7 @@ export interface Block {
   /** Derived from neighbours at world generation (§3.6.2). */
   slope: boolean;
   coverCropUntil: Tick;
-  /** When the slope last gave way (§3.6.2), or -1. Cleared by replanting. */
+  /** When the slope last gave way (§3.6.2), or -1. Cleared by excavating. */
   landslideAt: Tick;
   /** Palms buried by that slide, for the marker to name. */
   landslidePalms: number;

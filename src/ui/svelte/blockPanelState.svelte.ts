@@ -247,6 +247,16 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
       }),
     );
   } else if (!block.burning) {
+    // A slide is the block's whole story until it is dug out: nothing can be
+    // planted through spoil, so the crew comes before every other offer.
+    if (block.landslideAt >= 0) {
+      actions.push(
+        action(t('block.excavate'), { type: 'ExcavateBlock', block: id }, 'action-ExcavateBlock', {
+          icon: 'shop-excavator',
+        }),
+      );
+    }
+
     switch (block.phase) {
       case 'wild':
         actions.push(
@@ -337,14 +347,6 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
       }
       case 'clearing':
         break;
-    }
-
-    if (block.landslideAt >= 0) {
-      actions.push(
-        action(t('block.excavate'), { type: 'ExcavateBlock', block: id }, 'action-ExcavateBlock', {
-          icon: 'shop-excavator',
-        }),
-      );
     }
 
     if (block.debris > 0) {
