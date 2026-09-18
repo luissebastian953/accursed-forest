@@ -48,6 +48,7 @@ export interface WorkbenchHandlers {
   run(action: ActionId): void;
   setBackdrop(id: string): void;
   setGrid(on: boolean): void;
+  setGlow(on: boolean): void;
   setSpin(on: boolean): void;
 }
 
@@ -58,6 +59,8 @@ export class WorkbenchPanel {
   available = $state.raw<readonly ActionId[]>([]);
   backdrop = $state(BACKDROPS[0]!.id);
   grid = $state(true);
+  /** The bloom pass: on by default here, because this is where emission is judged. */
+  glow = $state(true);
   spin = $state(false);
   stats = $state.raw<StageStats | null>(null);
   /** What went wrong building the subject, if anything did. */

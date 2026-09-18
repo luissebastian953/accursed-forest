@@ -13,7 +13,7 @@ export const GLOW = {
   strength: 0.6,
   radius: 0.35,
   /** Luminance above which a pixel blooms. Sunlit sand stays under it; flames sit far over. */
-  threshold: 1.1,
+  threshold: 0.7,
 } as const;
 
 export class Glow {

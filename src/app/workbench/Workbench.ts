@@ -14,6 +14,7 @@ import { Color, Group, Mesh, Scene, type Material } from 'three/webgpu';
 
 import { MapRig, type GroundRect } from '@render/camera/MapRig';
 import { BoxBuilder } from '@render/geometry/boxBuilder';
+import { Glow } from '@render/Glow';
 import { createPaletteTexture } from '@render/materials/palette';
 import { createPaletteMaterial } from '@render/materials/paletteMaterial';
 import { Palette } from '@render/materials/paletteSlots';
@@ -87,6 +88,8 @@ export async function startWorkbench(root: HTMLElement): Promise<() => void> {
   const rig = new MapRig({ domElement: handle.canvas, bounds: STAGE, baseFrustum: 15 });
   rig.jumpTo(0, 0);
 
+  const glow = new Glow(handle.renderer, scene, rig.camera);
+  let glowOn = true;
   let current: SubjectHandle | null = null;
   let spin = false;
   let backdrop = BACKDROPS[0]!.id;
@@ -102,6 +105,10 @@ export async function startWorkbench(root: HTMLElement): Promise<() => void> {
     setGrid: (on) => {
       panel.grid = on;
       plinth.visible = on;
+    },
+    setGlow: (on) => {
+      panel.glow = on;
+      glowOn = on;
     },
     setSpin: (on) => {
       panel.spin = on;
@@ -202,7 +209,8 @@ export async function startWorkbench(root: HTMLElement): Promise<() => void> {
       applyBackdrop();
       if (spin) turntable.rotation.y += SPIN * dt;
       current?.update?.(dt, nowMs);
-      handle.render(scene, rig.camera);
+      if (glowOn) glow.render();
+      else handle.render(scene, rig.camera);
       const stats = readStats(nowMs);
       if (nowMs - statsAt >= STATS_MS) {
         statsAt = nowMs;
@@ -220,6 +228,7 @@ export async function startWorkbench(root: HTMLElement): Promise<() => void> {
     window.removeEventListener('keydown', onKey);
     observer.disconnect();
     current?.dispose();
+    glow.dispose();
     panel.dispose();
     plinth.geometry.dispose();
     sky.dispose();

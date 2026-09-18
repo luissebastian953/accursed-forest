@@ -3,7 +3,8 @@
  *
  * Every vertex in the world carries a `paletteU` attribute instead of a UV.
  * The palette is a 256x2 texture: row 0 is the wet-season colour for each slot,
- * row 1 is the dry-season colour. A single `season` uniform lerps between them,
+ * row 1 is the dry-season colour, and the alpha channel of both is how much
+ * light the slot gives off rather than opacity. A single `season` uniform lerps between them,
  * and an event tint uniform (haze amber-grey, ash grey) is mixed on top, so the
  * whole world shifts mood with two floats.
  *
@@ -117,9 +118,9 @@ const COLOURS: Partial<Record<number, [Hex, Hex]>> = {
 
   [Palette.FurPangolin]: [0x9c7a4a, 0xb08a55],
   [Palette.FurPangolinDark]: [0x6f5432, 0x7f613b],
-  [Palette.FurCapybaraGold]: [0xe0a63a, 0xf0bb4a],
-  [Palette.Coin]: [0xf5c53a, 0xffd45e],
-  [Palette.Sparkle]: [0xfff3c4, 0xfff8dd],
+  [Palette.FurCapybaraGold]: [0xf59a06, 0xffab12],
+  [Palette.Coin]: [0xffa008, 0xffb114],
+  [Palette.Sparkle]: [0xffdc55, 0xffe883],
   [Palette.Cloud]: [0xeef4f7, 0xf6f8f6],
   [Palette.CloudTop]: [0xffffff, 0xffffff],
   [Palette.ApeGrey]: [0xb3aab0, 0xc3bbc0],
@@ -127,11 +128,24 @@ const COLOURS: Partial<Record<number, [Hex, Hex]>> = {
 
 const FALLBACK: [Hex, Hex] = [0xff00ff, 0xff00ff];
 
-function writeHex(data: Uint8Array, offset: number, hex: Hex): void {
+/**
+ * How much of its own light a slot gives off, 0..1, carried in the palette's
+ * alpha channel because nothing else uses it. The material turns it into an
+ * emissive term, which lifts these slots past the bloom threshold: the gold
+ * things glow instead of sitting there as flat yellow paint.
+ */
+const EMISSION: Partial<Record<number, number>> = {
+  [Palette.Coin]: 0.9,
+  [Palette.Sparkle]: 1,
+  [Palette.FurCapybaraGold]: 0.8,
+};
+
+function writeHex(data: Uint8Array, offset: number, hex: Hex, emission: number): void {
   data[offset] = (hex >> 16) & 0xff;
   data[offset + 1] = (hex >> 8) & 0xff;
   data[offset + 2] = hex & 0xff;
-  data[offset + 3] = 255;
+  // Alpha is the emission mask, not opacity: the material writes its own alpha.
+  data[offset + 3] = Math.round(Math.min(1, Math.max(0, emission)) * 255);
 }
 
 /**
@@ -143,8 +157,9 @@ export function createPaletteTexture(): DataTexture {
 
   for (let i = 0; i < PALETTE_WIDTH; i++) {
     const [wet, dry] = COLOURS[i] ?? FALLBACK;
-    writeHex(data, i * 4, wet);
-    writeHex(data, (PALETTE_WIDTH + i) * 4, dry);
+    const emission = EMISSION[i] ?? 0;
+    writeHex(data, i * 4, wet, emission);
+    writeHex(data, (PALETTE_WIDTH + i) * 4, dry, emission);
   }
 
   const texture = new DataTexture(data, PALETTE_WIDTH, 2, RGBAFormat, UnsignedByteType);

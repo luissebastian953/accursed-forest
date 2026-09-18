@@ -132,6 +132,15 @@
     >
       Spin
     </button>
+    <Tooltip text="Bloom: anything brighter than white glows." placement="left">
+      <button
+        class="btn btn-sm {panel.glow ? 'btn-green' : 'btn-ghost'}"
+        data-testid="workbench-glow"
+        onclick={() => panel.handlers.setGlow(!panel.glow)}
+      >
+        Glow
+      </button>
+    </Tooltip>
   </div>
 
   <p class="label mb-1">Renderer</p>

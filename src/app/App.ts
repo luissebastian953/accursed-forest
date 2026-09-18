@@ -1291,7 +1291,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       if (shop.isOpen) shop.refresh();
     }
     // Bloom only while something glows: it costs a few full-screen passes.
-    if (fires.burning) glow.render();
+    // Fire, gold coins in the air, and the glints over anything worth
+    // clicking, which is also what marks the golden capybara.
+    if (fires.burning || coins.count > 0 || sparklePoints.length > 0) glow.render();
     else handle.render(scene, rig.camera);
   }
 

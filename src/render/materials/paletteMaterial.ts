@@ -28,6 +28,13 @@ export interface PaletteMaterial {
   uniforms: PaletteUniforms;
 }
 
+/**
+ * How hard a fully emissive slot lights itself. Enough that gold lands just
+ * over the bloom threshold (1.1) and blooms in its own colour, not so much
+ * that it burns out to white.
+ */
+const EMISSION_GAIN = 0.55;
+
 /** Event tints from §6.1 / §6.4. */
 export const TINT = {
   none: new Color(0xffffff),
@@ -61,6 +68,14 @@ export function createPaletteMaterial(
   const tinted = mix(seasonal, uniforms.tintColor, uniforms.tintAmount);
 
   material.colorNode = vec4(tinted, 1);
+  // The palette's alpha is an emission mask (see `palette.ts`). A slot that
+  // carries one lights itself in its own colour, which puts gold over the
+  // bloom threshold while leaving everything else exactly as it was.
+  // `emissiveNode` is typed on the standard material only; every node material
+  // honours it (NodeMaterial reads it when it sets up lighting).
+  (material as unknown as { emissiveNode: unknown }).emissiveNode = tinted.mul(
+    wet.a.mul(EMISSION_GAIN),
+  );
 
   return { material, uniforms };
 }

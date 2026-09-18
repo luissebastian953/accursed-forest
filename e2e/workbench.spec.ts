@@ -94,6 +94,13 @@ test.describe('workbench', () => {
     await page.locator('[data-backdrop="night"]').click();
     await expect.poll(async () => (await canvas.screenshot()).equals(daylight)).toBe(false);
 
+    // Bloom is on by default here, because this is where emission is judged.
+    await expect(tid(page, 'workbench-glow')).toHaveClass(/btn-green/);
+    const glowing = await canvas.screenshot();
+    await tid(page, 'workbench-glow').click();
+    await expect(tid(page, 'workbench-glow')).not.toHaveClass(/btn-green/);
+    await expect.poll(async () => (await canvas.screenshot()).equals(glowing)).toBe(false);
+
     expect(errors).toEqual([]);
   });
 
