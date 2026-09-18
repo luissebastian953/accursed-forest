@@ -226,6 +226,41 @@ function authority(ctx: SimContext): void {
   s.attention = clamp(s.attention, 0, ATTENTION.max);
 }
 
+/**
+ * A hectare put back under forest, credited (§3.9). It halves the attention on
+ * the estate and whatever is left of a suspension, on top of the meter drop
+ * the planting itself earns. Doing it twice means chopping the forest down in
+ * between, which costs more attention than the second credit returns, so this
+ * needs no cooldown of its own.
+ */
+export function creditReforestation(ctx: SimContext, block: BlockId): void {
+  const { state, events } = ctx;
+  const s = state.society;
+  const keep = 1 - AUTHORITY.reforestationRelief;
+
+  s.attention = clamp(s.attention * keep, 0, ATTENTION.max);
+
+  // Halve the days still to run, not the end date: an old ban would otherwise
+  // be pushed further out by a plant made near its end.
+  const left = Math.max(0, s.operatingBanUntil - state.tick);
+  if (left > 0) s.operatingBanUntil = state.tick + Math.floor(left * keep);
+  const investigationLeft = Math.max(0, s.investigationUntil - state.tick);
+  if (investigationLeft > 0) {
+    s.investigationUntil = state.tick + Math.floor(investigationLeft * keep);
+  }
+
+  // The letter lifts by the same rule the daily pass uses, so the HUD does not
+  // keep a surcharge the meter no longer justifies.
+  if (s.warningLevel >= 1 && s.attention < AUTHORITY.letterClearsBelow) s.warningLevel = 0;
+
+  events.push({
+    type: 'ReforestationCredited',
+    block,
+    attention: s.attention,
+    banDaysLeft: Math.max(0, s.operatingBanUntil - state.tick),
+  });
+}
+
 /** Is chopping and burning banned right now? */
 export function underInvestigation(state: SimState): boolean {
   return state.society.investigationUntil > state.tick;

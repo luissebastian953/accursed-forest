@@ -311,6 +311,42 @@ describe('authority (§3.9)', () => {
     expect(sim.state.society.attention).toBeLessThan(beforePlant - ATTENTION.reforestPlant * 0.9);
   });
 
+  it('open land takes saplings with no crew, and the Ministry halves what it holds', () => {
+    const sim = createSim(11);
+    // Grass or scrub the player already owns: nothing stands on it to clear.
+    const open = [...sim.state.blocks.values()].find(
+      (b) => b.owned && b.phase === 'wild' && BIOMES[b.biome].openLand === true,
+    );
+    expect(open).toBeDefined();
+    const id = open!.id;
+
+    sim.state.economy.cash = 1e9;
+    sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
+    sim.dispatch({ type: 'BuyItem', item: 'forestSapling', quantity: SLOTS_PER_BLOCK });
+
+    // Palms still want the land prepared; saplings do not.
+    expect(sim.dispatch({ type: 'PlantBlock', block: id, species: 'palm' })).toMatchObject({
+      ok: false,
+      code: 'wrongPhase',
+    });
+
+    const s = sim.state.society;
+    s.attention = 60;
+    s.operatingBanUntil = sim.state.tick + 100;
+    s.investigationUntil = sim.state.tick + 40;
+    s.warningLevel = 1;
+
+    expect(sim.dispatch({ type: 'PlantBlock', block: id, species: 'forest' })).toEqual({
+      ok: true,
+    });
+    expect(sim.state.blocks.get(id)!.phase).toBe('reforesting');
+    expect(s.attention).toBeCloseTo(30, 5);
+    expect(s.operatingBanUntil - sim.state.tick).toBe(50);
+    expect(s.investigationUntil - sim.state.tick).toBe(20);
+    // 30 is over the line that clears a letter, so the letter stands.
+    expect(s.warningLevel).toBe(1);
+  });
+
   it('Warning 1: the letter at 40 makes clearing cost half again, and lifts below 25', () => {
     const sim = createSim(42);
     const biome = sim.state.blocks.get(ownedWild(sim)[0]!)!.biome;

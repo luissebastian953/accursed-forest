@@ -21,7 +21,7 @@ interface DebugWindow {
         tick: number;
         worldGen: { kopdesBlock: number };
         kopdes: { blockId: number; level: number; autoHarvest: boolean } | null;
-        society: { attention: number; news: { key: string }[] };
+        society: { attention: number; operatingBanUntil: number; news: { key: string }[] };
         economy: { cash: number };
         run: { ending?: string; endedAt?: number; insolventFor: number };
         blocks: Map<
@@ -518,6 +518,54 @@ test.describe('Sawit Simulator', () => {
     await expect(scar).toContainText('Landslide');
     await expect(scar).toContainText('144 palms lost');
 
+    expect(errors).toEqual([]);
+  });
+
+  test('open land: saplings go in without a crew, and the Ministry halves what it holds', async ({
+    page,
+  }) => {
+    test.setTimeout(90_000);
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.goto('/play.html?webgl&seed=42&fresh&debug&turbo');
+    await expect(page.locator('canvas')).toBeVisible();
+    await page.waitForTimeout(2000);
+
+    await selectCentreBlock(page);
+    await tid(page, 'action-PlaceKopdes').click();
+
+    await selectWildNeighbour(page, /Grassfield|Dry scrub/);
+    // The forest offer comes before the crew's: there is nothing to clear.
+    const actions = tid(page, 'block-panel').locator('[data-testid^="action-"]');
+    const order = await actions.evaluateAll((nodes) =>
+      nodes.map((n) => n.getAttribute('data-testid')),
+    );
+    expect(order.indexOf('action-PlantBlock-forest')).toBeGreaterThanOrEqual(0);
+    expect(order.indexOf('action-PlantBlock-forest')).toBeLessThan(
+      order.indexOf('action-ChopBlock'),
+    );
+
+    // Suspended, with the meter just under the line that summons a letter
+    // card: the saplings buy half of both back.
+    await page.evaluate(() => {
+      const { state } = (window as unknown as DebugWindow).__sawit.sim();
+      state.economy.cash = 1e9;
+      state.society.attention = 38;
+      state.society.operatingBanUntil = state.tick + 100;
+    });
+    await tid(page, 'action-BuySaplings').click();
+    await tid(page, 'action-PlantBlock-forest').click();
+    await expect(tid(page, 'block-phase')).toHaveText('Reforesting');
+
+    const after = await page.evaluate(() => {
+      const { state } = (window as unknown as DebugWindow).__sawit.sim();
+      return {
+        attention: state.society.attention,
+        left: state.society.operatingBanUntil - state.tick,
+      };
+    });
+    expect(after.attention).toBeLessThan(20);
+    expect(after.left).toBeLessThanOrEqual(50);
     expect(errors).toEqual([]);
   });
 

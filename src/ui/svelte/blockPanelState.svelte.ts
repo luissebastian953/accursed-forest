@@ -258,7 +258,31 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     }
 
     switch (block.phase) {
-      case 'wild':
+      case 'wild': {
+        // Grass and scrub take saplings as they are: there is nothing standing
+        // to clear, so the forest offer comes before the crew's.
+        if (spec.openLand) {
+          const saplings = seedlingsNeeded(block.biome);
+          actions.push(
+            action(
+              t('block.plantForest', { n: saplings }),
+              { type: 'PlantBlock', block: id, species: 'forest' },
+              'action-PlantBlock-forest',
+              { icon: 'biome-forest-wild' },
+            ),
+          );
+          if (state.kopdes && state.inventory.forestSapling < saplings) {
+            const shortfall = saplings - state.inventory.forestSapling;
+            actions.push(
+              action(
+                t('block.buySaplings', { n: shortfall }),
+                { type: 'BuyItem', item: seedlingItem('forest'), quantity: shortfall },
+                'action-BuySaplings',
+                { cost: itemPrice('forestSapling', index) * shortfall },
+              ),
+            );
+          }
+        }
         actions.push(
           action(t('block.chop'), { type: 'ChopBlock', block: id }, 'action-ChopBlock', {
             cost: chopCost(block.biome, state),
@@ -266,6 +290,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
         );
         burnable = isFuel(block, false);
         break;
+      }
       case 'cleared': {
         const needed = seedlingsNeeded(block.biome);
         actions.push(

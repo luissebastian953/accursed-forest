@@ -1009,6 +1009,14 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       toasts.push(`Kopdes upgraded to level ${d.kopdesUpgraded}.`);
       if (shop.isOpen) rangeRing.show(sim.state, sim.world);
     }
+    if (d.reforestationCredit) {
+      const { banDaysLeft } = d.reforestationCredit;
+      toasts.push(
+        banDaysLeft > 0
+          ? `Reforestation noted. Half the suspicion lifts, and the suspension is down to ${banDaysLeft} days.`
+          : 'Reforestation noted. Half the suspicion against the estate lifts.',
+      );
+    }
     if (d.wildfireStarted)
       toasts.push('Wildfire. The fire is no longer yours; it burns until the rain comes.', 'error');
     if (d.wildfireEnded) toasts.push('The wildfire is out. The smoke will take a while to clear.');

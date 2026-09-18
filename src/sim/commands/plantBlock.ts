@@ -7,7 +7,7 @@
 import { BIOMES } from '../balance/biomes.ts';
 import { createPalmArrays, plantSlots } from '../palms.ts';
 import { readBlock, writeBlock } from '../state.ts';
-import { operatingBanReason, operatingBanned } from '../systems/society.ts';
+import { creditReforestation, operatingBanReason, operatingBanned } from '../systems/society.ts';
 import type { Command, ItemId, Species } from '../types.ts';
 
 import { itemPrice } from './buyItem.ts';
@@ -49,7 +49,13 @@ export const plantBlock: CommandHandler<PlantBlock> = {
     if (block.bannedUntil > state.tick) {
       return reject('banned', `Planting is banned here until day ${block.bannedUntil}.`);
     }
-    if (block.phase !== 'cleared') {
+    // Grass and scrub have nothing standing on them, so saplings go straight
+    // in. Palms still want the land prepared first.
+    const openWild =
+      block.phase === 'wild' &&
+      command.species === 'forest' &&
+      BIOMES[block.biome].openLand === true;
+    if (block.phase !== 'cleared' && !openWild) {
       return reject(
         'wrongPhase',
         block.phase === 'wild' ? 'Clear the block first.' : 'This block is already in use.',
@@ -86,7 +92,10 @@ export const plantBlock: CommandHandler<PlantBlock> = {
 
     block.species = command.species;
     block.phase = command.species === 'forest' ? 'reforesting' : 'planted';
+    // Straight from wild: there was no crew, so mark the ground finished.
+    block.clearProgress = 1;
 
     events.push({ type: 'BlockPlanted', block: command.block, species: command.species, count });
+    if (command.species === 'forest') creditReforestation(ctx, command.block);
   },
 };

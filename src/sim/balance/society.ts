@@ -41,6 +41,12 @@ export const AUTHORITY = {
   letterAt: 40,
   /** The letter's surcharge lifts once attention falls back below this. */
   letterClearsBelow: 25,
+  /**
+   * Putting forest back is the one thing the Ministry takes at face value:
+   * each reforested hectare halves what is held against the estate, both the
+   * attention on it and whatever is left of a suspension.
+   */
+  reforestationRelief: 0.5,
   /** Clearing costs this much more while a letter stands (§3.9: +50%). */
   letterChopCostFactor: 1.5,
   /** Warning 2: police at the gate. */

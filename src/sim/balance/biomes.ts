@@ -11,6 +11,12 @@ export interface BiomeSpec {
   price: number;
   /** Plantable slots out of 144. Hills terrace to 96 (§3.1). */
   plantableSlots: number;
+  /**
+   * Open land: grass and scrub, where there is nothing standing to clear. A
+   * forest can be planted straight onto it, though palms still want the land
+   * prepared first.
+   */
+  openLand?: boolean;
   /** Multiplies the fertility factor of `G` once planted. */
   fertility: number;
   /** Can this biome ever be cleared and planted? */
@@ -29,6 +35,7 @@ export const BIOMES: Record<Biome, BiomeSpec> = {
     chopDebris: 0,
     price: 12_000_000,
     plantableSlots: SLOTS,
+    openLand: true,
     fertility: 1,
     clearable: true,
     forSale: true,
@@ -50,6 +57,7 @@ export const BIOMES: Record<Biome, BiomeSpec> = {
     chopDebris: 0,
     price: 6_000_000,
     plantableSlots: SLOTS,
+    openLand: true,
     // Needs irrigation or takes the dry penalty (§3.1).
     fertility: 0.6,
     clearable: true,
