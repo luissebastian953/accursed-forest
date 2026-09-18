@@ -7,7 +7,7 @@
  * offline for the tests.
  */
 
-import { chain, envelope, filter, lfo, noiseSource, tone } from './synth.ts';
+import { chain, drift, envelope, filter, lfo, noiseSource, tone } from './synth.ts';
 
 /** Everything a one-shot needs: where to play it and when. */
 export type OneShot = (ctx: BaseAudioContext, out: AudioNode, at: number) => number;
@@ -226,14 +226,14 @@ const rain: Loop = (ctx, out, at = 0) => {
     gain,
     out,
   );
-  const breathe = lfo(ctx, bedGain.gain, { rate: 0.23, depth: 0.12, at });
+  const breathe = drift(ctx, bedGain.gain, { seconds: 3.5, depth: 0.45, at });
 
   const spatter = noiseSource(ctx, 'white', at + 0.001);
   const spatterGain = ctx.createGain();
   spatterGain.gain.value = 0.28;
   chain(spatter, filter(ctx, at, { type: 'bandpass', from: 4200, q: 0.9 }), spatterGain, gain, out);
   // The spatter comes and goes faster than the bed, so gusts read through it.
-  const gust = lfo(ctx, spatterGain.gain, { rate: 0.7, depth: 0.14, at });
+  const gust = drift(ctx, spatterGain.gain, { seconds: 1.4, depth: 0.5, at });
 
   return handle(gain, (when) => {
     bed.stop(when);
@@ -269,9 +269,10 @@ const fire: Loop = (ctx, out, at = 0) => {
   const roarGain = ctx.createGain();
   roarGain.gain.value = 0.42;
   chain(roar, filter(ctx, at, { type: 'bandpass', from: 520, q: 0.55 }), roarGain, gain, out);
-  // Flames surge: the roar breathes faster and deeper than the rumble.
-  const surge = lfo(ctx, roarGain.gain, { rate: 1.3, depth: 0.16, at });
-  const breathe = lfo(ctx, rumbleGain.gain, { rate: 0.45, depth: 0.1, at });
+  // Flames surge and sink, but never on a beat: a sine here is heard as a
+  // slope up and down every two seconds, which is what a fire never does.
+  const surge = drift(ctx, roarGain.gain, { seconds: 0.9, depth: 0.5, at });
+  const breathe = drift(ctx, rumbleGain.gain, { seconds: 2.4, depth: 0.4, at });
 
   let seed = 99;
   const random = (): number => {
@@ -299,12 +300,16 @@ const fire: Loop = (ctx, out, at = 0) => {
       pops.push(pop);
     }
   };
-  crackle(at + 0.05, at + 4);
   // Offline contexts render their whole length at once and never tick a
-  // timer; live ones keep the fire fed a few seconds ahead of the clock.
-  let horizon = at + 4;
+  // timer, so they get every crackle up front; live ones are fed ahead of
+  // the clock. Without this an offline render goes quiet after four seconds,
+  // and anything measuring it measures the silence.
+  const offline = ctx instanceof OfflineAudioContext;
+  const upFront = offline ? ctx.length / ctx.sampleRate + 1 : 4;
+  crackle(at + 0.05, at + upFront);
+  let horizon = at + upFront;
   const feed =
-    typeof setInterval === 'function' && !(ctx instanceof OfflineAudioContext)
+    typeof setInterval === 'function' && !offline
       ? setInterval(() => {
           const ahead = ctx.currentTime + 3;
           if (ahead > horizon) {

@@ -8,8 +8,14 @@
  * which is how the tests measure a sound without anyone listening to it.
  */
 
-/** Seconds of noise kept per buffer; long enough that a loop does not pulse. */
-const NOISE_SECONDS = 2;
+/**
+ * Seconds of noise kept per buffer. A looping buffer repeats its own wander,
+ * and the ear finds that cycle quickly, so the buffer is long and its seam is
+ * crossfaded: the tail is blended into the head and then cut.
+ */
+const NOISE_SECONDS = 6;
+/** How much of the tail is folded back into the head. */
+const NOISE_SEAM = 0.4;
 
 const noiseCache = new WeakMap<BaseAudioContext, Map<NoiseColour, AudioBuffer>>();
 
@@ -70,8 +76,18 @@ export function noiseBuffer(ctx: BaseAudioContext, colour: NoiseColour = 'white'
       data[i] = (running + random() * 0.2) * 0.9;
     }
   }
-  byColour.set(colour, buffer);
-  return buffer;
+  // Fold the tail into the head so the loop point is not a step.
+  const seam = Math.min(Math.floor(ctx.sampleRate * NOISE_SEAM), Math.floor(length / 2));
+  const kept = length - seam;
+  const seamless = ctx.createBuffer(1, kept, ctx.sampleRate);
+  const out = seamless.getChannelData(0);
+  out.set(data.subarray(0, kept));
+  for (let i = 0; i < seam; i++) {
+    const w = i / seam;
+    out[i] = data[i]! * w + data[kept + i]! * (1 - w);
+  }
+  byColour.set(colour, seamless);
+  return seamless;
 }
 
 /** A looping noise source, started and left to the caller to stop. */
@@ -175,6 +191,32 @@ export function lfo(
   osc.connect(gain).connect(target);
   osc.start(at);
   return osc;
+}
+
+/**
+ * Slow, aperiodic modulation of a parameter: noise read far below its own
+ * rate, which wanders instead of cycling. An LFO is a metronome and the ear
+ * finds it; this is what a fire's body or a shower's weight actually does.
+ *
+ * @param seconds roughly how long one wander takes
+ */
+export function drift(
+  ctx: BaseAudioContext,
+  target: AudioParam,
+  options: { seconds: number; depth: number; at?: number },
+): AudioBufferSourceNode {
+  const { seconds, depth, at = 0 } = options;
+  const source = ctx.createBufferSource();
+  source.buffer = noiseBuffer(ctx, 'brown');
+  source.loop = true;
+  // The brown walk leaks back toward zero over about five milliseconds, so
+  // playing it that much slower stretches one wander to `seconds`.
+  source.playbackRate.value = Math.max(0.0001, 0.005 / Math.max(seconds, 0.001));
+  const gain = ctx.createGain();
+  gain.gain.value = depth;
+  source.connect(gain).connect(target);
+  source.start(at);
+  return source;
 }
 
 /** Chain nodes in order and return the last, so a recipe reads top to bottom. */

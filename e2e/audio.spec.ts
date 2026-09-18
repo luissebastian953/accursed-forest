@@ -79,6 +79,52 @@ async function measureAll(page: Page): Promise<Measured[]> {
   });
 }
 
+/**
+ * How strongly a loop's envelope repeats itself at any lag over a second:
+ * 0 is a texture, 1 is a metronome. A sine LFO on a gain scores high and is
+ * heard as a slope up and down, which is not what weather or fire does.
+ */
+async function cyclicity(page: Page, name: string): Promise<number> {
+  await page.goto('/workbench.html?webgl');
+  await page.waitForFunction(() => '__bench' in window);
+  return page.evaluate(async (loop) => {
+    const { LOOPS } = (
+      window as unknown as {
+        __bench: {
+          LOOPS: Record<string, (c: BaseAudioContext, o: AudioNode, at?: number) => unknown>;
+        };
+      }
+    ).__bench;
+    const rate = 48000;
+    const probe = new OfflineAudioContext(1, rate * 10, rate);
+    LOOPS[loop]!(probe, probe.destination, 0);
+    const d = (await probe.startRendering()).getChannelData(0);
+
+    // The envelope, as RMS over 25 ms windows.
+    const win = Math.floor(rate * 0.025);
+    const n = Math.floor(d.length / win);
+    const env = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      let sum = 0;
+      for (let j = 0; j < win; j++) sum += d[i * win + j]! ** 2;
+      env[i] = Math.sqrt(sum / win);
+    }
+    let mean = 0;
+    for (let i = 0; i < n; i++) mean += env[i]!;
+    mean /= n;
+    let variance = 0;
+    for (let i = 0; i < n; i++) variance += (env[i]! - mean) ** 2;
+
+    let worst = 0;
+    for (let lag = Math.floor(1 / 0.025); lag < n / 2; lag++) {
+      let sum = 0;
+      for (let i = 0; i + lag < n; i++) sum += (env[i]! - mean) * (env[i + lag]! - mean);
+      worst = Math.max(worst, sum / variance);
+    }
+    return worst;
+  }, name);
+}
+
 test.describe('synthesised sound', () => {
   test('every sound makes a noise, and none of them clips', async ({ page }) => {
     const sounds = await measureAll(page);
@@ -94,6 +140,13 @@ test.describe('synthesised sound', () => {
       // flattens them: the buses balance, they do not rescue.
       expect(sound.rms, `${sound.name} is too loud`).toBeLessThan(0.4);
     }
+  });
+
+  test('weather and fire wander instead of cycling', async ({ page }) => {
+    // Rain breathing on a timer, or a fire swelling every two seconds, reads
+    // as a machine. Both drift on slow noise instead, so neither repeats.
+    expect(await cyclicity(page, 'rain-light')).toBeLessThan(0.55);
+    expect(await cyclicity(page, 'fire-crackle')).toBeLessThan(0.55);
   });
 
   test('each one sits where its part of the estate should', async ({ page }) => {
