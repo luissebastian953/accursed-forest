@@ -1,6 +1,7 @@
 /**
  * Catching something at it (§POC): the golden capybara that turns up among
- * the others, and the babi ngepet on the day it stands up at the Kopdes.
+ * the others, and the babi ngepet, both while it ambles onto the estate as a
+ * pig and on the day it stands up at the Kopdes.
  * Both are worth something to whoever spots them and clicks before they are
  * gone; the capybara simply goes, the pig drops its takings and bolts. It is
  * the one command aimed at a mob rather than a block.
@@ -19,11 +20,25 @@ function find(ctx: SimContext, id: number) {
   return ctx.state.mobs.find((mob) => mob.id === id);
 }
 
+/** Whether a mob is standing on land the player owns. */
+function onTheEstate(ctx: SimContext, mob: Mob): boolean {
+  const { state, world } = ctx;
+  const x = Math.floor(mob.x);
+  const y = Math.floor(mob.z);
+  if (!world.inBounds(x, y)) return false;
+  return state.blocks.get(world.toId(x, y))?.owned ?? false;
+}
+
 /** What a mob is worth to whoever spots it, or null if it is just an animal. */
-function worth(mob: Mob): { amount: number; note: string } | null {
+function worth(ctx: SimContext, mob: Mob): { amount: number; note: string } | null {
   if (mob.shiny) return { amount: SHINY.reward, note: 'golden capybara' };
-  if (mob.species === 'babiNgepet' && mob.standing) {
-    return { amount: BABI_NGEPET.caughtDrop, note: 'babi ngepet, startled' };
+  if (mob.species === 'babiNgepet') {
+    // Upright at the Kopdes it is carrying the takings; on four legs on your
+    // land it is only what the stories say turns up before a theft.
+    if (mob.standing) return { amount: BABI_NGEPET.caughtDrop, note: 'babi ngepet, startled' };
+    if (onTheEstate(ctx, mob)) {
+      return { amount: BABI_NGEPET.spottedDrop, note: 'babi ngepet, spotted' };
+    }
   }
   return null;
 }
@@ -32,14 +47,14 @@ export const tapMob: CommandHandler<TapMob> = {
   validate(ctx, command): Rejection | null {
     const mob = find(ctx, command.mob);
     if (!mob) return reject('wrongPhase', 'It has already gone.');
-    if (!worth(mob)) return reject('wrongPhase', 'Nothing comes of it.');
+    if (!worth(ctx, mob)) return reject('wrongPhase', 'Nothing comes of it.');
     return null;
   },
 
   apply(ctx, command): void {
     const { state, events } = ctx;
     const mob = find(ctx, command.mob);
-    const prize = mob && worth(mob);
+    const prize = mob && worth(ctx, mob);
     if (!mob || !prize) return;
     earn(state, prize.amount, 'sale', prize.note);
     events.push({ type: 'MobTapped', id: mob.id, species: mob.species, amount: prize.amount });

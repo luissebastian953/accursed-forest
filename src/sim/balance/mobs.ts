@@ -148,6 +148,12 @@ export const BABI_NGEPET = {
   raidDays: 3,
   /** Caught at it: what falls out of its coat, and how fast it bolts. */
   caughtDrop: 6_000_000,
+  /**
+   * Spotted on the estate before it ever reaches the Kopdes, while it is
+   * still ambling in as a pig. Less falls out of it, but clicking it here
+   * costs it the raid it came for.
+   */
+  spottedDrop: 1_500_000,
   fleeSpeed: 1.8,
   /** It looks like a pig until it stands up at the Kopdes. */
   stayDays: 40,

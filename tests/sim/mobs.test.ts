@@ -163,7 +163,10 @@ describe('wildlife (mobs)', () => {
     const babi = state.mobs[0]!;
     babi.species = 'babiNgepet';
     babi.standing = false;
-    // On all fours it is just a pig: nothing to click.
+    // Out in the trees on all fours it is just a pig: nothing to click. The
+    // far corner of the map is nobody's land.
+    babi.x = 0.5;
+    babi.z = 0.5;
     expect(sim.validate({ type: 'TapMob', mob: babi.id })).toMatchObject({ code: 'wrongPhase' });
 
     babi.standing = true;
@@ -178,6 +181,31 @@ describe('wildlife (mobs)', () => {
     const [x, z] = [babi.x, babi.z];
     sim.tick();
     expect(Math.hypot(babi.x - x, babi.z - z)).toBeGreaterThan(BABI_NGEPET.pigSpeed);
+  });
+
+  it('a babi ngepet spotted on your own land drops something, on four legs or two', () => {
+    const sim = createSim(42);
+    const { state } = sim;
+    sim.dispatch({ type: 'PlaceKopdes', block: state.worldGen.kopdesBlock });
+    run(sim, 10);
+    const babi = state.mobs[0]!;
+    babi.species = 'babiNgepet';
+    babi.standing = false;
+
+    // Walk it onto the estate: that is the moment it stops being a pig.
+    const owned = [...state.blocks.values()].find((b) => b.owned)!;
+    const [ox, oy] = sim.world.toXY(owned.id);
+    babi.x = ox + 0.5;
+    babi.z = oy + 0.5;
+
+    const cash = state.economy.cash;
+    expect(sim.dispatch({ type: 'TapMob', mob: babi.id })).toEqual({ ok: true });
+    // Less than the one caught upright at the Kopdes, which carries the takings.
+    expect(state.economy.cash - cash).toBe(BABI_NGEPET.spottedDrop);
+    expect(BABI_NGEPET.spottedDrop).toBeLessThan(BABI_NGEPET.caughtDrop);
+    // Startled, not caught: still there, and on its way out.
+    expect(state.mobs.some((m) => m.id === babi.id)).toBe(true);
+    expect(babi.intent).toBe('leave');
   });
 
   it('the golden capybara pays out once, to whoever clicks it', () => {

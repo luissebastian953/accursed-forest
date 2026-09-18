@@ -34,6 +34,7 @@ import { Rain } from '@render/scene/Rain';
 import { Sky } from '@render/scene/Sky';
 import { Sparkles, type SparklePoint } from '@render/scene/Sparkles';
 import { TREES_PER_BLOCK, Timber } from '@render/scene/Timber';
+import { Wisps, type WispPoint } from '@render/scene/Wisps';
 import { WorkSite } from '@render/scene/WorkSite';
 import { digestEvents } from '@render/sync';
 import { BIOMES } from '@sim/balance/biomes';
@@ -258,6 +259,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   spectral.depthWrite = false;
   // The glints live on the see-through material, like the ghost.
   const sparkles = new Sparkles(spectral);
+  const wisps = new Wisps(spectral);
   const clouds = new Clouds(spectral);
   const mobField = new MobField({
     material,
@@ -269,6 +271,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   scene.add(
     coins.mesh,
     sparkles.mesh,
+    wisps.mesh,
     clouds.mesh,
     police.group,
     ceremony.group,
@@ -1309,21 +1312,44 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
    * they can be caught, and their drawn position is projected on the click;
    * the crowd mesh itself cannot be picked apart.
    */
+  /** Whether a mob is standing on land the player owns. */
+  function onTheEstate(mob: (typeof sim.state.mobs)[number]): boolean {
+    const x = Math.floor(mob.x);
+    const y = Math.floor(mob.z);
+    if (!sim.world.inBounds(x, y)) return false;
+    return sim.state.blocks.get(sim.world.toId(x, y))?.owned ?? false;
+  }
+
+  /**
+   * What is worth a click: the golden capybara, and the babi ngepet once it is
+   * on your land, whether it is still ambling in as a pig or up on two legs.
+   * The sim decides what that is worth; this only decides what glints.
+   */
   function worthAClick(mob: (typeof sim.state.mobs)[number]): boolean {
-    return mob.shiny || (mob.species === 'babiNgepet' && mob.standing);
+    if (mob.shiny) return true;
+    return mob.species === 'babiNgepet' && (mob.standing || onTheEstate(mob));
   }
 
   const sparklePoints: SparklePoint[] = [];
+  const wispPoints: WispPoint[] = [];
   function syncSparkles(nowMs: number): void {
     sparklePoints.length = 0;
+    wispPoints.length = 0;
     for (const mob of sim.state.mobs) {
-      if (!worthAClick(mob)) continue;
+      const glints = worthAClick(mob);
+      // The babi ngepet smokes from the moment it sets foot on the estate,
+      // which is also the moment it is worth clicking.
+      const smokes = mob.species === 'babiNgepet' && (mob.standing || onTheEstate(mob));
+      if (!glints && !smokes) continue;
       const drawn = mobField.positionOf(mob.id);
       const x = drawn?.x ?? mob.x * WORLD.blockSide;
       const z = drawn?.z ?? mob.z * WORLD.blockSide;
-      sparklePoints.push({ x, y: drawn?.y ?? groundAt(x, z), z });
+      const y = drawn?.y ?? groundAt(x, z);
+      if (glints) sparklePoints.push({ x, y, z });
+      if (smokes) wispPoints.push({ x, y, z });
     }
     sparkles.update(sparklePoints, nowMs);
+    wisps.update(wispPoints, nowMs);
   }
 
   const TAP_RADIUS_PX = 42;
@@ -1572,6 +1598,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     hudMarkers.dispose();
     coins.dispose();
     sparkles.dispose();
+    wisps.dispose();
     clouds.dispose();
     panel.dispose();
     shop.dispose();
