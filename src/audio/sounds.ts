@@ -126,9 +126,9 @@ const landslide: OneShot = (ctx, out, at) => {
 
 /**
  * Thunder, near or far. Noise through a resonant lowpass at 300 Hz, swelling
- * over a fifth of a second and falling away over four; a thump of sub under
- * it, and a second roll arriving a moment later. Far away the swell is slow,
- * the cutoff lower, the tail longer and the thump gone.
+ * over a fifth of a second and falling away over four, with a second roll
+ * arriving a moment later. Overhead it cracks and punches first; far away
+ * the swell is slow, the cutoff lower, the tail longer and the hit gone.
  */
 function thunder(distance: number): OneShot {
   return (ctx, out, at) => {
@@ -147,7 +147,17 @@ function thunder(distance: number): OneShot {
     noise.stop(at + attack + tail + 0.1);
 
     if (d < 0.5) {
-      const thump = envelope(ctx, at, { attack: attack * 0.5, decay: 2, peak: 0.4 * (1 - d) });
+      // Overhead it hits before it rolls: a crack of mid noise and a punch of
+      // sub, both over in a fraction of a second, then the swell takes over.
+      const near = 1 - d * 2;
+      const crack = envelope(ctx, at, { attack: 0.003, decay: 0.2, peak: 0.38 * near });
+      const crackNoise = noiseSource(ctx, 'white', at + 0.0005);
+      chain(crackNoise, filter(ctx, at, { from: 1100, to: 250, seconds: 0.2, q: 0.8 }), crack, out);
+      crackNoise.stop(at + 0.3);
+      const punch = envelope(ctx, at, { attack: 0.004, decay: 0.55, peak: 0.55 * near });
+      chain(tone(ctx, at, { from: 62, to: 30, seconds: 0.6 }), punch, out);
+
+      const thump = envelope(ctx, at, { attack: attack * 0.5, decay: 2, peak: 0.35 * near });
       chain(tone(ctx, at, { from: 60, to: 28, seconds: 2.2 }), thump, out);
     }
 
@@ -196,48 +206,72 @@ function handle(gain: GainNode, stop: (at: number) => void): LoopHandle {
 }
 
 /**
- * Rain: white noise with a highpass under the lowpass, so it hisses without
- * rumbling, breathing slowly so it does not read as a fixed tone.
+ * Rain: two layers. A bed of pink noise rolled off above 3 kHz, which is the
+ * sound of rain on everything at once, and over it a thinner spatter of
+ * brighter noise that swells and fades on its own, which is the drops. Flat
+ * white hiss on its own reads as a radio between stations.
  */
 const rain: Loop = (ctx, out, at = 0) => {
   const gain = ctx.createGain();
-  gain.gain.value = 0.3;
-  const noise = noiseSource(ctx, 'white', at);
+  gain.gain.value = 0.12;
+
+  const bed = noiseSource(ctx, 'pink', at);
+  const bedGain = ctx.createGain();
+  bedGain.gain.value = 0.9;
   chain(
-    noise,
-    filter(ctx, at, { type: 'highpass', from: 400, q: 0.7 }),
-    filter(ctx, at, { from: 7000, q: 0.7 }),
+    bed,
+    filter(ctx, at, { type: 'highpass', from: 180, q: 0.6 }),
+    filter(ctx, at, { from: 3000, q: 0.5 }),
+    bedGain,
     gain,
     out,
   );
-  const wobble = lfo(ctx, gain.gain, { rate: 0.5, depth: 0.055, at });
+  const breathe = lfo(ctx, bedGain.gain, { rate: 0.23, depth: 0.12, at });
+
+  const spatter = noiseSource(ctx, 'white', at + 0.001);
+  const spatterGain = ctx.createGain();
+  spatterGain.gain.value = 0.28;
+  chain(spatter, filter(ctx, at, { type: 'bandpass', from: 4200, q: 0.9 }), spatterGain, gain, out);
+  // The spatter comes and goes faster than the bed, so gusts read through it.
+  const gust = lfo(ctx, spatterGain.gain, { rate: 0.7, depth: 0.14, at });
+
   return handle(gain, (when) => {
-    noise.stop(when);
-    wobble.stop(when);
+    bed.stop(when);
+    spatter.stop(when);
+    breathe.stop(when);
+    gust.stop(when);
   });
 };
 
 /**
- * Fire: a quiet bed of low noise breathing under a constant rain of sharp
- * crackles above 1.5 kHz. The crackles are what read as fire; the bed alone
- * is a furnace heard through a wall. They are scheduled a few seconds ahead
- * and topped up while the loop runs.
+ * Fire: a body and a crackle. The body is two layers, a low rumble and a
+ * mid roar around 500 Hz that surges and drops the way flames do; the
+ * crackle is short pops of noise in the low thousands, not the top of the
+ * range, which is where a snap of dry wood sits. They are scheduled a few
+ * seconds ahead and topped up while the loop runs.
  */
 const fire: Loop = (ctx, out, at = 0) => {
   const gain = ctx.createGain();
-  gain.gain.value = 0.6;
-  const bed = ctx.createGain();
-  bed.gain.value = 0.12;
-  const noise = noiseSource(ctx, 'brown', at);
+  gain.gain.value = 0.5;
+
+  const rumble = noiseSource(ctx, 'brown', at);
+  const rumbleGain = ctx.createGain();
+  rumbleGain.gain.value = 0.55;
   chain(
-    noise,
-    filter(ctx, at, { type: 'highpass', from: 80, q: 0.7 }),
-    filter(ctx, at, { from: 900, q: 0.7 }),
-    bed,
+    rumble,
+    filter(ctx, at, { type: 'highpass', from: 60, q: 0.7 }),
+    filter(ctx, at, { from: 700, q: 0.7 }),
+    rumbleGain,
     gain,
     out,
   );
-  const breathe = lfo(ctx, bed.gain, { rate: 0.75, depth: 0.05, at });
+  const roar = noiseSource(ctx, 'pink', at + 0.001);
+  const roarGain = ctx.createGain();
+  roarGain.gain.value = 0.42;
+  chain(roar, filter(ctx, at, { type: 'bandpass', from: 520, q: 0.55 }), roarGain, gain, out);
+  // Flames surge: the roar breathes faster and deeper than the rumble.
+  const surge = lfo(ctx, roarGain.gain, { rate: 1.3, depth: 0.16, at });
+  const breathe = lfo(ctx, rumbleGain.gain, { rate: 0.45, depth: 0.1, at });
 
   let seed = 99;
   const random = (): number => {
@@ -246,16 +280,22 @@ const fire: Loop = (ctx, out, at = 0) => {
   };
   const pops: AudioBufferSourceNode[] = [];
   const crackle = (from: number, to: number): void => {
-    // Around twenty a second, each a few milliseconds of bright noise.
-    for (let t = from; t < to; t += 0.02 + random() * 0.07) {
+    // Eight or so a second, each a few hundredths of a second, sitting in
+    // the low thousands rather than at the top of the range.
+    for (let t = from; t < to; t += 0.06 + random() * 0.16) {
       const env = envelope(ctx, t, {
-        attack: 0.001,
-        decay: 0.012 + random() * 0.03,
-        peak: 0.45 + random() * 0.5,
+        attack: 0.002,
+        decay: 0.025 + random() * 0.05,
+        peak: 0.22 + random() * 0.3,
       });
       const pop = noiseSource(ctx, 'white', t);
-      chain(pop, filter(ctx, t, { type: 'highpass', from: 1500, q: 0.8 }), env, gain);
-      pop.stop(t + 0.08);
+      chain(
+        pop,
+        filter(ctx, t, { type: 'bandpass', from: 900 + random() * 1600, q: 1.4 }),
+        env,
+        gain,
+      );
+      pop.stop(t + 0.12);
       pops.push(pop);
     }
   };
@@ -278,7 +318,9 @@ const fire: Loop = (ctx, out, at = 0) => {
 
   return handle(gain, (when) => {
     if (feed !== null) clearInterval(feed);
-    noise.stop(when);
+    rumble.stop(when);
+    roar.stop(when);
+    surge.stop(when);
     breathe.stop(when);
     for (const pop of pops) {
       try {
