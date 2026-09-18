@@ -78,7 +78,12 @@ export const BANKRUPTCY = {
 export const OPERATING_BAN = {
   minIntegrity: 0.5,
   chance: 0.4,
-  days: 180,
+  /**
+   * A quarter of the year shut. Half a year read as longer than it was: a
+   * suspension in the back half of a year ran into the next one, so the
+   * notice named a year the player had not reached yet.
+   */
+  days: 90,
   /** Caretaker crews: upkeep runs at this share while the estate is shut. */
   upkeepFactor: 0.5,
 } as const;
