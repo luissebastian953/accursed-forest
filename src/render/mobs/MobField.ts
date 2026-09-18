@@ -217,6 +217,7 @@ function drawnAs(mob: SimMob, state: SimState): SpeciesId {
   if (mob.species === 'capybara' && mob.shiny) return 'shinyCapybara';
   if (mob.species === 'crew') {
     const block = mob.target === null ? undefined : state.blocks.get(mob.target);
+    if (block && block.excavateUntil > state.tick) return 'digger';
     return block?.burning ? 'burner' : 'chopper';
   }
   return mob.species;

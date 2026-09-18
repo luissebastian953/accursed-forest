@@ -1,5 +1,6 @@
 /**
- * Terrain system (§3.1): clearing and burning progress, timber, debris decay.
+ * Terrain system (§3.1): clearing and burning progress, timber, debris decay,
+ * and the crew digging a landslide out (§3.6.2).
  */
 
 import { BIOMES } from '../balance/biomes.ts';
@@ -44,6 +45,20 @@ export function terrain(ctx: SimContext): void {
         }
       }
       events.push({ type: 'BlockChanged', block: block.id });
+      continue;
+    }
+
+    // The crew digging a slide out: when they are done the spoil goes, the
+    // debris with it, and the scar comes off the map.
+    if (block.excavateUntil >= 0) {
+      if (state.tick >= block.excavateUntil) {
+        block.excavateUntil = -1;
+        block.landslideAt = -1;
+        block.landslidePalms = 0;
+        block.debris = 0;
+        events.push({ type: 'BlockExcavated', block: block.id });
+        events.push({ type: 'BlockChanged', block: block.id });
+      }
       continue;
     }
 

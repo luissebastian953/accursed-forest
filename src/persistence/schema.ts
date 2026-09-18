@@ -55,8 +55,10 @@ export const KEY_PREFIX = 'accursed-forest';
  * 13. Redemption: a run can end in a way older builds have no name for.
  * 14. Landslides: a block remembers the slide that tore it up and what it
  *     buried, until something is planted there again.
+ * 15. Excavation: the shop sells a crew to dig a slide out, and a block
+ *     remembers when they will be finished.
  */
-export const CURRENT_SCHEMA = 14;
+export const CURRENT_SCHEMA = 15;
 
 export type SaveErrorCode = 'missing' | 'corrupt' | 'newerSchema' | 'quota';
 
@@ -118,6 +120,7 @@ const BlockSchema = z.object({
   coverCropUntil: Tick,
   landslideAt: Tick,
   landslidePalms: z.number(),
+  excavateUntil: Tick,
   species: z.enum(['palm', 'forest']),
 });
 
@@ -200,6 +203,7 @@ const ItemIdSchema = z.enum([
   'trichoderma',
   'sanitationCrew',
   'forestSapling',
+  'excavationCrew',
 ]);
 
 const LedgerEntrySchema = z.object({
@@ -273,6 +277,7 @@ const CommandSchema = z.discriminatedUnion('type', [
     intensity: z.union([z.literal(1), z.literal(2), z.literal(3)]),
   }),
   z.object({ type: z.literal('SanitizeBlock'), block: Id }),
+  z.object({ type: z.literal('ExcavateBlock'), block: Id }),
   z.object({ type: z.literal('IrrigateBlock'), block: Id }),
   z.object({ type: z.literal('DrainBlock'), block: Id }),
   z.object({ type: z.literal('HarvestBlock'), block: Id }),

@@ -55,6 +55,7 @@ export function createInitialState(world: World): SimState {
       trichoderma: 0,
       sanitationCrew: 0,
       forestSapling: 0,
+      excavationCrew: 0,
     },
     weather: {
       dayOfYear: 0,

@@ -197,8 +197,8 @@ function biped(options: {
   height: number;
   speed: number;
   carries?: number;
-  /** What the right hand holds: an axe for the chop, a flamethrower for the burn. */
-  tool?: 'axe' | 'flamethrower';
+  /** What the right hand holds: an axe, a flamethrower, or a digger's shovel. */
+  tool?: 'axe' | 'flamethrower' | 'shovel';
   spectral?: boolean;
 }): SpeciesSpec {
   const skin = options.skin ?? Palette.Skin;
@@ -285,6 +285,29 @@ function biped(options: {
         parent: 'armR',
         at: [0, -h * 0.3 - h * 0.03, h * 0.38],
         size: [h * 0.05, h * 0.16, h * 0.11],
+        slot: Palette.Steel,
+        role: 'still',
+      },
+    );
+  }
+
+  if (options.tool === 'shovel') {
+    // A shaft down from the fist with a broad blade on the end: the swing the
+    // rig already plays for a chop reads as digging with it.
+    parts.push(
+      {
+        name: 'shovelShaft',
+        parent: 'armR',
+        at: [0, -h * 0.3, h * 0.14],
+        size: [h * 0.04, h * 0.04, h * 0.34],
+        slot: Palette.PalmTrunk,
+        role: 'still',
+      },
+      {
+        name: 'shovelBlade',
+        parent: 'armR',
+        at: [0, -h * 0.31, h * 0.34],
+        size: [h * 0.13, h * 0.03, h * 0.16],
         slot: Palette.Steel,
         role: 'still',
       },
@@ -621,6 +644,15 @@ export const SPECIES: Record<string, SpeciesSpec> = {
     height: 1.7,
     speed: 1.6,
     carries: Palette.Sack,
+  }),
+  digger: biped({
+    id: 'digger',
+    label: 'Excavation crew',
+    cloth: Palette.HiVis,
+    hat: Palette.ClothWorker,
+    height: 1.7,
+    speed: 1.6,
+    tool: 'shovel',
   }),
   chopper: biped({
     id: 'chopper',

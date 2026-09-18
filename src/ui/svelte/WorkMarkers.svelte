@@ -28,7 +28,7 @@
             cy="24"
             r={RADIUS}
             fill="none"
-            stroke={m.kind === 'burn' ? '#ff7a3a' : '#3faa4c'}
+            stroke={m.kind === 'burn' ? '#ff7a3a' : m.kind === 'dig' ? '#f4b731' : '#3faa4c'}
             stroke-width="5"
             stroke-linecap="round"
             stroke-dasharray={CIRCUMFERENCE}
@@ -36,7 +36,9 @@
           />
         </svg>
         <span class="absolute inset-0 flex items-center justify-center">
-          <Icon name={m.kind === 'burn' ? 'fire' : 'axe-chop'} />
+          <Icon
+            name={m.kind === 'burn' ? 'fire' : m.kind === 'dig' ? 'shop-excavator' : 'axe-chop'}
+          />
         </span>
       </div>
       <span class="pill-muted num -mt-1.5 px-1.5 py-0 text-[10px] font-extrabold">

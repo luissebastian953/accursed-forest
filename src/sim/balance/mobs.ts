@@ -171,6 +171,12 @@ export const GHOST = {
 
 export type WorkerKind = 'sanitizer' | 'plantDoctor' | 'security';
 
+/**
+ * A Kopdes has to be big enough to carry a payroll: below this level it can
+ * sell you supplies, but it cannot put anyone on the books.
+ */
+export const WORKERS_FROM_LEVEL = 3;
+
 export const WORKERS: Record<
   WorkerKind,
   { wagePerDay: number; label: string; hireFee: number; speed: number }

@@ -23,6 +23,7 @@ import { landHeight } from '@render/scene/chunkField';
 import { ChunkManager } from '@render/scene/ChunkManager';
 import { Clouds } from '@render/scene/Clouds';
 import { Coins } from '@render/scene/Coins';
+import { Excavator } from '@render/scene/Excavator';
 import { Fires } from '@render/scene/Fires';
 import { KopdesMesh } from '@render/scene/Kopdes';
 import { Lightning } from '@render/scene/Lightning';
@@ -39,6 +40,7 @@ import { WorkSite } from '@render/scene/WorkSite';
 import { digestEvents } from '@render/sync';
 import { BIOMES } from '@sim/balance/biomes';
 import { BANKRUPTCY, ISPO } from '@sim/balance/endings';
+import { EXCAVATION } from '@sim/balance/events';
 import { FIRE } from '@sim/balance/fire';
 import { GROWTH } from '@sim/balance/growth';
 import { BABI_NGEPET, SHINY } from '@sim/balance/mobs';
@@ -252,6 +254,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   const lightning = new Lightning();
   const timber = new Timber(material, groundAt);
   const motorcade = new Motorcade(material, groundAt);
+  const excavator = new Excavator(material, groundAt);
   const workSite = new WorkSite(material, groundAt);
   const spectral = createPaletteMaterial(paletteTexture, uniforms).material;
   spectral.transparent = true;
@@ -276,6 +279,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     police.group,
     ceremony.group,
     motorcade.group,
+    excavator.group,
     workSite.group,
     rain.mesh,
     lightning.group,
@@ -783,6 +787,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         // The crew and their scaffolding are on the block before the next tick.
         mobField.syncSim(sim.state);
         workSite.sync(sim.state, sim.world);
+        excavator.sync(sim.state, sim.world, performance.now());
       }
       if (command.type === 'BurnBlock') {
         syncFireState();
@@ -855,6 +860,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     mobField.clear();
     mobField.syncSim(sim.state);
     workSite.sync(sim.state, sim.world);
+    excavator.sync(sim.state, sim.world, performance.now());
     palmsDirty = true;
     animateBlocks = new Set();
     kopdes.sync(sim.state, sim.world);
@@ -1020,6 +1026,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     if (d.thiefCaught) toasts.push('Security saw off a fruit thief.');
     mobField.syncSim(sim.state);
     workSite.sync(sim.state, sim.world);
+    excavator.sync(sim.state, sim.world, performance.now());
     const drowned = d.palmsDied.filter((p) => p.cause === 'flood').length;
     if (drowned > 0)
       toasts.push(
@@ -1115,7 +1122,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
    * got into. Beetles only matter once there are enough of them to bore a
    * palm, so a stray one does not plant a pin on the map.
    */
-  const PIN_LIFT = 9;
+  const PIN_LIFT = 4.6;
   const BEETLES_WORTH_A_PIN = 12;
   /** An estate in trouble everywhere is not helped by a screen full of pins. */
   const MAX_PEST_PINS = 10;
@@ -1244,12 +1251,15 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       const cx = bx * side + side / 2;
       const cz = by * side + side / 2;
       markerPoint.set(cx, groundAt(cx, cz) + MARKER_LIFT, cz).project(rig.camera);
+      const digging = block.excavateUntil > sim.state.tick;
       items.push({
         id,
         x: ((markerPoint.x + 1) / 2) * width,
         y: ((1 - markerPoint.y) / 2) * height,
-        progress: block.clearProgress,
-        kind: block.burning ? 'burn' : 'chop',
+        progress: digging
+          ? 1 - (block.excavateUntil - sim.state.tick) / EXCAVATION.days
+          : block.clearProgress,
+        kind: digging ? 'dig' : block.burning ? 'burn' : 'chop',
       });
     }
     workMarkers.update(items);
@@ -1270,6 +1280,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     police.update(nowMs);
     ceremony.update(nowMs);
     motorcade.update(nowMs);
+    excavator.update(nowMs);
     ticker.update(sim.state.society.news, unreadWarnings());
     newsPanel.update(sim.state.society.news, newsStatus());
     fires.update(nowMs);
@@ -1449,6 +1460,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   ceremony.sync(sim.state, sim.world, performance.now());
   motorcade.sync(sim.state, sim.world);
   workSite.sync(sim.state, sim.world);
+  excavator.sync(sim.state, sim.world, performance.now());
   if (runOver(sim.state)) showEpilogue();
   time.subscribe(() => refreshHud());
   // `?debug` exposes the running sim for the browser suite and for poking at
@@ -1623,6 +1635,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     police.dispose();
     ceremony.dispose();
     motorcade.dispose();
+    excavator.dispose();
     workSite.dispose();
     rain.dispose();
     lightning.dispose();

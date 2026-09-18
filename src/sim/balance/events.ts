@@ -110,6 +110,18 @@ export const DROUGHT = {
 } as const;
 
 /** Forest cover and landslides (§3.6.2). */
+/**
+ * Digging a slide out (§3.6.2): a crew and a machine for a few days, and the
+ * hectare is ground again. The alternative is waiting for the debris to rot
+ * and planting through the spoil, which takes seasons.
+ */
+export const EXCAVATION = {
+  /** Days the crew is on the block. */
+  days: 6,
+  /** Diggers on it, alongside the machine. */
+  crewSize: 4,
+} as const;
+
 export const LANDSLIDE = {
   /** Radius, in blocks, of the neighbourhood whose forest holds a slope. */
   coverRadius: 2,

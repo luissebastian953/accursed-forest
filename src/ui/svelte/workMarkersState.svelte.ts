@@ -1,6 +1,6 @@
 /**
  * Progress rings over the blocks a crew is working (§8 panel 22b): a circle
- * that fills as the chop or the burn advances, pinned in screen space above
+ * that fills as the chop, the burn or the dig advances, pinned above
  * the work site. The App projects each block's centre every frame and hands
  * the positions over; nothing here touches the camera.
  */
@@ -18,7 +18,7 @@ export interface WorkMarker {
   y: number;
   /** 0..1 */
   progress: number;
-  kind: 'chop' | 'burn';
+  kind: 'chop' | 'burn' | 'dig';
 }
 
 export class WorkMarkers {

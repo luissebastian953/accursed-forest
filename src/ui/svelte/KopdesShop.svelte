@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { WORKERS_FROM_LEVEL } from '@sim/balance/mobs';
+
   import { t } from '../../i18n/index.ts';
   import { formatDate, formatKg, formatRp } from '../format.ts';
 
@@ -7,6 +9,7 @@
   import { shopView, type KopdesShop, type ShopTab } from './kopdesShopState.svelte.ts';
   import Phone from './Phone.svelte';
   import PhoneHeader from './PhoneHeader.svelte';
+  import Tooltip from './Tooltip.svelte';
 
   interface Props {
     shop: KopdesShop;
@@ -108,38 +111,47 @@
       </div>
     {:else}
       <div class="flex flex-col gap-3">
-        <div class="pill-muted p-2.5" data-testid="shop-workers">
-          <div class="mb-1 flex items-baseline justify-between">
+        <div data-testid="shop-workers">
+          <div class="mb-1.5 flex flex-wrap items-baseline justify-between gap-x-2">
             <div class="font-extrabold">{t('shop.workers')}</div>
             <div class="muted text-xs">{t('shop.workersNote')}</div>
           </div>
           <div class="flex flex-col gap-1.5">
             {#each v.workers as worker (worker.kind)}
-              <div class="flex items-center justify-between gap-2">
+              <!-- One pill each: the name on its own line, the job under it,
+                   the button across the bottom. Side by side they wrapped
+                   three deep on the phone. -->
+              <div class="pill-muted p-2.5">
                 <div class="flex items-center gap-2">
-                  <span class="pill flex h-8 w-8 items-center justify-center">
+                  <span class="pill flex h-8 w-8 shrink-0 items-center justify-center">
                     <Icon name={worker.icon} />
                   </span>
-                  <div>
-                    <div class="text-sm font-extrabold">{t(`shop.worker_${worker.kind}`)}</div>
-                    <div class="muted text-xs">
-                      {t(`shop.blurb_${worker.kind}`)}, {t('shop.perDay', {
-                        wage: formatRp(worker.wagePerDay),
-                      })}
-                    </div>
+                  <div class="min-w-0 flex-1 text-sm font-extrabold">
+                    {t(`shop.worker_${worker.kind}`)}
+                  </div>
+                  <div class="num muted shrink-0 text-xs">
+                    {t('shop.perDay', { wage: formatRp(worker.wagePerDay) })}
                   </div>
                 </div>
-                <button
-                  class="btn btn-sm shrink-0 {worker.hired ? 'btn-coral' : 'btn-green'}"
-                  disabled={worker.rejection !== null}
-                  title={worker.rejection ?? ''}
-                  data-testid={`worker-${worker.kind}`}
-                  onclick={() => shop.act(worker.command)}
+                <div class="muted mt-1 text-xs">{t(`shop.blurb_${worker.kind}`)}</div>
+                <Tooltip
+                  text={worker.locked
+                    ? t('shop.workersLocked', { level: WORKERS_FROM_LEVEL })
+                    : (worker.rejection ?? '')}
+                  class="mt-2 w-full"
                 >
-                  {worker.hired
-                    ? t('shop.dismiss')
-                    : t('shop.hire', { fee: formatRp(worker.hireFee) })}
-                </button>
+                  <button
+                    class="btn btn-sm w-full {worker.hired ? 'btn-coral' : 'btn-green'}"
+                    disabled={worker.rejection !== null}
+                    data-testid={`worker-${worker.kind}`}
+                    data-locked={worker.locked ? 'kopdes' : undefined}
+                    onclick={() => shop.act(worker.command)}
+                  >
+                    {#if worker.locked}<Icon name="lock" />{/if}{worker.hired
+                      ? t('shop.dismiss')
+                      : t('shop.hire', { fee: formatRp(worker.hireFee) })}
+                  </button>
+                </Tooltip>
               </div>
             {/each}
           </div>

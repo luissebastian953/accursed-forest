@@ -339,6 +339,14 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
         break;
     }
 
+    if (block.landslideAt >= 0) {
+      actions.push(
+        action(t('block.excavate'), { type: 'ExcavateBlock', block: id }, 'action-ExcavateBlock', {
+          icon: 'shop-excavator',
+        }),
+      );
+    }
+
     if (block.debris > 0) {
       actions.push(
         action(t('block.sanitize'), { type: 'SanitizeBlock', block: id }, 'action-SanitizeBlock', {

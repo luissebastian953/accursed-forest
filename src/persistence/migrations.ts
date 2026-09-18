@@ -241,6 +241,20 @@ export const MIGRATIONS: readonly Migration[] = [
       }
     },
   },
+  {
+    // The excavation crew: nobody has bought one, and nothing is being dug.
+    from: 14,
+    up(save) {
+      const head = save.manifest['head'] as { inventory?: Record<string, unknown> } | undefined;
+      if (!head?.inventory) throw new SaveError('corrupt', 'v14 manifest has no inventory');
+      head.inventory['excavationCrew'] ??= 0;
+      for (const chunk of save.chunks.values()) {
+        const blocks = chunk['blocks'] as Record<string, unknown>[] | undefined;
+        if (!blocks) continue;
+        for (const block of blocks) block['excavateUntil'] ??= -1;
+      }
+    },
+  },
 ];
 
 /**

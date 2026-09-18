@@ -59,6 +59,8 @@ export type SimEvent =
   | { type: 'WeatherEventStarted'; id: string; days: number }
   | { type: 'WeatherEventEnded'; id: string }
   | { type: 'Landslide'; block: BlockId; below: BlockId | null; palmsLost: number }
+  | { type: 'ExcavationStarted'; block: BlockId }
+  | { type: 'BlockExcavated'; block: BlockId }
   | { type: 'BlockFlooded'; block: BlockId }
   | { type: 'AshSettled'; blocks: number }
   | { type: 'SparkCaught'; block: BlockId }

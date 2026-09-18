@@ -76,6 +76,8 @@ export interface Block {
   landslideAt: Tick;
   /** Palms buried by that slide, for the marker to name. */
   landslidePalms: number;
+  /** While an excavation crew is digging the slide out, the tick it finishes. */
+  excavateUntil: Tick;
   /**
    * What is planted here. Meaningless unless `phase` is `planted` or
    * `reforesting`. (§4.4 omits this; §3.10 requires it.)
@@ -206,7 +208,8 @@ export type ItemId =
   | 'metarhizium'
   | 'trichoderma'
   | 'sanitationCrew'
-  | 'forestSapling';
+  | 'forestSapling'
+  | 'excavationCrew';
 
 export type Ending =
   'clean' | 'dirty' | 'reboisasi' | 'redemption' | 'fade' | 'bankrupt' | 'banned' | 'arrested';
@@ -413,6 +416,7 @@ export type Command =
   | { type: 'ChopBlock'; block: BlockId }
   | { type: 'BurnBlock'; block: BlockId; intensity: FireIntensity }
   | { type: 'SanitizeBlock'; block: BlockId }
+  | { type: 'ExcavateBlock'; block: BlockId }
   | { type: 'IrrigateBlock'; block: BlockId }
   | { type: 'DrainBlock'; block: BlockId }
   | { type: 'HarvestBlock'; block: BlockId }

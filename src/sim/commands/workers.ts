@@ -5,7 +5,7 @@
  * ripe blocks and thieves for the guard.
  */
 
-import { WORKERS } from '../balance/mobs.ts';
+import { WORKERS, WORKERS_FROM_LEVEL } from '../balance/mobs.ts';
 import { spend } from '../state.ts';
 import type { Command, Mob } from '../types.ts';
 
@@ -20,6 +20,12 @@ export const hireWorker: CommandHandler<HireWorker> = {
     const spec = WORKERS[command.kind];
     if (!state.kopdes)
       return reject('noKopdes', 'Build a Kopdes first; that is where workers report.');
+    if (state.kopdes.level < WORKERS_FROM_LEVEL) {
+      return reject(
+        'wrongPhase',
+        `Upgrade the Kopdes to level ${WORKERS_FROM_LEVEL} before putting anyone on the payroll.`,
+      );
+    }
     if (state.mobs.some((m) => m.hired && m.species === command.kind)) {
       return reject('occupied', `You already employ a ${spec.label.toLowerCase()}.`);
     }

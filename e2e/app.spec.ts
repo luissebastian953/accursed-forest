@@ -47,8 +47,22 @@ interface DebugWindow {
 const tid = (page: Page, id: string) => page.getByTestId(id);
 
 /**
- * 50x sits behind Kopdes level 3 (§3.3). The suite skips years long before an
- * estate could grow one, so it hands itself the level through the debug hook.
+ * Level 3 is what opens the payroll and the 50x clock (§3.3). The suite has
+ * neither the years nor the cash to grow one, so it hands itself the level
+ * through the debug hook, and the shop redraws on its next refresh.
+ */
+async function unlockKopdes(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const { state } = (window as unknown as DebugWindow).__sawit.sim();
+    state.kopdes = state.kopdes
+      ? Object.assign(state.kopdes, { level: 3 })
+      : { blockId: state.worldGen.kopdesBlock, level: 3, autoHarvest: false };
+  });
+}
+
+/**
+ * 50x sits behind the same level. The suite skips years long before an estate
+ * could grow one, so it hands itself the level too.
  */
 async function unlockTurbo(page: Page): Promise<void> {
   await page.evaluate(() => {
@@ -154,8 +168,19 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'stock-bibit')).toHaveText('144');
     await tid(page, 'shop-tab-sell').click();
     await expect(tid(page, 'shop-price')).toContainText('/kg');
-    // Workers are hired here too: a sanitizer goes on the payroll and comes off it.
+    // Workers are hired here too, but not out of a shed: the payroll is shut
+    // until the Kopdes is level 3, and says so.
     await expect(tid(page, 'shop-workers')).toBeVisible();
+    await expect(tid(page, 'worker-sanitizer')).toBeDisabled();
+    await expect(tid(page, 'worker-sanitizer')).toHaveAttribute('data-locked', 'kopdes');
+    await tid(page, 'worker-sanitizer').hover();
+    await expect(
+      tid(page, 'tooltip').filter({ hasText: 'Unlock at Kopdes' }).first(),
+    ).toContainText('3');
+
+    await unlockKopdes(page);
+    // ...and then a sanitizer goes on the payroll and comes off it.
+    await expect(tid(page, 'worker-sanitizer')).toBeEnabled();
     await tid(page, 'worker-sanitizer').click();
     await expect(tid(page, 'worker-sanitizer')).toContainText('Dismiss');
     await tid(page, 'worker-sanitizer').click();

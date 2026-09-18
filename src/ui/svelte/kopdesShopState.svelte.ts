@@ -11,7 +11,7 @@
 
 import { mount, unmount, type Component } from 'svelte';
 
-import { WORKERS, type WorkerKind } from '@sim/balance/mobs';
+import { WORKERS, type WorkerKind, WORKERS_FROM_LEVEL } from '@sim/balance/mobs';
 import { itemPrice } from '@sim/commands/buyItem';
 import { kopdesUpgradeCost } from '@sim/commands/upgradeKopdes';
 import type { Sim } from '@sim/index';
@@ -40,6 +40,7 @@ const ITEM_ICON: Record<ItemId, IconName> = {
   forestSapling: 'shop-sapling',
   fertilizer: 'shop-fertilizer',
   sanitationCrew: 'shop-sanitation',
+  excavationCrew: 'shop-excavator',
   pheromoneTrap: 'shop-trap',
   metarhizium: 'shop-metarhizium',
   trichoderma: 'shop-trichoderma',
@@ -50,6 +51,7 @@ const BUNDLES: Record<ItemId, number[]> = {
   forestSapling: [144],
   fertilizer: [1, 5],
   sanitationCrew: [1],
+  excavationCrew: [1],
   pheromoneTrap: [1, 3],
   metarhizium: [1],
   trichoderma: [1],
@@ -80,6 +82,8 @@ export interface ShopView {
     hired: boolean;
     wagePerDay: number;
     hireFee: number;
+    /** Shut because the Kopdes is too small for a payroll, not for any other reason. */
+    locked: boolean;
   })[];
   autoHarvest: Offer & { on: boolean };
   price: number;
@@ -132,6 +136,7 @@ export function shopView(sim: Sim): ShopView {
         hired,
         wagePerDay: spec.wagePerDay,
         hireFee: spec.hireFee,
+        locked: !hired && (kopdes?.level ?? 0) < WORKERS_FROM_LEVEL,
         ...offer(hired ? { type: 'DismissWorker', kind } : { type: 'HireWorker', kind }),
       };
     }),

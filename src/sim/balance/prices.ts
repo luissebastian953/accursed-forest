@@ -63,6 +63,8 @@ export const ITEM_PRICES: Record<ItemId, number> = {
   metarhizium: 780_000,
   trichoderma: 950_000,
   sanitationCrew: 2_100_000,
+  /** A machine and the men to work it, for the days it takes. */
+  excavationCrew: 14_000_000,
   forestSapling: 21_000,
 };
 
@@ -83,8 +85,14 @@ export const TIMBER_VALUE: Partial<Record<Biome, number>> = {
 export const IRRIGATION_COST = 6_000_000;
 export const DRAINAGE_COST = 4_000_000;
 
-/** Cost to go from level `i` to `i + 1`; index 0 is unused (building is separate). */
-export const KOPDES_UPGRADE_COST: readonly number[] = [0, 18_000_000, 30_000_000, 50_000_000];
+/**
+ * Cost to go from level `i` to `i + 1`; index 0 is unused (building is
+ * separate). The curve is steep on purpose: level 3 is what opens the payroll
+ * and the 50x clock, and the top level is one of the five ISPO conditions, so
+ * each step has to be earned out of the crop rather than paid for out of the
+ * opening balance.
+ */
+export const KOPDES_UPGRADE_COST: readonly number[] = [0, 45_000_000, 120_000_000, 280_000_000];
 
 export const HARVEST = {
   /** A harvest crew's wages per block per round. */

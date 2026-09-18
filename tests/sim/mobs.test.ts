@@ -10,6 +10,7 @@ import {
   THIEF,
   WILDLIFE,
   WORKERS,
+  WORKERS_FROM_LEVEL,
   WORKER_JOBS,
 } from '@sim/balance/mobs.ts';
 import { SLOTS_PER_BLOCK } from '@sim/balance/world.ts';
@@ -22,6 +23,11 @@ import type { BlockId, Mob } from '@sim/types.ts';
 
 const YEAR = GROWTH.daysPerYear;
 
+/** A payroll needs a Kopdes big enough to carry it (§3.3). */
+function payroll(sim: Sim): void {
+  sim.state.kopdes!.level = WORKERS_FROM_LEVEL;
+}
+
 /** Bearing palms on `n` open blocks by the Kopdes, planted years ago, fruit on the trees. */
 function bearingEstate(seed = 42, n = 3): Sim {
   const sim = createSim(seed);
@@ -29,6 +35,7 @@ function bearingEstate(seed = 42, n = 3): Sim {
   state.tick = 4 * YEAR;
   state.weather.dayOfYear = 0;
   sim.dispatch({ type: 'PlaceKopdes', block: state.worldGen.kopdesBlock });
+  payroll(sim);
   const candidates: BlockId[] = [];
   for (const block of state.blocks.values()) {
     if (block.owned && block.phase === 'wild' && !BIOMES[block.biome].forestCover)
@@ -399,6 +406,11 @@ describe('workers (mobs)', () => {
   it('hiring costs a fee and a daily wage; dismissing stops the wage', () => {
     const sim = createSim(42);
     sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
+    // A new Kopdes is too small for a payroll: nobody is hired from a shed.
+    expect(sim.validate({ type: 'HireWorker', kind: 'plantDoctor' })).toMatchObject({
+      code: 'wrongPhase',
+    });
+    payroll(sim);
     expect(sim.validate({ type: 'HireWorker', kind: 'plantDoctor' })).toBeNull();
     const cash = sim.state.economy.cash;
     expect(sim.dispatch({ type: 'HireWorker', kind: 'plantDoctor' })).toEqual({ ok: true });
@@ -449,6 +461,7 @@ describe('workers (mobs)', () => {
   it('a sanitizer walks to the messiest block and clears it', () => {
     const sim = createSim(42);
     sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
+    payroll(sim);
     sim.state.economy.cash = 5e9;
     const messy = [...sim.state.blocks.values()].find((b) => b.owned && b.phase === 'wild')!;
     messy.phase = 'cleared';

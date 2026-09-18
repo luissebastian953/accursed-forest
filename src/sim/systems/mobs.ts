@@ -343,7 +343,8 @@ function spawnGhost(ctx: SimContext, rng: RngState): void {
 
 /**
  * Keep every worked block's crew topped up. A chop is always the player's
- * order, so every clearing block is staffed. A fire is only the player's if
+ * order, so every clearing block is staffed, and so is every block being dug
+ * out after a slide. A fire is only the player's if
  * the burn command staffed it: lightning, a drought spark and a fire that
  * spread in from next door burn with nobody standing round them; and once
  * the pressure tips into a wildfire, nobody works any fire at all.
@@ -356,7 +357,11 @@ function spawnCrews(ctx: SimContext, rng: RngState): void {
     if (mob.species === 'crew' && mob.target !== null) staffed.add(mob.target);
   const working: BlockId[] = [];
   for (const block of state.blocks.values()) {
-    if (block.phase === 'clearing' || (block.burning && staffed.has(block.id)))
+    if (
+      block.phase === 'clearing' ||
+      block.excavateUntil > state.tick ||
+      (block.burning && staffed.has(block.id))
+    )
       working.push(block.id);
   }
   for (const id of working.sort((a, b) => a - b)) staffBlock(ctx, id, rng);
@@ -781,7 +786,9 @@ function stepCrew(ctx: SimContext, mob: Mob, rng: RngState): void {
   const stillWorking =
     block !== null &&
     block !== undefined &&
-    (block.phase === 'clearing' || (block.burning && !isWildfire(state)));
+    (block.phase === 'clearing' ||
+      block.excavateUntil > state.tick ||
+      (block.burning && !isWildfire(state)));
   if (!stillWorking) {
     // Job done: the crew is off the books next tick.
     mob.intent = 'leave';

@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
 import { BIOMES } from '@sim/balance/biomes.ts';
-import { ASH, COVER_CROP, DROUGHT, FLOOD, HAZE, LANDSLIDE } from '@sim/balance/events.ts';
+import {
+  ASH,
+  COVER_CROP,
+  DROUGHT,
+  EXCAVATION,
+  FLOOD,
+  HAZE,
+  LANDSLIDE,
+} from '@sim/balance/events.ts';
 import { GROWTH } from '@sim/balance/growth.ts';
 import { SKY } from '@sim/balance/seasons.ts';
 import { SLOTS_PER_BLOCK } from '@sim/balance/world.ts';
@@ -17,6 +25,7 @@ import {
 } from '@sim/landscape.ts';
 import { slotStage } from '@sim/palms.ts';
 import { writeBlock } from '@sim/state.ts';
+import { workedBlocks } from '@sim/systems/mobs.ts';
 import { skyFor } from '@sim/systems/weather.ts';
 import type { BlockId } from '@sim/types.ts';
 
@@ -397,6 +406,48 @@ describe('landslides (§3.6.2)', () => {
     });
     expect(sim.state.blocks.get(high!.id)!.landslideAt).toBe(-1);
     expect(sim.state.blocks.get(high!.id)!.landslidePalms).toBe(0);
+  });
+
+  it('an excavation crew digs the slide out, and the hectare is ground again', () => {
+    const sim = createSim(1);
+    const { state } = sim;
+    const high = [...state.blocks.values()].find((b) => b.owned && b.slope && b.phase === 'wild');
+    expect(high).toBeDefined();
+    plant(sim, high!.id);
+    slide(sim.state, sim.world, new EventSink(), high!.id);
+    const block = () => sim.state.blocks.get(high!.id)!;
+    expect(block().landslideAt).toBeGreaterThanOrEqual(0);
+    expect(block().debris).toBeGreaterThan(0);
+
+    // Nothing to dig without a crew in stock, and nothing to dig on clean land.
+    expect(sim.validate({ type: 'ExcavateBlock', block: high!.id })).toMatchObject({
+      code: 'noInventory',
+    });
+    state.economy.cash = 1_000_000_000;
+    expect(sim.dispatch({ type: 'BuyItem', item: 'excavationCrew', quantity: 1 })).toEqual({
+      ok: true,
+    });
+    expect(sim.dispatch({ type: 'ExcavateBlock', block: high!.id })).toEqual({ ok: true });
+    expect(state.inventory.excavationCrew).toBe(0);
+    // Once is enough: the second order is turned away while they are on it.
+    expect(sim.validate({ type: 'ExcavateBlock', block: high!.id })).toMatchObject({
+      code: 'occupied',
+    });
+    // And they are on the block from the first day, not the second.
+    expect([...workedBlocks(state)]).toContain(high!.id);
+
+    for (let day = 0; day < EXCAVATION.days; day++) {
+      expect(block().landslideAt).toBeGreaterThanOrEqual(0);
+      sim.tick();
+    }
+    // Spoil, scar and debris all gone together.
+    expect(block().landslideAt).toBe(-1);
+    expect(block().landslidePalms).toBe(0);
+    expect(block().debris).toBe(0);
+    expect(block().excavateUntil).toBe(-1);
+    // The crew has no reason to stay.
+    sim.tick();
+    expect([...workedBlocks(sim.state)]).not.toContain(high!.id);
   });
 
   it(

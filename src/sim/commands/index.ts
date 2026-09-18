@@ -11,6 +11,7 @@ import { buyItem } from './buyItem.ts';
 import { chopBlock } from './chopBlock.ts';
 import { coverCropBlock } from './coverCropBlock.ts';
 import { drainBlock } from './drainBlock.ts';
+import { excavateBlock } from './excavateBlock.ts';
 import { fertilizeBlock } from './fertilizeBlock.ts';
 import type { CommandHandler } from './handler.ts';
 import { harvestBlock } from './harvestBlock.ts';
@@ -40,6 +41,7 @@ const registry: Partial<Record<CommandType, CommandHandler>> = {
   BuyItem: buyItem as CommandHandler,
   BurnBlock: burnBlock as CommandHandler,
   SanitizeBlock: sanitizeBlock as CommandHandler,
+  ExcavateBlock: excavateBlock as CommandHandler,
   IrrigateBlock: irrigateBlock as CommandHandler,
   DrainBlock: drainBlock as CommandHandler,
   SetTrap: setTrap as CommandHandler,
