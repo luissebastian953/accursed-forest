@@ -64,6 +64,18 @@
         {/if}
       </div>
 
+      <div class="mb-3 flex items-center justify-between gap-3">
+        <div class="text-sm font-extrabold">{t('menu.sound')}</div>
+        <button
+          class={`btn ${state.view.sound ? 'btn-green' : 'btn-ghost'} !px-3 !py-1.5 text-xs`}
+          aria-pressed={state.view.sound}
+          data-testid="menu-sound"
+          onclick={() => menu.handlers.setSound(!state.view.sound)}
+        >
+          {state.view.sound ? t('menu.soundOn') : t('menu.soundOff')}
+        </button>
+      </div>
+
       <div class="mb-5 flex items-center justify-between gap-3">
         <div class="text-sm font-extrabold">{t('menu.language')}</div>
         <div class="flex gap-1.5" role="group" aria-label={t('menu.language')}>

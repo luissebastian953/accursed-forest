@@ -291,6 +291,34 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'controls-help')).toHaveCount(0);
   });
 
+  test('sound starts on the first click, and the menu switch sticks', async ({ page }) => {
+    await boot(page);
+    const audio = () =>
+      page.evaluate(() => {
+        const a = (
+          window as unknown as {
+            __sawit: { audio: { ready: boolean; getSettings(): { muted: boolean } } };
+          }
+        ).__sawit.audio;
+        return { ready: a.ready, muted: a.getSettings().muted };
+      });
+    // Nothing until a gesture: browsers refuse to start a context on their own.
+    expect((await audio()).ready).toBe(false);
+    await tid(page, 'speed-0').click();
+    expect(await audio()).toEqual({ ready: true, muted: false });
+
+    // Off in the menu, and remembered for next time.
+    await tid(page, 'menu-button').click();
+    await expect(tid(page, 'menu-sound')).toContainText('On');
+    await tid(page, 'menu-sound').click();
+    await expect(tid(page, 'menu-sound')).toContainText('Off');
+    expect((await audio()).muted).toBe(true);
+    expect(
+      await page.evaluate(() => JSON.parse(localStorage.getItem('sawit:audio') ?? '{}').muted),
+    ).toBe(true);
+    await page.keyboard.press('Escape');
+  });
+
   test('50x is locked, with its reason, until the Kopdes reaches level 3', async ({ page }) => {
     await boot(page);
 

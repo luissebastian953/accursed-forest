@@ -39,6 +39,7 @@ const DEFAULT_GAP_MS = 60;
 
 /** At 50x the clock throws events in handfuls; this is the ceiling per frame. */
 const MAX_PER_FRAME = 3;
+const FRAME_MS = 16;
 
 export interface AudioSettings {
   muted: boolean;
@@ -112,7 +113,9 @@ export class Audio {
     const ctx = this.ctx;
     if (!ctx || this.settings.muted) return false;
 
-    if (nowMs !== this.frameAt) {
+    // Calls inside one frame arrive microseconds apart, never at the same
+    // instant, so the frame is anything within a frame's width of the last.
+    if (nowMs - this.frameAt > FRAME_MS) {
       this.frameAt = nowMs;
       this.thisFrame = 0;
     }

@@ -16,12 +16,15 @@ export interface MenuView {
   hasSave: boolean;
   lastSavedAt: string | null;
   saveError: string | null;
+  /** Whether the estate makes a sound. */
+  sound: boolean;
 }
 
 export interface MenuHandlers {
   newGame(seed: number): void;
   save(): void;
   load(): void;
+  setSound(on: boolean): void;
 }
 
 export interface MenuState {
@@ -34,7 +37,7 @@ export interface MenuState {
 export class Menu {
   readonly state = $state<MenuState>({
     open: false,
-    view: { estateCode: '', hasSave: false, lastSavedAt: null, saveError: null },
+    view: { estateCode: '', hasSave: false, lastSavedAt: null, saveError: null, sound: true },
     code: '',
     codeError: false,
   });

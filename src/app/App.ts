@@ -5,6 +5,8 @@
 
 import { Scene, Vector3 } from 'three/webgpu';
 
+import { Audio } from '@audio/Audio';
+import { loadAudioSettings, saveAudioSettings } from '@audio/settings';
 import { attachKeys } from '@input/keys';
 import { attachPointer } from '@input/pointer';
 import { Autosave } from '@persistence/autosave';
@@ -118,6 +120,27 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   aside.className =
     'aside aside-hidden absolute bottom-0 right-0 top-0 z-10 flex flex-col overflow-hidden border-l-2 border-[#f2e0b0] bg-[#fff6e0]';
   root.append(stage, aside);
+
+  // ── Sound ───────────────────────────────────────────────────────────────
+  // The context cannot start until the player has clicked something, so the
+  // first gesture anywhere on the page opens it; after that the calls below
+  // are cheap no-ops that keep a suspended context awake.
+  const audio = new Audio();
+  audio.setSettings(loadAudioSettings());
+  const unlockAudio = (): void => audio.unlock();
+  root.addEventListener('pointerdown', unlockAudio, { passive: true });
+  root.addEventListener('keydown', unlockAudio, { passive: true });
+  // Every button in the UI taps; a locked one thuds. Disabled buttons never
+  // fire click, but Chromium still delivers pointerdown to them, which is
+  // the one place this can be heard from.
+  const uiPress = (event: PointerEvent): void => {
+    const button = (event.target as Element | null)?.closest('button');
+    if (!button) return;
+    if (button.disabled) audio.play('ui-button-denied');
+    else if (button.classList.contains('btn')) audio.play('ui-button-press');
+  };
+  root.addEventListener('pointerdown', uiPress, { capture: true, passive: true });
+
   /** The aside slides in from the right with a selection and away without one. */
   const setAsideOpen = (open: boolean): void => {
     aside.classList.toggle('aside-hidden', !open);
@@ -527,6 +550,11 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   const menu = new Menu(root, {
     newGame: (seed) => switchSim(freshSim(seed)),
+    setSound: (on) => {
+      audio.setSettings({ muted: !on });
+      saveAudioSettings(audio.getSettings());
+      refreshMenu();
+    },
     save: () => {
       if (autosave.saveNow()) toasts.push('Saved.');
       refreshMenu();
@@ -572,6 +600,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       hasSave: slot.exists(),
       lastSavedAt,
       saveError,
+      sound: !audio.getSettings().muted,
     });
   }
 
@@ -748,8 +777,15 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   }
 
   function dispatch(command: Command) {
+    const cashBefore = sim.state.economy.cash;
     const result = sim.dispatch(command);
+    if (!result.ok) audio.play('ui-button-denied');
     if (result.ok) {
+      // Money leaving on the player's own order. Coming in is the tick's
+      // business (sales), except the tap, which pays with a burst of its own.
+      const cashAfter = sim.state.economy.cash;
+      if (cashAfter < cashBefore) audio.play('cash-out');
+      else if (cashAfter > cashBefore && command.type !== 'TapMob') audio.play('cash-in');
       // Commands take effect at once even while paused: the sim's own events
       // only surface on the next tick.
       if ('block' in command) {
@@ -889,6 +925,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     if (d.yearPassed !== null)
       toasts.push(`Year ${d.yearPassed + 1} begins; ${regimeLine(sim.state.weather.regime)}`);
     for (const block of d.ripeBlocks) toasts.push(`Ripe: ${blockName(block)} is ready to harvest.`);
+    if (d.sold.length > 0 || d.timber.length > 0) audio.play('cash-in');
     for (const sale of d.sold) {
       toasts.push(
         `Sold ${formatKg(sale.kilograms)} of TBS at ${formatRp(sale.price)}/kg: ${formatRp(sale.revenue)}.`,
@@ -1393,6 +1430,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     if (!dispatch({ type: 'TapMob', mob: best.id }).ok) return false;
     // Coins first, so they fall from where it was standing.
     if (at) coins.burst(at.x, at.y + 1.2, at.z, runs ? 14 : 10);
+    audio.play('coins-burst');
     // The pig bolts; the capybara is simply not there any more.
     if (!runs) mobField.vanish(best.id);
     mobField.syncSim(sim.state);
@@ -1490,6 +1528,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
           triangles: info.render.triangles,
         };
       },
+      audio,
       timber,
       mobField,
       police,
@@ -1604,6 +1643,10 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     detachAutosave();
     detachKeys();
     detachPointer();
+    root.removeEventListener('pointerdown', unlockAudio);
+    root.removeEventListener('keydown', unlockAudio);
+    root.removeEventListener('pointerdown', uiPress, { capture: true });
+    audio.dispose();
     observer.disconnect();
     hud.dispose();
     workMarkers.dispose();
