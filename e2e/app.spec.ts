@@ -213,7 +213,9 @@ test.describe('Sawit Simulator', () => {
     const cashBeforeHarvest = await tid(page, 'hud-cash').textContent();
     await tid(page, 'action-HarvestBlock').click();
     await expect(tid(page, 'action-HarvestBlock')).toBeDisabled();
-    await expect(tid(page, 'block-panel')).toContainText('Next round in 6 days');
+    // The rotation is a balance number; the unit tests pin it, this one only
+    // asks that the panel says when the next round is.
+    await expect(tid(page, 'block-panel')).toContainText(/Next round in \d+ days/);
 
     // Hand the picking to the Kopdes crew and take it back.
     await tid(page, 'toggle-auto-harvest').click();

@@ -73,7 +73,7 @@ export const YIELD_CURVE: readonly (readonly [ageYears: number, kg: number])[] =
 ];
 
 /** Days between harvest rounds on a block (§2: ten, shortened with the slower clock). */
-export const HARVEST_ROTATION_DAYS = 6;
+export const HARVEST_ROTATION_DAYS = 5;
 
 /** One fertilizer application lifts fertility for this long (§3.5). */
 export const FERTILIZER_DAYS = 90;

@@ -10,14 +10,14 @@ export const ECONOMY = {
   startingCash: 250_000_000,
 
   /** Rupiah per kg of TBS at the start. */
-  startingTbsPrice: 2_650,
-  tbsPriceMin: 1_400,
-  tbsPriceMax: 4_200,
+  startingTbsPrice: 3_300,
+  tbsPriceMin: 1_900,
+  tbsPriceMax: 5_200,
   /** Per-tick standard deviation of the bounded random walk. */
   tbsPriceDrift: 28,
   /** Pull back toward the long-run mean each tick. */
   tbsPriceMeanReversion: 0.015,
-  tbsPriceMean: 2_650,
+  tbsPriceMean: 3_300,
 
   /**
    * Labour per planted block per tick. Tuned with `pnpm sweep`: the immature
