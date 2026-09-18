@@ -28,7 +28,14 @@ function quadruped(options: {
   headSize: number;
   legLength: number;
   tail?: number;
+  /** Where the tail sits on the rump, as a fraction of body height. */
+  tailAt?: number;
   ears?: boolean;
+  /**
+   * How far the head is carried above the barrel, as a fraction of body
+   * height. A cow holds it high; a mouse holds it straight out in front.
+   */
+  headLift?: number;
   /** Holstein patches: slabs of this slot laid over the hide. */
   patches?: number;
   speed: number;
@@ -61,7 +68,7 @@ function quadruped(options: {
     {
       name: 'head',
       parent: 'body',
-      at: [0, height * 0.35, length / 2 + headSize * 0.35],
+      at: [0, height * (options.headLift ?? 0.35), length / 2 + headSize * 0.35],
       size: [headSize, headSize, headSize],
       slot: fur,
       role: 'head',
@@ -162,7 +169,7 @@ function quadruped(options: {
     parts.push({
       name: 'tail',
       parent: 'body',
-      at: [0, height * 0.2, -length / 2],
+      at: [0, height * (options.tailAt ?? 0.2), -length / 2],
       size: [width * 0.12, width * 0.12, options.tail],
       slot: fur,
       role: 'tail',
@@ -492,8 +499,11 @@ export const SPECIES: Record<string, SpeciesSpec> = {
     height: 0.28,
     width: 0.26,
     headSize: 0.24,
-    legLength: 0.12,
+    // Low to the ground, nose out in front, tail dragging behind it.
+    legLength: 0.06,
+    headLift: 0,
     tail: 0.5,
+    tailAt: -0.32,
     speed: 2,
     cadence: 3.6,
   }),
