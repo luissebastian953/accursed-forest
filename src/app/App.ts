@@ -1274,7 +1274,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     newsPanel.update(sim.state.society.news, newsStatus());
     fires.update(nowMs);
     sky.update(sim.state.weather, uniforms, atmosphere(), dt, nowMs);
-    rain.update(dt, sim.state.weather.rain, visible, time.speed > 0);
+    rain.update(dt, sim.state.weather.rain, sim.state.weather.sky, visible, time.speed > 0);
     lightning.update(nowMs);
     timber.update(nowMs);
     mobField.update(dt, time.secondsPerTick);

@@ -7,14 +7,19 @@
 import { InstancedMesh, Matrix4, type Material } from 'three/webgpu';
 
 import { clamp01 } from '@shared/math';
+import { SKY } from '@sim/balance/seasons';
+import type { SkyCondition } from '@sim/types';
 
 import type { GroundRect } from '../camera/MapRig.ts';
 import { BoxBuilder } from '../geometry/boxBuilder.ts';
 import { Palette } from '../materials/paletteSlots.ts';
 
 const MAX_DROPS = 2400;
-/** Rain below this doesn't show as falling streaks. */
-const VISIBLE_FROM = 0.35;
+/**
+ * The thinnest shower that still draws, so the first day the sky says rain
+ * has something falling in it rather than nothing.
+ */
+const DRIZZLE = 0.3;
 const TOP = 34;
 const SPEED = 55;
 /** Wind pushes the streaks a little sideways. */
@@ -48,11 +53,24 @@ export class Rain {
 
   /**
    * @param rain  today's rain, 0..1
+   * @param sky  what the day is called (§3.6); only rain and storms fall
    * @param view  the ground in view; drops respawn over it
    * @param running  false while paused: the drops hang where they are
    */
-  update(dtSeconds: number, rain: number, view: GroundRect, running: boolean): void {
-    const target = clamp01((rain - VISIBLE_FROM) / (1 - VISIBLE_FROM));
+  update(
+    dtSeconds: number,
+    rain: number,
+    sky: SkyCondition,
+    view: GroundRect,
+    running: boolean,
+  ): void {
+    // The sky decides, not the number behind it: a damp day the HUD calls
+    // cloudy must not have rain falling on it. Past that, the shower thickens
+    // with the day's rain.
+    const wet = sky === 'rain' || sky === 'storm';
+    const target = wet
+      ? DRIZZLE + (1 - DRIZZLE) * clamp01((rain - SKY.rainAbove) / (1 - SKY.rainAbove))
+      : 0;
     const step = Math.min(1, EASE * dtSeconds);
     this.intensity += (target - this.intensity) * step;
     const count = Math.floor(MAX_DROPS * this.intensity);
