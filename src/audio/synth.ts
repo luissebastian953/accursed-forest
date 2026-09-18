@@ -106,6 +106,8 @@ export function noiseSource(
 export interface EnvelopeShape {
   /** Seconds to the peak. Zero is a click, which is sometimes the point. */
   attack: number;
+  /** Seconds held at the peak before the decay starts. */
+  hold?: number;
   /** Seconds from the peak down to silence. */
   decay: number;
   /** Peak gain, 0..1. */
@@ -119,12 +121,14 @@ export interface EnvelopeShape {
  * `exponentialRampToValueAtTime` refuses to ramp to it.
  */
 export function envelope(ctx: BaseAudioContext, at: number, shape: EnvelopeShape): GainNode {
-  const { attack, decay, peak = 1, curve = 'exponential' } = shape;
+  const { attack, hold = 0, decay, peak = 1, curve = 'exponential' } = shape;
   const gain = ctx.createGain();
   const floor = 0.0001;
+  const top = at + Math.max(attack, 0.001);
   gain.gain.setValueAtTime(floor, at);
-  gain.gain.linearRampToValueAtTime(peak, at + Math.max(attack, 0.001));
-  const end = at + attack + decay;
+  gain.gain.linearRampToValueAtTime(peak, top);
+  if (hold > 0) gain.gain.setValueAtTime(peak, top + hold);
+  const end = top + hold + decay;
   if (curve === 'exponential') gain.gain.exponentialRampToValueAtTime(floor, end);
   else gain.gain.linearRampToValueAtTime(0, end);
   return gain;

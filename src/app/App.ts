@@ -47,6 +47,7 @@ import { FIRE } from '@sim/balance/fire';
 import { GROWTH } from '@sim/balance/growth';
 import { BABI_NGEPET, SHINY } from '@sim/balance/mobs';
 import { BEETLES } from '@sim/balance/pests';
+import { SKY } from '@sim/balance/seasons';
 import { MACRO_PREFIX } from '@sim/balance/society';
 import { WORLD } from '@sim/balance/world';
 import { settleCost } from '@sim/commands/settleInvestigation';
@@ -137,7 +138,11 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     const button = (event.target as Element | null)?.closest('button');
     if (!button) return;
     if (button.disabled) audio.play('ui-button-denied');
-    else if (button.classList.contains('btn')) audio.play('ui-button-press');
+    // A tap on the handset's own screen is a tap on glass, not on a button
+    // in front of the player: the shop and the news feed stay quiet.
+    else if (button.classList.contains('btn') && !button.closest('[data-phone]')) {
+      audio.play('ui-button-press');
+    }
   };
   root.addEventListener('pointerdown', uiPress, { capture: true, passive: true });
 
@@ -734,6 +739,57 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     time.set(speed);
   }
 
+  /** How long the shower takes to arrive, and to go when the sky clears. */
+  const RAIN_FADE_IN = 3;
+  const RAIN_FADE_OUT = 4;
+  /** How long the sky must stay dry before the shower is treated as over. */
+  const RAIN_HOLD = 2.5;
+  /**
+   * A bolt this far from where the camera is looking, in blocks, is "far":
+   * darker, longer, and arriving after the flash the way sound does.
+   */
+  const THUNDER_NEAR_BLOCKS = 9;
+
+  /** Real seconds the sky has been dry; a shower is not over until it holds. */
+  let rainDryFor = 0;
+
+  /**
+   * The weather's own noise. Rain fades in when the sky turns and away when
+   * it clears, riding the day's rain so a storm is heavier than a shower.
+   *
+   * The sky flips between rain and cloudy on neighbouring days, and at 50x a
+   * day is a fifth of a second, so a shower that stopped on every dry day
+   * would stutter. It holds through the gaps and only goes when they last.
+   */
+  function syncWeatherAudio(dtSeconds: number): void {
+    const { sky, rain: wetness } = sim.state.weather;
+    if (sky === 'rain' || sky === 'storm') {
+      rainDryFor = 0;
+      audio.startLoop('rain-light', RAIN_FADE_IN);
+      const over = (wetness - SKY.rainAbove) / (1 - SKY.rainAbove);
+      audio.setLoopLevel('rain-light', 0.55 + 0.45 * Math.max(0, Math.min(1, over)));
+      return;
+    }
+    rainDryFor += dtSeconds;
+    if (rainDryFor >= RAIN_HOLD) audio.stopLoop('rain-light', RAIN_FADE_OUT);
+  }
+
+  /** Thunder for a bolt, near or far by where it landed. */
+  function thunderFor(block: BlockId): void {
+    const [bx, by] = sim.world.toXY(block);
+    const side = WORLD.blockSide;
+    const from = rig.target;
+    const blocks = Math.hypot(bx * side + side / 2 - from.x, by * side + side / 2 - from.z) / side;
+    if (blocks <= THUNDER_NEAR_BLOCKS) {
+      audio.play('thunder-near');
+      return;
+    }
+    // Sound lags light: a bolt across the estate is heard a moment after it
+    // is seen, and the further off the longer the wait.
+    const far = Math.min(1, (blocks - THUNDER_NEAR_BLOCKS) / 20);
+    audio.play('thunder-far', performance.now(), 0.3 + far * 2.2);
+  }
+
   function refreshHud(): void {
     hud.update({
       cash: sim.state.economy.cash,
@@ -1039,6 +1095,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     for (const bolt of d.lightning) {
       lightning.strike(sim.state, sim.world, bolt.block, performance.now());
       sky.flash(performance.now());
+      thunderFor(bolt.block);
       if (bolt.ignited) {
         toasts.push(`Lightning has set ${blockName(bolt.block)} alight.`, 'error');
         chunks.markBlockDirty(bolt.block);
@@ -1323,6 +1380,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     fires.update(nowMs);
     sky.update(sim.state.weather, uniforms, atmosphere(), dt, nowMs);
     rain.update(dt, sim.state.weather.rain, sim.state.weather.sky, visible, time.speed > 0);
+    syncWeatherAudio(dt);
     lightning.update(nowMs);
     timber.update(nowMs);
     mobField.update(dt, time.secondsPerTick);

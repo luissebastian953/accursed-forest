@@ -22,6 +22,9 @@ const BUS_OF: Record<OneShotId | LoopId, Bus> = {
   landslide: 'drama',
   'thunder-near': 'world',
   'thunder-far': 'world',
+  win: 'music',
+  gameover: 'music',
+  warning: 'drama',
   'rain-light': 'world',
   'fire-crackle': 'world',
   'excavator-engine': 'world',
@@ -109,8 +112,10 @@ export class Audio {
   /**
    * Fire a one-shot, unless it fired a moment ago or the frame is already
    * full. Returns whether it actually played, which the tests read.
+   *
+   * @param delaySeconds hold it back, for a sound whose cause is far off.
    */
-  play(id: OneShotId, nowMs = performance.now()): boolean {
+  play(id: OneShotId, nowMs = performance.now(), delaySeconds = 0): boolean {
     const ctx = this.ctx;
     if (!ctx || this.settings.muted) return false;
 
@@ -128,36 +133,49 @@ export class Audio {
 
     const bus = this.buses.get(BUS_OF[id]);
     if (!bus) return false;
-    ONE_SHOTS[id](ctx, bus, ctx.currentTime);
+    ONE_SHOTS[id](ctx, bus, ctx.currentTime + Math.max(0, delaySeconds));
     this.lastPlayed.set(id, nowMs);
     this.thisFrame += 1;
     return true;
   }
 
-  /** Start a loop if it is not already running. */
-  startLoop(id: LoopId): void {
+  /** Start a loop if it is not already running, fading it in. */
+  startLoop(id: LoopId, fadeSeconds = 0): void {
     const ctx = this.ctx;
     if (!ctx || this.running.has(id)) return;
     const bus = this.buses.get(BUS_OF[id]);
     if (!bus) return;
-    this.running.set(id, LOOPS[id](ctx, bus, ctx.currentTime));
+    const handle = LOOPS[id](ctx, bus, ctx.currentTime);
+    if (fadeSeconds > 0) {
+      const at = ctx.currentTime;
+      handle.gain.gain.cancelScheduledValues(at);
+      handle.gain.gain.setValueAtTime(0, at);
+      handle.gain.gain.linearRampToValueAtTime(handle.level, at + fadeSeconds);
+    }
+    this.running.set(id, handle);
   }
 
   /** Stop a loop, fading it out rather than cutting it. */
-  stopLoop(id: LoopId): void {
+  stopLoop(id: LoopId, fadeSeconds = 0.25): void {
     const handle = this.running.get(id);
     if (!handle || !this.ctx) return;
-    handle.stop(this.ctx.currentTime);
+    handle.stop(this.ctx.currentTime, fadeSeconds);
     this.running.delete(id);
   }
 
-  /** Ride a loop's level, for rain getting heavier or a fire dying down. */
-  setLoopLevel(id: LoopId, level: number): void {
+  /**
+   * Ride a loop's level: 1 is the level the sound was written at, so a
+   * recipe's own balance survives whatever the game asks of it.
+   */
+  setLoopLevel(id: LoopId, scale: number, rampSeconds = 0.4): void {
     const handle = this.running.get(id);
     if (!handle || !this.ctx) return;
     const at = this.ctx.currentTime;
     handle.gain.gain.cancelScheduledValues(at);
-    handle.gain.gain.linearRampToValueAtTime(Math.max(0, Math.min(1, level)), at + 0.2);
+    handle.gain.gain.linearRampToValueAtTime(
+      handle.level * Math.max(0, Math.min(1, scale)),
+      at + rampSeconds,
+    );
   }
 
   isLooping(id: LoopId): boolean {

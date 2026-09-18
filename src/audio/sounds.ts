@@ -15,7 +15,9 @@ export type OneShot = (ctx: BaseAudioContext, out: AudioNode, at: number) => num
 export interface LoopHandle {
   /** The loop's own gain, for fading it in and out. */
   gain: GainNode;
-  stop(at?: number): void;
+  /** The level the recipe was written at; riding it scales this. */
+  level: number;
+  stop(at?: number, fadeSeconds?: number): void;
 }
 
 export type Loop = (ctx: BaseAudioContext, out: AudioNode, at?: number) => LoopHandle;
@@ -174,6 +176,47 @@ function thunder(distance: number): OneShot {
   };
 }
 
+/** Certified, or the run won: a rising major arpeggio. */
+const win: OneShot = (ctx, out, at) => {
+  const notes = [523, 659, 784, 1047];
+  notes.forEach((hz, i) => {
+    const start = at + i * 0.12;
+    const env = envelope(ctx, start, { attack: 0.005, hold: 0.1, decay: 0.45, peak: 0.22 });
+    chain(tone(ctx, start, { type: 'triangle', from: hz, seconds: 0.6 }), env, out);
+  });
+  return 0.95;
+};
+
+/** Bankrupt, banned, arrested: a drone falling away, wobbling as it goes. */
+const gameover: OneShot = (ctx, out, at) => {
+  const seconds = 1.35;
+  const env = envelope(ctx, at, { attack: 0.01, hold: 0.4, decay: 0.9, peak: 0.34 });
+  const wobble = lfo(ctx, env.gain, { rate: 6, depth: 0.12, at });
+  wobble.stop(at + seconds);
+  chain(
+    tone(ctx, at, { type: 'sawtooth', from: 440, to: 110, seconds }),
+    filter(ctx, at, { from: 2000, to: 300, seconds, q: 0.8 }),
+    env,
+    out,
+  );
+  return seconds;
+};
+
+/** A letter from the ministry: three low buzzes, and nothing friendly. */
+const warning: OneShot = (ctx, out, at) => {
+  for (let i = 0; i < 3; i++) {
+    const start = at + i * 0.25;
+    const env = envelope(ctx, start, { attack: 0.005, hold: 0.12, decay: 0.1, peak: 0.34 });
+    chain(
+      tone(ctx, start, { type: 'square', from: 110, seconds: 0.24 }),
+      filter(ctx, start, { from: 1200, q: 0.7 }),
+      env,
+      out,
+    );
+  }
+  return 0.78;
+};
+
 export const ONE_SHOTS = {
   'ui-button-press': buttonPress,
   'ui-button-denied': buttonDenied,
@@ -184,6 +227,9 @@ export const ONE_SHOTS = {
   landslide,
   'thunder-near': thunder(0),
   'thunder-far': thunder(1),
+  win,
+  gameover,
+  warning,
 } as const satisfies Record<string, OneShot>;
 
 export type OneShotId = keyof typeof ONE_SHOTS;
@@ -193,14 +239,16 @@ export type OneShotId = keyof typeof ONE_SHOTS;
 function handle(gain: GainNode, stop: (at: number) => void): LoopHandle {
   return {
     gain,
-    stop(at = 0) {
+    level: gain.gain.value,
+    stop(at = 0, fadeSeconds = 0.25) {
       // Always fade: cutting a loop dead is a click.
       const ctx = gain.context;
       const when = Math.max(at, ctx.currentTime);
+      const fade = Math.max(fadeSeconds, 0.05);
       gain.gain.cancelScheduledValues(when);
       gain.gain.setValueAtTime(gain.gain.value, when);
-      gain.gain.linearRampToValueAtTime(0, when + 0.25);
-      stop(when + 0.3);
+      gain.gain.linearRampToValueAtTime(0, when + fade);
+      stop(when + fade + 0.05);
     },
   };
 }
