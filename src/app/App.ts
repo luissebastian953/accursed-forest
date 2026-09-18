@@ -750,6 +750,13 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
    */
   const THUNDER_NEAR_BLOCKS = 9;
 
+  /**
+   * Endings the epilogue frames as a win: certified either way, the forest
+   * back, or the slope put right. The rest, including the estate simply
+   * fading out, get the drone.
+   */
+  const WON: ReadonlySet<string> = new Set(['clean', 'dirty', 'reboisasi', 'redemption']);
+
   /** Real seconds the sky has been dry; a shower is not over until it holds. */
   let rainDryFor = 0;
 
@@ -1037,6 +1044,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       ceremony.sync(sim.state, sim.world, performance.now(), true);
       motorcade.arrive(sim.state, sim.world, performance.now());
       focusBlock(sim.state.kopdes.blockId);
+      audio.play('win');
       toasts.push('The Ministry has sent a banner. ISPO certified.');
       toasts.push('A motorcade is coming up the road. The President is here.');
       time.set(0);
@@ -1044,10 +1052,21 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       epilogueTimer = setTimeout(() => {
         if (sim === run && runOver(sim.state)) showEpilogue();
       }, MOTORCADE_MS);
-    } else if (d.runEnded) showEpilogue();
-    else if (d.operatingBanned) showCard('ban');
-    else if (d.investigationOpened) showCard('investigation');
-    else if (d.letter) showCard('letter');
+    } else if (d.runEnded) {
+      // The certified run plays its fanfare above and holds the epilogue
+      // until the motorcade arrives; everything else lands here.
+      audio.play(WON.has(d.runEnded) ? 'win' : 'gameover');
+      showEpilogue();
+    } else if (d.operatingBanned) {
+      audio.play('warning');
+      showCard('ban');
+    } else if (d.investigationOpened) {
+      audio.play('warning');
+      showCard('investigation');
+    } else if (d.letter) {
+      audio.play('warning');
+      showCard('letter');
+    }
 
     // Economic and government news that has no card or toast of its own.
     for (const item of d.news) {

@@ -261,7 +261,9 @@ function handle(gain: GainNode, stop: (at: number) => void): LoopHandle {
  */
 const rain: Loop = (ctx, out, at = 0) => {
   const gain = ctx.createGain();
-  gain.gain.value = 0.12;
+  // Weather is the room the game is played in, not an event in it: it sits
+  // under everything else and is missed rather than noticed.
+  gain.gain.value = 0.055;
 
   const bed = noiseSource(ctx, 'pink', at);
   const bedGain = ctx.createGain();
@@ -304,7 +306,7 @@ const fire: Loop = (ctx, out, at = 0) => {
 
   const rumble = noiseSource(ctx, 'brown', at);
   const rumbleGain = ctx.createGain();
-  rumbleGain.gain.value = 0.55;
+  rumbleGain.gain.value = 0.34;
   chain(
     rumble,
     filter(ctx, at, { type: 'highpass', from: 60, q: 0.7 }),
@@ -315,7 +317,7 @@ const fire: Loop = (ctx, out, at = 0) => {
   );
   const roar = noiseSource(ctx, 'pink', at + 0.001);
   const roarGain = ctx.createGain();
-  roarGain.gain.value = 0.42;
+  roarGain.gain.value = 0.26;
   chain(roar, filter(ctx, at, { type: 'bandpass', from: 520, q: 0.55 }), roarGain, gain, out);
   // Flames surge and sink, but never on a beat: a sine here is heard as a
   // slope up and down every two seconds, which is what a fire never does.
@@ -329,22 +331,23 @@ const fire: Loop = (ctx, out, at = 0) => {
   };
   const pops: AudioBufferSourceNode[] = [];
   const crackle = (from: number, to: number): void => {
-    // Eight or so a second, each a few hundredths of a second, sitting in
-    // the low thousands rather than at the top of the range.
-    for (let t = from; t < to; t += 0.06 + random() * 0.16) {
+    // Ten or so a second, each a couple of hundredths long.
+    for (let t = from; t < to; t += 0.05 + random() * 0.14) {
+      // Short and quiet, but high enough to keep an edge: a long loud pop
+      // reads as a snapping twig, a brief bright one as a fire ticking over.
       const env = envelope(ctx, t, {
-        attack: 0.002,
-        decay: 0.025 + random() * 0.05,
-        peak: 0.22 + random() * 0.3,
+        attack: 0.0015,
+        decay: 0.012 + random() * 0.03,
+        peak: 0.12 + random() * 0.2,
       });
       const pop = noiseSource(ctx, 'white', t);
       chain(
         pop,
-        filter(ctx, t, { type: 'bandpass', from: 900 + random() * 1600, q: 1.4 }),
+        filter(ctx, t, { type: 'bandpass', from: 1700 + random() * 2600, q: 2.2 }),
         env,
         gain,
       );
-      pop.stop(t + 0.12);
+      pop.stop(t + 0.08);
       pops.push(pop);
     }
   };
