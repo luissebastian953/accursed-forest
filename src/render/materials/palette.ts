@@ -95,7 +95,7 @@ const COLOURS: Partial<Record<number, [Hex, Hex]>> = {
   [Palette.FurBoar]: [0x4f4237, 0x615345],
   [Palette.FurPig]: [0xe0a99a, 0xe8b6a7],
   [Palette.FurCow]: [0xefe6d8, 0xf4ece1],
-  [Palette.FurCowSpot]: [0x4a3b2e, 0x5a4a3a],
+  [Palette.FurCowSpot]: [0x0d0c0b, 0x14120f],
   [Palette.FurMouse]: [0x8d8378, 0x9c9287],
   [Palette.FurMonkey]: [0x6b5138, 0x7d6143],
   [Palette.FurOrangutan]: [0xb5562a, 0xc46836],

@@ -29,6 +29,8 @@ function quadruped(options: {
   legLength: number;
   tail?: number;
   ears?: boolean;
+  /** Holstein patches: slabs of this slot laid over the hide. */
+  patches?: number;
   speed: number;
   swing?: number;
   cadence?: number;
@@ -113,6 +115,47 @@ function quadruped(options: {
       role: 'still',
       pivot: 'bottom',
     });
+  }
+
+  if (options.patches !== undefined) {
+    const slot = options.patches;
+    // Each patch is a thin slab sitting just proud of the hide, so nothing
+    // z-fights, and no two are mirrored: a Holstein is never symmetrical.
+    const skin = 0.012;
+    const flank = (name: string, side: number, y: number, z: number, h: number, d: number) => ({
+      name,
+      parent: 'body',
+      at: [side * (width / 2 + skin), height * y, length * z] as [number, number, number],
+      size: [skin * 2, height * h, length * d] as [number, number, number],
+      slot,
+      role: 'still' as PartRole,
+    });
+    const over = (name: string, x: number, z: number, w: number, d: number) => ({
+      name,
+      parent: 'body',
+      at: [width * x, height / 2 + skin, length * z] as [number, number, number],
+      size: [width * w, skin * 2, length * d] as [number, number, number],
+      slot,
+      role: 'still' as PartRole,
+    });
+    // The small slabs share an edge with the big ones, so each side reads as
+    // one ragged patch rather than a row of windows.
+    parts.push(
+      flank('patchLA', -1, 0.06, -0.14, 0.5, 0.3),
+      flank('patchLB', -1, -0.24, 0.1, 0.32, 0.18),
+      flank('patchRA', 1, -0.04, 0.12, 0.46, 0.32),
+      flank('patchRB', 1, 0.26, -0.11, 0.28, 0.16),
+      over('patchBack', -0.04, 0.2, 0.6, 0.24),
+      over('patchRump', 0.08, -0.3, 0.46, 0.2),
+      {
+        name: 'patchPoll',
+        parent: 'head',
+        at: [0, headSize / 2 + skin, -headSize * 0.12],
+        size: [headSize * 0.8, skin * 2, headSize * 0.7],
+        slot,
+        role: 'still',
+      },
+    );
   }
 
   if (options.tail) {
@@ -458,7 +501,7 @@ export const SPECIES: Record<string, SpeciesSpec> = {
     id: 'cow',
     label: 'Cow',
     fur: Palette.FurCow,
-    belly: Palette.FurCowSpot,
+    patches: Palette.FurCowSpot,
     length: 2.6,
     height: 1.25,
     width: 1.05,
