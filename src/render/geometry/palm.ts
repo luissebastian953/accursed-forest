@@ -4,8 +4,9 @@
  * degrees and tapering toward the tip.
  *
  * One generator, four parameter sets = the four growth stages. Scale is
- * 1 world unit = 1 palm slot = ~9 m of real spacing, so a mature palm at
- * ~0.65 units reads as the real 6 m tree next to its neighbours.
+ * 1 world unit = 1 palm slot, so a mature palm stands about one slot and a
+ * half with a crown that nearly touches its neighbours, and an old one
+ * overtops it: the way a plantation reads from the air.
  */
 
 import { Euler, Matrix4, Quaternion, Vector3, type BufferGeometry } from 'three';
@@ -58,24 +59,24 @@ const PARAMS: Record<PalmStage, PalmParams> = {
     bunches: 0,
   },
   mature: {
-    trunkHeight: 0.92,
+    trunkHeight: 1.24,
     trunkRadius: 0.085,
-    trunkSegments: 6,
-    frondCount: 11,
-    frondLength: 0.4,
-    frondWidth: 0.075,
+    trunkSegments: 8,
+    frondCount: 12,
+    frondLength: 0.5,
+    frondWidth: 0.115,
     droop: 0.5,
     frondSlot: Palette.PalmFrond,
     bunches: 3,
   },
   senile: {
-    trunkHeight: 1.7,
+    trunkHeight: 2.15,
     trunkRadius: 0.075,
-    trunkSegments: 10,
-    frondCount: 9,
-    frondLength: 0.38,
-    frondWidth: 0.07,
-    droop: 0.6,
+    trunkSegments: 12,
+    frondCount: 10,
+    frondLength: 0.58,
+    frondWidth: 0.125,
+    droop: 0.62,
     frondSlot: Palette.PalmFrondSenile,
     bunches: 1,
   },
