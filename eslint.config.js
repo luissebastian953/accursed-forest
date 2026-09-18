@@ -24,17 +24,20 @@ const BOUNDARY_ELEMENTS = [
   { type: 'workers', pattern: 'src/workers/**' },
   { type: 'sim', pattern: 'src/sim/**' },
   { type: 'shared', pattern: 'src/shared/**' },
+  { type: 'audio', pattern: 'src/audio/**' },
 ];
 
 const BOUNDARY_POLICIES = [
-  policy('app', ['ui', 'render', 'input', 'persistence', 'workers', 'sim', 'shared']),
-  policy('ui', ['sim', 'shared']),
+  policy('app', ['ui', 'render', 'input', 'persistence', 'workers', 'sim', 'shared', 'audio']),
+  policy('ui', ['sim', 'shared', 'audio']),
   policy('render', ['sim', 'shared', 'workers']),
   policy('input', ['sim', 'shared', 'render']),
   policy('persistence', ['sim', 'shared']),
   // The mesher worker is render code that happens to run off-thread.
   policy('workers', ['render', 'sim', 'shared']),
   policy('sim', ['shared']),
+  // Audio is a leaf: it makes noises, it does not know what they mean.
+  policy('audio', ['shared']),
   // `shared` is intentionally absent: default 'disallow' keeps it leaf-level.
 ];
 

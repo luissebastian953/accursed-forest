@@ -6,6 +6,8 @@
 
 import { mount, unmount, type Component } from 'svelte';
 
+import { LOOPS, ONE_SHOTS, type LoopId, type OneShotId } from '@audio/Audio';
+
 import { ACTIONS, type ActionId, type Subject } from './subjects.ts';
 import WorkbenchPanelView from './WorkbenchPanel.svelte';
 
@@ -43,12 +45,20 @@ export interface StageStats {
   fps: number;
 }
 
+/** Everything the audio bench can make a noise with. */
+export const ONE_SHOT_IDS = Object.keys(ONE_SHOTS) as OneShotId[];
+export const LOOP_IDS = Object.keys(LOOPS) as LoopId[];
+
 export interface WorkbenchHandlers {
   select(subject: string): void;
   run(action: ActionId): void;
   setBackdrop(id: string): void;
   setGrid(on: boolean): void;
   setGlow(on: boolean): void;
+  /** Audio needs a gesture before a browser will let it start. */
+  playSound(id: OneShotId): void;
+  toggleLoop(id: LoopId): void;
+  setVolume(volume: number): void;
   setSpin(on: boolean): void;
 }
 
@@ -65,6 +75,12 @@ export class WorkbenchPanel {
   stats = $state.raw<StageStats | null>(null);
   /** What went wrong building the subject, if anything did. */
   error = $state<string | null>(null);
+  /** The audio bench: whether the context is up, and what is looping. */
+  audioReady = $state(false);
+  volume = $state(0.7);
+  looping = $state.raw<readonly LoopId[]>([]);
+  /** The last one-shot fired, so the panel can flash it. */
+  lastSound = $state<string | null>(null);
 
   readonly actions = ACTIONS;
   private readonly target: HTMLElement;

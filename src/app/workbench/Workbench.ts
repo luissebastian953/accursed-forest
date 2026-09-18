@@ -12,6 +12,7 @@
 
 import { Color, Group, Mesh, Scene, type Material } from 'three/webgpu';
 
+import { Audio, LOOPS, ONE_SHOTS } from '@audio/Audio';
 import { MapRig, type GroundRect } from '@render/camera/MapRig';
 import { BoxBuilder } from '@render/geometry/boxBuilder';
 import { Glow } from '@render/Glow';
@@ -25,7 +26,7 @@ import type { Weather } from '@sim/types';
 import { GameLoop } from '../loop.ts';
 
 import { ACTIONS, SUBJECTS, type ActionId, type SubjectHandle } from './subjects.ts';
-import { BACKDROPS, WorkbenchPanel, type StageStats } from './workbenchState.svelte.ts';
+import { BACKDROPS, LOOP_IDS, WorkbenchPanel, type StageStats } from './workbenchState.svelte.ts';
 
 /** The plinth: a patch of ground to sit a subject on, and to read scale from. */
 const PLINTH = 14;
@@ -89,6 +90,9 @@ export async function startWorkbench(root: HTMLElement): Promise<() => void> {
   rig.jumpTo(0, 0);
 
   const glow = new Glow(handle.renderer, scene, rig.camera);
+  // The audio bench: the context starts on the first button, because that is
+  // the gesture a browser insists on before it will make any noise at all.
+  const audio = new Audio();
   let glowOn = true;
   let current: SubjectHandle | null = null;
   let spin = false;
@@ -105,6 +109,23 @@ export async function startWorkbench(root: HTMLElement): Promise<() => void> {
     setGrid: (on) => {
       panel.grid = on;
       plinth.visible = on;
+    },
+    playSound: (id) => {
+      audio.unlock();
+      panel.audioReady = audio.ready;
+      audio.play(id);
+      panel.lastSound = id;
+    },
+    toggleLoop: (id) => {
+      audio.unlock();
+      panel.audioReady = audio.ready;
+      if (audio.isLooping(id)) audio.stopLoop(id);
+      else audio.startLoop(id);
+      panel.looping = LOOP_IDS.filter((loop) => audio.isLooping(loop));
+    },
+    setVolume: (volume) => {
+      panel.volume = volume;
+      audio.setSettings({ volume });
     },
     setGlow: (on) => {
       panel.glow = on;
@@ -219,6 +240,10 @@ export async function startWorkbench(root: HTMLElement): Promise<() => void> {
     },
   });
 
+  // The bench is a development page, so it hands its innards to whoever opens
+  // it: the audio suite renders these recipes offline and measures them.
+  (window as unknown as { __bench: unknown }).__bench = { ONE_SHOTS, LOOPS, audio };
+
   // Whatever `?subject=` names, or the first thing in the catalogue.
   show(params.get('subject') ?? SUBJECTS[0]!.id);
   loop.start();
@@ -228,6 +253,7 @@ export async function startWorkbench(root: HTMLElement): Promise<() => void> {
     window.removeEventListener('keydown', onKey);
     observer.disconnect();
     current?.dispose();
+    audio.dispose();
     glow.dispose();
     panel.dispose();
     plinth.geometry.dispose();

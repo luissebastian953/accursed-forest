@@ -32,7 +32,8 @@
       "@input/*": ["src/input/*"],
       "@persistence/*": ["src/persistence/*"],
       "@workers/*": ["src/workers/*"],
-      "@shared/*": ["src/shared/*"]
+      "@shared/*": ["src/shared/*"],
+      "@audio/*": ["src/audio/*"]
     }
   },
   "include": ["src", "tests"]

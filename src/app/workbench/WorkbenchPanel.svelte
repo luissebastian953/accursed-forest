@@ -8,7 +8,12 @@
   import Tooltip from '../../ui/svelte/Tooltip.svelte';
 
   import { SUBJECT_GROUPS, type ActionId } from './subjects.ts';
-  import { BACKDROPS, type WorkbenchPanel } from './workbenchState.svelte.ts';
+  import {
+    BACKDROPS,
+    LOOP_IDS,
+    ONE_SHOT_IDS,
+    type WorkbenchPanel,
+  } from './workbenchState.svelte.ts';
 
   interface Props {
     panel: WorkbenchPanel;
@@ -142,6 +147,53 @@
       </button>
     </Tooltip>
   </div>
+
+  <p class="label mb-1">Sound</p>
+  <div class="mb-2 flex flex-wrap gap-1.5" data-testid="workbench-sounds">
+    {#each ONE_SHOT_IDS as id (id)}
+      <button
+        class="btn btn-sm btn-ghost !px-2 !text-[0.68rem]"
+        data-testid="workbench-sound"
+        data-sound={id}
+        onclick={() => panel.handlers.playSound(id)}
+      >
+        {id.replace(/^ui-/, '')}
+      </button>
+    {/each}
+  </div>
+  <div class="mb-2 flex flex-wrap gap-1.5">
+    {#each LOOP_IDS as id (id)}
+      <button
+        class="btn btn-sm !px-2 !text-[0.68rem] {panel.looping.includes(id)
+          ? 'btn-green'
+          : 'btn-ghost'}"
+        data-testid="workbench-loop"
+        data-loop={id}
+        onclick={() => panel.handlers.toggleLoop(id)}
+      >
+        {id}
+      </button>
+    {/each}
+  </div>
+  <label class="mb-3 flex items-center gap-2 text-xs">
+    <span class="muted w-12 shrink-0">volume</span>
+    <input
+      class="flex-1"
+      type="range"
+      min="0"
+      max="1"
+      step="0.05"
+      value={panel.volume}
+      data-testid="workbench-volume"
+      oninput={(e) => panel.handlers.setVolume(Number(e.currentTarget.value))}
+    />
+  </label>
+  {#if !panel.audioReady}
+    <p class="muted mb-3 text-[0.7rem] leading-snug" data-testid="workbench-audio-hint">
+      The audio context starts on the first press: a browser will not make a sound before the player
+      asks for one.
+    </p>
+  {/if}
 
   <p class="label mb-1">Renderer</p>
   {#if panel.stats}

@@ -154,10 +154,9 @@ export default defineConfig({
     // through the plain resolver, so the same map is spelled out here.
     tsconfigPaths: true,
     alias: Object.fromEntries(
-      ['app', 'sim', 'render', 'ui', 'input', 'persistence', 'workers', 'shared'].map((layer) => [
-        `@${layer}`,
-        fileURLToPath(new URL(`./src/${layer}`, import.meta.url)),
-      ]),
+      ['app', 'sim', 'render', 'ui', 'input', 'persistence', 'workers', 'shared', 'audio'].map(
+        (layer) => [`@${layer}`, fileURLToPath(new URL(`./src/${layer}`, import.meta.url))],
+      ),
     ),
   },
   worker: {
