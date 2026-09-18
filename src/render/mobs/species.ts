@@ -2,7 +2,8 @@
  * The cast (POC): who walks around the estate.
  *
  * Every one is the same handful of boxes in a different arrangement; a
- * quadruped body with four swinging legs, or a biped with two arms; so they
+ * quadruped body with four swinging legs, an ape on two, or a biped with two
+ * arms; so they
  * all animate from the one rig in `rig.ts`. Sizes are in world units, where a
  * palm slot is 1 and a mature palm stands about 4.
  */
@@ -283,6 +284,136 @@ function biped(options: {
   };
 }
 
+/**
+ * A great ape: upright on two short legs, with arms that nearly reach the
+ * ground, a heavy belly it carries in front of it, and the bare grey face and
+ * cheek flanges of an old male orangutan. Its legs take the biped roles, so
+ * the rig swings them against the arms rather than against a second pair.
+ */
+function ape(options: {
+  id: string;
+  label: string;
+  fur: number;
+  bare: number;
+  /** Standing height to the top of the head. */
+  height: number;
+  speed: number;
+  cadence?: number;
+}): SpeciesSpec {
+  const { id, label, fur, bare } = options;
+  const h = options.height;
+  const legLength = h * 0.22;
+  const torso = h * 0.46;
+  const head = h * 0.3;
+  const width = h * 0.42;
+  const armLength = h * 0.56;
+
+  const parts: SpeciesSpec['parts'] = [
+    {
+      name: 'body',
+      at: [0, legLength + torso / 2, 0],
+      size: [width, torso, width * 0.72],
+      slot: fur,
+      role: 'body',
+    },
+    // The bare front, in two boxes: a narrow chest above a gut that is wider
+    // than it and carried further forward. Two boxes taper where one slab of
+    // grey would read as a bib.
+    {
+      name: 'chest',
+      parent: 'body',
+      at: [0, torso * 0.16, width * 0.2],
+      size: [width * 0.58, torso * 0.34, width * 0.56],
+      slot: bare,
+      role: 'still',
+    },
+    {
+      name: 'belly',
+      parent: 'body',
+      at: [0, -torso * 0.2, width * 0.26],
+      size: [width * 0.82, torso * 0.52, width * 0.66],
+      slot: bare,
+      role: 'still',
+    },
+    {
+      name: 'head',
+      parent: 'body',
+      at: [0, torso / 2 + head * 0.52, 0],
+      size: [head * 0.94, head * 0.92, head * 0.72],
+      slot: fur,
+      role: 'head',
+    },
+    // The bare face, and the cheek flanges an old male grows either side of it.
+    {
+      name: 'face',
+      parent: 'head',
+      at: [0, -head * 0.06, head * 0.34],
+      size: [head * 0.74, head * 0.74, head * 0.2],
+      slot: bare,
+      role: 'still',
+    },
+    {
+      name: 'cheekL',
+      parent: 'head',
+      at: [-head * 0.66, -head * 0.05, 0],
+      size: [head * 0.28, head * 0.86, head * 0.6],
+      slot: fur,
+      role: 'still',
+    },
+    {
+      name: 'cheekR',
+      parent: 'head',
+      at: [head * 0.66, -head * 0.05, 0],
+      size: [head * 0.28, head * 0.86, head * 0.6],
+      slot: fur,
+      role: 'still',
+    },
+  ];
+
+  for (const side of [-1, 1]) {
+    const arm = side < 0 ? 'armL' : 'armR';
+    parts.push({
+      name: arm,
+      parent: 'body',
+      at: [side * (width / 2 + h * 0.05), torso * 0.34, 0],
+      size: [h * 0.13, armLength, h * 0.14],
+      slot: fur,
+      role: side < 0 ? 'armL' : 'armR',
+      pivot: 'top',
+      tilt: [0, 0, side * 0.16],
+    });
+    parts.push({
+      name: side < 0 ? 'handL' : 'handR',
+      parent: arm,
+      at: [0, -armLength - h * 0.035, h * 0.02],
+      size: [h * 0.13, h * 0.09, h * 0.19],
+      slot: bare,
+      role: 'still',
+    });
+    parts.push({
+      name: side < 0 ? 'legL' : 'legR',
+      parent: 'body',
+      at: [side * width * 0.23, -torso / 2, 0],
+      size: [h * 0.19, legLength, h * 0.21],
+      slot: fur,
+      // A biped's two legs take the front roles: they swing against the arms.
+      role: side < 0 ? 'legFL' : 'legFR',
+      pivot: 'top',
+    });
+  }
+
+  return {
+    id,
+    label,
+    parts,
+    speed: options.speed,
+    swing: 0.5,
+    bob: h * 0.02,
+    cadence: options.cadence ?? 1.2,
+    biped: true,
+  };
+}
+
 export const SPECIES: Record<string, SpeciesSpec> = {
   wildBoar: quadruped({
     id: 'wildBoar',
@@ -394,19 +525,14 @@ export const SPECIES: Record<string, SpeciesSpec> = {
     speed: 1.4,
     cadence: 1.4,
   }),
-  orangutan: quadruped({
+  orangutan: ape({
     id: 'orangutan',
     label: 'Orangutan',
     fur: Palette.FurOrangutan,
-    belly: Palette.FurDark,
-    length: 1.2,
-    height: 0.95,
-    width: 0.85,
-    headSize: 0.62,
-    legLength: 0.45,
+    bare: Palette.ApeGrey,
+    height: 1.7,
     speed: 1.1,
     cadence: 1.1,
-    swing: 0.45,
   }),
   thief: biped({
     id: 'thief',

@@ -19,6 +19,7 @@ import {
   buildShrubGeometry,
 } from '@render/geometry/forestTree';
 import { PALM_STAGES, buildPalmGeometry, buildStumpGeometry } from '@render/geometry/palm';
+import { Palette } from '@render/materials/paletteSlots';
 import { MobField } from '@render/mobs/MobField';
 import { SPECIES_IDS, SPECIES } from '@render/mobs/species';
 import { MODELS, ModelKit, type ModelId } from '@render/models/index';
@@ -117,34 +118,73 @@ function mobSubject(id: string): Subject {
       const field = new MobField({
         material: ctx.material,
         spectralMaterial: ctx.spectral,
-        bounds: { minX: -6, maxX: 6, minZ: -6, maxZ: 6 },
+        bounds: { minX: -3, maxX: 3, minZ: -3, maxZ: 3 },
         groundAt: ctx.groundAt,
       });
       // One sim-shaped mob, driven from here rather than from a simulation.
       const mob = field.addBenchMob(id);
       const set = (wants: Partial<Record<'sleep' | 'crouch' | 'work' | 'sit' | 'climb', number>>) =>
         field.setBenchWants(mob, wants);
+
+      // A climber in the game is up a tree; on the bench there is nothing to
+      // be up. A bare trunk appears under it while it climbs and goes again
+      // after: a whole tree would only hide the thing being looked at.
+      const trunk = new BoxBuilder();
+      // Set back a little, so the climber is seen from the front rather than
+      // through the bark.
+      trunk.addAABox(0, 3.6, -0.6, 0.7, 7.2, 0.7, { side: Palette.PalmTrunk });
+      const tree = new Mesh(trunk.build(), ctx.material);
+      tree.visible = false;
+      const group = new Group();
+      group.add(field.group, tree);
+
+      const down = (): void => {
+        tree.visible = false;
+      };
       return {
-        object: field.group,
+        object: group,
         update: (dt) => field.update(dt, 1),
         actions: {
-          walk: () => field.setBenchWalking(mob, true),
+          walk: () => {
+            down();
+            set({ climb: 0, sit: 0, sleep: 0 });
+            field.setBenchWalking(mob, true);
+          },
           idle: () => {
+            down();
             field.setBenchWalking(mob, false);
             set({ sleep: 0, crouch: 0, work: 0, sit: 0, climb: 0 });
           },
-          sit: () => set({ sit: 1, sleep: 0, climb: 0 }),
-          climb: () => set({ climb: 1, sit: 0, sleep: 0 }),
-          sleep: () => set({ sleep: 1, sit: 0, climb: 0 }),
+          sit: () => {
+            down();
+            field.setBenchWalking(mob, false);
+            set({ sit: 1, sleep: 0, climb: 0 });
+          },
+          climb: () => {
+            field.setBenchWalking(mob, false);
+            field.placeBenchMob(mob, 0, 0);
+            tree.visible = true;
+            set({ climb: 1, sit: 0, sleep: 0 });
+          },
+          sleep: () => {
+            down();
+            field.setBenchWalking(mob, false);
+            set({ sleep: 1, sit: 0, climb: 0 });
+          },
           rear: () => field.setBenchStanding(mob, true),
           work: () => set({ work: 1 }),
           reset: () => {
+            down();
             field.setBenchWalking(mob, false);
             field.setBenchStanding(mob, false);
+            field.placeBenchMob(mob, 0, 0);
             set({ sleep: 0, crouch: 0, work: 0, sit: 0, climb: 0 });
           },
         },
-        dispose: () => field.dispose(),
+        dispose: () => {
+          tree.geometry.dispose();
+          field.dispose();
+        },
       };
     },
   };

@@ -435,17 +435,34 @@ export class MobField {
     if (mob) mob.wants = { ...mob.wants, ...wants };
   }
 
-  /** On the bench: walking on the spot, or standing still. */
+  /** On the bench: wandering inside the bench's bounds, or standing still. */
   setBenchWalking(id: number, walking: boolean): void {
     const mob = this.byId.get(id);
     if (!mob) return;
     mob.glide = false;
-    mob.rest = walking ? 0 : Number.POSITIVE_INFINITY;
     if (walking) {
-      // A target it never quite reaches: it walks in a circle around the bench.
-      mob.targetX = Math.cos(mob.facing) * 40;
-      mob.targetZ = Math.sin(mob.facing) * 40;
+      // Rest spent and a target in reach: the wander picks the next one itself,
+      // always inside the bench, so it never walks out of frame.
+      const { bounds } = this.options;
+      mob.rest = 0;
+      mob.targetX = bounds.minX + Math.random() * (bounds.maxX - bounds.minX);
+      mob.targetZ = bounds.minZ + Math.random() * (bounds.maxZ - bounds.minZ);
+    } else {
+      mob.rest = Number.POSITIVE_INFINITY;
+      mob.targetX = mob.x;
+      mob.targetZ = mob.z;
     }
+  }
+
+  /** On the bench: put it back where it started. */
+  placeBenchMob(id: number, x: number, z: number): void {
+    const mob = this.byId.get(id);
+    if (!mob) return;
+    mob.x = x;
+    mob.z = z;
+    mob.targetX = x;
+    mob.targetZ = z;
+    mob.gait = 0;
   }
 
   /** On the bench: reared up on the hind legs. */

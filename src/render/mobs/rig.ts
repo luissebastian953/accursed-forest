@@ -156,15 +156,22 @@ export function pose(spec: SpeciesSpec, part: PartSpec, input: PoseInput, out: M
       }
       // Working: leans into each swing.
       if (work > 0) rx += work * (0.1 + (1 - chopLift(input.time, input.phase)) * 0.25);
-      // Sitting up on the haunches, back sloped, weight over the hind legs.
+      // Sitting. On four legs that means up on the haunches, back sloped; on
+      // two it means down on the ground, hips dropped and the back still up.
       if (sit > 0) {
-        rx -= sit * 0.55;
-        py -= sit * part.size[1] * 0.12;
-        pz -= sit * part.size[2] * 0.1;
+        if (spec.biped) {
+          py -= sit * Math.max(0, y - part.size[1] * 0.75);
+          rx -= sit * 0.12;
+        } else {
+          rx -= sit * 0.55;
+          py -= sit * part.size[1] * 0.12;
+          pz -= sit * part.size[2] * 0.1;
+        }
       }
-      // Up a trunk: head up, belly to the bark, swaying with the tree.
+      // Up a trunk: head up, belly to the bark, swaying with the tree. An ape
+      // climbs upright, so it leans in rather than lying along the bark.
       if (climb > 0) {
-        rx -= climb * 1.15;
+        rx -= climb * (spec.biped ? 0.3 : 1.15);
         py += climb * part.size[2] * 0.3;
         rz += climb * Math.sin(input.time * 0.9 + input.phase) * 0.06;
       }
@@ -191,10 +198,18 @@ export function pose(spec: SpeciesSpec, part: PartSpec, input: PoseInput, out: M
       rx += stand * 0.9;
       // Asleep the legs tuck in; crouched (a biped's legs) they fold.
       rx += sleep * 1.3 - crouch * 0.9;
-      // Sitting, the forelegs prop the chest; climbing, they reach round the trunk.
-      rx -= sit * 0.5;
-      rx -= climb * 1.5;
-      rz += (part.role === 'legFL' ? -1 : 1) * climb * 0.35;
+      if (spec.biped) {
+        // These are the only legs there are: they fold out in front to sit,
+        // and tuck up under the body on a trunk.
+        rx -= sit * 1.2;
+        rx += climb * 0.55;
+        rz += (part.role === 'legFL' ? -1 : 1) * climb * 0.28;
+      } else {
+        // Sitting, the forelegs prop the chest; climbing, they reach round the trunk.
+        rx -= sit * 0.5;
+        rx -= climb * 1.5;
+        rz += (part.role === 'legFL' ? -1 : 1) * climb * 0.35;
+      }
       break;
     case 'legBL':
     case 'legBR':
@@ -210,6 +225,13 @@ export function pose(spec: SpeciesSpec, part: PartSpec, input: PoseInput, out: M
       rx += Math.sin(step + (LEG_PHASE[part.role] ?? 0)) * spec.swing * input.gait * (1 - work);
       // Crouched, the arms come forward to steady; working, both swing the tool.
       rx -= crouch * 0.6;
+      // Up a trunk, both arms reach overhead and out round the bark; asleep,
+      // they tuck in. Sitting, an ape's arms are longer than the drop to the
+      // ground, so they come forward to rest rather than through it.
+      rx -= climb * 2.05;
+      rx -= sit * (spec.biped ? 0.5 : 0.4);
+      rx -= sleep * 0.35;
+      rz += (part.role === 'armL' ? -1 : 1) * (climb * 0.3 + (spec.biped ? sit * 0.14 : 0));
       if (work > 0) {
         const lift = chopLift(input.time, input.phase);
         rx -= work * (0.5 + lift * 2.1) * (part.role === 'armR' ? 1 : 0.85);

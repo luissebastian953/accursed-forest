@@ -109,6 +109,8 @@ export const Palette = {
   /** Clouds: white, and a touch brighter where the sun catches the top. */
   Cloud: 84,
   CloudTop: 85,
+  /** The orangutan's bare face, belly and hands. */
+  ApeGrey: 86,
 } as const;
 
 export type PaletteSlot = (typeof Palette)[keyof typeof Palette];
