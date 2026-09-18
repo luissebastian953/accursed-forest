@@ -97,32 +97,72 @@ const chopStroke: OneShot = (ctx, out, at) => {
   return 0.25;
 };
 
-/** A hillside letting go: the one sound that should stop the player. */
+/**
+ * A hillside letting go: the one sound that should stop the player. A low
+ * rumble juddering at nine a second, with fourteen boulders in it.
+ */
 const landslide: OneShot = (ctx, out, at) => {
-  const seconds = 2.6;
-  const body = envelope(ctx, at, { attack: 0.08, decay: seconds, peak: 0.7 });
-  const noise = noiseSource(ctx, 'brown', at);
-  chain(noise, filter(ctx, at, { from: 900, to: 90, seconds, q: 0.8 }), body, out);
+  const seconds = 2.9;
+  const body = envelope(ctx, at, { attack: 0.15, decay: seconds - 0.15, peak: 0.42 });
+  const noise = noiseSource(ctx, 'pink', at);
+  chain(noise, filter(ctx, at, { from: 600, to: 110, seconds, q: 0.9 }), body, out);
   noise.stop(at + seconds + 0.1);
+  // The judder: the whole mass shaking as it comes down.
+  const judder = lfo(ctx, body.gain, { rate: 9, depth: 0.3, at });
+  judder.stop(at + seconds);
 
-  // Boulders in it: a few random knocks through the first second.
-  for (let i = 0; i < 7; i++) {
-    const knock = at + 0.15 + i * 0.13;
-    const env = envelope(ctx, knock, { attack: 0.002, decay: 0.22, peak: 0.3 });
-    chain(tone(ctx, knock, { from: 150 - i * 8, to: 54, seconds: 0.24 }), env, out);
+  let seed = 17;
+  const random = (): number => {
+    seed = (seed * 1103515245 + 12345) % 2147483648;
+    return seed / 2147483648;
+  };
+  for (let i = 0; i < 14; i++) {
+    const knock = at + 0.1 + random() * 2.2;
+    const env = envelope(ctx, knock, { attack: 0.003, decay: 0.22, peak: 0.26 });
+    chain(tone(ctx, knock, { from: 70 + random() * 50, to: 35, seconds: 0.25 }), env, out);
   }
   return seconds + 0.2;
 };
 
-/** Thunder: a crack, then the roll going away from you. */
-const thunder: OneShot = (ctx, out, at) => {
-  const seconds = 2.2;
-  const env = envelope(ctx, at, { attack: 0.01, decay: seconds, peak: 0.7 });
-  const noise = noiseSource(ctx, 'brown', at);
-  chain(noise, filter(ctx, at, { from: 800, to: 70, seconds, q: 0.6 }), env, out);
-  noise.stop(at + seconds + 0.1);
-  return seconds + 0.2;
-};
+/**
+ * Thunder, near or far. Noise through a resonant lowpass at 300 Hz, swelling
+ * over a fifth of a second and falling away over four; a thump of sub under
+ * it, and a second roll arriving a moment later. Far away the swell is slow,
+ * the cutoff lower, the tail longer and the thump gone.
+ */
+function thunder(distance: number): OneShot {
+  return (ctx, out, at) => {
+    const d = Math.max(0, Math.min(1, distance));
+    const cutoff = 300 - 180 * d;
+    const attack = 0.2 + 0.6 * d;
+    const tail = 4 + 2 * d;
+    // What a steep lowpass leaves of white noise falls with the cutoff, so
+    // the level rises to meet it: near about 2.5x, far about 4x.
+    const makeup = Math.sqrt(4500 / cutoff);
+    const level = (0.62 - 0.1 * d) * makeup;
+
+    const strike = envelope(ctx, at, { attack, decay: tail, peak: level });
+    const noise = noiseSource(ctx, 'white', at);
+    chain(noise, filter(ctx, at, { from: cutoff, q: 1.1 }), strike, out);
+    noise.stop(at + attack + tail + 0.1);
+
+    if (d < 0.5) {
+      const thump = envelope(ctx, at, { attack: attack * 0.5, decay: 2, peak: 0.4 * (1 - d) });
+      chain(tone(ctx, at, { from: 60, to: 28, seconds: 2.2 }), thump, out);
+    }
+
+    // The second roll, quieter and darker, throbbing as it goes.
+    const rollAt = at + 0.9 + 0.6 * d;
+    const roll = envelope(ctx, rollAt, { attack: 0.5, decay: tail * 0.8, peak: level * 0.55 });
+    const rollNoise = noiseSource(ctx, 'white', rollAt);
+    chain(rollNoise, filter(ctx, rollAt, { from: cutoff * 0.6, q: 0.9 }), roll, out);
+    rollNoise.stop(rollAt + 0.5 + tail * 0.8 + 0.1);
+    const throb = lfo(ctx, roll.gain, { rate: 2.5 + 2 * d, depth: level * 0.2, at: rollAt });
+    throb.stop(rollAt + 0.5 + tail * 0.8);
+
+    return attack + tail + 1;
+  };
+}
 
 export const ONE_SHOTS = {
   'ui-button-press': buttonPress,
@@ -132,7 +172,8 @@ export const ONE_SHOTS = {
   'cash-out': cashMove(false),
   'chop-stroke': chopStroke,
   landslide,
-  'thunder-near': thunder,
+  'thunder-near': thunder(0),
+  'thunder-far': thunder(1),
 } as const satisfies Record<string, OneShot>;
 
 export type OneShotId = keyof typeof ONE_SHOTS;
@@ -154,52 +195,91 @@ function handle(gain: GainNode, stop: (at: number) => void): LoopHandle {
   };
 }
 
-/** Rain: bandpassed noise with a slow wobble, so it breathes. */
+/**
+ * Rain: white noise with a highpass under the lowpass, so it hisses without
+ * rumbling, breathing slowly so it does not read as a fixed tone.
+ */
 const rain: Loop = (ctx, out, at = 0) => {
   const gain = ctx.createGain();
-  gain.gain.value = 0.32;
-  const noise = noiseSource(ctx, 'pink', at);
-  chain(noise, filter(ctx, at, { type: 'bandpass', from: 1400, q: 0.55 }), gain, out);
-  const wobble = lfo(ctx, gain.gain, { rate: 0.17, depth: 0.08, at });
+  gain.gain.value = 0.3;
+  const noise = noiseSource(ctx, 'white', at);
+  chain(
+    noise,
+    filter(ctx, at, { type: 'highpass', from: 400, q: 0.7 }),
+    filter(ctx, at, { from: 7000, q: 0.7 }),
+    gain,
+    out,
+  );
+  const wobble = lfo(ctx, gain.gain, { rate: 0.5, depth: 0.055, at });
   return handle(gain, (when) => {
     noise.stop(when);
     wobble.stop(when);
   });
 };
 
-/** Fire: a low bed with pops scheduled over it. */
+/**
+ * Fire: a quiet bed of low noise breathing under a constant rain of sharp
+ * crackles above 1.5 kHz. The crackles are what read as fire; the bed alone
+ * is a furnace heard through a wall. They are scheduled a few seconds ahead
+ * and topped up while the loop runs.
+ */
 const fire: Loop = (ctx, out, at = 0) => {
   const gain = ctx.createGain();
-  gain.gain.value = 0.22;
+  gain.gain.value = 0.6;
+  const bed = ctx.createGain();
+  bed.gain.value = 0.12;
   const noise = noiseSource(ctx, 'brown', at);
-  chain(noise, filter(ctx, at, { from: 620, q: 0.7 }), gain, out);
+  chain(
+    noise,
+    filter(ctx, at, { type: 'highpass', from: 80, q: 0.7 }),
+    filter(ctx, at, { from: 900, q: 0.7 }),
+    bed,
+    gain,
+    out,
+  );
+  const breathe = lfo(ctx, bed.gain, { rate: 0.75, depth: 0.05, at });
 
-  // Pops for the next while; the engine restarts the loop long before it runs out.
-  let seed = 7;
+  let seed = 99;
   const random = (): number => {
     seed = (seed * 1103515245 + 12345) % 2147483648;
     return seed / 2147483648;
   };
   const pops: AudioBufferSourceNode[] = [];
-  for (let t = 0.1; t < 12; t += 0.06 + random() * 0.32) {
-    const when = at + t;
-    const env = envelope(ctx, when, {
-      attack: 0.001,
-      decay: 0.04 + random() * 0.06,
-      peak: 0.08 + random() * 0.12,
-    });
-    const pop = noiseSource(ctx, 'white', when);
-    chain(
-      pop,
-      filter(ctx, when, { type: 'bandpass', from: 900 + random() * 2600, q: 2.2 }),
-      env,
-      gain,
-    );
-    pop.stop(when + 0.16);
-    pops.push(pop);
-  }
+  const crackle = (from: number, to: number): void => {
+    // Around twenty a second, each a few milliseconds of bright noise.
+    for (let t = from; t < to; t += 0.02 + random() * 0.07) {
+      const env = envelope(ctx, t, {
+        attack: 0.001,
+        decay: 0.012 + random() * 0.03,
+        peak: 0.45 + random() * 0.5,
+      });
+      const pop = noiseSource(ctx, 'white', t);
+      chain(pop, filter(ctx, t, { type: 'highpass', from: 1500, q: 0.8 }), env, gain);
+      pop.stop(t + 0.08);
+      pops.push(pop);
+    }
+  };
+  crackle(at + 0.05, at + 4);
+  // Offline contexts render their whole length at once and never tick a
+  // timer; live ones keep the fire fed a few seconds ahead of the clock.
+  let horizon = at + 4;
+  const feed =
+    typeof setInterval === 'function' && !(ctx instanceof OfflineAudioContext)
+      ? setInterval(() => {
+          const ahead = ctx.currentTime + 3;
+          if (ahead > horizon) {
+            crackle(horizon, ahead);
+            horizon = ahead;
+          }
+          // Let the finished ones go, or the list grows for as long as it burns.
+          while (pops.length > 400) pops.shift();
+        }, 1000)
+      : null;
+
   return handle(gain, (when) => {
+    if (feed !== null) clearInterval(feed);
     noise.stop(when);
+    breathe.stop(when);
     for (const pop of pops) {
       try {
         pop.stop(when);

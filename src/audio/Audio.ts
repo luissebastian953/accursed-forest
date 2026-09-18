@@ -21,6 +21,7 @@ const BUS_OF: Record<OneShotId | LoopId, Bus> = {
   'chop-stroke': 'world',
   landslide: 'drama',
   'thunder-near': 'world',
+  'thunder-far': 'world',
   'rain-light': 'world',
   'fire-crackle': 'world',
   'excavator-engine': 'world',

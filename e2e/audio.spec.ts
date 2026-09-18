@@ -66,7 +66,7 @@ async function measureAll(page: Page): Promise<Measured[]> {
     };
 
     for (const [name, recipe] of Object.entries(ONE_SHOTS)) {
-      const probe = new OfflineAudioContext(1, 48000 * 4, 48000);
+      const probe = new OfflineAudioContext(1, 48000 * 8, 48000);
       recipe(probe, probe.destination, 0);
       measure(await probe.startRendering(), name);
     }
@@ -82,7 +82,7 @@ async function measureAll(page: Page): Promise<Measured[]> {
 test.describe('synthesised sound', () => {
   test('every sound makes a noise, and none of them clips', async ({ page }) => {
     const sounds = await measureAll(page);
-    expect(sounds.length).toBeGreaterThanOrEqual(12);
+    expect(sounds.length).toBeGreaterThanOrEqual(13);
 
     for (const sound of sounds) {
       // Silence is the failure that is easiest to ship without noticing.
@@ -107,8 +107,14 @@ test.describe('synthesised sound', () => {
     expect(by['rain-light']!.brightnessHz).toBeGreaterThan(1200);
     expect(by['coins-burst']!.brightnessHz).toBeGreaterThan(800);
 
+    // Far thunder is darker and longer than near, and never louder.
+    expect(by['thunder-far']!.brightnessHz).toBeLessThan(by['thunder-near']!.brightnessHz);
+    expect(by['thunder-far']!.audible).toBeGreaterThan(by['thunder-near']!.audible);
+    expect(by['thunder-far']!.peak).toBeLessThan(by['thunder-near']!.peak);
+
     // The big ones last; the UI gets out of the way.
     expect(by['landslide']!.audible).toBeGreaterThan(1.2);
+    expect(by['thunder-near']!.audible).toBeGreaterThan(3);
     expect(by['ui-button-press']!.audible).toBeLessThan(0.2);
     expect(by['ui-button-denied']!.audible).toBeLessThan(0.3);
   });
