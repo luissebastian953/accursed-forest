@@ -82,100 +82,103 @@
 </script>
 
 {#if view}
+  <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
   <div
-    class="card absolute left-1/2 z-30 w-[min(34rem,calc(100%-2rem))] -translate-x-1/2 overflow-hidden !p-0"
-    data-testid="certificate-panel"
-    style="top: var(--panel-top, 7rem)"
+    class="absolute inset-0 z-30 flex items-center justify-center bg-[rgba(74,51,32,0.45)] p-4"
+    data-testid="certificate-backdrop"
+    onclick={(e) => e.target === e.currentTarget && panel.handlers.close()}
   >
-    <!-- The band: what this is, and how to be rid of it. -->
-    <div class="flex items-start gap-3 bg-[linear-gradient(180deg,#ffe9a8,#f6d572)] p-4">
-      <span class="pill flex h-11 w-11 shrink-0 items-center justify-center !bg-[#fffaea]">
-        <Icon name="certificate-ispo" class="!h-6 !w-6" />
-      </span>
-      <div class="min-w-0 flex-1">
-        <div class="label !text-[0.6rem] !text-[#9a7a26]">{t('certificate.kicker')}</div>
-        <div class="text-lg font-extrabold leading-tight">{t('certificate.title')}</div>
-        <p class="mt-0.5 text-xs leading-snug text-[#6b5526]">{t('certificate.intro')}</p>
-      </div>
-      <button
-        class="btn btn-close shrink-0"
-        aria-label={t('menu.close')}
-        data-testid="certificate-close"
-        onclick={() => panel.handlers.close()}
-      >
-        ✕
-      </button>
-    </div>
-
-    <!-- How many, and when the Ministry next looks. -->
-    <div class="flex items-center gap-3 px-4 py-2.5">
-      <span class="num shrink-0 text-sm font-extrabold" data-testid="certificate-count">
-        {t('certificate.metOf', { met, total: view.conditions.length })}
-      </span>
-      <span class="flex min-w-0 flex-1 gap-1" aria-hidden="true">
-        {#each view.conditions as c (c.id)}
-          <i
-            class="h-2 flex-1 rounded-full"
-            style="background: {c.met ? 'var(--green-2)' : 'var(--pill-muted)'}"
-          ></i>
-        {/each}
-      </span>
-      <span class="muted num shrink-0 text-xs" data-testid="certificate-next">
-        {t('certificate.nextCheck', { days: view.daysToCheck })}
-      </span>
-    </div>
-
-    <div class="max-h-[min(24rem,50vh)] overflow-y-auto px-4 pb-3">
-      {#each view.conditions as c (c.id)}
-        <div
-          class="mb-1.5 rounded-2xl border-2 p-2.5"
-          style="border-color: {c.met ? '#bfe3b4' : 'transparent'}; background: {c.met
-            ? '#eef8e9'
-            : 'var(--pill-muted)'}"
-          data-testid={`certificate-condition-${c.id}`}
-          data-met={c.met}
-        >
-          <div class="flex items-center gap-2.5">
-            <span class="pill flex h-8 w-8 shrink-0 items-center justify-center !bg-[#fffaea]">
-              <Icon name={ICON[c.id]} />
-            </span>
-            <div class="min-w-0 flex-1 text-sm font-extrabold">{t(LABEL_KEY[c.id])}</div>
-            <span
-              class="shrink-0 rounded-full px-2 py-0.5 text-[0.68rem] font-extrabold"
-              style={c.met
-                ? 'background: var(--green-2); color: #fff'
-                : 'background: #ffe6cc; color: #a85c14'}
-            >
-              {badge(c)}
-            </span>
-          </div>
-          <div class="mt-1.5 flex items-center gap-2">
-            <span class="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-[#e7dcc0]">
-              <i
-                class="block h-full rounded-full"
-                style="width: {share(c) * 100}%; background: {c.met
-                  ? 'var(--green-2)'
-                  : 'var(--orange-2)'}"
-              ></i>
-            </span>
-            <span class="muted num shrink-0 text-xs">{conditionValue(c)}</span>
-          </div>
+    <div class="card w-full max-w-lg overflow-hidden !p-0" data-testid="certificate-panel">
+      <!-- The band: what this is, and how to be rid of it. -->
+      <div class="flex items-start gap-3 bg-[linear-gradient(180deg,#ffe9a8,#f6d572)] p-4">
+        <span class="pill flex h-11 w-11 shrink-0 items-center justify-center !bg-[#fffaea]">
+          <Icon name="certificate-ispo" class="!h-6 !w-6" />
+        </span>
+        <div class="min-w-0 flex-1">
+          <div class="label !text-[0.6rem] !text-[#9a7a26]">{t('certificate.kicker')}</div>
+          <div class="text-lg font-extrabold leading-tight">{t('certificate.title')}</div>
+          <p class="mt-0.5 text-xs leading-snug text-[#6b5526]">{t('certificate.intro')}</p>
         </div>
-      {/each}
-    </div>
+        <button
+          class="btn btn-close shrink-0"
+          aria-label={t('menu.close')}
+          data-testid="certificate-close"
+          onclick={() => panel.handlers.close()}
+        >
+          ✕
+        </button>
+      </div>
 
-    <div class="flex items-center justify-between gap-3 border-t-2 border-[#f2e0b0] px-4 py-3">
-      <span class="flex items-center gap-2 text-sm font-extrabold" style="color: var(--green-2)">
-        <Icon name="certificate-ispo" />
-        {t('certificate.winNote')}
-      </span>
-      <button
-        class="btn btn-green shrink-0 uppercase tracking-wide"
-        data-testid="certificate-back"
-        onclick={() => panel.handlers.close()}
-      >
-        {t('certificate.back')}
-      </button>
+      <!-- How many, and when the Ministry next looks. -->
+      <div class="flex items-center gap-3 px-4 py-2.5">
+        <span class="num shrink-0 text-sm font-extrabold" data-testid="certificate-count">
+          {t('certificate.metOf', { met, total: view.conditions.length })}
+        </span>
+        <span class="flex min-w-0 flex-1 gap-1" aria-hidden="true">
+          {#each view.conditions as c (c.id)}
+            <i
+              class="h-2 flex-1 rounded-full"
+              style="background: {c.met ? 'var(--green-2)' : 'var(--pill-muted)'}"
+            ></i>
+          {/each}
+        </span>
+        <span class="muted num shrink-0 text-xs" data-testid="certificate-next">
+          {t('certificate.nextCheck', { days: view.daysToCheck })}
+        </span>
+      </div>
+
+      <div class="max-h-[min(34rem,58vh)] overflow-y-auto px-4 pb-3">
+        {#each view.conditions as c (c.id)}
+          <div
+            class="mb-1.5 rounded-2xl border-2 p-2.5"
+            style="border-color: {c.met ? '#bfe3b4' : 'transparent'}; background: {c.met
+              ? '#eef8e9'
+              : 'var(--pill-muted)'}"
+            data-testid={`certificate-condition-${c.id}`}
+            data-met={c.met}
+          >
+            <div class="flex items-center gap-2.5">
+              <span class="pill flex h-8 w-8 shrink-0 items-center justify-center !bg-[#fffaea]">
+                <Icon name={ICON[c.id]} />
+              </span>
+              <div class="min-w-0 flex-1 text-sm font-extrabold">{t(LABEL_KEY[c.id])}</div>
+              <span
+                class="shrink-0 rounded-full px-2 py-0.5 text-[0.68rem] font-extrabold"
+                style={c.met
+                  ? 'background: var(--green-2); color: #fff'
+                  : 'background: #ffe6cc; color: #a85c14'}
+              >
+                {badge(c)}
+              </span>
+            </div>
+            <div class="mt-1.5 flex items-center gap-2">
+              <span class="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-[#e7dcc0]">
+                <i
+                  class="block h-full rounded-full"
+                  style="width: {share(c) * 100}%; background: {c.met
+                    ? 'var(--green-2)'
+                    : 'var(--orange-2)'}"
+                ></i>
+              </span>
+              <span class="muted num shrink-0 text-xs">{conditionValue(c)}</span>
+            </div>
+          </div>
+        {/each}
+      </div>
+
+      <div class="flex items-center justify-between gap-3 border-t-2 border-[#f2e0b0] px-4 py-3">
+        <span class="flex items-center gap-2 text-sm font-extrabold" style="color: var(--green-2)">
+          <Icon name="certificate-ispo" />
+          {t('certificate.winNote')}
+        </span>
+        <button
+          class="btn btn-green shrink-0 uppercase tracking-wide"
+          data-testid="certificate-back"
+          onclick={() => panel.handlers.close()}
+        >
+          {t('certificate.back')}
+        </button>
+      </div>
     </div>
   </div>
 {/if}

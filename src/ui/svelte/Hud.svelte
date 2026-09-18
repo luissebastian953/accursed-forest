@@ -77,13 +77,17 @@
   }
 
   /**
-   * The bar grows with the event chips, so anything that hangs under it
+   * The bar grows with its own contents, so anything that hangs under it
    * (the controls card, the ISPO checklist, the year-end card) is told where
    * its bottom edge is rather than guessing a fixed offset.
    */
   let bar = $state<HTMLElement | null>(null);
+  let card = $state<HTMLElement | null>(null);
   $effect(() => {
-    const element = bar;
+    // Measure the bar card itself, not the column it sits in: the column also
+    // holds the event chips, and a panel hung below those opens a hand's
+    // width from the bar on any day the weather is doing something.
+    const element = card ?? bar;
     if (!element) return;
     const hidden = ui.hidden;
     const publish = () => {
@@ -175,6 +179,7 @@
     <div
       class="card pointer-events-auto flex flex-col items-start gap-2 px-5 py-3"
       data-testid="hud"
+      bind:this={card}
     >
       <div class="flex flex-wrap items-center justify-start gap-2.5">
         {@render tile({
