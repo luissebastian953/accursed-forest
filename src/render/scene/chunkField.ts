@@ -109,6 +109,8 @@ export interface DivergedBlockLite {
   ashy: boolean;
   /** Under flood water right now: the top reads as shallow water. */
   flooded: boolean;
+  /** The slope gave way here and nothing has been planted since (§3.6.2). */
+  slid: boolean;
 }
 
 export function toLite(block: Readonly<Block>, tick: number, flooded = false): DivergedBlockLite {
@@ -120,6 +122,7 @@ export function toLite(block: Readonly<Block>, tick: number, flooded = false): D
     burning: block.burning,
     ashy: block.ashUntil > tick,
     flooded,
+    slid: block.landslideAt >= 0,
   };
 }
 
@@ -180,9 +183,12 @@ function topSlot(
   burning: boolean,
   ashy: boolean,
   flooded: boolean,
+  slid = false,
 ): number {
   if (burning) return Palette.Charcoal;
   if (flooded) return Palette.WaterShallow;
+  // Torn open: bare earth, whatever the block was before the slope went.
+  if (slid) return Palette.Dirt;
   switch (phase) {
     case 'planted':
     case 'reforesting':
@@ -264,6 +270,7 @@ export function buildChunkField(
       const burning = lite?.burning ?? false;
       const ashy = lite?.ashy ?? false;
       const flooded = lite?.flooded ?? false;
+      const slid = lite?.slid ?? false;
 
       if (TERRACED.has(phase)) {
         heights[i] = terraceHeight(generated.elevation);
@@ -307,8 +314,9 @@ export function buildChunkField(
         }
       }
 
-      const slot = topSlot(biome, phase, burning, ashy, flooded);
-      // Burned ground is mottled char and ash, not one flat colour.
+      const slot = topSlot(biome, phase, burning, ashy, flooded, slid);
+      // Burned ground is mottled char and ash, and torn ground is mottled
+      // earth and stone: neither is one flat colour.
       topSlots[i] =
         slot === Palette.CharredGround || slot === Palette.Charcoal
           ? hash01(gx, gz, 11) < 0.12
@@ -316,7 +324,13 @@ export function buildChunkField(
             : hash01(gx, gz, 12) < 0.5
               ? Palette.Charcoal
               : Palette.CharredGround
-          : slot;
+          : slot === Palette.Dirt
+            ? hash01(gx, gz, 13) < 0.16
+              ? Palette.Rock
+              : hash01(gx, gz, 14) < 0.42
+                ? Palette.Laterite
+                : Palette.Dirt
+            : slot;
     }
   }
 
@@ -382,7 +396,10 @@ export function buildChunkArrays(
         const lite = diverged.get(id);
         // Burned land keeps its snags through the ash window; other estate land is bare.
         const burnt = (lite?.burning ?? false) || (lite?.phase === 'cleared' && lite.ashy);
-        if (lite && lite.phase !== 'wild' && !burnt) continue;
+        // A slid block keeps its spoil and its snapped branches until it is
+        // dug out or planted over.
+        const slid = lite?.slid ?? false;
+        if (lite && lite.phase !== 'wild' && !burnt && !slid) continue;
         const generated = world.generated(bx, by);
         growBlock(builder, ctx, {
           id,
@@ -392,6 +409,7 @@ export function buildChunkArrays(
           elevation: generated.elevation,
           slope: generated.slope,
           burnt,
+          slid,
         });
       }
     }

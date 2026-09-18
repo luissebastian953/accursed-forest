@@ -31,6 +31,7 @@ export type IconName =
   | 'police-warning'
   | 'rain'
   | 'shop-bibit'
+  | 'shop-excavator'
   | 'shop-fertilizer'
   | 'shop-metarhizium'
   | 'shop-sanitation'

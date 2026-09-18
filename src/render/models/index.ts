@@ -6,6 +6,7 @@
 
 import { abandonedHouse, stiltHouse, woodCabin } from './buildings/houses.ts';
 import { fallenLog } from './ground/log.ts';
+import { snappedBranch, spoilHeap } from './ground/spoil.ts';
 import type { Model } from './kit.ts';
 import { bush, floweringBush } from './plants/bush.ts';
 import { cactus, tumbleweed } from './plants/desert.ts';
@@ -39,6 +40,8 @@ export const MODELS = {
   rockSpire,
   cave,
   fallenLog,
+  spoilHeap,
+  snappedBranch,
   stiltHouse,
   woodCabin,
   abandonedHouse,

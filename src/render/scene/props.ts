@@ -56,6 +56,8 @@ export interface PropBlock {
   slope: boolean;
   /** On fire, or burned and still inside the ash window. */
   burnt: boolean;
+  /** Torn open by a landslide and not put back yet. */
+  slid: boolean;
 }
 
 export interface PropContext {
@@ -250,6 +252,17 @@ class Grower {
 /** Grow the props of one block into the chunk's builder. */
 export function growBlock(builder: BoxBuilder, ctx: PropContext, block: PropBlock): void {
   const g = new Grower(builder, ctx, block);
+
+  if (block.slid) {
+    // Spoil heaps and the branches that came down with them, thick enough to
+    // read as a mess from across the estate.
+    g.spots(SPOTS, true, (x, z) => {
+      const roll = g.rand();
+      if (roll < 0.42) g.grow(MODELS.spoilHeap, x, z, 0.75 + g.rand() * 0.6);
+      else if (roll < 0.68) g.grow(MODELS.snappedBranch, x, z, 0.8 + g.rand() * 0.5);
+    });
+    return;
+  }
 
   if (block.burnt) {
     const p = SNAGS[block.biome] ?? 0;
