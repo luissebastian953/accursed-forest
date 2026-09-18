@@ -55,6 +55,8 @@ export interface HudView {
   events: EventChip[];
   /** §8 panel 19: ISPO conditions met, from Year 3; null hides the button. */
   ispoMet: number | null;
+  /** How many there are to meet, so the pips are not a magic number. */
+  ispoTotal: number;
 }
 
 export interface HudHandlers {

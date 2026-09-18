@@ -51,7 +51,7 @@
 <!-- `data-phone` marks the whole frame: a handset's own screen does not click
      back at you, so the UI press sound stops at this boundary. -->
 <div
-  class="@container absolute bottom-16 left-3 top-[15.25rem] z-20 aspect-[480/920] max-h-[920px] min-h-[540px] max-w-[calc(100vw-1.5rem)]"
+  class="@container absolute bottom-10 left-3 top-[12.5rem] z-20 aspect-[480/920] max-h-[1100px] min-h-[560px] max-w-[calc(100vw-1.5rem)]"
   data-testid={testId}
   data-phone="true"
   bind:this={frame}

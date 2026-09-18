@@ -17,6 +17,9 @@
   }
 
   const { hud }: Props = $props();
+
+  /** 0..n-1, for drawing one pip per condition. */
+  const pips = (n: number): number[] => [...Array(n).keys()];
   const ui = $derived(hud.ui);
   const v = $derived(hud.view);
 
@@ -297,14 +300,35 @@
 
         <div class="flex flex-wrap items-center gap-2">
           {#if v.ispoMet !== null}
+            <!-- Three states, so progress reads without opening anything:
+                 nothing met is neutral, some met is gold, all met is green
+                 and waits on the Ministry's year-end check. -->
+            {@const all = v.ispoMet >= v.ispoTotal}
             <button
-              class="btn {v.ispoMet === 5 ? 'btn-green' : 'btn-ghost'}"
+              class="btn ispo {all ? 'btn-green' : v.ispoMet > 0 ? 'btn-gold' : 'btn-ghost'}"
               title={t('hud.ispoTitle')}
               data-testid="hud-ispo"
+              data-state={all ? 'certified' : v.ispoMet > 0 ? 'progress' : 'none'}
               onclick={() => hud.handlers.openCertificate()}
             >
               <Icon name="certificate-ispo" />
-              {t('hud.ispo', { met: v.ispoMet })}
+              <span class="flex flex-col items-start leading-none">
+                <span class="label !text-[0.58rem] {all ? '!text-white/80' : ''}">
+                  {t('hud.ispoLabel')}
+                </span>
+                <span class="num text-sm font-extrabold">
+                  {all ? t('hud.ispoCertified') : `${v.ispoMet}/${v.ispoTotal}`}
+                </span>
+              </span>
+              <span class="flex items-center gap-1" aria-hidden="true">
+                {#each pips(v.ispoTotal) as i (i)}
+                  <i class="ispo-pip {i < v.ispoMet ? 'ispo-pip-met' : ''}"></i>
+                {/each}
+              </span>
+              {#if all}
+                <!-- The Ministry has not looked yet: the dot says so. -->
+                <i class="ispo-dot"></i>
+              {/if}
             </button>
           {/if}
 

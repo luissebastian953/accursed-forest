@@ -174,7 +174,8 @@
             {#if p.windows}<div class="mt-0.5 opacity-70">{p.windows}</div>{/if}
             {#if p.breeding}<div class="mt-0.5 text-amber-200/90">{t('block.breeding')}</div>{/if}
 
-            <div class="mt-2 grid grid-cols-2 gap-1.5">
+            <!-- Three across: the six treatments sit as two even rows. -->
+            <div class="mt-2 grid grid-cols-3 gap-1.5">
               {#each p.treatments as action (action.testId)}
                 {@render actionButton(action)}
               {/each}

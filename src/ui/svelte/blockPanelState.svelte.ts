@@ -349,13 +349,6 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
         break;
     }
 
-    if (block.debris > 0) {
-      actions.push(
-        action(t('block.sanitize'), { type: 'SanitizeBlock', block: id }, 'action-SanitizeBlock', {
-          minor: true,
-        }),
-      );
-    }
     if (block.phase !== 'kopdes' && block.biome !== 'river') {
       if (block.slope && (block.phase === 'planted' || block.phase === 'cleared')) {
         actions.push(
@@ -546,7 +539,17 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     const capacity = beetleCapacity(block.debris);
     const pressure = pestPressure(block, palmTrees);
     const counts = palmTrees ? ganodermaCounts(palmTrees) : null;
-    const treatments: ActionView[] = [
+    // Sanitising is the one that fixes the cause rather than the symptom, so
+    // it leads the treatments instead of sitting on its own below them.
+    const treatments: ActionView[] = [];
+    if (block.debris > 0) {
+      treatments.push(
+        action(t('block.sanitize'), { type: 'SanitizeBlock', block: id }, 'action-SanitizeBlock', {
+          minor: true,
+        }),
+      );
+    }
+    treatments.push(
       action(t('block.setTraps'), { type: 'SetTrap', block: id }, 'action-SetTrap', {
         minor: true,
       }),
@@ -558,7 +561,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
           minor: true,
         },
       ),
-    ];
+    );
     if (palmTrees) {
       treatments.push(
         action(

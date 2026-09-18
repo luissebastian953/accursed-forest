@@ -9,7 +9,7 @@
   "yearsClean": "{target}+ tahun bersih",
   "yearsOf": "{value} dari {target} tahun",
   "levelOf": "tingkat {value} dari {target}",
-  "title": "Sertifikat ISPO:",
+  "title": "Sertifikat ISPO",
   "intro": "Diperiksa setiap akhir tahun. Penuhi kelimanya dan Kementerian mengirim spanduk.",
   "winNote": "Selesaikan semua ini untuk memenangkan permainan.",
   "yearClosed": "Tahun {year} ditutup",
@@ -18,5 +18,12 @@
   "bearing": "Berbuah",
   "hectares": "{n} ha",
   "forestCover": "Tutupan hutan",
-  "ispo": "ISPO"
+  "ispo": "ISPO",
+  "kicker": "Syarat kemenangan",
+  "metOf": "{met} dari {total} terpenuhi",
+  "nextCheck": "cek berikutnya {days} h",
+  "met": "Terpenuhi",
+  "inProgress": "Berjalan",
+  "daysLeft": "sisa {days} hari",
+  "back": "Kembali ke kebun"
 }

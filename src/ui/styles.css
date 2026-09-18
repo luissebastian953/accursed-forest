@@ -172,6 +172,47 @@ canvas {
     --btn-edge: var(--coral-edge);
   }
 
+  /* The ISPO button in progress: the Ministry's gold, not the estate's green. */
+  .btn-gold {
+    --btn-from: var(--gold-2);
+    --btn-to: #e8a81f;
+    --btn-edge: var(--gold-edge);
+    color: var(--ink);
+  }
+
+  .ispo {
+    position: relative;
+    gap: 0.5rem;
+  }
+
+  /* One pip per condition: progress without opening anything. */
+  .ispo-pip {
+    display: block;
+    width: 0.62rem;
+    height: 0.62rem;
+    border-radius: 999px;
+    background: #fffdf5;
+    box-shadow: inset 0 0 0 2px rgb(0 0 0 / 0.14);
+  }
+
+  .ispo-pip-met {
+    background: var(--green-2);
+    box-shadow: inset 0 0 0 2px var(--green-edge);
+  }
+
+  /* All five met, and the year not yet closed: the Ministry has still to look. */
+  .ispo-dot {
+    position: absolute;
+    top: -0.3rem;
+    right: -0.3rem;
+    display: block;
+    width: 0.85rem;
+    height: 0.85rem;
+    border-radius: 999px;
+    background: var(--gold-2);
+    box-shadow: 0 0 0 2px var(--gold-edge);
+  }
+
   .btn-blue {
     --btn-from: #7ba4ff;
     --btn-to: var(--blue);

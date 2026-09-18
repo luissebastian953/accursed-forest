@@ -26,6 +26,9 @@ import { operatingBanned } from './society.ts';
 
 export type IspoConditionId = 'profit' | 'hectares' | 'noBurn' | 'forest' | 'kopdes';
 
+/** How many conditions there are, so the HUD's pips are not a magic number. */
+export const ISPO_CONDITIONS = 5;
+
 export interface IspoCondition {
   id: IspoConditionId;
   met: boolean;

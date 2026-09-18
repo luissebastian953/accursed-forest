@@ -64,7 +64,7 @@ import { createSim, restoreSim, seedFromEstateCode, type Sim } from '@sim/index'
 import { blockLabel } from '@sim/labels';
 import { estateForestCover } from '@sim/landscape';
 import { runOver } from '@sim/run';
-import { creditLine, ispoConditions, matureHectares } from '@sim/systems/endings';
+import { creditLine, ispoConditions, matureHectares, ISPO_CONDITIONS } from '@sim/systems/endings';
 import { workedBlocks } from '@sim/systems/mobs';
 import { ganodermaCounts } from '@sim/systems/pest';
 import type { BlockId, Command } from '@sim/types';
@@ -361,7 +361,15 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     openHelp: () => help.toggle(),
     openCertificate: () => {
       if (certificate.isOpen) certificate.hide();
-      else certificate.show(ispoConditions(sim.state, sim.world));
+      else {
+        // The Ministry looks at the close of each year (§3.8).
+        const dayOfYear = sim.state.tick % GROWTH.daysPerYear;
+        certificate.show({
+          conditions: ispoConditions(sim.state, sim.world),
+          daysToCheck: GROWTH.daysPerYear - dayOfYear,
+          checkDay: sim.state.tick + (GROWTH.daysPerYear - dayOfYear),
+        });
+      }
     },
   });
 
@@ -825,6 +833,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         sim.state.tick >= (ISPO.progressFromYear - 1) * GROWTH.daysPerYear
           ? (sim.state.run.years.at(-1)?.conditionsMet ?? 0)
           : null,
+      ispoTotal: ISPO_CONDITIONS,
     });
   }
 

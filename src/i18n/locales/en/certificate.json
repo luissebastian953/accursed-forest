@@ -9,7 +9,7 @@
   "yearsClean": "{target}+ years clean",
   "yearsOf": "{value} of {target} years",
   "levelOf": "level {value} of {target}",
-  "title": "ISPO certificate:",
+  "title": "ISPO certificate",
   "intro": "Checked at the close of every year. Meet all five and the Ministry sends a banner.",
   "winNote": "Complete this to win the game.",
   "yearClosed": "Year {year} closed",
@@ -18,5 +18,12 @@
   "bearing": "Bearing",
   "hectares": "{n} ha",
   "forestCover": "Forest cover",
-  "ispo": "ISPO"
+  "ispo": "ISPO",
+  "kicker": "The win condition",
+  "metOf": "{met} of {total} met",
+  "nextCheck": "next check in {days} d",
+  "met": "Met",
+  "inProgress": "In progress",
+  "daysLeft": "{days} days left",
+  "back": "Back to the estate"
 }

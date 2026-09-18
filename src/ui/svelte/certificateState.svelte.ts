@@ -18,9 +18,17 @@ export interface CertificateHandlers {
   close(): void;
 }
 
+export interface CertificateView {
+  conditions: readonly IspoCondition[];
+  /** Days until the Ministry next looks, which is the next year's close. */
+  daysToCheck: number;
+  /** Day of the run, for naming the check. */
+  checkDay: number;
+}
+
 /** The checklist popover under the top bar. */
 export class CertificatePanel {
-  readonly state = $state<{ conditions: readonly IspoCondition[] | null }>({ conditions: null });
+  readonly state = $state<{ view: CertificateView | null }>({ view: null });
   private readonly target: HTMLElement;
   private readonly instance: ReturnType<Component>;
 
@@ -34,15 +42,15 @@ export class CertificatePanel {
   }
 
   get isOpen(): boolean {
-    return this.state.conditions !== null;
+    return this.state.view !== null;
   }
 
-  show(conditions: readonly IspoCondition[]): void {
-    this.state.conditions = conditions;
+  show(view: CertificateView): void {
+    this.state.view = view;
   }
 
   hide(): void {
-    this.state.conditions = null;
+    this.state.view = null;
   }
 
   dispose(): void {

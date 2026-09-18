@@ -34,6 +34,8 @@
   "lockedTitle": "Speed capped at {n}× while anything burns",
   "speedNeedsKopdes": "Unlock Kopdes to level {level}",
   "ispo": "ISPO {met}/5",
+  "ispoLabel": "ISPO",
+  "ispoCertified": "Certified at year end",
   "ispoTitle": "ISPO certificate progress",
   "help": "? Help",
   "helpTitle": "Controls (H)",

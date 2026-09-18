@@ -394,8 +394,10 @@ const fire: Loop = (ctx, out, at = 0) => {
  * Hz, rather than a gain that breathes; the embers are narrow, resonant pops
  * that die inside a fiftieth of a second.
  *
- * Its pops are quieter than its flames and still cut through, because the ear
- * is far more sensitive at three kilohertz than at four hundred.
+ * The reference weighs its pops well under its flames and they still carry,
+ * because the ear is far more sensitive at three kilohertz than at four
+ * hundred. Here the balance is pushed further that way again: the blowing
+ * sits back and the embers lead.
  */
 const fireAlt: Loop = (ctx, out, at = 0) => {
   const gain = ctx.createGain();
@@ -404,7 +406,7 @@ const fireAlt: Loop = (ctx, out, at = 0) => {
   const flames = noiseSource(ctx, 'pink', at);
   const low = filter(ctx, at, { from: 400, q: 0.7 });
   const flameGain = ctx.createGain();
-  flameGain.gain.value = 0.4;
+  flameGain.gain.value = 0.075;
   chain(flames, low, flameGain, gain, out);
   // The wind shifting across it: the cutoff moves, so the roar changes
   // colour rather than just volume.
@@ -417,11 +419,13 @@ const fireAlt: Loop = (ctx, out, at = 0) => {
   };
   const pops: AudioBufferSourceNode[] = [];
   const crackle = (from: number, to: number): void => {
-    for (let t = from; t < to; t += 0.03 + random() * 0.2) {
+    for (let t = from; t < to; t += 0.025 + random() * 0.14) {
       const env = envelope(ctx, t, {
         attack: 0.001,
         decay: 0.02,
-        peak: 0.02 + random() * 0.15,
+        // A Q of five passes a sliver of the noise, so the level here is
+        // high to come out level with anything else.
+        peak: 1.6 + random() * 2.4,
       });
       const pop = noiseSource(ctx, 'white', t);
       chain(
