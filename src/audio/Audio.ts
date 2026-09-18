@@ -27,6 +27,7 @@ const BUS_OF: Record<OneShotId | LoopId, Bus> = {
   warning: 'drama',
   'rain-light': 'world',
   'fire-crackle': 'world',
+  'fire-crackle-2': 'world',
   'excavator-engine': 'world',
   'police-siren': 'drama',
 };

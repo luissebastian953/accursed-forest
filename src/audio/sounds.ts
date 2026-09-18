@@ -306,7 +306,7 @@ const fire: Loop = (ctx, out, at = 0) => {
 
   const rumble = noiseSource(ctx, 'brown', at);
   const rumbleGain = ctx.createGain();
-  rumbleGain.gain.value = 0.34;
+  rumbleGain.gain.value = 0.11;
   chain(
     rumble,
     filter(ctx, at, { type: 'highpass', from: 60, q: 0.7 }),
@@ -317,7 +317,7 @@ const fire: Loop = (ctx, out, at = 0) => {
   );
   const roar = noiseSource(ctx, 'pink', at + 0.001);
   const roarGain = ctx.createGain();
-  roarGain.gain.value = 0.26;
+  roarGain.gain.value = 0.09;
   chain(roar, filter(ctx, at, { type: 'bandpass', from: 520, q: 0.55 }), roarGain, gain, out);
   // Flames surge and sink, but never on a beat: a sine here is heard as a
   // slope up and down every two seconds, which is what a fire never does.
@@ -336,18 +336,18 @@ const fire: Loop = (ctx, out, at = 0) => {
       // Short and quiet, but high enough to keep an edge: a long loud pop
       // reads as a snapping twig, a brief bright one as a fire ticking over.
       const env = envelope(ctx, t, {
-        attack: 0.0015,
-        decay: 0.012 + random() * 0.03,
-        peak: 0.12 + random() * 0.2,
+        attack: 0.001,
+        decay: 0.008 + random() * 0.022,
+        peak: 0.46 + random() * 0.42,
       });
       const pop = noiseSource(ctx, 'white', t);
       chain(
         pop,
-        filter(ctx, t, { type: 'bandpass', from: 1700 + random() * 2600, q: 2.2 }),
+        filter(ctx, t, { type: 'bandpass', from: 1700 + random() * 2600, q: 4.5 }),
         env,
         gain,
       );
-      pop.stop(t + 0.08);
+      pop.stop(t + 0.06);
       pops.push(pop);
     }
   };
@@ -378,6 +378,82 @@ const fire: Loop = (ctx, out, at = 0) => {
     roar.stop(when);
     surge.stop(when);
     breathe.stop(when);
+    for (const pop of pops) {
+      try {
+        pop.stop(when);
+      } catch {
+        // Already finished; nothing to stop.
+      }
+    }
+  });
+};
+
+/**
+ * Fire, the other way round (a second take on the same thing). The flames are
+ * pink noise under a lowpass whose cutoff wanders between about 300 and 500
+ * Hz, rather than a gain that breathes; the embers are narrow, resonant pops
+ * that die inside a fiftieth of a second.
+ *
+ * Its pops are quieter than its flames and still cut through, because the ear
+ * is far more sensitive at three kilohertz than at four hundred.
+ */
+const fireAlt: Loop = (ctx, out, at = 0) => {
+  const gain = ctx.createGain();
+  gain.gain.value = 0.55;
+
+  const flames = noiseSource(ctx, 'pink', at);
+  const low = filter(ctx, at, { from: 400, q: 0.7 });
+  const flameGain = ctx.createGain();
+  flameGain.gain.value = 0.4;
+  chain(flames, low, flameGain, gain, out);
+  // The wind shifting across it: the cutoff moves, so the roar changes
+  // colour rather than just volume.
+  const wander = drift(ctx, low.frequency, { seconds: 0.5, depth: 400, at });
+
+  let seed = 4321;
+  const random = (): number => {
+    seed = (seed * 1103515245 + 12345) % 2147483648;
+    return seed / 2147483648;
+  };
+  const pops: AudioBufferSourceNode[] = [];
+  const crackle = (from: number, to: number): void => {
+    for (let t = from; t < to; t += 0.03 + random() * 0.2) {
+      const env = envelope(ctx, t, {
+        attack: 0.001,
+        decay: 0.02,
+        peak: 0.02 + random() * 0.15,
+      });
+      const pop = noiseSource(ctx, 'white', t);
+      chain(
+        pop,
+        filter(ctx, t, { type: 'bandpass', from: 1500 + random() * 3000, q: 5 }),
+        env,
+        gain,
+      );
+      pop.stop(t + 0.03);
+      pops.push(pop);
+    }
+  };
+  const offline = ctx instanceof OfflineAudioContext;
+  const upFront = offline ? ctx.length / ctx.sampleRate + 1 : 4;
+  crackle(at + 0.05, at + upFront);
+  let horizon = at + upFront;
+  const feed =
+    typeof setInterval === 'function' && !offline
+      ? setInterval(() => {
+          const ahead = ctx.currentTime + 3;
+          if (ahead > horizon) {
+            crackle(horizon, ahead);
+            horizon = ahead;
+          }
+          while (pops.length > 400) pops.shift();
+        }, 1000)
+      : null;
+
+  return handle(gain, (when) => {
+    if (feed !== null) clearInterval(feed);
+    flames.stop(when);
+    wander.stop(when);
     for (const pop of pops) {
       try {
         pop.stop(when);
@@ -435,6 +511,7 @@ const siren: Loop = (ctx, out, at = 0) => {
 export const LOOPS = {
   'rain-light': rain,
   'fire-crackle': fire,
+  'fire-crackle-2': fireAlt,
   'excavator-engine': excavator,
   'police-siren': siren,
 } as const satisfies Record<string, Loop>;
