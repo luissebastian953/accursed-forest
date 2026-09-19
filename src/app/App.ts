@@ -449,7 +449,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     settle: () => {
       const result = dispatch({ type: 'SettleInvestigation' });
       if (result.ok) {
-        police.sync(sim.state, sim.world, performance.now());
+        police.sync(sim.state, sim.world, worldNow());
         closeCard();
       }
     },
@@ -936,7 +936,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         // The crew and their scaffolding are on the block before the next tick.
         mobField.syncSim(sim.state);
         workSite.sync(sim.state, sim.world);
-        excavator.sync(sim.state, sim.world, performance.now());
+        excavator.sync(sim.state, sim.world, worldNow());
       }
       if (command.type === 'BurnBlock') {
         syncFireState();
@@ -956,6 +956,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         kopdes.sync(sim.state, sim.world);
         if (shop.isOpen) rangeRing.show(sim.state, sim.world);
       }
+      // The ring is the cursor, not the world: it keeps wall time, so it
+      // still pops in when a paused player clicks a block.
       if (ring.block !== null) ring.show(sim.state, sim.world, ring.block, performance.now());
       refreshHud();
     } else {
@@ -996,8 +998,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     chunks.dispose();
     chunks = makeChunks();
     scene.add(chunks.group);
-    police.sync(sim.state, sim.world, performance.now());
-    ceremony.sync(sim.state, sim.world, performance.now());
+    police.sync(sim.state, sim.world, worldNow());
+    ceremony.sync(sim.state, sim.world, worldNow());
     motorcade.sync(sim.state, sim.world);
     cards.hide();
     newsPanel.hide();
@@ -1009,7 +1011,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     mobField.clear();
     mobField.syncSim(sim.state);
     workSite.sync(sim.state, sim.world);
-    excavator.sync(sim.state, sim.world, performance.now());
+    excavator.sync(sim.state, sim.world, worldNow());
     palmsDirty = true;
     animateBlocks = new Set();
     kopdes.sync(sim.state, sim.world);
@@ -1068,7 +1070,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       if (shop.isOpen) rangeRing.show(sim.state, sim.world);
     }
     if (d.investigationDropped) {
-      police.sync(sim.state, sim.world, performance.now());
+      police.sync(sim.state, sim.world, worldNow());
       toasts.push('The police file is closed. Nothing on the estate is drawing attention now.');
     }
     if (d.reforestationCredit) {
@@ -1103,7 +1105,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
     // The authorities.
     if (d.investigationOpened || d.investigationEnded || d.arrested)
-      police.sync(sim.state, sim.world, performance.now());
+      police.sync(sim.state, sim.world, worldNow());
     if (d.operatingBanLifted) toasts.push('The operating licence is restored. Crews may return.');
 
     // The year, and how the run ends (§3.8).
@@ -1120,8 +1122,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     if (d.certified && sim.state.kopdes) {
       // The win: the Ministry's banner and fireworks, and the President's
       // motorcade up to the Kopdes door. The epilogue opens once he is there.
-      ceremony.sync(sim.state, sim.world, performance.now(), true);
-      motorcade.arrive(sim.state, sim.world, performance.now());
+      ceremony.sync(sim.state, sim.world, worldNow(), true);
+      motorcade.arrive(sim.state, sim.world, worldNow());
       focusBlock(sim.state.kopdes.blockId);
       audio.play('win');
       toasts.push('The Ministry has sent a banner. ISPO certified.');
@@ -1191,8 +1193,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     if (d.ashSettled) toasts.push('The ash has settled. It will feed the soil for a season.');
     if (d.sparks.size > 0) toasts.push('Drought: a spark caught a debris pile.', 'error');
     for (const bolt of d.lightning) {
-      lightning.strike(sim.state, sim.world, bolt.block, performance.now());
-      sky.flash(performance.now());
+      lightning.strike(sim.state, sim.world, bolt.block, worldNow());
+      sky.flash(worldNow());
       thunderFor(bolt.block);
       if (bolt.ignited) {
         toasts.push(`Lightning has set ${blockName(bolt.block)} alight.`, 'error');
@@ -1218,7 +1220,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     if (d.thiefCaught) toasts.push('Security saw off a fruit thief.');
     mobField.syncSim(sim.state);
     workSite.sync(sim.state, sim.world);
-    excavator.sync(sim.state, sim.world, performance.now());
+    excavator.sync(sim.state, sim.world, worldNow());
     const drowned = d.palmsDied.filter((p) => p.cause === 'flood').length;
     if (drowned > 0)
       toasts.push(
@@ -1287,6 +1289,15 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   }
 
   let lastUiMs = -1;
+  /**
+   * The world's own clock: wall time, less every moment the estate was
+   * paused. Everything that moves in the scene reads this instead of
+   * `performance.now()`, so Pause stops the clouds, the mobs, the fires and
+   * the crews along with the days. The camera and the interface keep wall
+   * time, because a paused player still wants to look around.
+   */
+  let worldMs = 0;
+  const worldNow = (): number => worldMs;
 
   /**
    * A forest block gives up a tree at each quarter of the chop, and whatever
@@ -1295,7 +1306,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
    */
   const treesFelled = new Map<BlockId, number>();
   function fellChoppedTrees(cleared: ReadonlySet<BlockId>): void {
-    const now = performance.now();
+    const now = worldNow();
     for (const block of sim.state.blocks.values()) {
       if (block.phase !== 'clearing' || !BIOMES[block.biome].forestCover) continue;
       const due = Math.min(TREES_PER_BLOCK - 1, Math.floor(block.clearProgress * TREES_PER_BLOCK));
@@ -1458,35 +1469,40 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   }
 
   function onFrame(dt: number, nowMs: number): void {
+    // Nothing in the world moves while the clock is stopped.
+    const running = time.speed > 0;
+    const worldDt = running ? dt : 0;
+    if (running) worldMs += dt * 1000;
+
     rig.update(dt, nowMs);
     rig.visibleGround(visible);
     chunks.update(visible, nowMs);
 
     if (palmsDirty) {
-      palms.sync(sim.state, sim.world, nowMs, animateBlocks);
+      palms.sync(sim.state, sim.world, worldMs, animateBlocks);
       animateBlocks = new Set();
       palmsDirty = false;
     }
-    palms.update(nowMs);
-    ring.update(nowMs);
-    police.update(nowMs);
-    ceremony.update(nowMs);
-    motorcade.update(nowMs);
-    excavator.update(nowMs);
+    palms.update(worldMs);
+    ring.update(nowMs, running);
+    police.update(worldMs);
+    ceremony.update(worldMs);
+    motorcade.update(worldMs);
+    excavator.update(worldMs);
     ticker.update(sim.state.society.news, unreadWarnings());
     newsPanel.update(sim.state.society.news, newsStatus());
-    fires.update(nowMs);
-    sky.update(sim.state.weather, uniforms, atmosphere(), dt, nowMs);
-    rain.update(dt, sim.state.weather.rain, sim.state.weather.sky, visible, time.speed > 0);
+    fires.update(worldMs);
+    sky.update(sim.state.weather, uniforms, atmosphere(), worldDt, worldMs);
+    rain.update(worldDt, sim.state.weather.rain, sim.state.weather.sky, visible, running);
     syncWeatherAudio(dt);
     syncFireAudio();
-    lightning.update(nowMs);
-    timber.update(nowMs);
-    mobField.update(dt, time.secondsPerTick);
-    coins.update(dt);
-    sparkleBurst.update(dt);
-    clouds.update(dt, rig.camera, visible);
-    syncSparkles(nowMs);
+    lightning.update(worldMs);
+    timber.update(worldMs);
+    mobField.update(worldDt, time.secondsPerTick);
+    coins.update(worldDt);
+    sparkleBurst.update(worldDt);
+    clouds.update(worldDt, rig.camera, visible);
+    syncSparkles(worldMs);
     syncWorkMarkers();
     syncHudMarkers();
 
@@ -1670,11 +1686,11 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   focusStart();
   refreshHud();
   refreshMenu();
-  police.sync(sim.state, sim.world, performance.now());
-  ceremony.sync(sim.state, sim.world, performance.now());
+  police.sync(sim.state, sim.world, worldNow());
+  ceremony.sync(sim.state, sim.world, worldNow());
   motorcade.sync(sim.state, sim.world);
   workSite.sync(sim.state, sim.world);
-  excavator.sync(sim.state, sim.world, performance.now());
+  excavator.sync(sim.state, sim.world, worldNow());
   if (runOver(sim.state)) showEpilogue();
   time.subscribe(() => refreshHud());
   // `?debug` exposes the running sim for the browser suite and for poking at

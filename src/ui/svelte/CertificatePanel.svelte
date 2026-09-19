@@ -114,11 +114,19 @@
         <span class="num shrink-0 text-sm font-extrabold" data-testid="certificate-count">
           {t('certificate.metOf', { met, total: view.conditions.length })}
         </span>
-        <span class="flex min-w-0 flex-1 gap-1" aria-hidden="true">
-          {#each view.conditions as c (c.id)}
+        <!--
+          The bar counts, it does not list: the met segments fill from the
+          left whatever order the conditions happen to be in below.
+        -->
+        <span
+          class="flex min-w-0 flex-1 gap-1"
+          aria-hidden="true"
+          data-testid="certificate-segments"
+        >
+          {#each view.conditions as c, i (c.id)}
             <i
               class="h-2 flex-1 rounded-full"
-              style="background: {c.met ? 'var(--green-2)' : 'var(--pill-muted)'}"
+              style="background: {i < met ? 'var(--green-2)' : 'var(--pill-muted)'}"
             ></i>
           {/each}
         </span>

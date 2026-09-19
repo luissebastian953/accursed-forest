@@ -379,6 +379,32 @@ test.describe('Sawit Simulator', () => {
     expect(errors).toEqual([]);
   });
 
+  test('pause stops the world: two frames a second apart are the same frame', async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.goto('/play.html?webgl&seed=42&fresh&debug');
+    await expect(page.locator('canvas')).toBeVisible();
+    await page.waitForTimeout(3000);
+    const box = (await page.locator('canvas').boundingBox())!;
+    // A patch of the estate with clouds over it, and the selection ring in it.
+    const clip = { x: box.x, y: box.y + 220, width: 700, height: 420 };
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2 - 6);
+    await expect(tid(page, 'block-panel')).toBeVisible();
+
+    await tid(page, 'speed-1').click();
+    await page.waitForTimeout(600);
+    const runA = await page.screenshot({ clip });
+    await page.waitForTimeout(1200);
+    const runB = await page.screenshot({ clip });
+    expect(runA.equals(runB), 'a running estate should be moving').toBe(false);
+
+    await tid(page, 'speed-0').click();
+    await page.waitForTimeout(900);
+    const pauseA = await page.screenshot({ clip });
+    await page.waitForTimeout(1500);
+    const pauseB = await page.screenshot({ clip });
+    expect(pauseA.equals(pauseB), 'a paused estate should be still').toBe(true);
+  });
+
   test('a headline on the bar reads as words, not as its own key', async ({ page }) => {
     await boot(page);
     // Put the President's speech on the wire, the way the deck would.

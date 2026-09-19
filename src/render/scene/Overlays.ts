@@ -133,9 +133,14 @@ export class SelectionRing {
     this.selected = null;
   }
 
-  update(nowMs: number): void {
+  /**
+   * @param pulsing false holds the glow steady, for a paused estate where
+   * nothing at all should be moving. The pop-in still runs: the ring is the
+   * cursor, and a click has to answer even with the clock stopped.
+   */
+  update(nowMs: number, pulsing = true): void {
     if (!this.group.visible) return;
-    this.pulse.value = 0.82 + 0.18 * Math.sin(nowMs * 0.004);
+    this.pulse.value = pulsing ? 0.82 + 0.18 * Math.sin(nowMs * 0.004) : 1;
     if (this.shownAt < 0) return;
     const t = clamp01((nowMs - this.shownAt) / DURATION.popIn);
     const s = Math.max(0.001, easeOutBack(t));
