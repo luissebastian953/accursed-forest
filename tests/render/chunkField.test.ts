@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { BoxBuilder } from '@render/geometry/boxBuilder.ts';
 import { buildColumnArrays } from '@render/geometry/terrain.ts';
 import { Palette } from '@render/materials/paletteSlots.ts';
 import {
@@ -13,6 +14,7 @@ import {
   toLite,
   type DivergedBlockLite,
 } from '@render/scene/chunkField.ts';
+import { growFence } from '@render/scene/props.ts';
 import { WORLD } from '@sim/balance/world.ts';
 import { createSim } from '@sim/index.ts';
 import { createWorld } from '@sim/worldgen/index.ts';
@@ -265,5 +267,45 @@ describe('chunk mesh (§6.7 budgets)', () => {
     for (let i = 0; i < 8; i++) buildColumnArrays(buildChunkField(world, 4 + i, 4, EMPTY));
     const perChunk = (performance.now() - t0) / 8;
     expect(perChunk).toBeLessThan(40);
+  });
+});
+
+describe('the fence along the crop (§6.3)', () => {
+  /** Triangles the fence adds for one block with this occupancy. */
+  function fenceTriangles(planted: Uint8Array): number {
+    const builder = new BoxBuilder();
+    growFence(builder, { bx: 0, by: 0, y: 0, planted });
+    return builder.triangleCount;
+  }
+
+  const slots = WORLD.blockSide * WORLD.blockSide;
+
+  it('is built only where the crop meets bare ground', () => {
+    // A full hectare has no inside edge, so there is nothing to fence.
+    expect(fenceTriangles(new Uint8Array(slots).fill(1))).toBe(0);
+    // An empty one has no crop to fence in.
+    expect(fenceTriangles(new Uint8Array(slots))).toBe(0);
+
+    // Half planted: one straight run across the block, and no more.
+    const half = new Uint8Array(slots);
+    for (let i = 0; i < slots / 2; i++) half[i] = 1;
+    const straight = fenceTriangles(half);
+    expect(straight).toBeGreaterThan(0);
+
+    // A ragged edge is a longer fence than a straight one.
+    const ragged = new Uint8Array(slots);
+    for (let i = 0; i < slots; i++) {
+      const row = Math.floor(i / WORLD.blockSide);
+      ragged[i] = row < 6 || (row === 6 && i % WORLD.blockSide < 4) ? 1 : 0;
+    }
+    expect(fenceTriangles(ragged)).toBeGreaterThan(straight);
+  });
+
+  it('costs nothing on a hectare nobody has planted', () => {
+    // The mask only exists for planted and reforesting blocks, so the common
+    // case never reaches the fence at all.
+    const sim = createSim(42);
+    const block = [...sim.state.blocks.values()].find((b) => b.owned && b.phase === 'wild')!;
+    expect(toLite(block, 0).planted).toBeNull();
   });
 });

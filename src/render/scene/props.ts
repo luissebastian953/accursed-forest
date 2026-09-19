@@ -303,3 +303,61 @@ export function growBlock(builder: BoxBuilder, ctx: PropContext, block: PropBloc
     if (table) g.roll(table, x, z);
   });
 }
+
+/**
+ * The fence between the planted rows and the ground nothing stands on
+ * (§6.3). It is drawn only where a planted slot meets an empty one inside
+ * the same hectare, which is the line a grower would actually fence: the
+ * edge of the crop. Block boundaries are already drawn by the terrain, so
+ * nothing is doubled up there.
+ *
+ * Posts are set at one end of each run so neighbouring segments share them,
+ * and the rails are two thin bars, which is enough to read as a fence from
+ * the height the camera sits at.
+ */
+export function growFence(
+  builder: BoxBuilder,
+  block: { bx: number; by: number; y: number; planted: Uint8Array },
+): void {
+  const side = WORLD.blockSide;
+  const x0 = block.bx * side;
+  const z0 = block.by * side;
+  const post = { side: Palette.PalmTrunk };
+  const rail = { side: Palette.DeadWood };
+  const HEIGHT = 0.62;
+  const THICK = 0.07;
+
+  /** A run of fence along one cell edge, with the post at its start. */
+  const segment = (cx: number, cz: number, alongZ: boolean): void => {
+    const w = alongZ ? THICK : 1;
+    const d = alongZ ? 1 : THICK;
+    for (const [h, y] of [
+      [0.08, HEIGHT * 0.82],
+      [0.07, HEIGHT * 0.5],
+    ] as const) {
+      builder.addAABox(cx, block.y + y, cz, w, h, d, rail);
+    }
+    const px = alongZ ? cx : cx - 0.5;
+    const pz = alongZ ? cz - 0.5 : cz;
+    builder.addAABox(px, block.y + HEIGHT / 2, pz, 0.12, HEIGHT, 0.12, post);
+  };
+
+  for (let row = 0; row < side; row++) {
+    for (let col = 0; col < side; col++) {
+      if (block.planted[row * side + col] !== 1) continue;
+      // Only the planted side draws, so a boundary is fenced once.
+      if (col + 1 < side && block.planted[row * side + col + 1] === 0) {
+        segment(x0 + col + 1, z0 + row + 0.5, true);
+      }
+      if (col > 0 && block.planted[row * side + col - 1] === 0) {
+        segment(x0 + col, z0 + row + 0.5, true);
+      }
+      if (row + 1 < side && block.planted[(row + 1) * side + col] === 0) {
+        segment(x0 + col + 0.5, z0 + row + 1, false);
+      }
+      if (row > 0 && block.planted[(row - 1) * side + col] === 0) {
+        segment(x0 + col + 0.5, z0 + row, false);
+      }
+    }
+  }
+}

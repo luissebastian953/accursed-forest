@@ -24,7 +24,7 @@ import type { MeshArrays } from '../geometry/boxBuilder.ts';
 import { buildColumnArrays, type ColumnField } from '../geometry/terrain.ts';
 import { Palette } from '../materials/paletteSlots.ts';
 
-import { growBlock, hash01 } from './props.ts';
+import { growBlock, growFence, hash01 } from './props.ts';
 import { buildRiverChannel, type RiverChannel } from './riverChannel.ts';
 
 /** World units of height per elevation level. */
@@ -430,6 +430,16 @@ export function buildChunkArrays(
         // A slid block keeps its spoil and its snapped branches until it is
         // dug out or planted over.
         const slid = lite?.slid ?? false;
+        // A planted hectare grows no scenery, but it is fenced along the
+        // edge of the crop.
+        if (lite?.planted !== null && lite?.planted !== undefined) {
+          growFence(builder, {
+            bx,
+            by,
+            y: terraceHeight(world.generated(bx, by).elevation),
+            planted: lite.planted,
+          });
+        }
         if (lite && lite.phase !== 'wild' && !burnt && !slid) continue;
         const generated = world.generated(bx, by);
         growBlock(builder, ctx, {
