@@ -1,7 +1,6 @@
 {
   "estateCode": "Estate code",
-  "newEstateCode": "New estate code",
-  "randomCode": "random",
+  "randomCode": "a random world",
   "namePlaceholder": "Name",
   "namePlaceholderHint": "Name your estate",
   "seedLabel": "Seed (optional)",
@@ -16,7 +15,15 @@
   "language": "Language",
   "newEstate": "New estate",
   "codePlaceholder": "Estate code, or any words",
-  "startGame": "Start a game",
-  "codeError": "That is not an estate code. It looks like ABC-DEFG.",
-  "codeHint": "Leave both empty for a random world. A seed can be an estate code or any words, and the same seed always builds the same map. Starting a new estate replaces the current one."
+  "brand": "Sawit Simulator",
+  "noEstate": "No estate yet",
+  "newGamePrompt": "Want to start a new game?",
+  "newGameFresh": "Start new game",
+  "newGameNoteSave": "Your current estate stays saved until you confirm on the next step.",
+  "newGameNoteFresh": "Nothing to lose yet: opens the same name and seed form.",
+  "replaceWarning": "Creating a new estate replaces {estate}. Save it first if you want to come back.",
+  "seedHint": "Leave the seed empty for a random world. The same seed always builds the same map. This one would be",
+  "nameNeeded": "Name the estate first.",
+  "cancel": "Cancel",
+  "create": "Create"
 }

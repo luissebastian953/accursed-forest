@@ -603,6 +603,12 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     rangeRing.hide();
   }
 
+  /**
+   * Whether an estate is in play. False behind the title screen, where there
+   * is nothing to save and nothing a new estate would replace.
+   */
+  let playing = false;
+
   function refreshMenu(): void {
     let lastSavedAt: string | null = null;
     const manifest = storage.get(slot.manifestKey);
@@ -616,6 +622,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     menu.update({
       estateCode: sim.world.estateCode,
       estateName: sim.state.estateName,
+      inPlay: playing,
       hasSave: slot.exists(),
       lastSavedAt,
       saveError,
@@ -1723,6 +1730,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   });
   /** Fade the title out and pull the camera in on the estate; the clock starts with it. */
   function beginPlay(): void {
+    playing = true;
+    refreshMenu();
     startScreen.dismiss();
     hud.setHidden(false);
     ticker.setHidden(false);
@@ -1748,8 +1757,12 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         backend: handle.backend === 'webgpu' ? 'WebGPU' : 'WebGL 2',
       }),
     });
-  } else if (!slot.exists()) {
-    welcome();
+  } else {
+    // Straight into play: a dev or test URL that names a world, or a run that
+    // is already over and reopens on its epilogue.
+    playing = true;
+    refreshMenu();
+    if (!slot.exists()) welcome();
   }
 
   return () => {

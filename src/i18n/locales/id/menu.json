@@ -1,7 +1,6 @@
 {
   "estateCode": "Kode kebun",
-  "newEstateCode": "Kode kebun baru",
-  "randomCode": "acak",
+  "randomCode": "dunia acak",
   "namePlaceholder": "Nama",
   "namePlaceholderHint": "Beri nama kebunmu",
   "seedLabel": "Seed (opsional)",
@@ -16,7 +15,15 @@
   "language": "Bahasa",
   "newEstate": "Kebun baru",
   "codePlaceholder": "Kode kebun, atau kata apa saja",
-  "startGame": "Mulai permainan",
-  "codeError": "Itu bukan kode kebun. Bentuknya seperti ABC-DEFG.",
-  "codeHint": "Kosongkan keduanya untuk dunia acak. Seed bisa berupa kode kebun atau kata apa saja, dan seed yang sama selalu membangun peta yang sama. Memulai kebun baru menggantikan kebun yang sekarang."
+  "brand": "Sawit Simulator",
+  "noEstate": "Belum ada kebun",
+  "newGamePrompt": "Mau memulai permainan baru?",
+  "newGameFresh": "Mulai permainan baru",
+  "newGameNoteSave": "Kebunmu yang sekarang tetap tersimpan sampai kamu mengonfirmasi di langkah berikutnya.",
+  "newGameNoteFresh": "Belum ada yang bisa hilang: membuka formulir nama dan seed yang sama.",
+  "replaceWarning": "Membuat kebun baru menggantikan {estate}. Simpan dulu kalau kamu ingin kembali.",
+  "seedHint": "Kosongkan seed untuk dunia acak. Seed yang sama selalu membangun peta yang sama. Yang ini akan menjadi",
+  "nameNeeded": "Beri nama kebunnya dulu.",
+  "cancel": "Batal",
+  "create": "Buat"
 }

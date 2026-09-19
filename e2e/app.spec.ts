@@ -362,14 +362,6 @@ test.describe('Sawit Simulator', () => {
     // And it survives a save and a reload.
     await tid(page, 'menu-button').click();
     await expect(tid(page, 'menu-estate-name')).toHaveText('Penyawit Handal');
-    // The name box opens on the estate being played, ready to be edited, and
-    // the header still shows that estate rather than a new one.
-    await expect(tid(page, 'menu-name')).toHaveValue('Penyawit Handal');
-    await expect(tid(page, 'menu-estate-code')).toHaveText(first ?? '');
-    // Editing it previews a different estate.
-    await tid(page, 'menu-name').fill('Kebun Baru');
-    await expect(tid(page, 'menu-estate-code')).not.toHaveText(first ?? '');
-    await tid(page, 'menu-name').fill('Penyawit Handal');
     await expect(tid(page, 'menu-estate-code')).toHaveText(first ?? '');
     await tid(page, 'menu-save').click();
     await page.keyboard.press('Escape');
@@ -377,6 +369,53 @@ test.describe('Sawit Simulator', () => {
     await page.waitForTimeout(2500);
     await expect(tid(page, 'start-estate')).toContainText(first ?? '');
     expect(errors).toEqual([]);
+  });
+
+  test('a new estate takes two steps, and nothing else in the menu starts one', async ({
+    page,
+  }) => {
+    test.setTimeout(90_000);
+    await page.goto('/play.html?webgl&seed=42&fresh&debug');
+    await expect(page.locator('canvas')).toBeVisible();
+    await page.waitForTimeout(2000);
+    const code = await tid(page, 'hud-estate-code').textContent();
+
+    await tid(page, 'menu-button').click();
+    // The menu's face carries no boxes: one button, and it only asks.
+    await expect(tid(page, 'menu')).toHaveAttribute('data-step', 'default');
+    await expect(tid(page, 'menu-name')).toHaveCount(0);
+    await expect(tid(page, 'menu-new')).toContainText('Want to start a new game?');
+
+    await tid(page, 'menu-new').click();
+    await expect(tid(page, 'menu')).toHaveAttribute('data-step', 'new');
+    // It says what would be lost, and cannot be run without a name.
+    await expect(tid(page, 'menu-replace-warning')).toContainText(code ?? '');
+    await expect(tid(page, 'menu-new-create')).toBeDisabled();
+    await tid(page, 'menu-name').fill('Kebun Baru');
+    await expect(tid(page, 'menu-new-create')).toBeEnabled();
+    // The code the name would produce is shown before anything is replaced.
+    const next = await tid(page, 'menu-code-preview').textContent();
+    expect(next).toMatch(/^[A-HJ-NP-Z2-9]{3}-[A-HJ-NP-Z2-9]{4}$/);
+
+    // Cancel goes back, and the estate in play is untouched.
+    await tid(page, 'menu-new-cancel').click();
+    await expect(tid(page, 'menu')).toHaveAttribute('data-step', 'default');
+    await expect(tid(page, 'hud-estate-code')).toHaveText(code ?? '');
+
+    // Dismissing from the form leaves the menu on its face, not mid-form.
+    await tid(page, 'menu-new').click();
+    await expect(tid(page, 'menu')).toHaveAttribute('data-step', 'new');
+    await page.keyboard.press('Escape');
+    await tid(page, 'menu-button').click();
+    await expect(tid(page, 'menu')).toHaveAttribute('data-step', 'default');
+
+    // Create is the one thing that replaces the estate.
+    await tid(page, 'menu-new').click();
+    await tid(page, 'menu-name').fill('Kebun Baru');
+    await tid(page, 'menu-new-create').click();
+    await page.waitForTimeout(1500);
+    await expect(tid(page, 'hud-estate-name')).toHaveText('Kebun Baru');
+    await expect(tid(page, 'hud-estate-code')).toHaveText(next ?? '');
   });
 
   test('50x is locked, with its reason, until the Kopdes reaches level 3', async ({ page }) => {
