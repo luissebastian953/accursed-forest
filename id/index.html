@@ -51,18 +51,31 @@
             "@type": "VideoGame",
             "@id": "__SITE_URL__/#game",
             "name": "Sawit Simulator",
-            "alternateName": ["Sawit Sim", "Simulator Kelapa Sawit", "Simulator Kebun Sawit"],
+            "alternateName": [
+              "Sawit Sim",
+              "Simulator Kelapa Sawit",
+              "Simulator Kebun Sawit"
+            ],
             "url": "__SITE_URL__/id/",
             "image": "__SITE_URL__/og-1200x630.png",
             "screenshot": "__SITE_URL__/brand/hero-estate-1600.webp",
             "description": "Game simulasi manajemen di browser tentang membangun kebun kelapa sawit: buka lahan, tanam, panen, jual, dan hadapi kebakaran hutan, hama, longsor, dan surat dari kantor kabupaten yang lahir dari pilihanmu.",
             "keywords": "sawit, kelapa sawit, lahan sawit, kebun sawit, petani sawit, minyak sawit, buah sawit, tanam sawit, tebang sawit, hutan sawit, penebangan hutan, tebang pohon, tanam pohon, reboisasi, kebakaran hutan, kebakaran Kalimantan, simulator sawit, game simulasi, palm oil",
-            "genre": ["Simulasi", "Manajemen", "Strategi"],
-            "gamePlatform": ["Web browser"],
+            "genre": [
+              "Simulasi",
+              "Manajemen",
+              "Strategi"
+            ],
+            "gamePlatform": [
+              "Web browser"
+            ],
             "applicationCategory": "GameApplication",
             "operatingSystem": "Apa saja (WebGPU atau WebGL 2)",
             "playMode": "SinglePlayer",
-            "inLanguage": ["id", "en"],
+            "inLanguage": [
+              "id",
+              "en"
+            ],
             "isAccessibleForFree": true,
             "offers": {
               "@type": "Offer",
@@ -70,8 +83,25 @@
               "priceCurrency": "IDR",
               "availability": "https://schema.org/InStock"
             },
-            "author": { "@id": "__SITE_URL__/#publisher" },
-            "publisher": { "@id": "__SITE_URL__/#publisher" }
+            "author": {
+              "@id": "__SITE_URL__/#publisher"
+            },
+            "publisher": {
+              "@id": "__SITE_URL__/#publisher"
+            },
+            "browserRequirements": "Requires WebGL 2 or WebGPU and JavaScript",
+            "softwareVersion": "__APP_VERSION__",
+            "potentialAction": {
+              "@type": "PlayAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "__SITE_URL__/play.html",
+                "actionPlatform": [
+                  "http://schema.org/DesktopWebPlatform",
+                  "http://schema.org/MobileWebPlatform"
+                ]
+              }
+            }
           },
           {
             "@type": "Organization",
@@ -90,8 +120,13 @@
             "@id": "__SITE_URL__/#website",
             "url": "__SITE_URL__/",
             "name": "Sawit Simulator",
-            "publisher": { "@id": "__SITE_URL__/#publisher" },
-            "inLanguage": ["en", "id"]
+            "publisher": {
+              "@id": "__SITE_URL__/#publisher"
+            },
+            "inLanguage": [
+              "en",
+              "id"
+            ]
           },
           {
             "@type": "FAQPage",
@@ -149,14 +184,45 @@
             ]
           },
           {
+            "@type": "BreadcrumbList",
+            "@id": "__SITE_URL__/id/#breadcrumbs",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Sawit Simulator",
+                "item": "__SITE_URL__/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Bahasa Indonesia",
+                "item": "__SITE_URL__/id/"
+              }
+            ]
+          },
+          {
             "@type": "WebPage",
             "@id": "__SITE_URL__/id/#page",
             "url": "__SITE_URL__/id/",
             "name": "Sawit Simulator: simulator kebun kelapa sawit tentang pilihan yang menebang hutan",
-            "isPartOf": { "@id": "__SITE_URL__/#website" },
-            "about": { "@id": "__SITE_URL__/#game" },
+            "isPartOf": {
+              "@id": "__SITE_URL__/#website"
+            },
+            "about": {
+              "@id": "__SITE_URL__/#game"
+            },
             "inLanguage": "id",
-            "primaryImageOfPage": { "@type": "ImageObject", "url": "__SITE_URL__/og-1200x630.png" }
+            "primaryImageOfPage": {
+              "@type": "ImageObject",
+              "url": "__SITE_URL__/og-1200x630.png"
+            },
+            "translationOfWork": {
+              "@id": "__SITE_URL__/#page"
+            },
+            "breadcrumb": {
+              "@id": "__SITE_URL__/id/#breadcrumbs"
+            }
           }
         ]
       }

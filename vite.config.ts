@@ -46,7 +46,10 @@ function siteUrlPlugin(): Plugin {
   return {
     name: 'sawit-site-url',
     transformIndexHtml(html, ctx) {
-      let out = html.replaceAll('__SITE_URL__', siteUrl);
+      let out = html
+        .replaceAll('__SITE_URL__', siteUrl)
+        // The structured data names the build it is describing.
+        .replaceAll('__APP_VERSION__', JSON.parse(appVersion) as string);
       if (!siteUrl) {
         out = out.replace(/^\s*<link rel="canonical"[^>]*>\n?/m, '');
         out = out.replace(/^\s*<link rel="alternate" hreflang=[^>]*>\n?/gm, '');

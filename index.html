@@ -51,19 +51,35 @@
             "@type": "VideoGame",
             "@id": "__SITE_URL__/#game",
             "name": "Sawit Simulator",
-            "alternateName": ["Sawit Sim", "Simulator Kelapa Sawit", "Palm Oil Simulator"],
+            "alternateName": [
+              "Sawit Sim",
+              "Simulator Kelapa Sawit",
+              "Palm Oil Simulator"
+            ],
             "keywords": "sawit, kelapa sawit, palm oil, oil palm, palm tree farm, palm oil simulator, farming simulator, lahan sawit, petani sawit, minyak sawit, buah sawit, reboisasi, reforestation, deforestation, penebangan hutan, kebakaran hutan, forest fire, wildfire, Kalimantan, ISPO",
             "url": "__SITE_URL__/",
             "image": "__SITE_URL__/og-1200x630.png",
             "screenshot": "__SITE_URL__/brand/hero-estate-1600.webp",
             "description": "A browser management sim about turning wild land into a working oil-palm estate: clear, plant, harvest, sell, and live with the fires, pests, landslides and letters your clearing choices invite.",
-            "genre": ["Simulation", "Management", "Strategy"],
-            "gamePlatform": ["Web browser"],
+            "genre": [
+              "Simulation",
+              "Management",
+              "Strategy"
+            ],
+            "gamePlatform": [
+              "Web browser"
+            ],
             "applicationCategory": "GameApplication",
             "operatingSystem": "Any (WebGPU or WebGL 2)",
             "playMode": "SinglePlayer",
-            "numberOfPlayers": { "@type": "QuantitativeValue", "value": 1 },
-            "inLanguage": ["en", "id"],
+            "numberOfPlayers": {
+              "@type": "QuantitativeValue",
+              "value": 1
+            },
+            "inLanguage": [
+              "en",
+              "id"
+            ],
             "isAccessibleForFree": true,
             "offers": {
               "@type": "Offer",
@@ -71,8 +87,25 @@
               "priceCurrency": "USD",
               "availability": "https://schema.org/InStock"
             },
-            "author": { "@id": "__SITE_URL__/#publisher" },
-            "publisher": { "@id": "__SITE_URL__/#publisher" }
+            "author": {
+              "@id": "__SITE_URL__/#publisher"
+            },
+            "publisher": {
+              "@id": "__SITE_URL__/#publisher"
+            },
+            "browserRequirements": "Requires WebGL 2 or WebGPU and JavaScript",
+            "softwareVersion": "__APP_VERSION__",
+            "potentialAction": {
+              "@type": "PlayAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "__SITE_URL__/play.html",
+                "actionPlatform": [
+                  "http://schema.org/DesktopWebPlatform",
+                  "http://schema.org/MobileWebPlatform"
+                ]
+              }
+            }
           },
           {
             "@type": "Organization",
@@ -91,8 +124,13 @@
             "@id": "__SITE_URL__/#website",
             "url": "__SITE_URL__/",
             "name": "Sawit Simulator",
-            "publisher": { "@id": "__SITE_URL__/#publisher" },
-            "inLanguage": ["en", "id"]
+            "publisher": {
+              "@id": "__SITE_URL__/#publisher"
+            },
+            "inLanguage": [
+              "en",
+              "id"
+            ]
           },
           {
             "@type": "FAQPage",
@@ -150,14 +188,39 @@
             ]
           },
           {
+            "@type": "BreadcrumbList",
+            "@id": "__SITE_URL__/#breadcrumbs",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Sawit Simulator",
+                "item": "__SITE_URL__/"
+              }
+            ]
+          },
+          {
             "@type": "WebPage",
             "@id": "__SITE_URL__/#page",
             "url": "__SITE_URL__/",
             "name": "Sawit Simulator: a palm-oil estate sim about the choices that clear a forest",
-            "isPartOf": { "@id": "__SITE_URL__/#website" },
-            "about": { "@id": "__SITE_URL__/#game" },
+            "isPartOf": {
+              "@id": "__SITE_URL__/#website"
+            },
+            "about": {
+              "@id": "__SITE_URL__/#game"
+            },
             "inLanguage": "en",
-            "primaryImageOfPage": { "@type": "ImageObject", "url": "__SITE_URL__/og-1200x630.png" }
+            "primaryImageOfPage": {
+              "@type": "ImageObject",
+              "url": "__SITE_URL__/og-1200x630.png"
+            },
+            "translationOfWork": {
+              "@id": "__SITE_URL__/id/#page"
+            },
+            "breadcrumb": {
+              "@id": "__SITE_URL__/#breadcrumbs"
+            }
           }
         ]
       }

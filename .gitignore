@@ -23,3 +23,23 @@ logs/
 *.log
 npm-debug.log*
 pnpm-debug.log*
+
+# secrets and local config (`.env.example` is the tracked template)
+.env
+.env.*
+!.env.example
+
+# tool caches
+*.tsbuildinfo
+.eslintcache
+.cache/
+.turbo/
+
+# scratch
+tmp/
+*.tmp
+
+# editor / os, the rest
+Thumbs.db
+desktop.ini
+.history/
