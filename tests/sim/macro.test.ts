@@ -22,6 +22,8 @@ import {
 import { readBlock } from '@sim/state.ts';
 import { drawable } from '@sim/systems/society.ts';
 
+import { lookup } from '../../src/i18n/catalog.ts';
+
 const IDS = Object.keys(MACRO_EVENTS) as MacroEventId[];
 
 /** Put one headline on the wire, as the draw would. */
@@ -206,22 +208,16 @@ describe('the headline deck (§3.7)', () => {
 });
 
 describe('the bar chips (§8)', () => {
-  it('every headline that runs for days has a label in both languages', async () => {
-    const en = (await import('../../src/i18n/locales/en/events.json')).default as Record<
-      string,
-      string
-    >;
-    const id = (await import('../../src/i18n/locales/id/events.json')).default as Record<
-      string,
-      string
-    >;
+  it('every headline that runs for days has a label in both languages', () => {
     for (const key of IDS) {
       const spec = MACRO_EVENTS[key] as { days?: unknown };
       // Only the timed ones put a chip on the bar; the permanent ones are a
       // headline and a new price, with nothing left running.
       if (!spec.days) continue;
-      expect(en[key], `events.${key} has no English label`).toBeTruthy();
-      expect(id[key], `events.${key} has no Indonesian label`).toBeTruthy();
+      // Through the catalog rather than the file, so the namespace prefix the
+      // bar actually asks for is covered too.
+      expect(lookup('en', `events.${key}`), `events.${key} has no English label`).toBeTruthy();
+      expect(lookup('id', `events.${key}`), `events.${key} has no Indonesian label`).toBeTruthy();
     }
   });
 });

@@ -379,6 +379,24 @@ test.describe('Sawit Simulator', () => {
     expect(errors).toEqual([]);
   });
 
+  test('a headline on the bar reads as words, not as its own key', async ({ page }) => {
+    await boot(page);
+    // Put the President's speech on the wire, the way the deck would.
+    await page.evaluate(() => {
+      const { state } = (window as unknown as DebugWindow).__sawit.sim();
+      state.weather.activeEvents.push({
+        id: 'macro:palmIsATree',
+        startedAt: state.tick,
+        endsAt: state.tick + 164,
+      });
+    });
+    const chip = tid(page, 'event-chip-palmIsATree');
+    await expect(chip).toBeVisible({ timeout: 5000 });
+    await expect(chip).toContainText('Palm is a tree');
+    // The failure this guards against printed the lookup key itself.
+    await expect(page.getByText(/events\.\w+/)).toHaveCount(0);
+  });
+
   test('upgrading the Kopdes changes the building, and is cheered', async ({ page }) => {
     test.setTimeout(90_000);
     await page.goto('/play.html?webgl&seed=42&fresh&debug');
