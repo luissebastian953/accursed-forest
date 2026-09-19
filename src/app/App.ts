@@ -1186,13 +1186,13 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
     for (const f of d.fellingStarted) {
       toasts.push(
-        `A crew is felling ${blockName(f.block)}: ${f.palms} palms, ${formatRp(f.cost)} in wages.`,
+        `A crew is felling ${blockName(f.block)}: ${f.palms} trees, ${formatRp(f.cost)} in wages.`,
         'warn',
       );
     }
 
     for (const c of d.plantationCleared) {
-      toasts.push(`${blockName(c.block)} is bare land again. ${c.palms} palms came down.`);
+      toasts.push(`${blockName(c.block)} is bare land again. ${c.palms} trees came down.`);
     }
 
     if (d.investigationDropped) {

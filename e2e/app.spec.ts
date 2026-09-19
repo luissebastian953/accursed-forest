@@ -915,6 +915,10 @@ test.describe('Sawit Simulator', () => {
     // and it asks twice: the first press opens the question, and the wide
     // button closes it without a crew.
     await expect(tid(page, 'danger-zone')).toBeVisible();
+    // Folded shut: the red button is behind the dropdown, not on the panel.
+    await expect(tid(page, 'action-ClearPlantation')).toHaveCount(0);
+    await tid(page, 'danger-toggle').click();
+    await expect(tid(page, 'action-ClearPlantation')).toBeVisible();
     await expect(tid(page, 'clear-confirm')).toHaveCount(0);
     await tid(page, 'action-ClearPlantation').click();
     await expect(tid(page, 'clear-confirm')).toBeVisible();

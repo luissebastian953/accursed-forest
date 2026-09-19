@@ -387,73 +387,125 @@
       {#if v.danger}
         {@const danger = v.danger}
         <!--
-          The danger zone (GDD 8 panel 13a). One outlined press asks; the card
-          that opens names what goes, and only its red button does it.
+          The danger zone (GDD 8 panel 13a), folded shut by default so it never
+          competes with Harvest or Fertilize. Unfolded, it shows the red button;
+          that button only asks, and the card it opens names what goes.
         -->
-        <footer
-          class="flex flex-col gap-2 border-t-2 border-dashed border-[#f2e0b0] p-4"
-          data-testid="danger-zone"
-        >
-          <div class="label text-[#9e2e20]">{t('block.dangerZone')}</div>
-          {#if !panel.ui.confirmClear}
+        <footer class="border-t-2 border-dashed border-[#f2e0b0] p-4" data-testid="danger-zone">
+          <div class="danger rounded-2xl border-2 border-[#e9a898] bg-[#fbe4dc]">
             <button
-              class="btn btn-lg w-full !border-[#c9432f] !bg-white !text-[#9e2e20]"
-              disabled={danger.rejection !== null}
-              title={danger.rejection ?? ''}
-              data-testid="action-ClearPlantation"
-              onclick={() => panel.askClear(true)}
+              class="flex w-full items-center gap-2.5 px-3.5 py-3 text-left"
+              aria-expanded={panel.ui.dangerOpen}
+              data-testid="danger-toggle"
+              onclick={() => panel.toggleDanger()}
             >
-              <span class="flex w-full items-center gap-2">
-                <Icon name="axe-chop" />
-                <span>{t('block.clearPlantation')}</span>
-                <span class="min-w-0 flex-1"></span>
-                <span class="num rounded-lg bg-[#ffe6e0] px-1.5 py-0.5 text-xs text-[#9e2e20]">
-                  {formatRp(danger.cost)}
-                </span>
+              <Icon name="police-warning" />
+              <span class="text-xs font-extrabold tracking-[0.08em] text-[#b0402c] uppercase">
+                {t('block.dangerZone')}
               </span>
+              <span class="min-w-0 flex-1 truncate text-xs font-bold text-[#9e4a34]">
+                {t('block.dangerZoneSub')}
+              </span>
+              <svg
+                class="chevron h-4 w-4 shrink-0 text-[#b0402c] {panel.ui.dangerOpen ? 'open' : ''}"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="m6 9 6 6 6-6"
+                  stroke="currentColor"
+                  stroke-width="3.2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
             </button>
-            <div class="muted px-1 text-xs font-bold leading-snug">
-              {t('block.clearPlantationNote', { n: danger.palms, days: danger.days })}
-            </div>
-            {#if danger.rejection}
-              <div class="px-1 text-xs font-bold text-[#b85e12]">{danger.rejection}</div>
-            {/if}
-          {:else}
-            <div
-              class="flex flex-col gap-2 rounded-xl border-2 border-[#c9432f] bg-[#fff4f1] p-3"
-              data-testid="clear-confirm"
-            >
-              <div class="font-bold text-[#9e2e20]">{t('block.clearConfirmTitle')}</div>
-              <ul class="muted list-disc pl-5 text-xs font-bold leading-snug">
-                <li>{t('block.clearLosesPalms', { n: danger.palms })}</li>
-                {#if danger.fruitKg > 0}
-                  <li>{t('block.clearLosesFruit', { kg: formatKg(danger.fruitKg) })}</li>
+
+            {#if panel.ui.dangerOpen}
+              <div
+                class="flex flex-col gap-2 border-t-2 border-dashed border-[#efbcae] px-3.5 pt-3 pb-3.5"
+              >
+                {#if !panel.ui.confirmClear}
+                  <div class="px-0.5 text-xs font-bold leading-snug text-[#8a4a3a]">
+                    {t('block.clearPlantationNote', {
+                      n: danger.palms,
+                      what: danger.what,
+                      days: danger.days,
+                    })}
+                  </div>
+                  <button
+                    class="btn btn-red btn-lg w-full"
+                    disabled={danger.rejection !== null}
+                    title={danger.rejection ?? ''}
+                    data-testid="action-ClearPlantation"
+                    onclick={() => panel.askClear(true)}
+                  >
+                    <span class="flex w-full items-center gap-2">
+                      <Icon name="axe-chop" />
+                      <span>{t('block.clearPlantation')}</span>
+                      <span class="min-w-0 flex-1"></span>
+                      <span class="num rounded-lg bg-black/15 px-1.5 py-0.5 text-xs">
+                        {formatRp(danger.cost)}
+                      </span>
+                    </span>
+                  </button>
+                  {#if danger.rejection}
+                    <div class="px-0.5 text-xs font-bold text-[#9e2e20]">{danger.rejection}</div>
+                  {/if}
+                {:else}
+                  <div class="flex flex-col gap-2" data-testid="clear-confirm">
+                    <div class="font-bold text-[#9e2e20]">{t('block.clearConfirmTitle')}</div>
+                    <ul class="list-disc pl-5 text-xs font-bold leading-snug text-[#8a4a3a]">
+                      <li>{t('block.clearLosesPalms', { n: danger.palms, what: danger.what })}</li>
+                      {#if danger.fruitKg > 0}
+                        <li>{t('block.clearLosesFruit', { kg: formatKg(danger.fruitKg) })}</li>
+                      {/if}
+                      {#if danger.years > 0}
+                        <li>{t('block.clearLosesYears', { n: danger.years })}</li>
+                      {/if}
+                      <li>
+                        {t('block.clearCosts', { cost: formatRp(danger.cost), days: danger.days })}
+                      </li>
+                    </ul>
+                    <div class="flex gap-2">
+                      <button
+                        class="btn btn-ghost flex-[2]"
+                        data-testid="action-ClearPlantation-cancel"
+                        onclick={() => panel.askClear(false)}
+                      >
+                        {t('block.cancel')}
+                      </button>
+                      <button
+                        class="btn btn-red flex-1"
+                        data-testid="action-ClearPlantation-confirm"
+                        onclick={() => panel.confirmClear(danger.command)}
+                      >
+                        {t('block.confirmClear')}
+                      </button>
+                    </div>
+                  </div>
                 {/if}
-                {#if danger.years > 0}
-                  <li>{t('block.clearLosesYears', { n: danger.years })}</li>
-                {/if}
-                <li>{t('block.clearCosts', { cost: formatRp(danger.cost), days: danger.days })}</li>
-              </ul>
-              <div class="flex gap-2">
-                <button
-                  class="btn btn-ghost flex-[2]"
-                  data-testid="action-ClearPlantation-cancel"
-                  onclick={() => panel.askClear(false)}
-                >
-                  {t('block.cancel')}
-                </button>
-                <button
-                  class="btn flex-1 !border-[#8a1f12] !bg-[#c9432f] !text-white"
-                  data-testid="action-ClearPlantation-confirm"
-                  onclick={() => panel.confirmClear(danger.command)}
-                >
-                  {t('block.confirmClear')}
-                </button>
               </div>
-            </div>
-          {/if}
+            {/if}
+          </div>
         </footer>
       {/if}
     </div>
   {/if}
 </div>
+
+<style>
+  /* The same pressed-card edge the buttons carry, in the zone's own pink. */
+  .danger {
+    box-shadow: 0 3px 0 #e6a594;
+  }
+
+  .chevron {
+    transition: transform 160ms ease;
+  }
+
+  .chevron.open {
+    transform: rotate(180deg);
+  }
+</style>

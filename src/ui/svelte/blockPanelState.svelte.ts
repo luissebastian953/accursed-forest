@@ -153,6 +153,8 @@ export interface BlockView {
   danger: {
     cost: number;
     palms: number;
+    /** What stands there, as the copy names it: palms, or the saplings of a forest. */
+    what: string;
     fruitKg: number;
     years: number;
     days: number;
@@ -183,6 +185,7 @@ function dangerView(sim: Sim, id: BlockId): BlockView['danger'] {
   return {
     cost: clearPlantationCost(state, id),
     palms,
+    what: block.phase === 'reforesting' ? t('block.whatTrees') : t('block.whatPalms'),
     fruitKg: stand && block.species === 'palm' ? harvestableKg(stand, 'palm', state.tick) : 0,
     years: Math.floor((state.tick - oldest) / GROWTH.daysPerYear),
     days: CLEAR_PLANTATION.days,
@@ -967,12 +970,15 @@ export class BlockPanel {
   readonly ui = $state<{
     block: BlockId | null;
     slot: number | null;
+    /** The danger zone is unfolded, showing its button. */
+    dangerOpen: boolean;
     /** The danger zone's second step is open: the player has asked once. */
     confirmClear: boolean;
     version: number;
   }>({
     block: null,
     slot: null,
+    dangerOpen: false,
     confirmClear: false,
     version: 0,
   });
@@ -999,6 +1005,7 @@ export class BlockPanel {
 
     if (block !== this.ui.block) {
       this.ui.slot = null;
+      this.ui.dangerOpen = false;
       this.ui.confirmClear = false;
     }
 
@@ -1023,13 +1030,20 @@ export class BlockPanel {
     this.ui.slot = this.ui.slot === slot ? null : slot;
   }
 
+  /** Fold or unfold the danger zone. Folding it also drops a half-asked question. */
+  toggleDanger(): void {
+    this.ui.dangerOpen = !this.ui.dangerOpen;
+    if (!this.ui.dangerOpen) this.ui.confirmClear = false;
+  }
+
   /** Open or close the danger zone's confirm step. */
   askClear(open: boolean): void {
     this.ui.confirmClear = open;
   }
 
-  /** The second press: the crew goes in, and the question closes. */
+  /** The second press: the crew goes in, and the zone folds away. */
   confirmClear(command: Command): void {
+    this.ui.dangerOpen = false;
     this.ui.confirmClear = false;
     this.act(command);
   }
