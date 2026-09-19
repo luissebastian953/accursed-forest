@@ -250,6 +250,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       getDiverged: () => sim.state.blocks.values(),
       getTick: () => sim.state.tick,
       getFlooded: () => floodedNow(),
+      getPalms: () => sim.state.palms,
     });
 
   const rig = new MapRig({ domElement: handle.canvas, bounds: worldUnits() });

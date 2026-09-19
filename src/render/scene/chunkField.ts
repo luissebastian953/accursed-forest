@@ -111,9 +111,27 @@ export interface DivergedBlockLite {
   flooded: boolean;
   /** The slope gave way here and nothing has been planted since (§3.6.2). */
   slid: boolean;
+  /**
+   * Which of the block's slots have something standing in them, one byte per
+   * slot, or null for a block with no palms at all. The ground grid is one
+   * column per slot, so an empty slot is a column of bare earth: a hectare
+   * planted with half the bibit it needed looks half planted.
+   */
+  planted: Uint8Array | null;
 }
 
-export function toLite(block: Readonly<Block>, tick: number, flooded = false): DivergedBlockLite {
+export function toLite(
+  block: Readonly<Block>,
+  tick: number,
+  flooded = false,
+  palms?: { plantedAt: Int32Array | ArrayLike<number> } | undefined,
+): DivergedBlockLite {
+  let planted: Uint8Array | null = null;
+  if (palms && (block.phase === 'planted' || block.phase === 'reforesting')) {
+    const slots = palms.plantedAt.length;
+    planted = new Uint8Array(slots);
+    for (let i = 0; i < slots; i++) planted[i] = palms.plantedAt[i]! >= 0 ? 1 : 0;
+  }
   return {
     id: block.id,
     biome: block.biome,
@@ -123,6 +141,7 @@ export function toLite(block: Readonly<Block>, tick: number, flooded = false): D
     ashy: block.ashUntil > tick,
     flooded,
     slid: block.landslideAt >= 0,
+    planted,
   };
 }
 
@@ -314,7 +333,17 @@ export function buildChunkField(
         }
       }
 
-      const slot = topSlot(biome, phase, burning, ashy, flooded, slid);
+      // A planted hectare is only green where something stands. The ground
+      // grid is one column per slot, so an empty slot is its own column of
+      // bare earth, and a half-planted block reads as half planted.
+      const bare =
+        lite?.planted !== null &&
+        lite?.planted !== undefined &&
+        !burning &&
+        !flooded &&
+        !slid &&
+        lite.planted[(gz - by * side) * side + (gx - bx * side)] === 0;
+      const slot = bare ? Palette.Laterite : topSlot(biome, phase, burning, ashy, flooded, slid);
       // Burned ground is mottled char and ash, and torn ground is mottled
       // earth and stone: neither is one flat colour.
       topSlots[i] =

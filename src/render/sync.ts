@@ -161,9 +161,12 @@ export function digestEvents(events: readonly SimEvent[]): EventDigest {
         break;
       case 'PalmRemoved':
       case 'PalmTrenched':
+        // Taking a palm out leaves bare ground where it stood.
+        d.terrainBlocks.add(event.block);
         d.palmBlocks.add(event.block);
         break;
       case 'BlockReplanted':
+        d.terrainBlocks.add(event.block);
         d.palmBlocks.add(event.block);
         d.animateBlocks.add(event.block);
         d.replanted.push({ block: event.block, count: event.count });

@@ -82,6 +82,40 @@ describe('chunk field (§6.3, §6.7)', () => {
     }
   });
 
+  it('a half-planted hectare reads as half planted', () => {
+    const sim = createSim(42);
+    const { world, state } = sim;
+    const block = [...state.blocks.values()].find((b) => b.owned && b.phase === 'wild')!;
+    block.phase = 'planted';
+
+    // Slots fill in order, so plant the first half of the rows and no more.
+    const slots = WORLD.blockSide * WORLD.blockSide;
+    const half = slots / 2;
+    const plantedAt = new Int32Array(slots).fill(-1);
+    for (let i = 0; i < half; i++) plantedAt[i] = 0;
+
+    const lite = toLite(block, 0, false, { plantedAt });
+    const [cx, cy] = chunkOfBlock(world, block.id);
+    const field = buildChunkField(world, cx, cy, new Map([[block.id, lite]]));
+
+    const [bx, by] = world.toXY(block.id);
+    const localX = (bx - cx * WORLD.chunkSide) * WORLD.blockSide + field.inset!;
+    const localZ = (by - cy * WORLD.chunkSide) * WORLD.blockSide + field.inset!;
+
+    for (let z = 0; z < WORLD.blockSide; z++) {
+      for (let x = 0; x < WORLD.blockSide; x++) {
+        const i = (localZ + z) * field.size + (localX + x);
+        const occupied = plantedAt[z * WORLD.blockSide + x]! >= 0;
+        // Green where something stands, bare earth where nothing does.
+        expect(field.topSlots[i], `slot ${z * WORLD.blockSide + x}`).toBe(
+          occupied ? Palette.Terrace : Palette.Laterite,
+        );
+        // And the ground is still a terrace either way: it is one hectare.
+        expect(field.heights[i]).toBe(terraceHeight(block.elevation));
+      }
+    }
+  });
+
   it('paints tops by phase and biome', () => {
     const sim = createSim(42);
     const { world, state } = sim;

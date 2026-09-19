@@ -32,6 +32,8 @@ export interface ChunkManagerOptions {
   getTick: () => number;
   /** Blocks under flood water right now. */
   getFlooded?: () => ReadonlySet<number>;
+  /** The palms on each block, so the ground can show which slots are empty. */
+  getPalms?: () => ReadonlyMap<number, { plantedAt: ArrayLike<number> }>;
   createWorker?: () => Worker;
   maxInFlight?: number;
   lruSize?: number;
@@ -55,6 +57,7 @@ export class ChunkManager {
   private readonly getDiverged: () => Iterable<Readonly<Block>>;
   private readonly getTick: () => number;
   private readonly getFlooded: () => ReadonlySet<number>;
+  private readonly getPalms: () => ReadonlyMap<number, { plantedAt: ArrayLike<number> }>;
   private readonly worker: Worker;
   private readonly maxInFlight: number;
   private readonly lruSize: number;
@@ -77,6 +80,7 @@ export class ChunkManager {
     this.getDiverged = options.getDiverged;
     this.getTick = options.getTick;
     this.getFlooded = options.getFlooded ?? (() => new Set());
+    this.getPalms = options.getPalms ?? (() => new Map());
     this.maxInFlight = options.maxInFlight ?? 2;
     this.lruSize = options.lruSize ?? 64;
     this.unloadDelayMs = options.unloadDelayMs ?? 2000;
@@ -204,8 +208,9 @@ export class ChunkManager {
     const diverged = [];
     const tick = this.getTick();
     const flooded = this.getFlooded();
+    const palms = this.getPalms();
     for (const block of this.getDiverged())
-      diverged.push(toLite(block, tick, flooded.has(block.id)));
+      diverged.push(toLite(block, tick, flooded.has(block.id), palms.get(block.id)));
 
     const request: BuildChunkRequest = {
       type: 'build',
