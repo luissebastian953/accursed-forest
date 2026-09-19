@@ -35,22 +35,22 @@ function harness(rate: () => number, maxTicksPerFrame?: number) {
 }
 
 describe('game loop (GDD 4.2)', () => {
-  it('runs 1× as one tick every ten seconds', () => {
+  it('runs 1× as one tick every five seconds', () => {
     const h = harness(() => TICKS_PER_SECOND[1]);
 
     h.loop.step(0);
-    // 21 seconds of 16 ms frames: two ten-second ticks, with a second left over.
+    // 21 seconds of 16 ms frames: four five-second ticks, with a second left over.
     for (let t = 16; t <= 21_008; t += 16) h.loop.step(t);
-    expect(h.ticks()).toBe(2);
+    expect(h.ticks()).toBe(4);
   });
 
-  it('runs 50× as five ticks per second at a 60 Hz frame rate', () => {
+  it('runs 50× as ten ticks per second at a 60 Hz frame rate', () => {
     const h = harness(() => TICKS_PER_SECOND[50]);
 
     h.loop.step(0);
     for (let t = 1000 / 60; t <= 5000; t += 1000 / 60) h.loop.step(t);
-    expect(h.ticks()).toBeGreaterThanOrEqual(24);
-    expect(h.ticks()).toBeLessThanOrEqual(25);
+    expect(h.ticks()).toBeGreaterThanOrEqual(49);
+    expect(h.ticks()).toBeLessThanOrEqual(50);
   });
 
   it('a turbo scale multiplies every rate, for the browser suite', () => {
@@ -89,9 +89,9 @@ describe('game loop (GDD 4.2)', () => {
     const h = harness(() => rate);
 
     h.loop.step(0);
-    h.loop.step(8000); // 80% of the way to a 1× tick
+    h.loop.step(4000); // 80% of the way to a 1× tick
     rate = TICKS_PER_SECOND[50];
-    h.loop.step(8001); // 1 ms at 50×: not enough for a tick
+    h.loop.step(4001); // 1 ms at 50×: not enough for a tick
     expect(h.ticks()).toBe(0);
   });
 
@@ -100,7 +100,7 @@ describe('game loop (GDD 4.2)', () => {
     const h = harness(() => rate);
 
     h.loop.step(0);
-    h.loop.step(9_990);
+    h.loop.step(4_990);
     rate = 0;
     h.loop.step(12_000);
     rate = TICKS_PER_SECOND[1];

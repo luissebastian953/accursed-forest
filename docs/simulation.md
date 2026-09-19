@@ -1,6 +1,6 @@
 # The simulation
 
-A tick is a day. At normal speed a day passes every ten seconds; at 50x it
+A tick is a day. At normal speed a day passes every five seconds; at 50x it
 passes five times a second, which is what makes the ordering below matter.
 
 ## What happens on a tick
