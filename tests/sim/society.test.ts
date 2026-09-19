@@ -347,6 +347,24 @@ describe('authority (§3.9)', () => {
     expect(s.warningLevel).toBe(1);
   });
 
+  it('an empty meter closes the case: no suspicion, no police', () => {
+    const sim = createSim(7);
+    const s = sim.state.society;
+    s.attention = ATTENTION.decayPerDay / 2;
+    s.warningLevel = 2;
+    s.investigationUntil = sim.state.tick + 50;
+
+    expect(tickFor(sim, 'InvestigationDropped', 3)).not.toBeNull();
+    expect(s.attention).toBe(0);
+    expect(underInvestigation(sim.state)).toBe(false);
+
+    // A suspension is a sentence with a date, and is not dropped with it.
+    s.attention = ATTENTION.decayPerDay / 2;
+    s.operatingBanUntil = sim.state.tick + 40;
+    sim.tick();
+    expect(s.operatingBanUntil).toBeGreaterThan(sim.state.tick);
+  });
+
   it('Warning 1: the letter at 40 makes clearing cost half again, and lifts below 25', () => {
     const sim = createSim(42);
     const biome = sim.state.blocks.get(ownedWild(sim)[0]!)!.biome;

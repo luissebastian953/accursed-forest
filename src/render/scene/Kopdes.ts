@@ -164,9 +164,17 @@ export function buildKopdesGeometry(level: KopdesLevel = 1) {
       annexZ,
     );
     b.addAABox(annexX, 1.3, annexZ + 1.15, 1, 1.5, 0.14, timber);
-    // Between the annex and the door, clear of the corner: a window on the
-    // corner itself hangs over the edge of the wall it is set into.
-    b.addAABox(0.5, eaveEast - 0.75, depth / 2 + 0.08, 0.7, 0.8, 0.14, glass);
+    // The windows go in the blank east wall, not the front: the front is the
+    // door, the step and the annex, and a pane there ends up under the eave
+    // or behind the annex roof.
+    const wallPaneY = eaveEast - 1.15;
+    if (level >= 4) {
+      for (const z of [-0.9, 0.9]) {
+        b.addAABox(east + 0.08, wallPaneY, z, 0.14, 0.95, 1.4, glass);
+      }
+    } else {
+      b.addAABox(east + 0.08, wallPaneY, 0, 0.14, 0.9, 1.6, glass);
+    }
 
     // The dormer over the counter, in the lighter red. At the top level it is
     // wide enough for the office's two windows.
@@ -212,9 +220,8 @@ export function buildKopdesGeometry(level: KopdesLevel = 1) {
   }
 
   if (level >= 4) {
-    // The office window over the door, and the painted fascia under the eave,
-    // which is the co-op's green once it can afford the paint.
-    b.addAABox(1.6, eaveEast - 0.6, depth / 2 + 0.08, 1.4, 0.9, 0.14, glass);
+    // The painted fascia under the eave, which is the co-op's green once it
+    // can afford the paint.
     b.addAABox(east + 0.45, eaveEast - 0.12, 0, 0.3, 0.36, depth + 0.9, {
       side: Palette.KopdesTrim,
     });

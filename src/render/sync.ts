@@ -25,6 +25,8 @@ export interface EventDigest {
   kopdesUpgraded: number | null;
   /** A hectare put back under forest, and what the Ministry let go for it. */
   reforestationCredit: { attention: number; banDaysLeft: number } | null;
+  /** The police file closed on its own, the meter having emptied. */
+  investigationDropped: boolean;
   fertilizedBlocks: Set<BlockId>;
   bought: { item: ItemId; quantity: number }[];
   burnStarted: Set<BlockId>;
@@ -86,6 +88,7 @@ export function digestEvents(events: readonly SimEvent[]): EventDigest {
     sold: [],
     kopdesUpgraded: null,
     reforestationCredit: null,
+    investigationDropped: false,
     fertilizedBlocks: new Set(),
     bought: [],
     burnStarted: new Set(),
@@ -189,6 +192,9 @@ export function digestEvents(events: readonly SimEvent[]): EventDigest {
         break;
       case 'ItemBought':
         d.bought.push({ item: event.item, quantity: event.quantity });
+        break;
+      case 'InvestigationDropped':
+        d.investigationDropped = true;
         break;
       case 'ReforestationCredited':
         d.reforestationCredit = {

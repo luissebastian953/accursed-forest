@@ -372,14 +372,24 @@ function ape(options: {
   height: number;
   speed: number;
   cadence?: number;
+  /** How wide it is against an orangutan: under 1 for a lighter build. */
+  slim?: number;
+  /** The bare chest and gut an orangutan carries; a lighter ape has none. */
+  gut?: boolean;
+  /** The cheek flanges of an old male. */
+  flanges?: boolean;
+  /** Tail length, if it has one: the apes do not, the monkeys do. */
+  tail?: number;
 }): SpeciesSpec {
   const { id, label, fur, bare } = options;
   const h = options.height;
+  const slim = options.slim ?? 1;
   const legLength = h * 0.22;
   const torso = h * 0.46;
-  const head = h * 0.3;
-  const width = h * 0.42;
+  const head = h * 0.3 * (slim < 1 ? 0.92 : 1);
+  const width = h * 0.42 * slim;
   const armLength = h * 0.56;
+  const limb = h * 0.13 * slim;
 
   const parts: SpeciesSpec['parts'] = [
     {
@@ -389,25 +399,6 @@ function ape(options: {
       slot: fur,
       role: 'body',
     },
-    // The bare front, in two boxes: a narrow chest above a gut that is wider
-    // than it and carried further forward. Two boxes taper where one slab of
-    // grey would read as a bib.
-    {
-      name: 'chest',
-      parent: 'body',
-      at: [0, torso * 0.16, width * 0.2],
-      size: [width * 0.58, torso * 0.34, width * 0.56],
-      slot: bare,
-      role: 'still',
-    },
-    {
-      name: 'belly',
-      parent: 'body',
-      at: [0, -torso * 0.2, width * 0.26],
-      size: [width * 0.82, torso * 0.52, width * 0.66],
-      slot: bare,
-      role: 'still',
-    },
     {
       name: 'head',
       parent: 'body',
@@ -416,7 +407,7 @@ function ape(options: {
       slot: fur,
       role: 'head',
     },
-    // The bare face, and the cheek flanges an old male grows either side of it.
+    // The bare face.
     {
       name: 'face',
       parent: 'head',
@@ -425,31 +416,71 @@ function ape(options: {
       slot: bare,
       role: 'still',
     },
-    {
-      name: 'cheekL',
-      parent: 'head',
-      at: [-head * 0.66, -head * 0.05, 0],
-      size: [head * 0.28, head * 0.86, head * 0.6],
-      slot: fur,
-      role: 'still',
-    },
-    {
-      name: 'cheekR',
-      parent: 'head',
-      at: [head * 0.66, -head * 0.05, 0],
-      size: [head * 0.28, head * 0.86, head * 0.6],
-      slot: fur,
-      role: 'still',
-    },
   ];
+
+  // The bare front, in two boxes: a narrow chest above a gut that is wider
+  // than it and carried further forward. Two boxes taper where one slab of
+  // grey would read as a bib.
+  if (options.gut ?? true) {
+    parts.push(
+      {
+        name: 'chest',
+        parent: 'body',
+        at: [0, torso * 0.16, width * 0.2],
+        size: [width * 0.58, torso * 0.34, width * 0.56],
+        slot: bare,
+        role: 'still',
+      },
+      {
+        name: 'belly',
+        parent: 'body',
+        at: [0, -torso * 0.2, width * 0.26],
+        size: [width * 0.82, torso * 0.52, width * 0.66],
+        slot: bare,
+        role: 'still',
+      },
+    );
+  }
+
+  // The cheek flanges an old male grows either side of its face.
+  if (options.flanges ?? true) {
+    for (const side of [-1, 1]) {
+      parts.push({
+        name: side < 0 ? 'cheekL' : 'cheekR',
+        parent: 'head',
+        at: [side * head * 0.66, -head * 0.05, 0],
+        size: [head * 0.28, head * 0.86, head * 0.6],
+        slot: fur,
+        role: 'still',
+      });
+    }
+  }
+
+  // A tail, for the ones that have one. It starts behind the rump rather than
+  // inside it, and droops as it goes: these legs are too short to hang a tail
+  // from, and a rod through the middle of the body reads as a spit.
+  if (options.tail) {
+    const tail = options.tail;
+    parts.push({
+      name: 'tail',
+      parent: 'body',
+      at: [0, -torso * 0.28, -(width * 0.36 + tail / 2)],
+      size: [limb * 0.85, limb * 0.85, tail],
+      slot: fur,
+      role: 'tail',
+      tilt: [-0.34, 0, 0],
+    });
+  }
 
   for (const side of [-1, 1]) {
     const arm = side < 0 ? 'armL' : 'armR';
     parts.push({
       name: arm,
       parent: 'body',
-      at: [side * (width / 2 + h * 0.05), torso * 0.34, 0],
-      size: [h * 0.13, armLength, h * 0.14],
+      // Clear of the torso by more than the arm's own thickness, so a light
+      // build reads as a body with two arms beside it rather than one post.
+      at: [side * (width / 2 + limb * 1.4), torso * 0.34, 0],
+      size: [limb, armLength, limb * 1.08],
       slot: fur,
       role: side < 0 ? 'armL' : 'armR',
       pivot: 'top',
@@ -459,7 +490,7 @@ function ape(options: {
       name: side < 0 ? 'handL' : 'handR',
       parent: arm,
       at: [0, -armLength - h * 0.035, h * 0.02],
-      size: [h * 0.13, h * 0.09, h * 0.19],
+      size: [limb, h * 0.09, h * 0.19 * slim],
       slot: bare,
       role: 'still',
     });
@@ -467,7 +498,7 @@ function ape(options: {
       name: side < 0 ? 'legL' : 'legR',
       parent: 'body',
       at: [side * width * 0.23, -torso / 2, 0],
-      size: [h * 0.19, legLength, h * 0.21],
+      size: [h * 0.19 * slim, legLength, h * 0.21 * slim],
       slot: fur,
       // A biped's two legs take the front roles: they swing against the arms.
       role: side < 0 ? 'legFL' : 'legFR',
@@ -557,18 +588,19 @@ export const SPECIES: Record<string, SpeciesSpec> = {
     speed: 1.4,
     cadence: 1.4,
   }),
-  monkey: quadruped({
+  // Built on the ape: upright, long-armed and short-legged like the orangutan,
+  // but half its weight and with a tail to carry.
+  monkey: ape({
     id: 'monkey',
     label: 'Monkey',
     fur: Palette.FurMonkey,
-    length: 0.8,
-    height: 0.5,
-    width: 0.45,
-    headSize: 0.42,
-    legLength: 0.35,
-    tail: 1.1,
+    bare: Palette.Skin,
+    height: 1.05,
+    slim: 0.72,
+    flanges: false,
+    tail: 0.85,
     speed: 2.2,
-    cadence: 2.6,
+    cadence: 1.9,
   }),
   pangolin: quadruped({
     id: 'pangolin',

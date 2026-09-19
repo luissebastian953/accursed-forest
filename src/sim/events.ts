@@ -71,6 +71,7 @@ export type SimEvent =
   | { type: 'MacroEventEnded'; id: string }
   | { type: 'InputPricesRose'; index: number }
   | { type: 'IntegrityScandal'; integrity: number }
+  | { type: 'InvestigationDropped' }
   | { type: 'ReforestationCredited'; block: BlockId; attention: number; banDaysLeft: number }
   | { type: 'LetterReceived' }
   | {

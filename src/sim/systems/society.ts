@@ -224,6 +224,13 @@ function authority(ctx: SimContext): void {
   // Quiet days forget; after the checks, so a meter sitting at a threshold still trips it.
   s.attention -= ATTENTION.decayPerDay + reforesting * ATTENTION.reforestTricklePerBlock;
   s.attention = clamp(s.attention, 0, ATTENTION.max);
+
+  // An empty meter is a file with nothing left in it: the case is dropped and
+  // the cars go. A suspension is a sentence with a date and runs its term.
+  if (s.attention <= 0 && s.investigationUntil > state.tick) {
+    s.investigationUntil = state.tick;
+    events.push({ type: 'InvestigationDropped' });
+  }
 }
 
 /**

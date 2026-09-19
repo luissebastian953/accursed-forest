@@ -154,8 +154,8 @@ export function pose(spec: SpeciesSpec, part: PartSpec, input: PoseInput, out: M
         py -= crouch * part.size[1] * 0.45;
         rx += crouch * 0.55;
       }
-      // Working: leans into each swing.
-      if (work > 0) rx += work * (0.1 + (1 - chopLift(input.time, input.phase)) * 0.25);
+      // Working: the arms do the swinging. The body used to pitch with them,
+      // which read as falling over rather than as effort.
       // Sitting. On four legs that means up on the haunches, back sloped; on
       // two it means down on the ground, hips dropped and the back still up.
       if (sit > 0) {

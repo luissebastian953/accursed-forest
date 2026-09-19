@@ -843,7 +843,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       wildfire: isWildfire(sim.state),
       forestCover,
       events: eventChips(),
-      attention: sim.state.society.lettersReceived > 0 ? sim.state.society.attention : null,
+      attention: watchedByAuthorities() ? sim.state.society.attention : null,
       inputIndex: sim.state.economy.inputPriceIndex,
       ispoMet:
         sim.state.tick >= (ISPO.progressFromYear - 1) * GROWTH.daysPerYear
@@ -883,6 +883,12 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       if (command.type === 'PlantBlock') {
         palmsDirty = true;
         animateBlocks.add(command.block);
+      }
+      // The new building and its glints belong to the click, not to the tick
+      // that follows it: at 1x that was a second of nothing happening.
+      if (command.type === 'UpgradeKopdes') {
+        kopdes.sync(sim.state, sim.world);
+        cheerKopdes();
       }
       if (
         command.type === 'ChopBlock' ||
@@ -997,6 +1003,23 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     refreshMenu();
   }
 
+  /**
+   * Whether the attention gauge is worth a place in the bar. It arrives with
+   * the first letter and stays while anything is open: a meter above zero, a
+   * letter, a case or a suspension. An estate with a clean sheet loses it
+   * again rather than carrying a permanent zero.
+   */
+  function watchedByAuthorities(): boolean {
+    const s = sim.state.society;
+    if (s.lettersReceived === 0) return false;
+    return (
+      s.attention > 0 ||
+      s.warningLevel > 0 ||
+      s.investigationUntil > sim.state.tick ||
+      s.operatingBanUntil > sim.state.tick
+    );
+  }
+
   function blockName(block: BlockId): string {
     return `block ${blockLabel(sim.world, block)}`;
   }
@@ -1023,9 +1046,11 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       toasts.push(`Timber from ${blockName(t.block)} sold for ${formatRp(t.revenue)}.`);
     if (d.kopdesUpgraded !== null) {
       toasts.push(`Kopdes upgraded to level ${d.kopdesUpgraded}.`);
-      // The building changes shape on an upgrade; the glints say to look.
-      cheerKopdes();
       if (shop.isOpen) rangeRing.show(sim.state, sim.world);
+    }
+    if (d.investigationDropped) {
+      police.sync(sim.state, sim.world, performance.now());
+      toasts.push('The police file is closed. Nothing on the estate is drawing attention now.');
     }
     if (d.reforestationCredit) {
       const { banDaysLeft } = d.reforestationCredit;
