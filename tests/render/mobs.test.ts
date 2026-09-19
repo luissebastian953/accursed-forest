@@ -1,8 +1,10 @@
-import { Matrix4 } from 'three';
+import { Matrix4, MeshBasicMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 
+import { MobField } from '@render/mobs/MobField.ts';
 import { partGeometry, partOrder, pose, triangleCount } from '@render/mobs/rig.ts';
 import { SPECIES, SPECIES_IDS } from '@render/mobs/species.ts';
+import type { SimState } from '@sim/types.ts';
 
 describe('mob rig (POC)', () => {
   it('every species is a tree of parts, parents before children, with a body at the root', () => {
@@ -119,5 +121,66 @@ describe('mob rig (POC)', () => {
     geometry.computeBoundingBox();
     expect(geometry.boundingBox!.max.y).toBeCloseTo(0, 6);
     expect(geometry.boundingBox!.min.y).toBeCloseTo(-leg.size[1], 6);
+  });
+});
+
+describe('a mob that bolts (§6.5)', () => {
+  /** A field with stub materials: nothing here touches the GPU. */
+  function field() {
+    const material = new MeshBasicMaterial();
+    return new MobField({
+      material,
+      spectralMaterial: material,
+      groundAt: () => 0,
+      bounds: { minX: 0, maxX: 64, minZ: 0, maxZ: 64 },
+    });
+  }
+
+  /** One sim mob, standing still on a block the player owns. */
+  function state(mobs: unknown[]): SimState {
+    return { mobs, blocks: new Map(), tick: 0 } as unknown as SimState;
+  }
+
+  const pig = {
+    id: 7,
+    species: 'babiNgepet',
+    x: 4.5,
+    z: 4.5,
+    tx: 4.5,
+    tz: 4.5,
+    intent: 'wander',
+    standing: false,
+    hired: false,
+    phase: 0.2,
+    until: 50,
+    climb: 0,
+    target: null,
+    shiny: false,
+  };
+
+  it('runs for a moment, fades out, and does not come back', () => {
+    const mobs = field();
+    mobs.syncSim(state([pig]));
+    expect(mobs.positionOf(pig.id)).not.toBeNull();
+
+    // Tapped: it bolts. It is still there while it runs.
+    mobs.flee(pig.id, 0.5);
+    mobs.update(0.3, 1);
+    expect(mobs.positionOf(pig.id), 'gone before it had time to run').not.toBeNull();
+
+    // Then it fades, and once it has faded it is out of the world.
+    mobs.update(0.4, 1);
+    mobs.update(1, 1);
+    expect(mobs.positionOf(pig.id)).toBeNull();
+
+    // The sim is still walking it to the edge of the map; it stays gone.
+    mobs.syncSim(state([pig]));
+    expect(mobs.positionOf(pig.id), 'it came back').toBeNull();
+
+    // And when the sim finally drops it, the field forgets it too, so a new
+    // mob that happens to reuse the id is drawn normally.
+    mobs.syncSim(state([]));
+    mobs.syncSim(state([pig]));
+    expect(mobs.positionOf(pig.id)).not.toBeNull();
   });
 });

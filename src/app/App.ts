@@ -1644,8 +1644,10 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     // Coins first, so they fall from where it was standing.
     if (at) coins.burst(at.x, at.y + 1.2, at.z, runs ? 14 : 10);
     audio.play('coins-burst');
-    // The pig bolts; the capybara is simply not there any more.
-    if (!runs) mobField.vanish(best.id);
+    // The pig bolts and is gone into the trees; the capybara is simply not
+    // there any more.
+    if (runs) mobField.flee(best.id);
+    else mobField.vanish(best.id);
     mobField.syncSim(sim.state);
     return true;
   }

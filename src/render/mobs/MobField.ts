@@ -86,6 +86,8 @@ interface Mob {
   crown: number;
   /** 1 normally; counts down to 0 while the mob fades out of the world. */
   fade: number;
+  /** Seconds left of a run before the fade starts; 0 when it is not bolting. */
+  bolting: number;
   /** `nodes` mode only: the part nodes, parent-first. */
   nodes?: Object3D[];
 }
@@ -287,6 +289,8 @@ export class MobField {
   private readonly orders = new Map<string, ReturnType<typeof partOrder>>();
   private readonly solid: Sheet;
   private readonly spectral: Sheet;
+  /** Mobs that have bolted out of sight and must not be drawn again. */
+  private readonly fled = new Set<number>();
   private readonly z = zGeometry();
   private mode: MobMode = 'merged';
   private nextPocId = -1;
@@ -387,6 +391,19 @@ export class MobField {
     if (mob && mob.fade >= 1) mob.fade = 0.999;
   }
 
+  /**
+   * Something has bolted: it runs for a moment, then fades out where it got
+   * to. The sim keeps walking it off the map, but as far as the player is
+   * concerned it went into the trees and was gone.
+   */
+  flee(id: number, seconds = 0.9): void {
+    const mob = this.byId.get(id);
+    if (!mob || mob.bolting > 0 || mob.fade < 1) return;
+    mob.bolting = seconds;
+    // It does not come back, whatever the sim does with it afterwards.
+    this.fled.add(id);
+  }
+
   private detach(mob: Mob): void {
     if (mob.nodes) for (const node of mob.nodes) node.removeFromParent();
     const i = this.mobs.indexOf(mob);
@@ -426,6 +443,7 @@ export class MobField {
       climb: 0,
       crown: crownOf(spec),
       fade: 1,
+      bolting: 0,
     });
     return id;
   }
@@ -501,6 +519,7 @@ export class MobField {
       climb: 0,
       crown: crownOf(spec),
       fade: 1,
+      bolting: 0,
     });
   }
 
@@ -516,6 +535,9 @@ export class MobField {
     const side = WORLD.blockSide;
     for (const sim of state.mobs) {
       seen.add(sim.id);
+      // One that bolted stays gone, even though the sim is still walking it
+      // to the edge of the map.
+      if (this.fled.has(sim.id)) continue;
       const spec = SPECIES[drawnAs(sim, state)]!;
       let mob = this.byId.get(sim.id);
       if (mob && mob.species !== spec) {
@@ -546,6 +568,7 @@ export class MobField {
           climb: 0,
           crown: crownOf(spec),
           fade: 1,
+          bolting: 0,
         };
         this.attach(mob);
       }
@@ -558,6 +581,8 @@ export class MobField {
       // A mob the sim has dropped goes at once, unless it is still fading out.
       if (mob.id > 0 && !seen.has(mob.id) && mob.fade >= 1) this.detach(mob);
     }
+    // Once the sim has let one go, it can be forgotten here too.
+    for (const id of [...this.fled]) if (!seen.has(id)) this.fled.delete(id);
   }
 
   // ── Per frame ──────────────────────────────────────────────────────────
@@ -600,6 +625,10 @@ export class MobField {
       mob.crouch += (mob.wants.crouch - mob.crouch) * Math.min(1, dtSeconds * 4);
       mob.work += (mob.wants.work - mob.work) * Math.min(1, dtSeconds * 3);
       mob.sit += (mob.wants.sit - mob.sit) * Math.min(1, dtSeconds * 2.5);
+      if (mob.bolting > 0) {
+        mob.bolting -= dtSeconds;
+        if (mob.bolting <= 0) mob.fade = 0.999;
+      }
       if (mob.fade < 1) {
         mob.fade -= dtSeconds / FADE_SECONDS;
         if (mob.fade <= 0) {

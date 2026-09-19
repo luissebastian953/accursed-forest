@@ -343,7 +343,9 @@ export function buildChunkField(
         !flooded &&
         !slid &&
         lite.planted[(gz - by * side) * side + (gx - bx * side)] === 0;
-      const slot = bare ? Palette.Laterite : topSlot(biome, phase, burning, ashy, flooded, slid);
+      // Bare ground is earth, which the mottling below turns into brown with
+      // stony patches rather than one flat colour.
+      const slot = bare ? Palette.Dirt : topSlot(biome, phase, burning, ashy, flooded, slid);
       // Burned ground is mottled char and ash, and torn ground is mottled
       // earth and stone: neither is one flat colour.
       topSlots[i] =

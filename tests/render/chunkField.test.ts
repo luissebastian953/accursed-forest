@@ -106,10 +106,16 @@ describe('chunk field (§6.3, §6.7)', () => {
       for (let x = 0; x < WORLD.blockSide; x++) {
         const i = (localZ + z) * field.size + (localX + x);
         const occupied = plantedAt[z * WORLD.blockSide + x]! >= 0;
-        // Green where something stands, bare earth where nothing does.
-        expect(field.topSlots[i], `slot ${z * WORLD.blockSide + x}`).toBe(
-          occupied ? Palette.Terrace : Palette.Laterite,
-        );
+        // Green where something stands; bare earth, mottled with stone,
+        // where nothing does.
+        if (occupied) {
+          expect(field.topSlots[i], `slot ${z * WORLD.blockSide + x}`).toBe(Palette.Terrace);
+        } else {
+          expect(
+            [Palette.Dirt, Palette.Rock, Palette.Laterite],
+            `slot ${z * WORLD.blockSide + x}`,
+          ).toContain(field.topSlots[i]);
+        }
         // And the ground is still a terrace either way: it is one hectare.
         expect(field.heights[i]).toBe(terraceHeight(block.elevation));
       }
