@@ -103,6 +103,9 @@ export function buildKopdesGeometry(level: KopdesLevel = 1) {
   const eaveEast = level >= 4 ? 3.8 : level >= 3 ? 3.3 : 2.9;
   const ridgeY = eaveEast + (level >= 4 ? 1.9 : level >= 3 ? 1.7 : 1.4);
 
+  /** How high the main roof is at a given point across it. */
+  const roofAt = (x: number) => ridgeY + ((eaveEast - ridgeY) * (x - west)) / (east - west);
+
   gableWall(west, ridgeY, east, eaveEast, depth, level >= 3 ? 5 : 4);
   plane(west, ridgeY, east, eaveEast, depth + 0.9, roof);
 
@@ -161,30 +164,57 @@ export function buildKopdesGeometry(level: KopdesLevel = 1) {
       annexZ,
     );
     b.addAABox(annexX, 1.3, annexZ + 1.15, 1, 1.5, 0.14, timber);
-    b.addAABox(2.4, eaveEast - 1.1, depth / 2 + 0.08, 1.1, 0.9, 0.14, glass);
+    // Between the annex and the door, clear of the corner: a window on the
+    // corner itself hangs over the edge of the wall it is set into.
+    b.addAABox(0.5, eaveEast - 0.75, depth / 2 + 0.08, 0.7, 0.8, 0.14, glass);
 
     // The dormer over the counter, in the lighter red. At the top level it is
     // wide enough for the office's two windows.
     const dormerZ = -1;
     const dormerWide = level >= 4 ? 2.8 : 1.6;
-    b.addAABox(-0.2, ridgeY - 0.75, dormerZ, 1.6, 1.5, dormerWide, wall);
-    plane(-1.1, ridgeY + 0.3, 0.7, ridgeY - 0.3, dormerWide + 0.2, roofLight, 0.3, dormerZ);
-    // The panes face down the slope, and sit above where the main roof cuts
-    // through the dormer: any lower and they would be inside it.
-    const paneY = ridgeY - 0.5;
+    // It sits on the slope, not in it: the walls stand clear of the roof at
+    // the uphill edge and are tucked under it at the downhill edge, so the
+    // box is as tall as the roof falls across it, plus the part that shows.
+    const dormerRun = 1.7;
+    const uphill = west + (east - west) * 0.42;
+    const downhill = uphill + dormerRun;
+    const dormerTop = roofAt(uphill) + 0.5;
+    const dormerBase = roofAt(downhill) - 0.7;
+    b.addAABox(
+      (uphill + downhill) / 2,
+      (dormerTop + dormerBase) / 2,
+      dormerZ,
+      dormerRun,
+      dormerTop - dormerBase,
+      dormerWide,
+      wall,
+    );
+    plane(
+      uphill - 0.3,
+      dormerTop + 0.25,
+      downhill + 0.3,
+      dormerTop - 0.1,
+      dormerWide + 0.25,
+      roofLight,
+      0.25,
+      dormerZ,
+    );
+    // The panes face down the slope, under the dormer's own eave.
+    const paneY = dormerTop - 0.5;
+    const paneX = downhill - 0.06;
     if (level >= 4) {
       for (const z of [-0.62, 0.62]) {
-        b.addAABox(0.55, paneY, dormerZ + z, 0.14, 0.6, 1, glass);
+        b.addAABox(paneX, paneY, dormerZ + z, 0.14, 0.6, 1, glass);
       }
     } else {
-      b.addAABox(0.55, paneY, dormerZ, 0.14, 0.6, 1, glass);
+      b.addAABox(paneX, paneY, dormerZ, 0.14, 0.6, 1, glass);
     }
   }
 
   if (level >= 4) {
     // The office window over the door, and the painted fascia under the eave,
     // which is the co-op's green once it can afford the paint.
-    b.addAABox(1.2, eaveEast - 0.6, depth / 2 + 0.08, 1.4, 0.9, 0.14, glass);
+    b.addAABox(1.6, eaveEast - 0.6, depth / 2 + 0.08, 1.4, 0.9, 0.14, glass);
     b.addAABox(east + 0.45, eaveEast - 0.12, 0, 0.3, 0.36, depth + 0.9, {
       side: Palette.KopdesTrim,
     });

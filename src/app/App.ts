@@ -35,7 +35,7 @@ import { Palms } from '@render/scene/Palms';
 import { Police } from '@render/scene/Police';
 import { Rain } from '@render/scene/Rain';
 import { Sky } from '@render/scene/Sky';
-import { Sparkles, type SparklePoint } from '@render/scene/Sparkles';
+import { SparkleBurst, Sparkles, type SparklePoint } from '@render/scene/Sparkles';
 import { TREES_PER_BLOCK, Timber } from '@render/scene/Timber';
 import { Wisps, type WispPoint } from '@render/scene/Wisps';
 import { WorkSite } from '@render/scene/WorkSite';
@@ -290,6 +290,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   spectral.depthWrite = false;
   // The glints live on the see-through material, like the ghost.
   const sparkles = new Sparkles(spectral);
+  const sparkleBurst = new SparkleBurst(spectral);
   const wisps = new Wisps(spectral);
   const clouds = new Clouds(spectral);
   const mobField = new MobField({
@@ -302,6 +303,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   scene.add(
     coins.mesh,
     sparkles.mesh,
+    sparkleBurst.mesh,
     wisps.mesh,
     clouds.mesh,
     police.group,
@@ -1021,6 +1023,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       toasts.push(`Timber from ${blockName(t.block)} sold for ${formatRp(t.revenue)}.`);
     if (d.kopdesUpgraded !== null) {
       toasts.push(`Kopdes upgraded to level ${d.kopdesUpgraded}.`);
+      // The building changes shape on an upgrade; the glints say to look.
+      cheerKopdes();
       if (shop.isOpen) rangeRing.show(sim.state, sim.world);
     }
     if (d.reforestationCredit) {
@@ -1435,6 +1439,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     timber.update(nowMs);
     mobField.update(dt, time.secondsPerTick);
     coins.update(dt);
+    sparkleBurst.update(dt);
     clouds.update(dt, rig.camera, visible);
     syncSparkles(nowMs);
     syncWorkMarkers();
@@ -1488,6 +1493,24 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   const sparklePoints: SparklePoint[] = [];
   const wispPoints: WispPoint[] = [];
+  /** One throw of glints over the Kopdes, from the roof and the corners. */
+  function cheerKopdes(): void {
+    const kopdes = sim.state.kopdes;
+    if (!kopdes) return;
+    const side = WORLD.blockSide;
+    const [bx, by] = sim.world.toXY(kopdes.blockId);
+    const x = bx * side + side / 2;
+    const z = by * side + side / 2;
+    const y = groundAt(x, z);
+    for (const [dx, dy, dz, n] of [
+      [0, 5.2, 0, 16],
+      [-2.4, 3, 1.8, 9],
+      [2.4, 3, -1.8, 9],
+    ] as const) {
+      sparkleBurst.burst(x + dx, y + dy, z + dz, n);
+    }
+  }
+
   function syncSparkles(nowMs: number): void {
     sparklePoints.length = 0;
     wispPoints.length = 0;
@@ -1637,6 +1660,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         };
       },
       audio,
+      // What the one-shot effects are holding, for the browser suite.
+      effects: () => ({ sparkleBurst: sparkleBurst.mesh.count }),
       timber,
       mobField,
       police,
@@ -1781,6 +1806,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     hudMarkers.dispose();
     coins.dispose();
     sparkles.dispose();
+    sparkleBurst.dispose();
     wisps.dispose();
     clouds.dispose();
     panel.dispose();

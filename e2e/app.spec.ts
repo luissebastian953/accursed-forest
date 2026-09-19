@@ -40,6 +40,8 @@ interface DebugWindow {
         };
       };
       world: { toXY: (id: number) => [number, number] };
+      gpu: () => { triangles: number };
+      effects: () => { sparkleBurst: number };
     };
   };
 }
@@ -369,6 +371,32 @@ test.describe('Sawit Simulator', () => {
     await page.waitForTimeout(2500);
     await expect(tid(page, 'start-estate')).toContainText(first ?? '');
     expect(errors).toEqual([]);
+  });
+
+  test('upgrading the Kopdes changes the building, and is cheered', async ({ page }) => {
+    test.setTimeout(90_000);
+    await page.goto('/play.html?webgl&seed=42&fresh&debug');
+    await expect(page.locator('canvas')).toBeVisible();
+    await page.waitForTimeout(2000);
+    await selectCentreBlock(page);
+    await tid(page, 'action-PlaceKopdes').click();
+    // The clock has to run: events reach the renderer on a tick, so a paused
+    // estate would not hear about the upgrade until it started again.
+    await page.evaluate(() => {
+      (window as unknown as DebugWindow).__sawit.sim().state.economy.cash = 1e12;
+    });
+    await page.waitForTimeout(600);
+
+    const glints = () =>
+      page.evaluate(() => (window as unknown as DebugWindow).__sawit.effects().sparkleBurst);
+    expect(await glints()).toBe(0);
+
+    await tid(page, 'action-UpgradeKopdes').click();
+    // One throw of glints over the new roof, and then it is over: this is a
+    // moment, not a state the building sits in.
+    await expect.poll(glints, { timeout: 5000 }).toBeGreaterThan(0);
+    await expect.poll(glints, { timeout: 5000 }).toBe(0);
+    await expect(tid(page, 'block-panel')).toContainText('Level 2');
   });
 
   test('a new estate takes two steps, and nothing else in the menu starts one', async ({
