@@ -147,11 +147,13 @@ export function createPaletteTexture(): DataTexture {
   for (let i = 0; i < PALETTE_WIDTH; i++) {
     const [wet, dry] = COLOURS[i] ?? FALLBACK;
     const emission = EMISSION[i] ?? 0;
+
     writeHex(data, i * 4, wet, emission);
     writeHex(data, (PALETTE_WIDTH + i) * 4, dry, emission);
   }
 
   const texture = new DataTexture(data, PALETTE_WIDTH, 2, RGBAFormat, UnsignedByteType);
+
   texture.magFilter = NearestFilter;
   texture.minFilter = NearestFilter;
   texture.generateMipmaps = false;

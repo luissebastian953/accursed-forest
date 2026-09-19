@@ -115,6 +115,7 @@ export class EventSink {
   /** Hand over this tick's events and start a fresh list. */
   drain(): SimEvent[] {
     const out = this.events;
+
     this.events = [];
     return out;
   }

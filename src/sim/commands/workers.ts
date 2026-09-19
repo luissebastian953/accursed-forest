@@ -11,27 +11,34 @@ export const hireWorker: CommandHandler<HireWorker> = {
   validate(ctx, command) {
     const { state } = ctx;
     const spec = WORKERS[command.kind];
+
     if (!state.kopdes)
       return reject('noKopdes', 'Build a Kopdes first; that is where workers report.');
+
     if (state.kopdes.level < WORKERS_FROM_LEVEL) {
       return reject(
         'wrongPhase',
         `Upgrade the Kopdes to level ${WORKERS_FROM_LEVEL} before putting anyone on the payroll.`,
       );
     }
+
     if (state.mobs.some((m) => m.hired && m.species === command.kind)) {
       return reject('occupied', `You already employ a ${spec.label.toLowerCase()}.`);
     }
+
     if (state.economy.cash < spec.hireFee) {
       return reject('noCash', `Hiring costs Rp ${spec.hireFee.toLocaleString('id-ID')} up front.`);
     }
+
     return null;
   },
 
   apply(ctx, command) {
     const { state, world, events } = ctx;
     const spec = WORKERS[command.kind];
+
     spend(state, spec.hireFee, 'wages', `hire: ${spec.label}`);
+
     const [bx, by] = world.toXY(state.kopdes!.blockId);
     const mob: Mob = {
       id: state.nextMobId++,
@@ -54,6 +61,7 @@ export const hireWorker: CommandHandler<HireWorker> = {
       az: by + 0.9,
       heading: 0,
     };
+
     state.mobs.push(mob);
     events.push({
       type: 'MobArrived',
@@ -71,16 +79,19 @@ export const dismissWorker: CommandHandler<DismissWorker> = {
     if (!ctx.state.mobs.some((m) => m.hired && m.species === command.kind)) {
       return reject('wrongPhase', 'Nobody of that kind is on the payroll.');
     }
+
     return null;
   },
 
   apply(ctx, command) {
     const { state, events } = ctx;
+
     for (const mob of state.mobs) {
       if (mob.hired && mob.species === command.kind) {
         events.push({ type: 'MobLeft', id: mob.id, species: mob.species });
       }
     }
+
     state.mobs = state.mobs.filter((m) => !(m.hired && m.species === command.kind));
     events.push({ type: 'WorkerDismissed', kind: command.kind });
   },

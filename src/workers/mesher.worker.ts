@@ -8,6 +8,7 @@ interface WorkerScope {
   onmessage: ((event: MessageEvent<WorkerRequest>) => void) | null;
   postMessage(message: WorkerResponse, transfer: Transferable[]): void;
 }
+
 const scope = self as unknown as WorkerScope;
 
 const worlds = new Map<string, World>();
@@ -15,19 +16,23 @@ const worlds = new Map<string, World>();
 function worldFor(seed: number, width: number, height: number): World {
   const key = `${seed}:${width}:${height}`;
   let world = worlds.get(key);
+
   if (!world) {
     world = createWorld(seed, width, height);
     worlds.set(key, world);
   }
+
   return world;
 }
 
 scope.onmessage = (event) => {
   const request = event.data;
+
   if (request.type !== 'build') return;
 
   const world = worldFor(request.seed, request.width, request.height);
   const diverged = new Map<number, DivergedBlockLite>();
+
   for (const block of request.diverged) diverged.set(block.id, block);
 
   const arrays = buildChunkArrays(world, request.cx, request.cy, diverged);

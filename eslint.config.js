@@ -1,4 +1,5 @@
 import js from '@eslint/js';
+import stylistic from '@stylistic/eslint-plugin';
 import tseslint from 'typescript-eslint';
 import boundaries from 'eslint-plugin-boundaries';
 import importX from 'eslint-plugin-import-x';
@@ -106,7 +107,7 @@ export default tseslint.config(
         'error',
         {
           default: 'disallow',
-          message: "'{{from.type}}' may not import '{{to.type}}' (design doc \u00a74.1)",
+          message: "'{{from.type}}' may not import '{{to.type}}' (GDD 4.1)",
           policies: BOUNDARY_POLICIES,
         },
       ],
@@ -149,7 +150,7 @@ export default tseslint.config(
         'error',
         {
           default: 'disallow',
-          message: "'{{from.type}}' may not import '{{to.type}}' (design doc \u00a74.1)",
+          message: "'{{from.type}}' may not import '{{to.type}}' (GDD 4.1)",
           policies: BOUNDARY_POLICIES,
         },
       ],
@@ -172,6 +173,27 @@ export default tseslint.config(
       parserOptions: {
         parser: tseslint.parser,
       },
+    },
+  },
+
+  // ── Breathing room ──────────────────────────────────────────────────────
+  // Prettier never adds a blank line, so this is where the code's rhythm is
+  // set: a blank line on both sides of anything that ends in a block, and
+  // around a run of declarations. `else` is part of its `if`, so it stays on
+  // the closing brace. Auto-fixed, so it costs nothing to keep.
+  {
+    files: ['**/*.ts', '**/*.svelte'],
+    plugins: { '@stylistic': stylistic },
+    rules: {
+      '@stylistic/padding-line-between-statements': [
+        'error',
+        { blankLine: 'always', prev: 'block-like', next: '*' },
+        { blankLine: 'always', prev: '*', next: 'block-like' },
+        { blankLine: 'always', prev: ['const', 'let', 'var'], next: '*' },
+        { blankLine: 'always', prev: '*', next: ['const', 'let', 'var'] },
+        // Last so it wins: consecutive declarations stay together.
+        { blankLine: 'any', prev: ['const', 'let', 'var'], next: ['const', 'let', 'var'] },
+      ],
     },
   },
 

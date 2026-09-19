@@ -43,11 +43,13 @@ export function traceRivers(
   const marginX = Math.floor(width * RIVERS.sourceMargin);
   const marginY = Math.floor(height * RIVERS.sourceMargin);
   const candidates: { x: number; y: number; h: number }[] = [];
+
   for (let y = marginY; y < height - marginY; y += 3) {
     for (let x = marginX; x < width - marginX; x += 3) {
       candidates.push({ x, y, h: elevation.height01(x, y) });
     }
   }
+
   candidates.sort((a, b) => b.h - a.h);
 
   const coast = findCoast(width, height, elevation);
@@ -59,10 +61,14 @@ export function traceRivers(
 
   // Draw without replacement so two rivers never share a source.
   const sources = candidates.slice(0, Math.max(count * 4, count));
+
   for (let i = 0; i < count && sources.length > 0; i++) {
     const [source] = sources.splice(nextInt(rng, sources.length), 1);
+
     if (!source) continue;
+
     const path = leastCostPath(source.x, source.y, width, height, coast, enterCost);
+
     for (const key of path) water.add(key);
     paths.push(path);
   }
@@ -83,6 +89,7 @@ function findCoast(width: number, height: number, elevation: ElevationField): Ed
     ['west', mean(Array.from({ length: height }, (_, y) => [0, y]))],
     ['east', mean(Array.from({ length: height }, (_, y) => [width - 1, y]))],
   ];
+
   edges.sort((a, b) => a[1] - b[1]);
   return edges[0]![0];
 }
@@ -119,17 +126,21 @@ function leastCostPath(
   const heap = new MinHeap();
 
   const startKey = startY * width + startX;
+
   cost[startKey] = 0;
   heap.push(startKey, 0);
 
   let goal = -1;
+
   while (heap.size > 0) {
     const key = heap.pop();
+
     if (settled[key] === 1) continue;
     settled[key] = 1;
 
     const x = key % width;
     const y = (key - x) / width;
+
     if (onCoast(x, y, width, height, coast)) {
       goal = key;
       break;
@@ -138,11 +149,15 @@ function leastCostPath(
     for (const [dx, dy] of NEIGHBOURS) {
       const nx = x + dx;
       const ny = y + dy;
+
       if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+
       const nKey = ny * width + nx;
+
       if (settled[nKey] === 1) continue;
 
       const next = cost[key]! + enterCost(nx, ny);
+
       if (next < cost[nKey]!) {
         cost[nKey] = next;
         cameFrom[nKey] = key;
@@ -152,6 +167,7 @@ function leastCostPath(
   }
 
   const path: number[] = [];
+
   for (let key = goal; key !== -1; key = cameFrom[key]!) path.push(key);
   return path.reverse();
 }
@@ -168,9 +184,12 @@ class MinHeap {
   push(key: number, priority: number): void {
     this.keys.push(key);
     this.priorities.push(priority);
+
     let i = this.keys.length - 1;
+
     while (i > 0) {
       const parent = (i - 1) >> 1;
+
       if (this.priorities[parent]! <= this.priorities[i]!) break;
       this.swap(i, parent);
       i = parent;
@@ -181,14 +200,18 @@ class MinHeap {
     const top = this.keys[0]!;
     const lastKey = this.keys.pop()!;
     const lastPriority = this.priorities.pop()!;
+
     if (this.keys.length > 0) {
       this.keys[0] = lastKey;
       this.priorities[0] = lastPriority;
+
       let i = 0;
+
       for (;;) {
         const left = i * 2 + 1;
         const right = left + 1;
         let smallest = i;
+
         if (left < this.keys.length && this.priorities[left]! < this.priorities[smallest]!)
           smallest = left;
         if (right < this.keys.length && this.priorities[right]! < this.priorities[smallest]!)
@@ -198,14 +221,18 @@ class MinHeap {
         i = smallest;
       }
     }
+
     return top;
   }
 
   private swap(a: number, b: number): void {
     const k = this.keys[a]!;
+
     this.keys[a] = this.keys[b]!;
     this.keys[b] = k;
+
     const p = this.priorities[a]!;
+
     this.priorities[a] = this.priorities[b]!;
     this.priorities[b] = p;
   }
@@ -228,19 +255,25 @@ function distanceField(
 
   for (let d = 1; d <= maxDistance && frontier.length > 0; d++) {
     const next: number[] = [];
+
     for (const key of frontier) {
       const x = key % width;
       const y = (key - x) / width;
+
       for (const [dx, dy] of NEIGHBOURS) {
         const nx = x + dx;
         const ny = y + dy;
+
         if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+
         const nKey = ny * width + nx;
+
         if (distance[nKey] !== Infinity) continue;
         distance[nKey] = d;
         next.push(nKey);
       }
     }
+
     frontier = next;
   }
 

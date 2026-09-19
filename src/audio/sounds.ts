@@ -19,10 +19,13 @@ export type Loop = (ctx: BaseAudioContext, out: AudioNode, at?: number) => LoopH
 const buttonPress: OneShot = (ctx, out, at) => {
   const seconds = 0.09;
   const env = envelope(ctx, at, { attack: 0.002, decay: seconds, peak: 0.5 });
+
   chain(tone(ctx, at, { type: 'triangle', from: 430, to: 280, seconds }), env, out);
+
   // A grain of noise on the front, so it reads as a knock and not a beep.
   const click = envelope(ctx, at, { attack: 0.001, decay: 0.02, peak: 0.2 });
   const noise = noiseSource(ctx, 'white', at);
+
   chain(noise, filter(ctx, at, { type: 'bandpass', from: 2200, q: 0.9 }), click, out);
   noise.stop(at + 0.05);
   return seconds;
@@ -32,6 +35,7 @@ const buttonPress: OneShot = (ctx, out, at) => {
 const buttonDenied: OneShot = (ctx, out, at) => {
   const seconds = 0.16;
   const env = envelope(ctx, at, { attack: 0.004, decay: seconds, peak: 0.42 });
+
   chain(
     tone(ctx, at, { type: 'square', from: 150, to: 96, seconds }),
     filter(ctx, at, { from: 520, q: 0.7 }),
@@ -44,6 +48,7 @@ const buttonDenied: OneShot = (ctx, out, at) => {
 /** Coins landing: three bell partials, staggered, over a dry chink. */
 const coinsBurst: OneShot = (ctx, out, at) => {
   const partials = [1180, 1760, 2640];
+
   partials.forEach((hz, i) => {
     const start = at + i * 0.018;
     const env = envelope(ctx, start, {
@@ -51,10 +56,13 @@ const coinsBurst: OneShot = (ctx, out, at) => {
       decay: 0.34 - i * 0.07,
       peak: 0.3 - i * 0.07,
     });
+
     chain(tone(ctx, start, { from: hz, seconds: 0.4 }), env, out);
   });
+
   const chink = envelope(ctx, at, { attack: 0.001, decay: 0.06, peak: 0.22 });
   const noise = noiseSource(ctx, 'white', at);
+
   chain(noise, filter(ctx, at, { type: 'bandpass', from: 5200, q: 1.4 }), chink, out);
   noise.stop(at + 0.1);
   return 0.45;
@@ -64,9 +72,11 @@ const coinsBurst: OneShot = (ctx, out, at) => {
 function cashMove(up: boolean): OneShot {
   return (ctx, out, at) => {
     const notes = up ? [880, 1320] : [1320, 880];
+
     notes.forEach((hz, i) => {
       const start = at + i * 0.08;
       const env = envelope(ctx, start, { attack: 0.004, decay: 0.26, peak: 0.24 });
+
       chain(tone(ctx, start, { type: 'triangle', from: hz, seconds: 0.3 }), env, out);
     });
     return 0.4;
@@ -77,6 +87,7 @@ function cashMove(up: boolean): OneShot {
 const chopStroke: OneShot = (ctx, out, at) => {
   const crack = envelope(ctx, at, { attack: 0.001, decay: 0.12, peak: 0.5 });
   const noise = noiseSource(ctx, 'white', at);
+
   chain(
     noise,
     filter(ctx, at, { type: 'bandpass', from: 1500, to: 600, seconds: 0.12, q: 1.1 }),
@@ -86,6 +97,7 @@ const chopStroke: OneShot = (ctx, out, at) => {
   noise.stop(at + 0.2);
 
   const thud = envelope(ctx, at, { attack: 0.002, decay: 0.18, peak: 0.34 });
+
   chain(tone(ctx, at, { from: 120, to: 62, seconds: 0.2 }), thud, out);
   return 0.25;
 };
@@ -98,10 +110,13 @@ const landslide: OneShot = (ctx, out, at) => {
   const seconds = 2.9;
   const body = envelope(ctx, at, { attack: 0.15, decay: seconds - 0.15, peak: 0.42 });
   const noise = noiseSource(ctx, 'pink', at);
+
   chain(noise, filter(ctx, at, { from: 600, to: 110, seconds, q: 0.9 }), body, out);
   noise.stop(at + seconds + 0.1);
+
   // The judder: the whole mass shaking as it comes down.
   const judder = lfo(ctx, body.gain, { rate: 9, depth: 0.3, at });
+
   judder.stop(at + seconds);
 
   let seed = 17;
@@ -109,11 +124,14 @@ const landslide: OneShot = (ctx, out, at) => {
     seed = (seed * 1103515245 + 12345) % 2147483648;
     return seed / 2147483648;
   };
+
   for (let i = 0; i < 14; i++) {
     const knock = at + 0.1 + random() * 2.2;
     const env = envelope(ctx, knock, { attack: 0.003, decay: 0.22, peak: 0.26 });
+
     chain(tone(ctx, knock, { from: 70 + random() * 50, to: 35, seconds: 0.25 }), env, out);
   }
+
   return seconds + 0.2;
 };
 
@@ -136,6 +154,7 @@ function thunder(distance: number): OneShot {
 
     const strike = envelope(ctx, at, { attack, decay: tail, peak: level });
     const noise = noiseSource(ctx, 'white', at);
+
     chain(noise, filter(ctx, at, { from: cutoff, q: 1.1 }), strike, out);
     noise.stop(at + attack + tail + 0.1);
 
@@ -145,12 +164,16 @@ function thunder(distance: number): OneShot {
       const near = 1 - d * 2;
       const crack = envelope(ctx, at, { attack: 0.003, decay: 0.2, peak: 0.38 * near });
       const crackNoise = noiseSource(ctx, 'white', at + 0.0005);
+
       chain(crackNoise, filter(ctx, at, { from: 1100, to: 250, seconds: 0.2, q: 0.8 }), crack, out);
       crackNoise.stop(at + 0.3);
+
       const punch = envelope(ctx, at, { attack: 0.004, decay: 0.55, peak: 0.55 * near });
+
       chain(tone(ctx, at, { from: 62, to: 30, seconds: 0.6 }), punch, out);
 
       const thump = envelope(ctx, at, { attack: attack * 0.5, decay: 2, peak: 0.35 * near });
+
       chain(tone(ctx, at, { from: 60, to: 28, seconds: 2.2 }), thump, out);
     }
 
@@ -158,9 +181,12 @@ function thunder(distance: number): OneShot {
     const rollAt = at + 0.9 + 0.6 * d;
     const roll = envelope(ctx, rollAt, { attack: 0.5, decay: tail * 0.8, peak: level * 0.55 });
     const rollNoise = noiseSource(ctx, 'white', rollAt);
+
     chain(rollNoise, filter(ctx, rollAt, { from: cutoff * 0.6, q: 0.9 }), roll, out);
     rollNoise.stop(rollAt + 0.5 + tail * 0.8 + 0.1);
+
     const throb = lfo(ctx, roll.gain, { rate: 2.5 + 2 * d, depth: level * 0.2, at: rollAt });
+
     throb.stop(rollAt + 0.5 + tail * 0.8);
 
     return attack + tail + 1;
@@ -170,9 +196,11 @@ function thunder(distance: number): OneShot {
 /** Certified, or the run won: a rising major arpeggio. */
 const win: OneShot = (ctx, out, at) => {
   const notes = [523, 659, 784, 1047];
+
   notes.forEach((hz, i) => {
     const start = at + i * 0.12;
     const env = envelope(ctx, start, { attack: 0.005, hold: 0.1, decay: 0.45, peak: 0.22 });
+
     chain(tone(ctx, start, { type: 'triangle', from: hz, seconds: 0.6 }), env, out);
   });
   return 0.95;
@@ -183,6 +211,7 @@ const gameover: OneShot = (ctx, out, at) => {
   const seconds = 1.35;
   const env = envelope(ctx, at, { attack: 0.01, hold: 0.4, decay: 0.9, peak: 0.34 });
   const wobble = lfo(ctx, env.gain, { rate: 6, depth: 0.12, at });
+
   wobble.stop(at + seconds);
   chain(
     tone(ctx, at, { type: 'sawtooth', from: 440, to: 110, seconds }),
@@ -198,6 +227,7 @@ const warning: OneShot = (ctx, out, at) => {
   for (let i = 0; i < 3; i++) {
     const start = at + i * 0.25;
     const env = envelope(ctx, start, { attack: 0.005, hold: 0.12, decay: 0.1, peak: 0.34 });
+
     chain(
       tone(ctx, start, { type: 'square', from: 110, seconds: 0.24 }),
       filter(ctx, start, { from: 1200, q: 0.7 }),
@@ -205,6 +235,7 @@ const warning: OneShot = (ctx, out, at) => {
       out,
     );
   }
+
   return 0.78;
 };
 
@@ -236,6 +267,7 @@ function handle(gain: GainNode, stop: (at: number) => void): LoopHandle {
       const ctx = gain.context;
       const when = Math.max(at, ctx.currentTime);
       const fade = Math.max(fadeSeconds, 0.05);
+
       gain.gain.cancelScheduledValues(when);
       gain.gain.setValueAtTime(gain.gain.value, when);
       gain.gain.linearRampToValueAtTime(0, when + fade);
@@ -252,12 +284,14 @@ function handle(gain: GainNode, stop: (at: number) => void): LoopHandle {
  */
 const rain: Loop = (ctx, out, at = 0) => {
   const gain = ctx.createGain();
+
   // Weather is the room the game is played in, not an event in it: it sits
   // under everything else and is missed rather than noticed.
   gain.gain.value = 0.055;
 
   const bed = noiseSource(ctx, 'pink', at);
   const bedGain = ctx.createGain();
+
   bedGain.gain.value = 0.9;
   chain(
     bed,
@@ -267,12 +301,15 @@ const rain: Loop = (ctx, out, at = 0) => {
     gain,
     out,
   );
+
   const breathe = drift(ctx, bedGain.gain, { seconds: 3.5, depth: 0.45, at });
 
   const spatter = noiseSource(ctx, 'white', at + 0.001);
   const spatterGain = ctx.createGain();
+
   spatterGain.gain.value = 0.28;
   chain(spatter, filter(ctx, at, { type: 'bandpass', from: 4200, q: 0.9 }), spatterGain, gain, out);
+
   // The spatter comes and goes faster than the bed, so gusts read through it.
   const gust = drift(ctx, spatterGain.gain, { seconds: 1.4, depth: 0.5, at });
 
@@ -293,10 +330,12 @@ const rain: Loop = (ctx, out, at = 0) => {
  */
 const fire: Loop = (ctx, out, at = 0) => {
   const gain = ctx.createGain();
+
   gain.gain.value = 0.5;
 
   const rumble = noiseSource(ctx, 'brown', at);
   const rumbleGain = ctx.createGain();
+
   rumbleGain.gain.value = 0.11;
   chain(
     rumble,
@@ -306,10 +345,13 @@ const fire: Loop = (ctx, out, at = 0) => {
     gain,
     out,
   );
+
   const roar = noiseSource(ctx, 'pink', at + 0.001);
   const roarGain = ctx.createGain();
+
   roarGain.gain.value = 0.09;
   chain(roar, filter(ctx, at, { type: 'bandpass', from: 520, q: 0.55 }), roarGain, gain, out);
+
   // Flames surge and sink, but never on a beat: a sine here is heard as a
   // slope up and down every two seconds, which is what a fire never does.
   const surge = drift(ctx, roarGain.gain, { seconds: 0.9, depth: 0.5, at });
@@ -332,6 +374,7 @@ const fire: Loop = (ctx, out, at = 0) => {
         peak: 0.46 + random() * 0.42,
       });
       const pop = noiseSource(ctx, 'white', t);
+
       chain(
         pop,
         filter(ctx, t, { type: 'bandpass', from: 1700 + random() * 2600, q: 4.5 }),
@@ -348,16 +391,20 @@ const fire: Loop = (ctx, out, at = 0) => {
   // and anything measuring it measures the silence.
   const offline = ctx instanceof OfflineAudioContext;
   const upFront = offline ? ctx.length / ctx.sampleRate + 1 : 4;
+
   crackle(at + 0.05, at + upFront);
+
   let horizon = at + upFront;
   const feed =
     typeof setInterval === 'function' && !offline
       ? setInterval(() => {
           const ahead = ctx.currentTime + 3;
+
           if (ahead > horizon) {
             crackle(horizon, ahead);
             horizon = ahead;
           }
+
           // Let the finished ones go, or the list grows for as long as it burns.
           while (pops.length > 400) pops.shift();
         }, 1000)
@@ -369,6 +416,7 @@ const fire: Loop = (ctx, out, at = 0) => {
     roar.stop(when);
     surge.stop(when);
     breathe.stop(when);
+
     for (const pop of pops) {
       try {
         pop.stop(when);
@@ -392,13 +440,16 @@ const fire: Loop = (ctx, out, at = 0) => {
  */
 const fireAlt: Loop = (ctx, out, at = 0) => {
   const gain = ctx.createGain();
+
   gain.gain.value = 0.55;
 
   const flames = noiseSource(ctx, 'pink', at);
   const low = filter(ctx, at, { from: 400, q: 0.7 });
   const flameGain = ctx.createGain();
+
   flameGain.gain.value = 0.075;
   chain(flames, low, flameGain, gain, out);
+
   // The wind shifting across it: the cutoff moves, so the roar changes
   // colour rather than just volume.
   const wander = drift(ctx, low.frequency, { seconds: 0.5, depth: 400, at });
@@ -419,6 +470,7 @@ const fireAlt: Loop = (ctx, out, at = 0) => {
         peak: 1.6 + random() * 2.4,
       });
       const pop = noiseSource(ctx, 'white', t);
+
       chain(
         pop,
         filter(ctx, t, { type: 'bandpass', from: 1500 + random() * 3000, q: 5 }),
@@ -431,16 +483,20 @@ const fireAlt: Loop = (ctx, out, at = 0) => {
   };
   const offline = ctx instanceof OfflineAudioContext;
   const upFront = offline ? ctx.length / ctx.sampleRate + 1 : 4;
+
   crackle(at + 0.05, at + upFront);
+
   let horizon = at + upFront;
   const feed =
     typeof setInterval === 'function' && !offline
       ? setInterval(() => {
           const ahead = ctx.currentTime + 3;
+
           if (ahead > horizon) {
             crackle(horizon, ahead);
             horizon = ahead;
           }
+
           while (pops.length > 400) pops.shift();
         }, 1000)
       : null;
@@ -449,6 +505,7 @@ const fireAlt: Loop = (ctx, out, at = 0) => {
     if (feed !== null) clearInterval(feed);
     flames.stop(when);
     wander.stop(when);
+
     for (const pop of pops) {
       try {
         pop.stop(when);
@@ -462,14 +519,18 @@ const fireAlt: Loop = (ctx, out, at = 0) => {
 /** The excavator: two detuned saws under a lowpass, wobbling as it works. */
 const excavator: Loop = (ctx, out, at = 0) => {
   const gain = ctx.createGain();
+
   gain.gain.value = 0.22;
+
   const low = ctx.createBiquadFilter();
+
   low.type = 'lowpass';
   low.frequency.value = 320;
   low.connect(gain).connect(out);
 
   const oscs = [0, 14].map((detune) => {
     const osc = ctx.createOscillator();
+
     osc.type = 'sawtooth';
     osc.frequency.value = 56;
     osc.detune.value = detune;
@@ -478,6 +539,7 @@ const excavator: Loop = (ctx, out, at = 0) => {
     return osc;
   });
   const wobble = lfo(ctx, low.frequency, { rate: 2.4, depth: 90, at });
+
   return handle(gain, (when) => {
     for (const osc of oscs) osc.stop(when);
     wobble.stop(when);
@@ -487,16 +549,23 @@ const excavator: Loop = (ctx, out, at = 0) => {
 /** The police: two tones, back and forth, through a narrow band. */
 const siren: Loop = (ctx, out, at = 0) => {
   const gain = ctx.createGain();
+
   gain.gain.value = 0.42;
+
   const band = filter(ctx, at, { type: 'bandpass', from: 900, q: 1.6 });
+
   band.connect(gain).connect(out);
+
   const osc = ctx.createOscillator();
+
   osc.type = 'square';
   osc.frequency.value = 660;
   osc.connect(band);
   osc.start(at);
+
   // A square LFO on the pitch is the two-tone; sine would wail instead.
   const sweep = lfo(ctx, osc.frequency, { rate: 1.1, depth: 200, type: 'square', at });
+
   return handle(gain, (when) => {
     osc.stop(when);
     sweep.stop(when);

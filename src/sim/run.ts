@@ -17,8 +17,11 @@ export function endRun(state: SimState, ending: Ending): void {
  */
 export function chronicle(state: SimState, entry: Omit<ChronicleEntry, 'tick'>): void {
   const list = state.run.chronicle;
+
   list.push({ tick: state.tick, lane: entry.lane, severity: entry.severity, title: entry.title });
   if (list.length <= CHRONICLE.cap) return;
+
   const drop = list.findIndex((e) => e.severity !== 'critical');
+
   list.splice(drop >= 0 ? drop : 0, 1);
 }

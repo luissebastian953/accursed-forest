@@ -14,18 +14,24 @@ export function kopdesUpgradeCost(level: number): number | null {
 export const upgradeKopdes: CommandHandler<UpgradeKopdes> = {
   validate(ctx) {
     const { state } = ctx;
+
     if (!state.kopdes) return reject('noKopdes', 'There is no Kopdes to upgrade.');
+
     const cost = kopdesUpgradeCost(state.kopdes.level);
+
     if (cost === null) return reject('maxLevel', 'The Kopdes is already at its highest level.');
+
     if (state.economy.cash < cost) {
       return reject('noCash', `The upgrade costs Rp ${cost.toLocaleString('id-ID')}.`);
     }
+
     return null;
   },
 
   apply(ctx) {
     const { state, events } = ctx;
     const kopdes = state.kopdes!;
+
     spend(state, kopdesUpgradeCost(kopdes.level)!, 'capital', `Kopdes level ${kopdes.level + 1}`);
     kopdes.level += 1;
     events.push({ type: 'KopdesUpgraded', level: kopdes.level });

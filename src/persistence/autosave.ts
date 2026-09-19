@@ -38,8 +38,10 @@ export class Autosave {
   /** Returns true if the write succeeded. */
   saveNow(): boolean {
     const taken = this.needsFullWrite ? null : this.dirty.take();
+
     try {
       const keys = this.slot.save(this.getState(), taken ?? 'all');
+
       if (taken === null) this.dirty.take();
       this.needsFullWrite = false;
       this.onSaved?.(keys);
@@ -66,8 +68,10 @@ export class Autosave {
     const onUnload = (): void => {
       this.saveNow();
     };
+
     target.document?.addEventListener('visibilitychange', onVisibility);
     target.addEventListener('beforeunload', onUnload);
+
     return () => {
       target.document?.removeEventListener('visibilitychange', onVisibility);
       target.removeEventListener('beforeunload', onUnload);

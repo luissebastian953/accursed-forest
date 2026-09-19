@@ -17,16 +17,19 @@ const CYCLE_MS = 3400;
 
 function trackGeometry(): BoxBuilder {
   const b = new BoxBuilder();
+
   // Tracks, then the deck they carry.
   for (const z of [-0.95, 0.95]) {
     b.addAABox(0, 0.32, z, 4.2, 0.64, 0.7, { side: Palette.Charcoal });
   }
+
   b.addAABox(0, 0.78, 0, 3.6, 0.32, 2.2, { side: Palette.Steel });
   return b;
 }
 
 function houseGeometry(): BoxBuilder {
   const b = new BoxBuilder();
+
   // The cab and the counterweight behind it, in the machine's yellow.
   b.addAABox(0.35, 1.5, 0, 1.7, 1.3, 1.7, { side: Palette.HiVis });
   b.addAABox(-1.1, 1.25, 0, 1.2, 0.85, 1.9, { side: Palette.Charcoal });
@@ -36,6 +39,7 @@ function houseGeometry(): BoxBuilder {
 
 function boomGeometry(): BoxBuilder {
   const b = new BoxBuilder();
+
   // Boom out from the house pivot; the arm and bucket hang off its end.
   b.addAABox(1.5, 0, 0, 3.4, 0.42, 0.42, { side: Palette.HiVis });
   return b;
@@ -43,6 +47,7 @@ function boomGeometry(): BoxBuilder {
 
 function armGeometry(): BoxBuilder {
   const b = new BoxBuilder();
+
   b.addAABox(0.9, 0, 0, 2.2, 0.34, 0.34, { side: Palette.HiVis });
   b.addAABox(2, -0.35, 0, 0.9, 0.8, 1, { side: Palette.Steel });
   return b;
@@ -66,6 +71,7 @@ export class Excavator {
   ) {
     const add = (parent: Group, builder: BoxBuilder): Mesh => {
       const mesh = new Mesh(builder.build(), material);
+
       parent.add(mesh);
       this.meshes.push(mesh);
       return mesh;
@@ -89,12 +95,14 @@ export class Excavator {
   /** Put the machine on whichever block is being dug out, or take it away. */
   sync(state: SimState, world: World, nowMs: number): void {
     let site: number | null = null;
+
     for (const block of state.blocks.values()) {
       if (block.excavateUntil > state.tick) {
         site = block.id;
         break;
       }
     }
+
     if (site === null) {
       this.group.visible = false;
       this.arrivedAt = -1;
@@ -106,20 +114,24 @@ export class Excavator {
     // Parked off-centre, so the crew has the middle of the block to work.
     const cx = bx * side + side * 0.32;
     const cz = by * side + side * 0.62;
+
     if (this.arrivedAt < 0 || this.parkedX !== cx || this.parkedZ !== cz) {
       this.arrivedAt = nowMs;
       this.parkedX = cx;
       this.parkedZ = cz;
       this.startX = cx - DRIVE_FROM;
     }
+
     this.group.visible = true;
   }
 
   update(nowMs: number): void {
     if (!this.group.visible || this.arrivedAt < 0) return;
+
     const since = nowMs - this.arrivedAt;
     const drive = easeOutCubic(clamp01(since / DRIVE_MS));
     const x = this.startX + (this.parkedX - this.startX) * drive;
+
     this.body.position.set(x, this.groundAt(x, this.parkedZ), this.parkedZ);
     // Crawling in, it faces the way it is going; parked, it faces the spoil.
     this.body.rotation.y = (1 - drive) * -0.35;
@@ -135,6 +147,7 @@ export class Excavator {
     const t = ((since - DRIVE_MS) % CYCLE_MS) / CYCLE_MS;
     const reach = Math.sin(t * Math.PI * 2);
     const swing = t < 0.5 ? 0 : Math.sin((t - 0.5) * Math.PI * 2);
+
     this.boom.rotation.z = -0.5 + reach * 0.42;
     this.arm.rotation.z = 0.9 - reach * 0.75;
     this.house.rotation.y = swing * 0.9;

@@ -16,6 +16,7 @@ import { expect, test } from '@playwright/test';
 test.describe('art spike', () => {
   test('boots on the WebGL fallback and draws a non-trivial scene', async ({ page }) => {
     const errors: string[] = [];
+
     page.on('console', (message) => {
       if (message.type() === 'error') errors.push(message.text());
     });
@@ -24,6 +25,7 @@ test.describe('art spike', () => {
     await page.goto('/play.html?webgl&spike');
 
     const canvas = page.locator('canvas');
+
     await expect(canvas).toBeVisible();
     await expect
       .poll(async () => canvas.evaluate((el: HTMLCanvasElement) => el.width > 0), {
@@ -36,6 +38,7 @@ test.describe('art spike', () => {
 
     // A flat frame compresses to almost nothing; a rendered estate does not.
     const painted = await canvas.screenshot();
+
     expect(painted.byteLength).toBeGreaterThan(15_000);
 
     expect(errors).toEqual([]);
@@ -53,11 +56,13 @@ test.describe('art spike', () => {
     await page.waitForTimeout(500);
 
     const hazed = await page.locator('canvas').screenshot();
+
     expect(hazed.equals(clear)).toBe(false);
   });
 
   test('replant restarts the cascade without errors', async ({ page }) => {
     const errors: string[] = [];
+
     page.on('pageerror', (error) => errors.push(error.message));
 
     await page.goto('/play.html?webgl&spike');

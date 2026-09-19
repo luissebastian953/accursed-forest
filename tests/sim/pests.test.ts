@@ -11,20 +11,24 @@ import type { BlockId } from '@sim/types.ts';
 
 function ownedWild(sim: Sim, biome?: string): BlockId[] {
   const out: BlockId[] = [];
+
   for (const block of sim.state.blocks.values()) {
     if (!block.owned || block.phase !== 'wild' || !BIOMES[block.biome].clearable) continue;
     if (biome && block.biome !== biome) continue;
     out.push(block.id);
   }
+
   return out;
 }
 
 function tickUntil(sim: Sim, predicate: () => boolean, limit = 5000): number {
   let n = 0;
+
   while (!predicate() && n < limit) {
     sim.tick();
     n += 1;
   }
+
   return n;
 }
 
@@ -34,10 +38,14 @@ function plantedEstate(
   options: { biome?: string; sanitize?: boolean } = {},
 ): { sim: Sim; block: BlockId } {
   const sim = createSim(seed);
+
   sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
+
   const block = ownedWild(sim, options.biome)[0] ?? ownedWild(sim)[0]!;
+
   expect(sim.dispatch({ type: 'ChopBlock', block })).toEqual({ ok: true });
   tickUntil(sim, () => sim.state.blocks.get(block)!.phase === 'cleared');
+
   if (options.sanitize) {
     while (sim.state.blocks.get(block)!.debris > 0) {
       expect(sim.dispatch({ type: 'BuyItem', item: 'sanitationCrew', quantity: 1 })).toEqual({
@@ -46,7 +54,9 @@ function plantedEstate(
       expect(sim.dispatch({ type: 'SanitizeBlock', block })).toEqual({ ok: true });
     }
   }
+
   const needed = BIOMES[sim.state.blocks.get(block)!.biome].plantableSlots;
+
   expect(sim.dispatch({ type: 'BuyItem', item: 'bibit', quantity: needed })).toEqual({ ok: true });
   expect(sim.dispatch({ type: 'PlantBlock', block, species: 'palm' })).toEqual({ ok: true });
   return { sim, block };
@@ -62,12 +72,14 @@ function growToBearing(sim: Sim, block: BlockId): void {
 
 function infect(sim: Sim, block: BlockId, slot: number, stage: 1 | 2 = 1): void {
   const palms = sim.state.palms.get(block)!;
+
   palms.ganoderma[slot] = stage;
   palms.ganodermaSince[slot] = sim.state.tick;
 }
 
 function deathsBy(sim: Sim, ticks: number, cause: 'beetles' | 'ganoderma'): number {
   let n = 0;
+
   for (let i = 0; i < ticks; i++)
     for (const e of sim.tick()) if (e.type === 'PalmDied' && e.cause === cause) n += 1;
   return n;
@@ -76,6 +88,7 @@ function deathsBy(sim: Sim, ticks: number, cause: 'beetles' | 'ganoderma'): numb
 describe('the lattice (GDD 3.4)', () => {
   it('every interior slot has six neighbours, corners have fewer', () => {
     const out: number[] = [];
+
     expect(slotNeighbours(slotIndex(5, 5), out)).toBe(6);
     expect(slotNeighbours(slotIndex(0, 0), out)).toBe(2);
     // Bottom-right corner sits on an odd (right-shifted) row: only two neighbours.
@@ -87,10 +100,13 @@ describe('the lattice (GDD 3.4)', () => {
   it('neighbourhood is symmetric', () => {
     const a: number[] = [];
     const b: number[] = [];
+
     for (let slot = 0; slot < SLOTS_PER_BLOCK; slot++) {
       const n = slotNeighbours(slot, a);
+
       for (let i = 0; i < n; i++) {
         const m = slotNeighbours(a[i]!, b);
+
         expect(b.slice(0, m)).toContain(slot);
       }
     }
@@ -107,12 +123,15 @@ describe('rhinoceros beetle (GDD 3.4)', () => {
   it('a fresh forest pile fills with beetles; a sanitized one stays empty', () => {
     const dirty = plantedEstate(1, { biome: 'forest' });
     const clean = plantedEstate(1, { biome: 'forest', sanitize: true });
+
     for (let i = 0; i < 90; i++) {
       dirty.sim.tick();
       clean.sim.tick();
     }
+
     const dirtyBlock = dirty.sim.state.blocks.get(dirty.block)!;
     const cleanBlock = clean.sim.state.blocks.get(clean.block)!;
+
     expect(dirtyBlock.beetles).toBeGreaterThan(30);
     expect(cleanBlock.beetles).toBe(0);
   });
@@ -122,6 +141,7 @@ describe('rhinoceros beetle (GDD 3.4)', () => {
     const clean = plantedEstate(1, { biome: 'forest', sanitize: true });
     const dirtyDeaths = deathsBy(dirty.sim, 720, 'beetles');
     const cleanDeaths = deathsBy(clean.sim, 720, 'beetles');
+
     expect(dirtyDeaths).toBeGreaterThan(20);
     expect(cleanDeaths).toBe(0);
   });
@@ -136,6 +156,7 @@ describe('rhinoceros beetle (GDD 3.4)', () => {
       trapped.sim.tick();
       treated.sim.tick();
     }
+
     expect(trapped.sim.dispatch({ type: 'SetTrap', block: trapped.block })).toMatchObject({
       code: 'noInventory',
     });
@@ -158,13 +179,16 @@ describe('rhinoceros beetle (GDD 3.4)', () => {
       trapped.sim.tick();
       treated.sim.tick();
     }
+
     const c = control.sim.state.blocks.get(control.block)!.beetles;
+
     expect(trapped.sim.state.blocks.get(trapped.block)!.beetles).toBeLessThan(c * 0.7);
     expect(treated.sim.state.blocks.get(treated.block)!.beetles).toBeLessThan(c * 0.7);
   });
 
   it('beetles spare mature palms', () => {
     const { sim, block } = plantedEstate(42, { sanitize: true });
+
     growToBearing(sim, block);
     sim.state.blocks.get(block)!.debris = 80;
     expect(deathsBy(sim, 360, 'beetles')).toBe(0);
@@ -174,20 +198,27 @@ describe('rhinoceros beetle (GDD 3.4)', () => {
 describe('Ganoderma (GDD 3.4)', () => {
   it('goes latent → symptomatic → dead on the mature timetable, leaving a stump and debris', () => {
     const { sim, block } = plantedEstate(42, { sanitize: true });
+
     growToBearing(sim, block);
+
     const palms = sim.state.palms.get(block)!;
+
     infect(sim, block, 60);
+
     const debrisBefore = sim.state.blocks.get(block)!.debris;
 
     const sick = tickUntil(sim, () => palms.ganoderma[60] === 2, GANODERMA.latentDays.mature + 40);
+
     expect(sick).toBe(GANODERMA.latentDays.mature);
     expect(ganodermaCounts(palms).symptomatic).toBeGreaterThanOrEqual(1);
 
     let died: number | null = null;
+
     for (let i = 0; i < GANODERMA.symptomaticDays.mature + 60 && died === null; i++) {
       for (const e of sim.tick())
         if (e.type === 'PalmDied' && e.slot === 60 && e.cause === 'ganoderma') died = i + 1;
     }
+
     expect(died).toBe(GANODERMA.symptomaticDays.mature);
     expect(palms.ganoderma[60]).toBe(3);
     expect(slotStage(palms, 60, 'palm', sim.state.tick)).toBe('dead');
@@ -198,25 +229,33 @@ describe('Ganoderma (GDD 3.4)', () => {
 
   it('young palms go faster', () => {
     const { sim, block } = plantedEstate(42, { sanitize: true });
+
     infect(sim, block, 60);
+
     const palms = sim.state.palms.get(block)!;
     const sick = tickUntil(sim, () => palms.ganoderma[60] === 2, 400);
+
     expect(sick).toBe(GANODERMA.latentDays.immature);
   });
 
   it('a symptomatic palm grows at most 60% as fast as its neighbours', () => {
     const { sim, block } = plantedEstate(42, { sanitize: true });
     const palms = sim.state.palms.get(block)!;
+
     infect(sim, block, 60, 2);
+
     // The comparison palm sits well away on the lattice: a root neighbour
     // would catch it inside the window and slow down too.
     const clean = 5;
     const before60 = palms.growth[60]!;
     const before61 = palms.growth[clean]!;
+
     for (let i = 0; i < 30; i++) sim.tick();
     expect(palms.ganoderma[clean]).toBe(0);
+
     const gained60 = palms.growth[60]! - before60;
     const gained61 = palms.growth[clean]! - before61;
+
     // float32 accumulation: allow a hair of slack
     expect(gained60).toBeLessThanOrEqual(gained61 * GANODERMA.stressCap + 1e-3);
     expect(gained60).toBeGreaterThan(0);
@@ -224,16 +263,20 @@ describe('Ganoderma (GDD 3.4)', () => {
 
   it('spreads along the lattice; left alone it takes much of the block in a few years', () => {
     const { sim, block } = plantedEstate(42, { sanitize: true });
+
     growToBearing(sim, block);
     infect(sim, block, slotIndex(5, 5));
     for (let i = 0; i < 4 * 360; i++) sim.tick();
+
     const c = ganodermaCounts(sim.state.palms.get(block)!);
+
     expect(c.latent + c.symptomatic + c.dead).toBeGreaterThan(8);
   });
 
   it('a careful player can contain an outbreak: Trichoderma plus removal', () => {
     const neglect = plantedEstate(42, { sanitize: true });
     const careful = plantedEstate(42, { sanitize: true });
+
     growToBearing(neglect.sim, neglect.block);
     growToBearing(careful.sim, careful.block);
     infect(neglect.sim, neglect.block, slotIndex(5, 5));
@@ -243,13 +286,17 @@ describe('Ganoderma (GDD 3.4)', () => {
     for (let day = 0; day < 4 * 360; day++) {
       neglect.sim.tick();
       careful.sim.tick();
+
       if (day % 30 === 0) {
         const b = careful.sim.state.blocks.get(careful.block)!;
+
         if (b.trichodermaUntil <= careful.sim.state.tick) {
           careful.sim.dispatch({ type: 'BuyItem', item: 'trichoderma', quantity: 1 });
           careful.sim.dispatch({ type: 'ApplyTrichoderma', block: careful.block });
         }
+
         const palms = careful.sim.state.palms.get(careful.block)!;
+
         for (let slot = 0; slot < palms.plantedAt.length; slot++) {
           if (palms.plantedAt[slot]! >= 0 && palms.ganoderma[slot]! >= 2) {
             careful.sim.dispatch({ type: 'RemovePalm', block: careful.block, slot });
@@ -262,18 +309,24 @@ describe('Ganoderma (GDD 3.4)', () => {
     const c = ganodermaCounts(careful.sim.state.palms.get(careful.block)!);
     const neglectInfected = n.latent + n.symptomatic + n.dead;
     const carefulInfected = c.latent + c.symptomatic + c.dead;
+
     expect(carefulInfected).toBeLessThan(neglectInfected / 2);
     expect(c.dead).toBe(0);
   });
 
   it('an isolation trench cuts the links: a ringed palm infects nobody', () => {
     const { sim, block } = plantedEstate(42, { sanitize: true });
+
     growToBearing(sim, block);
     sim.state.economy.cash = 500_000_000;
+
     const centre = slotIndex(5, 5);
+
     infect(sim, block, centre, 2);
+
     const ring: number[] = [];
     const n = slotNeighbours(centre, ring);
+
     for (let i = 0; i < n; i++)
       expect(sim.dispatch({ type: 'TrenchPalm', block, slot: ring[i]! })).toEqual({ ok: true });
     expect(sim.dispatch({ type: 'TrenchPalm', block, slot: ring[0]! })).toMatchObject({
@@ -282,12 +335,16 @@ describe('Ganoderma (GDD 3.4)', () => {
 
     // Silence spontaneous infection so only spread counts.
     sim.state.blocks.get(block)!.debris = 0;
+
     const palms = sim.state.palms.get(block)!;
+
     for (let i = 0; i < 720; i++) {
       sim.tick();
       // spontaneous spores can still land; undo any that did not come via the centre
     }
+
     let viaSpread = 0;
+
     for (let i = 0; i < n; i++) if (palms.ganoderma[ring[i]!] !== 0) viaSpread += 1;
     expect(viaSpread).toBe(0);
   });
@@ -321,6 +378,7 @@ describe('per-palm commands (GDD 3.4)', () => {
 
   it('a trench survives replanting', () => {
     const { sim, block } = plantedEstate(42, { sanitize: true });
+
     sim.dispatch({ type: 'TrenchPalm', block, slot: 3 });
     sim.dispatch({ type: 'RemovePalm', block, slot: 3 });
     sim.dispatch({ type: 'BuyItem', item: 'bibit', quantity: 1 });
@@ -333,10 +391,13 @@ describe('plague (GDD 3.4)', () => {
   it('flags a block when pressure crosses the line and clears it with hysteresis', () => {
     const { sim, block } = plantedEstate(42, { sanitize: true });
     const b = sim.state.blocks.get(block)!;
+
     expect(pestPressure(b, sim.state.palms.get(block))).toBeLessThan(0.1);
 
     b.debris = 100;
+
     let started = false;
+
     for (let i = 0; i < 200 && !started; i++)
       for (const e of sim.tick()) if (e.type === 'PlagueStarted') started = true;
     expect(started).toBe(true);
@@ -344,13 +405,17 @@ describe('plague (GDD 3.4)', () => {
 
     // Sanitize hard and trap; the flag lifts once pressure falls past the lower bound.
     sim.state.economy.cash = 500_000_000;
+
     while (b.debris > 0) {
       sim.dispatch({ type: 'BuyItem', item: 'sanitationCrew', quantity: 1 });
       sim.dispatch({ type: 'SanitizeBlock', block });
     }
+
     sim.dispatch({ type: 'BuyItem', item: 'pheromoneTrap', quantity: 1 });
     sim.dispatch({ type: 'SetTrap', block });
+
     let ended = false;
+
     for (let i = 0; i < 200 && !ended; i++)
       for (const e of sim.tick()) if (e.type === 'PlagueEnded') ended = true;
     expect(ended).toBe(true);
@@ -364,6 +429,7 @@ describe('the careful player (M1d done-criterion)', () => {
     const careful = autoplay({ seed: 1, years: 5, blocks: 2, managePests: true });
     const lostCareless = careless.rows.at(-1)!.palmsLost;
     const lostCareful = careful.rows.at(-1)!.palmsLost;
+
     expect(lostCareless).toBeGreaterThan(20);
     expect(lostCareful).toBeLessThan(lostCareless / 3);
     // and it still pays

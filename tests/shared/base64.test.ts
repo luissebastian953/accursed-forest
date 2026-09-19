@@ -24,6 +24,7 @@ describe('typed-array base64 codec (GDD 7)', () => {
 
   it('preserves the -1 empty-slot sentinel and extreme int32 values', () => {
     const values = Int32Array.of(-1, 0, 1, -2147483648, 2147483647);
+
     expect(Array.from(decodeInt32(encodeTypedArray(values)))).toEqual(Array.from(values));
   });
 
@@ -34,12 +35,14 @@ describe('typed-array base64 codec (GDD 7)', () => {
   it('encodes a view into a larger buffer without dragging the whole buffer along', () => {
     const backing = new Int32Array([1, 2, 3, 4, 5, 6]);
     const view = backing.subarray(2, 5);
+
     expect(Array.from(decodeInt32(encodeTypedArray(view)))).toEqual([3, 4, 5]);
   });
 
   it('survives an array larger than the fromCharCode chunk size', () => {
     const big = Float32Array.from({ length: 40_000 }, (_, i) => Math.sin(i) * 1000);
     const back = decodeFloat32(encodeTypedArray(big));
+
     expect(back.length).toBe(big.length);
     expect(back[0]).toBe(big[0]);
     expect(back[39_999]).toBe(big[39_999]);

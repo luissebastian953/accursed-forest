@@ -40,6 +40,7 @@ export function stepSpring(
   while (remaining > 0) {
     const step = Math.min(remaining, MAX_STEP);
     const a = -config.k * (spring.x - target) - config.c * spring.v;
+
     spring.v += a * step;
     spring.x += spring.v * step;
     remaining -= step;

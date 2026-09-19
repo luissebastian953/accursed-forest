@@ -118,11 +118,13 @@ export function buildPalmGeometry(
   // ── Trunk: tapered boxes with a subtle S-bend ────────────────────────────
   if (p.trunkHeight > 0 && p.trunkSegments > 0) {
     const segH = p.trunkHeight / p.trunkSegments;
+
     for (let i = 0; i < p.trunkSegments; i++) {
       const t = (i + 0.5) / p.trunkSegments;
       // taper toward the crown, and lean back and forth once over the height
       const radius = p.trunkRadius * (1 - 0.28 * t);
       const bend = Math.sin(t * Math.PI * 1.15) * p.trunkHeight * 0.045;
+
       _pos.set(bend, segH * (i + 0.5), 0);
       _euler.set(0, 0, -Math.cos(t * Math.PI * 1.15) * 0.06);
       _scale.set(radius * 2, segH * 1.02, radius * 2);
@@ -133,6 +135,7 @@ export function buildPalmGeometry(
   // ── Crown: slabs radiating outward, tapering along their length ──────────
   const crownY = p.trunkHeight;
   const segments = 3;
+
   for (let f = 0; f < p.frondCount; f++) {
     const yaw = (f / p.frondCount) * Math.PI * 2 + (f % 2) * 0.11;
     // alternate fronds droop a long way differently, so the crown is a head of
@@ -158,6 +161,7 @@ export function buildPalmGeometry(
       // the crown reads as leaves rather than as paddles.
       const tip = s === segments - 1;
       const split = tip ? FAN_TIP : s === segments - 2 ? FAN_MID : [0];
+
       for (const fan of split) {
         _pos.set(
           Math.cos(yaw + fan) * horizontal,
@@ -181,6 +185,7 @@ export function buildPalmGeometry(
   for (let i = 0; i < p.bunches; i++) {
     const yaw = (i / Math.max(1, p.bunches)) * Math.PI * 2 + 0.6;
     const r = p.trunkRadius + 0.05;
+
     _pos.set(Math.cos(yaw) * r, crownY - 0.06, Math.sin(yaw) * r);
     _euler.set(0, -yaw, 0);
     _scale.set(0.1, 0.085, 0.1);
@@ -193,6 +198,7 @@ export function buildPalmGeometry(
 /** What a dead or removed palm leaves behind until the ground is cleared. */
 export function buildStumpGeometry(): BufferGeometry {
   const b = new BoxBuilder();
+
   b.addAABox(0, 0.13, 0, 0.16, 0.26, 0.16, { side: Palette.Stump });
   return b.build();
 }

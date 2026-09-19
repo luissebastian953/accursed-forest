@@ -29,6 +29,7 @@ describe('seeded RNG (GDD 4.3)', () => {
 
   it('restores an in-flight stream exactly; this is what makes saves safe', () => {
     const live = createRng(99);
+
     draw(live, 37);
 
     // A save writes these four numbers and nothing else.
@@ -36,11 +37,13 @@ describe('seeded RNG (GDD 4.3)', () => {
     const expected = draw(live, 24);
 
     const restored: RngState = { ...saved };
+
     expect(draw(restored, 24)).toEqual(expected);
   });
 
   it('never reaches the all-zero fixed point, even from seed 0', () => {
     const state = createRng(0);
+
     expect(state.a | state.b | state.c | state.d).not.toBe(0);
     for (let i = 0; i < 1000; i++) nextUint32(state);
     expect(state.a | state.b | state.c | state.d).not.toBe(0);
@@ -61,8 +64,10 @@ describe('seeded RNG (GDD 4.3)', () => {
 
   it('stays in [0, 1) over a long run', () => {
     const state = createRng(42);
+
     for (let i = 0; i < 100_000; i++) {
       const v = nextFloat(state);
+
       expect(v).toBeGreaterThanOrEqual(0);
       expect(v).toBeLessThan(1);
     }
@@ -76,6 +81,7 @@ describe('seeded RNG (GDD 4.3)', () => {
 
     for (let i = 0; i < n; i++) {
       const v = nextFloat(state);
+
       sum += v;
       buckets[Math.floor(v * 10)]! += 1;
     }
@@ -86,11 +92,14 @@ describe('seeded RNG (GDD 4.3)', () => {
 
   it('nextInt stays in range and handles empty ranges', () => {
     const state = createRng(11);
+
     for (let i = 0; i < 10_000; i++) {
       const v = nextInt(state, 7);
+
       expect(v).toBeGreaterThanOrEqual(0);
       expect(v).toBeLessThan(7);
     }
+
     expect(nextInt(state, 0)).toBe(0);
     expect(nextInt(state, -3)).toBe(0);
   });
@@ -98,6 +107,7 @@ describe('seeded RNG (GDD 4.3)', () => {
   it('chance treats degenerate probabilities without consuming the stream', () => {
     const state = createRng(3);
     const before = cloneRng(state);
+
     expect(chance(state, 0)).toBe(false);
     expect(chance(state, 1)).toBe(true);
     expect(state).toEqual(before);
@@ -106,6 +116,7 @@ describe('seeded RNG (GDD 4.3)', () => {
   it('pickWeighted respects weights and skips zero-weight entries', () => {
     const state = createRng(21);
     const counts = [0, 0, 0];
+
     for (let i = 0; i < 30_000; i++) counts[pickWeighted(state, [1, 0, 3])]! += 1;
 
     expect(counts[1]).toBe(0);
@@ -122,6 +133,7 @@ describe('seeded RNG (GDD 4.3)', () => {
 
     for (let i = 0; i < n; i++) {
       const v = nextGaussian(state);
+
       expect(Number.isFinite(v)).toBe(true);
       sum += v;
       sumSq += v * v;

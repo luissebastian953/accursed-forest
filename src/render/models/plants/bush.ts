@@ -2,6 +2,7 @@ import { Palette } from '../../materials/paletteSlots.ts';
 import { between, oneOf, type Model } from '../kit.ts';
 
 const LEAF = [Palette.Bush, Palette.Bush, Palette.ScrubDark, Palette.CanopyLight] as const;
+
 export const BLOOMS = [
   Palette.FlowerRed,
   Palette.FlowerYellow,
@@ -16,6 +17,7 @@ export const bush: Model = {
     const width = between(rand, 0.9, 1.5);
     const height = between(rand, 0.55, 0.95);
     const leaf = oneOf(rand, LEAF);
+
     kit.box(0, 0, 0, width, height, width * 0.85, leaf, { turn: rand() });
     kit.box(
       between(rand, -0.2, 0.2),
@@ -38,8 +40,11 @@ export const floweringBush: Model = {
   build(kit, rand) {
     const width = between(rand, 1, 1.4);
     const height = between(rand, 0.6, 0.9);
+
     kit.box(0, 0, 0, width, height, width * 0.9, Palette.Bush, { turn: rand() });
+
     const bloom = oneOf(rand, BLOOMS);
+
     for (let i = 0; i < 6; i++) {
       kit.box(
         between(rand, -width * 0.4, width * 0.4),

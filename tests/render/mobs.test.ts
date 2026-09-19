@@ -11,6 +11,7 @@ describe('mob rig (POC)', () => {
     for (const id of SPECIES_IDS) {
       const spec = SPECIES[id]!;
       const order = partOrder(spec);
+
       expect(order[0]!.parent, id).toBe(-1);
       expect(order[0]!.part.role, id).toBe('body');
       order.forEach(({ parent }, i) => {
@@ -25,10 +26,12 @@ describe('mob rig (POC)', () => {
   it('the new arrivals have bodies: a pangolin and the golden capybara', () => {
     for (const id of ['pangolin', 'shinyCapybara']) {
       const spec = SPECIES[id];
+
       expect(spec, id).toBeDefined();
       expect(spec!.parts.length, id).toBeGreaterThanOrEqual(6);
       expect(partOrder(spec!)[0]!.part.role, id).toBe('body');
     }
+
     // The golden one is the capybara in another coat, not another animal.
     expect(SPECIES['shinyCapybara']!.parts.length).toBe(SPECIES['capybara']!.parts.length);
     expect(SPECIES['shinyCapybara']!.parts[0]!.slot).not.toBe(SPECIES['capybara']!.parts[0]!.slot);
@@ -41,7 +44,9 @@ describe('mob rig (POC)', () => {
     /** The body's pitch and height this pose. */
     const read = (input: Parameters<typeof pose>[2]): { pitch: number; y: number } => {
       pose(monkey, body, input, m);
+
       const e = m.elements;
+
       return { pitch: Math.atan2(-e[9]!, e[10]!), y: e[13]! };
     };
 
@@ -66,22 +71,28 @@ describe('mob rig (POC)', () => {
       return Math.asin(-m.elements[9]!);
     };
     let opposite = 0;
+
     for (let t = 0; t < 2; t += 0.05) {
       const a = angle(fl, t);
       const b = angle(fr, t);
+
       if (Math.sign(a) !== Math.sign(b) || Math.abs(a) < 0.02) opposite += 1;
       expect(Math.abs(a)).toBeLessThanOrEqual(boar.swing + 1e-6);
     }
+
     expect(opposite).toBeGreaterThan(30);
   });
 
   it('standing still, nothing swings', () => {
     const cow = SPECIES['cow']!;
     const m = new Matrix4();
+
     for (const part of cow.parts) {
       if (part.role !== 'legFL' && part.role !== 'body') continue;
       pose(cow, part, { time: 3.3, gait: 0, phase: 1 }, m);
+
       const rest = new Matrix4().makeTranslation(...part.at);
+
       for (let i = 0; i < 16; i++) expect(m.elements[i]).toBeCloseTo(rest.elements[i]!, 5);
     }
   });
@@ -91,6 +102,7 @@ describe('mob rig (POC)', () => {
     const body = babi.parts[0]!;
     const down = new Matrix4();
     const up = new Matrix4();
+
     pose(babi, body, { time: 0, gait: 0, phase: 0, stand: 0 }, down);
     pose(babi, body, { time: 0, gait: 0, phase: 0, stand: 1 }, up);
     expect(up.elements[13]).toBeGreaterThan(down.elements[13]! + 0.3);
@@ -102,22 +114,29 @@ describe('mob rig (POC)', () => {
     const crowd = (): void => {
       for (let mob = 0; mob < 500; mob++) {
         const spec = SPECIES[SPECIES_IDS[mob % SPECIES_IDS.length]!]!;
+
         for (const part of spec.parts)
           pose(spec, part, { time: mob * 0.01, gait: 1, phase: mob }, m);
       }
     };
+
     // Warm the JIT first; the cold run measures compilation, not posing. The
     // real number is ~1 ms; the budget leaves room for a busy test machine.
     crowd();
+
     const t0 = performance.now();
+
     crowd();
+
     const ms = performance.now() - t0;
+
     expect(ms).toBeLessThan(16);
   });
 
   it('part geometry hangs off its pivot the way the role needs', () => {
     const leg = SPECIES['pig']!.parts.find((p) => p.role === 'legFL')!;
     const geometry = partGeometry(leg);
+
     geometry.computeBoundingBox();
     expect(geometry.boundingBox!.max.y).toBeCloseTo(0, 6);
     expect(geometry.boundingBox!.min.y).toBeCloseTo(-leg.size[1], 6);
@@ -128,6 +147,7 @@ describe('a mob that bolts (GDD 6.5)', () => {
   /** A field with stub materials: nothing here touches the GPU. */
   function field() {
     const material = new MeshBasicMaterial();
+
     return new MobField({
       material,
       spectralMaterial: material,
@@ -160,6 +180,7 @@ describe('a mob that bolts (GDD 6.5)', () => {
 
   it('runs for a moment, fades out, and does not come back', () => {
     const mobs = field();
+
     mobs.syncSim(state([pig]));
     expect(mobs.positionOf(pig.id)).not.toBeNull();
 

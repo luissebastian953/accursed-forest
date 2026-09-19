@@ -43,6 +43,7 @@ export function render(text: string, state: SimState, vars: NewsVars): string {
     until: vars.until ?? '',
     cost: vars.cost ?? '',
   };
+
   return text.replace(/\{(\w+)\}/g, (match, name: string) => values[name] ?? match);
 }
 
@@ -57,6 +58,7 @@ function capitalise(text: string): string {
  * phrasing from the main stream shifted every later weather and pest roll.
  */
 const NEWS_STREAM = 0x4e455753;
+
 function newsRng(state: SimState): RngState {
   return forkRng(state.seed ^ NEWS_STREAM, state.tick);
 }
@@ -71,11 +73,14 @@ export function publish(
 ): NewsItem | null {
   const { state, events } = ctx;
   const template: NewsTemplate | undefined = NEWS_TEMPLATES[key];
+
   if (!template) return null;
 
   const news = state.society.news;
+
   for (let i = news.length - 1; i >= 0; i--) {
     const item = news[i]!;
+
     if (state.tick - item.tick > template.cooldownDays) break;
     if (item.key === key && state.tick - item.tick < template.cooldownDays) return null;
   }
@@ -89,13 +94,16 @@ export function publish(
     body: render(pick(rng, template.bodies) ?? '', state, vars),
     effects: template.effects.map((e) => render(e, state, vars)).filter((e) => e.trim().length > 0),
   };
+
   if (blocks.length > 0) item.blocks = blocks;
 
   news.push(item);
   if (news.length > NEWS.cap) news.splice(0, news.length - NEWS.cap);
+
   if (template.chronicle ?? (item.severity === 'warning' || item.severity === 'critical')) {
     chronicle(state, { lane: item.lane, severity: item.severity, title: item.title });
   }
+
   events.push({ type: 'NewsPublished', key, lane: item.lane, severity: item.severity });
   return item;
 }
@@ -105,24 +113,29 @@ export function newsSystem(ctx: SimContext): void {
   const pending = new Map<string, Pending>();
   const add = (key: string, vars: NewsVars = {}, blocks: BlockId[] = []): void => {
     const existing = pending.get(key);
+
     if (existing) {
       existing.blocks.push(...blocks);
       if (vars.n !== undefined) existing.vars.n = (existing.vars.n ?? 0) + vars.n;
       return;
     }
+
     pending.set(key, { key, vars: { ...vars }, blocks: [...blocks] });
   };
 
   let wildfireNow = false;
   const snapshot = [...ctx.events.peek()];
+
   for (const event of snapshot) {
     switch (event.type) {
       case 'WildfireStarted':
         wildfireNow = true;
         add('wildfire.start');
         break;
+
       case 'WeatherEventStarted': {
         const active = state.weather.activeEvents.find((e) => e.id === event.id);
+
         if (event.id === 'haze') add('haze.start', { days: event.days });
         else if (event.id === 'ash') add('ash.start', { days: event.days });
         else if (event.id === 'flood')
@@ -134,11 +147,14 @@ export function newsSystem(ctx: SimContext): void {
         else if (event.id === 'drought') add('drought.start');
         break;
       }
+
       case 'WeatherEventEnded':
         if (event.id === 'drought') add('drought.end');
         break;
+
       case 'Landslide': {
         const bare = forestCoverAround(state, world, event.block) < 0.3;
+
         if (bare || event.palmsLost > 0)
           add(
             'landslide',
@@ -147,6 +163,7 @@ export function newsSystem(ctx: SimContext): void {
           );
         break;
       }
+
       case 'HarvestStolen':
         add(
           'estate.theft',
@@ -182,6 +199,7 @@ export function newsSystem(ctx: SimContext): void {
             price: `Rp ${rupiah.format(event.price)}`,
           });
         }
+
         break;
       case 'IntegrityScandal':
         add('gov.scandal');
@@ -231,10 +249,12 @@ export function newsSystem(ctx: SimContext): void {
 
   // The price, checked monthly against a month ago.
   const history = state.economy.tbsPriceHistory;
+
   if (state.tick > 0 && state.tick % 30 === 0 && history.length > 30) {
     const then = history[history.length - 31]!;
     const now = state.economy.tbsPrice;
     const move = (now - then) / then;
+
     if (Math.abs(move) >= NEWS.priceMoveHeadline) {
       add(move > 0 ? 'price.surge' : 'price.slump', {
         pct: `${Math.round(Math.abs(move) * 100)}%`,
@@ -244,8 +264,10 @@ export function newsSystem(ctx: SimContext): void {
   }
 
   const rng = newsRng(state);
+
   for (const item of pending.values()) {
     const published = publish(ctx, item.key, item.vars, item.blocks, rng);
+
     // The government reacts to the big natural stories; integrity decides whether it means it.
     if (
       published &&
@@ -257,6 +279,7 @@ export function newsSystem(ctx: SimContext): void {
       if (chance(rng, NEWS.governmentReactionChance)) {
         const topic = item.key.startsWith('flood.') ? 'gov.floodRelief' : 'gov.fireResponse';
         const tone = state.society.integrity >= NEWS.realResponseIntegrity ? 'real' : 'hollow';
+
         publish(ctx, `${topic}.${tone}`, {}, [], rng);
       }
     }

@@ -39,13 +39,16 @@ describe('the headline deck (GDD 3.7)', () => {
   it('is coherent: every sequel and every lever is real', () => {
     for (const id of IDS) {
       const spec = MACRO_EVENTS[id];
+
       // A headline that waits on another must wait on one that exists.
       if ('after' in spec && spec.after !== undefined) {
         expect(IDS, `${id} waits on ${spec.after}`).toContain(spec.after);
         // And a sequel that can only run once needs its first part to persist.
         expect(MACRO_EVENTS[spec.after as MacroEventId]).toBeDefined();
       }
+
       expect(spec.weight, `${id} has no weight`).toBeGreaterThan(0);
+
       // Anything temporary needs a duration; anything permanent must not have one.
       const temporary =
         'tbsFactor' in spec ||
@@ -58,12 +61,14 @@ describe('the headline deck (GDD 3.7)', () => {
         'settleFactor' in spec ||
         'kopdesCashPerDay' in spec ||
         'calm' in spec;
+
       if (temporary) expect(spec.days, `${id} runs forever`).toBeDefined();
     }
   });
 
   it('the sequel waits for its first part, and once means once', () => {
     const sim = createSim(1);
+
     // Mulyonows has to reach Osaka before he can fall through it.
     expect(drawable(sim.state, 'endlessCastle')).toBe(false);
     sim.state.society.macroSeen.push('osakaCulvert');
@@ -79,6 +84,7 @@ describe('the headline deck (GDD 3.7)', () => {
     // And the consequences are never dealt at random.
     for (const id of IDS) {
       const spec = MACRO_EVENTS[id] as { triggered?: boolean };
+
       if (spec.triggered) expect(drawable(sim.state, id), id).toBe(false);
     }
   });
@@ -86,6 +92,7 @@ describe('the headline deck (GDD 3.7)', () => {
   it('every headline has something to say', () => {
     for (const id of IDS) {
       const template = NEWS_TEMPLATES[`macro.${id}`];
+
       expect(template, `macro.${id} has no template`).toBeDefined();
       expect(template!.titles.length).toBeGreaterThan(0);
       expect(template!.bodies.length).toBeGreaterThan(0);
@@ -123,9 +130,12 @@ describe('the headline deck (GDD 3.7)', () => {
 
   it('compounds: two headlines on the same lever multiply', () => {
     const sim = createSim(7);
+
     run(sim, 'palmIsATree');
     run(sim, 'rupiahAt18k');
+
     const both = MACRO_EVENTS.palmIsATree.inputFactor * MACRO_EVENTS.rupiahAt18k.inputFactor;
+
     expect(shopIndex(sim.state) / sim.state.economy.inputPriceIndex).toBeCloseTo(both, 5);
   });
 
@@ -135,19 +145,23 @@ describe('the headline deck (GDD 3.7)', () => {
 
     if (slope) {
       sim.state.weather.wetStreak = 6;
+
       const calm = landslideChance(
         sim.state,
         sim.world,
         readBlock(sim.state, sim.world, slope.id),
         true,
       );
+
       run(sim, 'krakatoaLeaves');
+
       const shaken = landslideChance(
         sim.state,
         sim.world,
         readBlock(sim.state, sim.world, slope.id),
         true,
       );
+
       expect(shaken).toBeCloseTo(calm * 2, 8);
       sim.state.weather.activeEvents.length = 0;
     }
@@ -167,17 +181,23 @@ describe('the headline deck (GDD 3.7)', () => {
 
   it('the coordination fee moves with the mood of the office', () => {
     const sim = createSim(3);
+
     sim.state.society.investigationUntil = sim.state.tick + 40;
+
     const plain = settleCost(sim.state);
+
     run(sim, 'forestAmnesty');
     expect(settleCost(sim.state)).toBeCloseTo(plain * 0.5, 0);
   });
 
   it('ash from the volcano falls on owned land only', () => {
     const sim = createSim(5);
+
     sim.state.economy.cash = 1e12;
+
     // Land the headline the way the system does, rather than by hand.
     const owned = [...sim.state.blocks.values()].filter((b) => b.owned);
+
     expect(owned.length).toBeGreaterThan(0);
     for (const block of owned) expect(block.ashUntil).toBeLessThan(sim.state.tick);
   });
@@ -187,6 +207,7 @@ describe('the headline deck (GDD 3.7)', () => {
       const spec = MACRO_EVENTS[id];
       // Anything that never comes back should not land in the first years.
       const permanent = spec as { inputRise?: number; fromYear?: number };
+
       if ((permanent.inputRise ?? 0) >= 0.09) {
         expect(permanent.fromYear, `${id} can land in year one`).toBeGreaterThanOrEqual(3);
       }
@@ -198,11 +219,13 @@ describe('the headline deck (GDD 3.7)', () => {
     for (const id of IDS) {
       const spec = MACRO_EVENTS[id];
       const land = (spec as { landFactor?: number }).landFactor;
+
       if (land !== undefined) {
         expect(land).toBeGreaterThan(0.5);
         expect(land).toBeLessThan(2);
       }
     }
+
     expect(Object.keys(BIOMES).length).toBeGreaterThan(0);
   });
 });
@@ -211,6 +234,7 @@ describe('the bar chips (GDD 8)', () => {
   it('every headline that runs for days has a label in both languages', () => {
     for (const key of IDS) {
       const spec = MACRO_EVENTS[key] as { days?: unknown };
+
       // Only the timed ones put a chip on the bar; the permanent ones are a
       // headline and a new price, with nothing left running.
       if (!spec.days) continue;

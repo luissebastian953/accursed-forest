@@ -20,6 +20,7 @@ const COLOURS = [Palette.KopdesFlag, Palette.Fire, Palette.Sand, Palette.Water] 
 
 function bannerGeometry() {
   const b = new BoxBuilder();
+
   for (const x of [-5, 5]) b.addAABox(x, 3.5, 0, 0.35, 7, 0.35, { side: Palette.PalmTrunk });
   b.addAABox(0, 6, 0, 9.8, 2, 0.2, { side: Palette.KopdesFlag });
   b.addAABox(0, 6, 0.12, 7, 0.45, 0.04, { side: Palette.Sand });
@@ -48,11 +49,15 @@ export class Ceremony {
     this.banner = new Mesh(bannerGeometry(), material);
     this.banner.visible = false;
     this.group.add(this.banner);
+
     for (let i = 0; i < SPARKS; i++) {
       const mesh = new Mesh(sparkGeometry(COLOURS[i % COLOURS.length]!), material);
+
       mesh.visible = false;
+
       const angle = (i / SPARKS) * Math.PI * 2;
       const lift = 0.6 + ((i * 7) % 5) / 10;
+
       this.sparks.push({ mesh, dx: Math.cos(angle) * 8, dy: lift * 6, dz: Math.sin(angle) * 8 });
       this.group.add(mesh);
     }
@@ -61,14 +66,17 @@ export class Ceremony {
   /** Show the banner for a certified estate; `celebrate` starts the fireworks now. */
   sync(state: SimState, world: World, nowMs: number, celebrate = false): void {
     const certified = state.run.ending === 'clean' || state.run.ending === 'dirty';
+
     if (!certified || !state.kopdes) {
       this.banner.visible = false;
       for (const s of this.sparks) s.mesh.visible = false;
       this.startedAt = -1;
       return;
     }
+
     const [bx, by] = world.toXY(state.kopdes.blockId);
     const y = terraceHeight(state.blocks.get(state.kopdes.blockId)?.elevation ?? 0);
+
     this.group.position.set(
       bx * WORLD.blockSide + WORLD.blockSide / 2,
       y,
@@ -82,17 +90,22 @@ export class Ceremony {
 
   update(nowMs: number): void {
     if (this.startedAt < 0) return;
+
     const elapsed = nowMs - this.startedAt;
+
     this.banner.scale.setScalar(Math.max(0.001, easeOutBack(clamp01(elapsed / BANNER_MS))));
 
     const bursting = elapsed < SHOW_MS;
     const phase = (elapsed % BURST_EVERY_MS) / BURST_MS;
     const burst = Math.floor(elapsed / BURST_EVERY_MS);
+
     for (const [i, s] of this.sparks.entries()) {
       s.mesh.visible = bursting && phase <= 1;
       if (!s.mesh.visible) continue;
+
       const t = easeOutCubic(clamp01(phase));
       const side = burst % 2 === 0 ? -6 : 6;
+
       s.mesh.position.set(
         side + s.dx * t,
         this.originY + s.dy * t - 5 * t * t,
@@ -100,6 +113,7 @@ export class Ceremony {
       );
       s.mesh.scale.setScalar(Math.max(0.001, 1 - clamp01(phase)));
     }
+
     if (!bursting) this.startedAt = -1;
   }
 

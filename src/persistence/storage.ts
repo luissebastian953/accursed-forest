@@ -39,10 +39,13 @@ export function localStorageAdapter(backing: Storage = window.localStorage): Key
     remove: (key) => backing.removeItem(key),
     keys() {
       const out: string[] = [];
+
       for (let i = 0; i < backing.length; i++) {
         const key = backing.key(i);
+
         if (key !== null) out.push(key);
       }
+
       return out;
     },
   };
@@ -76,5 +79,6 @@ export function memoryStorage(): MemoryStorage {
     },
     keys: () => [...map.keys()],
   };
+
   return storage;
 }

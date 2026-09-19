@@ -44,12 +44,14 @@ export class GameLoop {
     if (this.handle !== null) return;
     this.lastFrameMs = null;
     this.accumulatorMs = 0;
+
     const onFrame = (nowMs: number): void => {
       // Schedule first: a frame that throws (a render or UI bug) must never
       // stop the simulation. The exception still reaches the console.
       this.handle = this.requestFrame(onFrame);
       this.step(nowMs);
     };
+
     this.handle = this.requestFrame(onFrame);
   }
 
@@ -66,9 +68,11 @@ export class GameLoop {
    */
   step(nowMs: number = this.now()): number {
     const dtMs = this.lastFrameMs === null ? 0 : Math.max(0, nowMs - this.lastFrameMs);
+
     this.lastFrameMs = nowMs;
 
     const rate = this.ticksPerSecond();
+
     // A speed change must not release a burst of ticks earned at the old rate.
     if (rate !== this.lastRate) {
       this.accumulatorMs = 0;
@@ -76,9 +80,12 @@ export class GameLoop {
     }
 
     let ticks = 0;
+
     if (rate > 0) {
       const intervalMs = 1000 / rate;
+
       this.accumulatorMs = Math.min(this.accumulatorMs + dtMs, intervalMs * this.maxTicksPerFrame);
+
       while (this.accumulatorMs >= intervalMs && ticks < this.maxTicksPerFrame) {
         this.tick();
         this.accumulatorMs -= intervalMs;

@@ -37,11 +37,13 @@ export function clearSlot(palms: PalmArrays, slot: number): void {
 /** Plant the first `count` empty slots. Returns how many were planted. */
 export function plantSlots(palms: PalmArrays, count: number, tick: Tick): number {
   let planted = 0;
+
   for (let i = 0; i < palms.plantedAt.length && planted < count; i++) {
     if (palms.plantedAt[i] !== -1) continue;
     plantSlot(palms, i, tick);
     planted += 1;
   }
+
   return planted;
 }
 
@@ -71,6 +73,7 @@ export function stageOf(
   }
 
   const ageYears = ageDays / GROWTH.daysPerYear;
+
   if (ageYears >= GROWTH.deadYears) return 'dead';
   if (ageYears >= GROWTH.senileYears) return 'senile';
   if (growthDays >= GROWTH.immatureDays) return 'mature';
@@ -85,6 +88,7 @@ export function slotStage(
   tick: Tick,
 ): GrowthStage {
   const plantedAt = palms.plantedAt[slot]!;
+
   if (plantedAt < 0) return 'empty';
   return stageOf(
     species,
@@ -138,6 +142,7 @@ export function slotNeighbours(slot: number, out: number[]): number {
 
   push(row, col - 1);
   push(row, col + 1);
+
   if (odd) {
     push(row - 1, col);
     push(row - 1, col + 1);
@@ -149,5 +154,6 @@ export function slotNeighbours(slot: number, out: number[]): number {
     push(row + 1, col - 1);
     push(row + 1, col);
   }
+
   return n;
 }

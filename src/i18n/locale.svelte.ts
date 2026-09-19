@@ -17,23 +17,28 @@ function detectLocale(): Locale {
   } catch {
     // Intl unavailable, or threw on a stub environment (a test runner, say): fall through.
   }
+
   for (const lang of navigator.languages ?? [navigator.language]) {
     if (lang.toLowerCase().startsWith('id')) return 'id';
   }
+
   return 'en';
 }
 
 function loadLocale(): Locale {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
+
     if (isLocale(saved)) return saved;
   } catch {
     // Storage off: detect fresh every visit.
   }
+
   return detectLocale();
 }
 
 const state = $state({ locale: loadLocale() });
+
 if (typeof document !== 'undefined') document.documentElement.lang = state.locale;
 
 /** The active locale. Reading it inside a component, or a `$derived`, tracks changes to it. */
@@ -49,13 +54,16 @@ export function localeTag(): string {
 /** A visitor's own choice always wins from here on; Analytics hears about the switch. */
 export function setLocale(next: Locale): void {
   const from = state.locale;
+
   if (next === from) return;
   state.locale = next;
+
   try {
     localStorage.setItem(STORAGE_KEY, next);
   } catch {
     // Session-only, then.
   }
+
   document.documentElement.lang = next;
   window.gtag?.('event', 'change_language', { from, to: next });
 }

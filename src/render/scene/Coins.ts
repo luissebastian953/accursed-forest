@@ -41,6 +41,7 @@ export class Coins {
     const geometry = new BoxBuilder()
       .addAABox(0, 0, 0, 0.5, 0.12, 0.5, { side: Palette.Coin })
       .build();
+
     this.mesh = new InstancedMesh(geometry, material, MAX_COINS);
     this.mesh.count = 0;
     this.mesh.frustumCulled = false;
@@ -64,9 +65,11 @@ export class Coins {
   burst(x: number, y: number, z: number, count = 10): void {
     for (let i = 0; i < count; i++) {
       if (this.used >= MAX_COINS) return;
+
       const slot = this.used++;
       const angle = this.random() * Math.PI * 2;
       const out = this.between(OUT);
+
       this.x[slot] = x;
       this.y[slot] = y;
       this.z[slot] = z;
@@ -86,21 +89,26 @@ export class Coins {
       this.mesh.count = 0;
       return;
     }
+
     const dt = Math.min(0.05, dtSeconds);
+
     for (let i = this.used - 1; i >= 0; i--) {
       const life = this.life[i]! - dtSeconds;
+
       if (life <= 0) {
         // Swap the last live coin into this slot and shrink the pool.
         this.used -= 1;
         this.copy(this.used, i);
         continue;
       }
+
       this.life[i] = life;
       this.vy[i] = this.vy[i]! - GRAVITY * dt;
       this.x[i] = this.x[i]! + this.vx[i]! * dt;
       this.y[i] = this.y[i]! + this.vy[i]! * dt;
       this.z[i] = this.z[i]! + this.vz[i]! * dt;
       this.turn[i] = this.turn[i]! + this.spin[i]! * dt;
+
       // Landed: it settles where it fell rather than rolling on.
       if (this.y[i]! <= this.ground[i]!) {
         this.y[i] = this.ground[i]!;
@@ -112,14 +120,17 @@ export class Coins {
     }
 
     this.mesh.count = this.used;
+
     for (let i = 0; i < this.used; i++) {
       const life = this.life[i]!;
       const scale = life < FADE ? life / FADE : 1;
+
       _p.set(this.x[i]!, this.y[i]! + 0.06 * scale, this.z[i]!);
       _q.setFromAxisAngle(_axis, this.turn[i]!);
       _s.setScalar(scale);
       this.mesh.setMatrixAt(i, _m.compose(_p, _q, _s));
     }
+
     this.mesh.instanceMatrix.needsUpdate = true;
   }
 

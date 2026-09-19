@@ -15,10 +15,13 @@ function specOf(id: string): MacroEvent | undefined {
 /** Every headline running today. */
 export function runningMacro(state: SimState): MacroEvent[] {
   const out: MacroEvent[] = [];
+
   for (const event of state.weather.activeEvents) {
     const spec = specOf(event.id);
+
     if (spec) out.push(spec);
   }
+
   return out;
 }
 
@@ -40,6 +43,7 @@ function factor(
     | 'settleFactor',
 ): number {
   let out = 1;
+
   for (const spec of runningMacro(state)) out *= spec[lever] ?? 1;
   return out;
 }
@@ -53,18 +57,23 @@ export function shopIndex(state: SimState): number {
 export function landFactor(state: SimState): number {
   return factor(state, 'landFactor');
 }
+
 export function wageFactor(state: SimState): number {
   return factor(state, 'wageFactor');
 }
+
 export function yieldFactor(state: SimState): number {
   return factor(state, 'yieldFactor');
 }
+
 export function landslideFactor(state: SimState): number {
   return factor(state, 'landslideFactor');
 }
+
 export function attentionDecayFactor(state: SimState): number {
   return factor(state, 'attentionDecayFactor');
 }
+
 export function settleFactor(state: SimState): number {
   return factor(state, 'settleFactor');
 }
@@ -82,7 +91,9 @@ export function macroCalm(state: SimState): boolean {
 /** What the day's contracts pay an estate with a Kopdes. */
 export function macroKopdesPay(state: SimState): number {
   if (!state.kopdes) return 0;
+
   let out = 0;
+
   for (const spec of runningMacro(state)) out += spec.kopdesCashPerDay ?? 0;
   return out;
 }

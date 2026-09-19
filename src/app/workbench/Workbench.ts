@@ -39,6 +39,7 @@ const WEATHER: Weather = {
 
 export async function startWorkbench(root: HTMLElement): Promise<() => void> {
   root.style.position = 'relative';
+
   const params = new URLSearchParams(location.search);
   const handle = await createRenderer(root, { forceWebGL: params.has('webgl') });
 
@@ -50,6 +51,7 @@ export async function startWorkbench(root: HTMLElement): Promise<() => void> {
   const paletteTexture = createPaletteTexture();
   const { material, uniforms } = createPaletteMaterial(paletteTexture);
   const spectral = createPaletteMaterial(paletteTexture, uniforms).material;
+
   spectral.transparent = true;
   spectral.opacity = 0.45;
   spectral.depthWrite = false;
@@ -57,15 +59,19 @@ export async function startWorkbench(root: HTMLElement): Promise<() => void> {
   // The plinth, drawn once and kept: it is the only thing on the stage that
   // does not change when the subject does.
   const plinthBuilder = new BoxBuilder();
+
   plinthBuilder.addAABox(0, -0.25, 0, PLINTH, 0.5, PLINTH, {
     side: Palette.Laterite,
     top: Palette.Grass,
   });
+
   const plinth = new Mesh(plinthBuilder.build(), material);
+
   scene.add(plinth);
 
   /** Everything the current subject brought with it, so it all goes at once. */
   const turntable = new Group();
+
   scene.add(turntable);
 
   const STAGE: GroundRect = {
@@ -75,6 +81,7 @@ export async function startWorkbench(root: HTMLElement): Promise<() => void> {
     maxZ: PLINTH / 2,
   };
   const rig = new MapRig({ domElement: handle.canvas, bounds: STAGE, baseFrustum: 15 });
+
   rig.jumpTo(0, 0);
 
   const glow = new Glow(handle.renderer, scene, rig.camera);
@@ -128,6 +135,7 @@ export async function startWorkbench(root: HTMLElement): Promise<() => void> {
 
   function applyBackdrop(): void {
     const chosen = BACKDROPS.find((b) => b.id === backdrop) ?? BACKDROPS[0]!;
+
     if (chosen.colour === null) {
       (scene.background as Color).copy(skyColour);
       scene.fog = skyFog;
@@ -142,6 +150,7 @@ export async function startWorkbench(root: HTMLElement): Promise<() => void> {
   /** Put a subject on the turntable, taking the last one off first. */
   function show(id: string): void {
     const subject = SUBJECTS.find((s) => s.id === id);
+
     if (!subject) return;
     current?.dispose();
     turntable.clear();
@@ -150,6 +159,7 @@ export async function startWorkbench(root: HTMLElement): Promise<() => void> {
     panel.error = null;
     panel.selected = id;
     turntable.rotation.y = 0;
+
     try {
       const built = subject.build({
         material: material as Material,
@@ -158,6 +168,7 @@ export async function startWorkbench(root: HTMLElement): Promise<() => void> {
         camera: rig.camera,
         view: STAGE,
       });
+
       turntable.add(built.object);
       current = built;
       panel.available = ACTIONS.filter((a) => built.actions?.[a] !== undefined);
@@ -168,9 +179,11 @@ export async function startWorkbench(root: HTMLElement): Promise<() => void> {
 
   const resize = (): void => {
     const { width, height } = handle.resize();
+
     rig.setAspect(width / height);
   };
   const observer = new ResizeObserver(resize);
+
   observer.observe(root);
   resize();
 
@@ -179,6 +192,7 @@ export async function startWorkbench(root: HTMLElement): Promise<() => void> {
     if (event.key === 'q' || event.key === 'Q') rig.rotate(-1, performance.now());
     if (event.key === 'e' || event.key === 'E') rig.rotate(1, performance.now());
   };
+
   window.addEventListener('keydown', onKey);
 
   let statsAt = 0;
@@ -191,12 +205,15 @@ export async function startWorkbench(root: HTMLElement): Promise<() => void> {
       render: { drawCalls: number; triangles: number };
       memory: { geometries: number; textures: number; programs: number; total: number };
     };
+
     frames += 1;
+
     if (nowMs - framesSince >= 1000) {
       fps = Math.round((frames * 1000) / (nowMs - framesSince));
       frames = 0;
       framesSince = nowMs;
     }
+
     return {
       backend: handle.backend,
       drawCalls: info.render.drawCalls,
@@ -220,7 +237,9 @@ export async function startWorkbench(root: HTMLElement): Promise<() => void> {
       current?.update?.(dt, nowMs);
       if (glowOn) glow.render();
       else handle.render(scene, rig.camera);
+
       const stats = readStats(nowMs);
+
       if (nowMs - statsAt >= STATS_MS) {
         statsAt = nowMs;
         panel.stats = stats;

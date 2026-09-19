@@ -34,27 +34,33 @@ export function landPrice(state: SimState, world: World, id: BlockId): number {
 export const buyBlock: CommandHandler<BuyBlock> = {
   validate(ctx, command) {
     const { state, world } = ctx;
+
     if (!world.inBounds(...world.toXY(command.block))) {
       return reject('unknownBlock', 'That block is outside the map.');
     }
 
     const block = readBlock(state, world, command.block);
+
     if (block.owned) return reject('occupied', 'You already own this block.');
     if (block.burning) return reject('burning', 'This block is on fire; nobody is selling.');
+
     if (!block.forSale) {
       return reject('notForSale', `${describe(block.biome)} is not for sale.`);
     }
+
     if (!hasOwnedNeighbour(state, world, command.block)) {
       return reject('notAdjacent', 'Not adjacent to your land; buy a neighbouring block first.');
     }
 
     const price = landPrice(state, world, command.block);
+
     if (state.economy.cash < price) {
       return reject(
         'noCash',
         `Costs Rp ${price.toLocaleString('id-ID')}; you have Rp ${Math.max(0, state.economy.cash).toLocaleString('id-ID')}.`,
       );
     }
+
     return null;
   },
 
@@ -62,6 +68,7 @@ export const buyBlock: CommandHandler<BuyBlock> = {
     const { state, world, events } = ctx;
     const price = landPrice(state, world, command.block);
     const block = writeBlock(state, world, command.block);
+
     block.owned = true;
     spend(state, price, 'capital', `land: block ${command.block}`);
     events.push({ type: 'BlockBought', block: command.block });

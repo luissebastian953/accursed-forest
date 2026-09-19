@@ -279,10 +279,12 @@ export function digestEvents(events: readonly SimEvent[]): EventDigest {
         break;
       case 'LightningStruck':
         d.lightning.push({ block: event.block, ignited: event.ignited });
+
         if (event.ignited) {
           d.burnStarted.add(event.block);
           d.terrainBlocks.add(event.block);
         }
+
         break;
       case 'SparkCaught':
         d.sparks.add(event.block);

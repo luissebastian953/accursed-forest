@@ -68,16 +68,20 @@ export function autoplay(options: AutoplayOptions): AutoplayResult {
 
   // Candidate blocks: owned, wild, clearable, nearest to the Kopdes.
   const candidates: BlockId[] = [];
+
   for (const block of state.blocks.values()) {
     if (!block.owned || block.phase !== 'wild' || !BIOMES[block.biome].clearable) continue;
     if (options.spareForest && BIOMES[block.biome].forestCover) continue;
     candidates.push(block.id);
   }
+
   candidates.sort(
     (a, b) => (distanceToKopdes(state, world, a) ?? 99) - (distanceToKopdes(state, world, b) ?? 99),
   );
+
   const targets = candidates.slice(0, options.blocks);
   let nextCandidate = targets.length;
+
   for (const block of targets) sim.dispatch({ type: 'ChopBlock', block });
 
   const buyAnd = (item: ItemId, command: Command): void => {
@@ -99,13 +103,17 @@ export function autoplay(options: AutoplayOptions): AutoplayResult {
 
     if (options.expand && state.tick % 30 === 0) {
       const { reserve, maxBlocks } = options.expand;
+
       if (sim.validate({ type: 'UpgradeKopdes' }) === null) {
         const level = state.kopdes?.level ?? 1;
+
         if (state.economy.cash - (KOPDES_UPGRADE_COST[level] ?? 0) > reserve) {
           sim.dispatch({ type: 'UpgradeKopdes' });
         }
       }
+
       const next = candidates[nextCandidate];
+
       if (
         next !== undefined &&
         targets.length < maxBlocks &&
@@ -120,23 +128,29 @@ export function autoplay(options: AutoplayOptions): AutoplayResult {
 
     for (const block of targets) {
       const b = state.blocks.get(block)!;
+
       if (b.phase === 'cleared') {
         if (options.managePests && b.debris > 20) {
           buyAnd('sanitationCrew', { type: 'SanitizeBlock', block });
           continue;
         }
+
         const needed = seedlingsNeeded(b.biome);
+
         if (state.inventory.bibit < needed) {
           sim.dispatch({ type: 'BuyItem', item: 'bibit', quantity: needed });
         }
+
         sim.dispatch({ type: 'PlantBlock', block, species: 'palm' });
       } else if (b.phase === 'planted') {
         if (sim.validate({ type: 'HarvestBlock', block }) === null) {
           sim.dispatch({ type: 'HarvestBlock', block });
         }
+
         if (options.fertilize && b.fertilizedUntil <= state.tick) {
           buyAnd('fertilizer', { type: 'FertilizeBlock', block });
         }
+
         if (options.managePests) managePests(sim, block, buyAnd);
       }
     }
@@ -145,13 +159,17 @@ export function autoplay(options: AutoplayOptions): AutoplayResult {
       let planted = 0;
       let bearing = 0;
       let sick = 0;
+
       for (const [id, palms] of state.palms) {
         if (state.blocks.get(id)?.phase !== 'planted') continue;
         planted += 1;
         if (isBearing(slotStage(palms, 0, 'palm', state.tick))) bearing += 1;
+
         const c = ganodermaCounts(palms);
+
         sick += c.symptomatic + c.dead;
       }
+
       rows.push({
         year: state.tick / GROWTH.daysPerYear,
         cash: state.economy.cash,
@@ -173,6 +191,7 @@ export function autoplay(options: AutoplayOptions): AutoplayResult {
   const ending = state.run.ending ?? null;
   const endedYear =
     state.run.endedAt === undefined ? null : Math.ceil(state.run.endedAt / GROWTH.daysPerYear);
+
   return { sim, rows, lowestCash, ending, endedYear };
 }
 
@@ -189,7 +208,9 @@ function managePests(
   const { state } = sim;
   const b = state.blocks.get(block)!;
   const palms = state.palms.get(block);
+
   if (!palms) return;
+
   const tick = state.tick;
 
   if (b.debris > 30) buyAnd('sanitationCrew', { type: 'SanitizeBlock', block });
@@ -197,8 +218,10 @@ function managePests(
 
   if (tick % 30 === 0) {
     const counts = ganodermaCounts(palms);
+
     if (counts.symptomatic + counts.dead > 0) {
       if (b.trichodermaUntil <= tick) buyAnd('trichoderma', { type: 'ApplyTrichoderma', block });
+
       for (let slot = 0; slot < palms.plantedAt.length; slot++) {
         if (palms.plantedAt[slot]! >= 0 && palms.ganoderma[slot]! >= 2) {
           sim.dispatch({ type: 'RemovePalm', block, slot });
@@ -209,10 +232,13 @@ function managePests(
 
   if (tick % 180 === 0) {
     const rejection = sim.validate({ type: 'ReplantBlock', block });
+
     if (rejection?.code === 'noInventory') {
       const needed = Number(/Needs (\d+)/.exec(rejection.reason)?.[1] ?? 0);
+
       if (needed > 0) sim.dispatch({ type: 'BuyItem', item: 'bibit', quantity: needed });
     }
+
     sim.dispatch({ type: 'ReplantBlock', block });
   }
 }

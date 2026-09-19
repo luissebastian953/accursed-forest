@@ -77,6 +77,7 @@ export interface PoseInput {
 /** The chop cycle: a slow lift, a fast drop, 0..1 raised. */
 function chopLift(time: number, phase: number): number {
   const w = (((time * 1.1 + phase) % 1) + 1) % 1;
+
   return w < 0.7
     ? (1 - Math.cos((w / 0.7) * Math.PI)) / 2
     : (1 + Math.cos(((w - 0.7) / 0.3) * Math.PI)) / 2;
@@ -122,22 +123,26 @@ export function pose(spec: SpeciesSpec, part: PartSpec, input: PoseInput, out: M
       py += Math.abs(Math.sin(step)) * spec.bob * input.gait;
       rx += Math.sin(step * 2) * 0.04 * input.gait;
       if (spec.spectral) py += Math.sin(input.time * 1.6 + input.phase) * 0.12;
+
       // Reared up: the barrel pitches back and lifts, the hind legs carry it.
       if (stand > 0) {
         rx -= stand * 1.25;
         py += stand * part.size[2] * 0.45;
         pz -= stand * part.size[2] * 0.25;
       }
+
       // Asleep: rolled onto one side on the ground, the flank rising with each breath.
       if (sleep > 0) {
         rz += sleep * 1.45;
         py += sleep * (part.size[0] / 2 + 0.02 - y) + sleep * breath * 0.015;
       }
+
       // Crouched: sunk at the knees and bent forward.
       if (crouch > 0) {
         py -= crouch * part.size[1] * 0.45;
         rx += crouch * 0.55;
       }
+
       // Working: the arms do the swinging. The body used to pitch with them,
       // which read as falling over rather than as effort.
       // Sitting. On four legs that means up on the haunches, back sloped; on
@@ -152,6 +157,7 @@ export function pose(spec: SpeciesSpec, part: PartSpec, input: PoseInput, out: M
           pz -= sit * part.size[2] * 0.1;
         }
       }
+
       // Up a trunk: head up, belly to the bark, swaying with the tree. An ape
       // climbs upright, so it leans in rather than lying along the bark.
       if (climb > 0) {
@@ -159,6 +165,7 @@ export function pose(spec: SpeciesSpec, part: PartSpec, input: PoseInput, out: M
         py += climb * part.size[2] * 0.3;
         rz += climb * Math.sin(input.time * 0.9 + input.phase) * 0.06;
       }
+
       break;
     case 'head':
       ry += Math.sin(input.time * 0.7 + input.phase) * 0.35 * (1 - input.gait * 0.6);
@@ -182,6 +189,7 @@ export function pose(spec: SpeciesSpec, part: PartSpec, input: PoseInput, out: M
       rx += stand * 0.9;
       // Asleep the legs tuck in; crouched (a biped's legs) they fold.
       rx += sleep * 1.3 - crouch * 0.9;
+
       if (spec.biped) {
         // These are the only legs there are: they fold out in front to sit,
         // and tuck up under the body on a trunk.
@@ -194,6 +202,7 @@ export function pose(spec: SpeciesSpec, part: PartSpec, input: PoseInput, out: M
         rx -= climb * 1.5;
         rz += (part.role === 'legFL' ? -1 : 1) * climb * 0.35;
       }
+
       break;
     case 'legBL':
     case 'legBR':
@@ -205,7 +214,7 @@ export function pose(spec: SpeciesSpec, part: PartSpec, input: PoseInput, out: M
       rz += (part.role === 'legBL' ? -1 : 1) * climb * 0.3;
       break;
     case 'armL':
-    case 'armR': {
+    case 'armR':
       rx += Math.sin(step + (LEG_PHASE[part.role] ?? 0)) * spec.swing * input.gait * (1 - work);
       // Crouched, the arms come forward to steady; working, both swing the tool.
       rx -= crouch * 0.6;
@@ -216,12 +225,14 @@ export function pose(spec: SpeciesSpec, part: PartSpec, input: PoseInput, out: M
       rx -= sit * (spec.biped ? 0.5 : 0.4);
       rx -= sleep * 0.35;
       rz += (part.role === 'armL' ? -1 : 1) * (climb * 0.3 + (spec.biped ? sit * 0.14 : 0));
+
       if (work > 0) {
         const lift = chopLift(input.time, input.phase);
+
         rx -= work * (0.5 + lift * 2.1) * (part.role === 'armR' ? 1 : 0.85);
       }
+
       break;
-    }
     case 'prop':
       py += Math.sin(step + 0.5) * 0.04 * input.gait;
       break;
@@ -241,12 +252,14 @@ export function partGeometry(part: PartSpec): BufferGeometry {
   const [w, h, d] = part.size;
   const pivot = part.pivot ?? 'centre';
   const cy = pivot === 'top' ? -h / 2 : pivot === 'bottom' ? h / 2 : 0;
+
   return new BoxBuilder().addAABox(0, cy, 0, w, h, d, { side: part.slot }).build();
 }
 
 /** Parts in parent-before-child order, with each parent's index. */
 export function partOrder(spec: SpeciesSpec): { part: PartSpec; parent: number }[] {
   const index = new Map<string, number>();
+
   spec.parts.forEach((part, i) => index.set(part.name, i));
   return spec.parts.map((part) => ({
     part,

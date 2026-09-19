@@ -66,6 +66,7 @@ function sapling(b: BoxBuilder, variant: ForestVariant): void {
   b.addAABox(0.08, 0.2, 0.02, 0.024, 0.4, 0.024, { side: Palette.HouseWood });
   b.addAABox(0.045, 0.22, 0.01, 0.08, 0.022, 0.034, { side: Palette.Sand });
   b.addAABox(0, 0.15, 0, 0.024, 0.3, 0.024, BARK);
+
   if (variant === 'a') {
     b.addAABox(0, 0.33, 0, 0.16, 0.12, 0.16, LEAF_LIGHT);
     turned(b, -0.07, 0.25, 0.05, 0.11, 0.08, 0.11, 0.6, LEAF_LIGHT);
@@ -87,12 +88,14 @@ function modelGeometry(model: Model, seed: number, scale: number): BufferGeometr
     return state / 0x80000000;
   };
   const kit = new ModelKit(b).at({ x: 0, y: 0, z: 0, scale, turn: 0 });
+
   model.build(kit, rand);
   return b.build();
 }
 
 export function buildSaplingGeometry(variant: ForestVariant): BufferGeometry {
   const b = new BoxBuilder();
+
   sapling(b, variant);
   return b.build();
 }
@@ -103,5 +106,6 @@ export function buildShrubGeometry(variant: ForestVariant): BufferGeometry {
 
 export function buildForestTreeGeometry(species: ForestSpecies): BufferGeometry {
   const draw = SPECIES_DRAW[species];
+
   return modelGeometry(draw.model, 7, draw.scale);
 }

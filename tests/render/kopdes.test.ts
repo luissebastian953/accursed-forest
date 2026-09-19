@@ -15,6 +15,7 @@ function extent(level: KopdesLevel) {
   let maxZ = -Infinity;
   let top = -Infinity;
   let low = Infinity;
+
   for (let i = 0; i < p.length; i += 3) {
     minX = Math.min(minX, p[i]!);
     maxX = Math.max(maxX, p[i]!);
@@ -23,6 +24,7 @@ function extent(level: KopdesLevel) {
     minZ = Math.min(minZ, p[i + 2]!);
     maxZ = Math.max(maxZ, p[i + 2]!);
   }
+
   geometry.dispose();
   return { width: maxX - minX, depth: maxZ - minZ, top, low, minX, maxX, count: p.length / 3 };
 }
@@ -30,8 +32,10 @@ function extent(level: KopdesLevel) {
 describe('the Kopdes (GDD 6.3)', () => {
   it('stands on its own hectare at every level', () => {
     const side = WORLD.blockSide;
+
     for (const level of LEVELS) {
       const e = extent(level);
+
       // The mesh is placed at the centre of its block, so half a side either
       // way is all the room it has.
       expect(e.width, `level ${level} is ${e.width.toFixed(1)} wide`).toBeLessThanOrEqual(side);
@@ -44,10 +48,12 @@ describe('the Kopdes (GDD 6.3)', () => {
 
   it('grows with every upgrade, in reach and in height', () => {
     const seen = LEVELS.map(extent);
+
     for (let i = 1; i < seen.length; i++) {
       expect(seen[i]!.count, `level ${i + 1} against ${i}`).toBeGreaterThan(seen[i - 1]!.count);
       expect(seen[i]!.top).toBeGreaterThanOrEqual(seen[i - 1]!.top);
     }
+
     // The hall is the visible difference: the top level reaches half again as
     // far as the one-room shop it started as.
     expect(seen[3]!.width).toBeGreaterThan(seen[0]!.width * 1.5);

@@ -13,6 +13,7 @@ export function terrain(ctx: SimContext): void {
 
     if (block.burning) {
       const days = FIRE.burnDays[block.fireIntensity as 1 | 2 | 3] ?? FIRE.burnDays[1];
+
       block.clearProgress += 1 / days;
       // 1/7 added seven times lands at 0.9999…: compare with slack.
       if (block.clearProgress >= 1 - 1e-9) finishBurn(ctx, block);
@@ -22,6 +23,7 @@ export function terrain(ctx: SimContext): void {
 
     if (block.phase === 'clearing') {
       const spec = BIOMES[block.biome];
+
       block.clearProgress += 1 / Math.max(1, spec.chopDays);
 
       if (block.clearProgress >= 1 - 1e-9) {
@@ -33,12 +35,14 @@ export function terrain(ctx: SimContext): void {
 
         // The timber partly offsets the crew's wages (GDD 3.1.1).
         const revenue = TIMBER_VALUE[block.biome];
+
         if (revenue !== undefined && revenue > 0) {
           earn(state, revenue, 'sale', `timber: block ${block.id}`);
           events.push({ type: 'TimberSold', block: block.id, revenue });
           events.push({ type: 'CashChanged', cash: state.economy.cash });
         }
       }
+
       events.push({ type: 'BlockChanged', block: block.id });
       continue;
     }
@@ -54,6 +58,7 @@ export function terrain(ctx: SimContext): void {
         events.push({ type: 'BlockExcavated', block: block.id });
         events.push({ type: 'BlockChanged', block: block.id });
       }
+
       continue;
     }
 

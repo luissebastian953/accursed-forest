@@ -88,16 +88,23 @@
     // holds the event chips, and a panel hung below those opens a hand's
     // width from the bar on any day the weather is doing something.
     const element = card ?? bar;
+
     if (!element) return;
+
     const hidden = ui.hidden;
     const publish = () => {
       const top = hidden ? 12 : element.getBoundingClientRect().bottom + 8;
+
       document.documentElement.style.setProperty('--panel-top', `${Math.round(top)}px`);
     };
+
     publish();
+
     const observer = new ResizeObserver(publish);
+
     observer.observe(element);
     window.addEventListener('resize', publish);
+
     return () => {
       observer.disconnect();
       window.removeEventListener('resize', publish);

@@ -60,6 +60,7 @@ export class TimeControl {
   /** Real seconds one sim day takes right now (Infinity while paused). */
   get secondsPerTick(): number {
     const rate = this.ticksPerSecond;
+
     return rate > 0 ? 1 / rate : Infinity;
   }
 
@@ -90,6 +91,7 @@ export class TimeControl {
 
   subscribe(listener: SpeedListener): () => void {
     this.listeners.add(listener);
+
     return () => {
       this.listeners.delete(listener);
     };

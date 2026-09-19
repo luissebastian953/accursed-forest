@@ -62,6 +62,7 @@ const tid = (page: Page, id: string) => page.getByTestId(id);
 async function unlockKopdes(page: Page): Promise<void> {
   await page.evaluate(() => {
     const { state } = (window as unknown as DebugWindow).__sawit.sim();
+
     state.kopdes = state.kopdes
       ? Object.assign(state.kopdes, { level: 3 })
       : { blockId: state.worldGen.kopdesBlock, level: 3, autoHarvest: false };
@@ -75,6 +76,7 @@ async function unlockKopdes(page: Page): Promise<void> {
 async function unlockTurbo(page: Page): Promise<void> {
   await page.evaluate(() => {
     const { state } = (window as unknown as DebugWindow).__sawit.sim();
+
     if (state.kopdes) state.kopdes.level = 3;
     else state.kopdes = { blockId: state.worldGen.kopdesBlock, level: 3, autoHarvest: false };
   });
@@ -83,6 +85,7 @@ async function unlockTurbo(page: Page): Promise<void> {
 
 async function boot(page: Page): Promise<string[]> {
   const errors: string[] = [];
+
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto(URL);
   await expect(page.locator('canvas')).toBeVisible();
@@ -94,6 +97,7 @@ async function boot(page: Page): Promise<string[]> {
 
 async function canvasCentre(page: Page): Promise<{ x: number; y: number }> {
   const box = (await page.locator('canvas').boundingBox())!;
+
   // The camera starts centred on the pre-cleared Kopdes block; its raised
   // terrace projects a few pixels above the ground-plane centre.
   return { x: box.x + box.width / 2, y: box.y + box.height / 2 - 6 };
@@ -102,6 +106,7 @@ async function canvasCentre(page: Page): Promise<{ x: number; y: number }> {
 /** Select the block under the screen centre: the pre-cleared Kopdes block. */
 async function selectCentreBlock(page: Page): Promise<void> {
   const c = await canvasCentre(page);
+
   await page.mouse.click(c.x, c.y);
   await expect(tid(page, 'block-panel')).toBeVisible();
 }
@@ -119,32 +124,39 @@ async function selectWildNeighbour(page: Page, biome?: RegExp): Promise<void> {
     [0, 90],
     [0, -90],
   ];
+
   for (const [dx, dy] of offsets) {
     await page.mouse.click(c.x + dx, c.y + dy);
     await page.waitForTimeout(150);
+
     const phase = (
       await tid(page, 'block-phase')
         .textContent()
         .catch(() => '')
     )?.trim();
+
     if (phase !== 'Wild') continue;
     if (biome && !biome.test((await tid(page, 'block-panel').textContent()) ?? '')) continue;
     return;
   }
+
   throw new Error(`no wild${biome ? ` ${biome.source}` : ''} neighbour found around the Kopdes`);
 }
 
 test.describe('Sawit Simulator', () => {
   test('boots, ticks, and shows the estate', async ({ page }) => {
     const errors = await boot(page);
+
     await expect(tid(page, 'hud-date')).toContainText('Year 1');
     await expect(tid(page, 'hud-price')).toContainText('/kg');
 
     const before = await tid(page, 'hud-date').textContent();
+
     await page.waitForTimeout(1500);
     expect(await tid(page, 'hud-date').textContent()).not.toBe(before);
 
     const painted = await page.locator('canvas').screenshot();
+
     expect(painted.byteLength).toBeGreaterThan(20_000);
     expect(errors).toEqual([]);
   });
@@ -163,6 +175,7 @@ test.describe('Sawit Simulator', () => {
     page,
   }) => {
     test.setTimeout(120_000);
+
     const errors = await boot(page);
 
     // Place the Kopdes and stock up.
@@ -218,7 +231,9 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'harvest-info')).toContainText(/ripe now/i, { timeout: 60_000 });
     await tid(page, 'speed-0').click();
     await expect(tid(page, 'action-HarvestBlock')).toBeEnabled();
+
     const cashBeforeHarvest = await tid(page, 'hud-cash').textContent();
+
     await tid(page, 'action-HarvestBlock').click();
     await expect(tid(page, 'action-HarvestBlock')).toBeDisabled();
     // The rotation is a balance number; the unit tests pin it, this one only
@@ -242,6 +257,7 @@ test.describe('Sawit Simulator', () => {
 
     // Save, reload without `fresh`, continue.
     const dateBefore = await tid(page, 'hud-date').textContent();
+
     await tid(page, 'menu-button').click();
     await tid(page, 'menu-save').click();
     await expect(page.getByTestId('toast').filter({ hasText: 'Saved' })).toBeVisible();
@@ -253,11 +269,14 @@ test.describe('Sawit Simulator', () => {
     // the date may have moved a few days by the time we read it: the save is
     // proven by landing within a fortnight of where we left, not to the day.
     await tid(page, 'speed-0').click();
+
     const days = (text: string | null): number => {
       const m = /Year (\d+), Day (\d+)/.exec(text ?? '');
+
       return m ? Number(m[1]) * 360 + Number(m[2]) : NaN;
     };
     const drift = days(await tid(page, 'hud-date').textContent()) - days(dateBefore);
+
     expect(drift).toBeGreaterThanOrEqual(0);
     expect(drift).toBeLessThan(15);
     // 50x is open here without asking again: the Kopdes level rode the save.
@@ -273,7 +292,9 @@ test.describe('Sawit Simulator', () => {
   }) => {
     await boot(page);
     await page.keyboard.press(' ');
+
     const paused = await tid(page, 'hud-date').textContent();
+
     await page.waitForTimeout(800);
     expect(await tid(page, 'hud-date').textContent()).toBe(paused);
 
@@ -301,6 +322,7 @@ test.describe('Sawit Simulator', () => {
 
   test('sound starts on the first click, and the menu switch sticks', async ({ page }) => {
     await boot(page);
+
     const audio = () =>
       page.evaluate(() => {
         const a = (
@@ -308,8 +330,10 @@ test.describe('Sawit Simulator', () => {
             __sawit: { audio: { ready: boolean; getSettings(): { muted: boolean } } };
           }
         ).__sawit.audio;
+
         return { ready: a.ready, muted: a.getSettings().muted };
       });
+
     // Nothing until a gesture: browsers refuse to start a context on their own.
     expect((await audio()).ready).toBe(false);
     await tid(page, 'speed-0').click();
@@ -340,7 +364,9 @@ test.describe('Sawit Simulator', () => {
 
   test('an estate can be named, and its name follows it into the bar', async ({ page }) => {
     test.setTimeout(90_000);
+
     const errors: string[] = [];
+
     page.on('pageerror', (error) => errors.push(error.message));
     // No `fresh` and no `seed`: this is the title card a first-time player sees.
     await page.goto('/play.html?webgl&debug');
@@ -349,7 +375,9 @@ test.describe('Sawit Simulator', () => {
 
     // The code under the boxes settles on the name as it is typed.
     await tid(page, 'start-name').fill('Penyawit Handal');
+
     const first = await tid(page, 'start-code-preview').textContent();
+
     expect(first).toMatch(/^[A-HJ-NP-Z2-9]{3}-[A-HJ-NP-Z2-9]{4}$/);
     // However it is written, it is the same estate.
     await tid(page, 'start-name').fill('penyawit handal');
@@ -384,24 +412,34 @@ test.describe('Sawit Simulator', () => {
     await page.goto('/play.html?webgl&seed=42&fresh&debug');
     await expect(page.locator('canvas')).toBeVisible();
     await page.waitForTimeout(3000);
+
     const box = (await page.locator('canvas').boundingBox())!;
     // A patch of the estate with clouds over it, and the selection ring in it.
     const clip = { x: box.x, y: box.y + 220, width: 700, height: 420 };
+
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2 - 6);
     await expect(tid(page, 'block-panel')).toBeVisible();
 
     await tid(page, 'speed-1').click();
     await page.waitForTimeout(600);
+
     const runA = await page.screenshot({ clip });
+
     await page.waitForTimeout(1200);
+
     const runB = await page.screenshot({ clip });
+
     expect(runA.equals(runB), 'a running estate should be moving').toBe(false);
 
     await tid(page, 'speed-0').click();
     await page.waitForTimeout(900);
+
     const pauseA = await page.screenshot({ clip });
+
     await page.waitForTimeout(1500);
+
     const pauseB = await page.screenshot({ clip });
+
     expect(pauseA.equals(pauseB), 'a paused estate should be still').toBe(true);
   });
 
@@ -411,14 +449,19 @@ test.describe('Sawit Simulator', () => {
     // behind it: the bar used to read that record rather than the estate.
     await page.evaluate(() => {
       const { state } = (window as unknown as DebugWindow).__sawit.sim();
+
       state.tick = 360 * 4;
       state.run.years.push({ conditionsMet: 0 } as never);
     });
     await page.waitForTimeout(600);
+
     const bar = (await tid(page, 'hud-ispo').textContent()) ?? '';
+
     await tid(page, 'hud-ispo').click();
     await expect(tid(page, 'certificate-panel')).toBeVisible();
+
     const modal = (await tid(page, 'certificate-count').textContent()) ?? '';
+
     expect(bar.match(/(\d)\s*\/\s*5/)?.[1]).toBe(modal.match(/(\d) of 5/)?.[1]);
   });
 
@@ -463,13 +506,16 @@ test.describe('Sawit Simulator', () => {
     // Put the President's speech on the wire, the way the deck would.
     await page.evaluate(() => {
       const { state } = (window as unknown as DebugWindow).__sawit.sim();
+
       state.weather.activeEvents.push({
         id: 'macro:palmIsATree',
         startedAt: state.tick,
         endsAt: state.tick + 164,
       });
     });
+
     const chip = tid(page, 'event-chip-palmIsATree');
+
     await expect(chip).toBeVisible({ timeout: 5000 });
     await expect(chip).toContainText('Palm is a tree');
     // The failure this guards against printed the lookup key itself.
@@ -492,6 +538,7 @@ test.describe('Sawit Simulator', () => {
 
     const glints = () =>
       page.evaluate(() => (window as unknown as DebugWindow).__sawit.effects().sparkleBurst);
+
     expect(await glints()).toBe(0);
 
     await tid(page, 'action-UpgradeKopdes').click();
@@ -516,6 +563,7 @@ test.describe('Sawit Simulator', () => {
     // A case and a suspension, and an office honest enough to refuse.
     await page.evaluate(() => {
       const { state } = (window as unknown as DebugWindow).__sawit.sim();
+
       state.economy.cash = 1e12;
       state.society.integrity = 0.9;
       state.society.investigationUntil = state.tick + 80;
@@ -531,13 +579,16 @@ test.describe('Sawit Simulator', () => {
     });
     await page.waitForTimeout(600);
     await tid(page, 'action-SettleInvestigation').click();
+
     const after = await page.evaluate(() => {
       const { state } = (window as unknown as DebugWindow).__sawit.sim();
+
       return {
         investigation: state.society.investigationUntil - state.tick,
         ban: state.society.operatingBanUntil - state.tick,
       };
     });
+
     expect(after.investigation).toBeLessThanOrEqual(0);
     expect(after.ban).toBeLessThanOrEqual(0);
   });
@@ -549,6 +600,7 @@ test.describe('Sawit Simulator', () => {
     await page.goto('/play.html?webgl&seed=42&fresh&debug');
     await expect(page.locator('canvas')).toBeVisible();
     await page.waitForTimeout(2000);
+
     const code = await tid(page, 'hud-estate-code').textContent();
 
     await tid(page, 'menu-button').click();
@@ -564,8 +616,10 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'menu-new-create')).toBeDisabled();
     await tid(page, 'menu-name').fill('Kebun Baru');
     await expect(tid(page, 'menu-new-create')).toBeEnabled();
+
     // The code the name would produce is shown before anything is replaced.
     const next = await tid(page, 'menu-code-preview').textContent();
+
     expect(next).toMatch(/^[A-HJ-NP-Z2-9]{3}-[A-HJ-NP-Z2-9]{4}$/);
 
     // Cancel goes back, and the estate in play is untouched.
@@ -593,6 +647,7 @@ test.describe('Sawit Simulator', () => {
     await boot(page);
 
     const turbo = tid(page, 'speed-50');
+
     await expect(turbo).toBeDisabled();
     await expect(turbo).toHaveAttribute('data-locked', 'kopdes');
     // The button carries its own explanation, shown when the pointer rests on it.
@@ -600,8 +655,10 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'tooltip').filter({ hasText: 'Unlock Kopdes' })).toContainText(
       'level 3',
     );
+
     // The keyboard cannot go round the lock either.
     const before = await tid(page, 'hud-date').textContent();
+
     await page.keyboard.press('3');
     await page.waitForTimeout(600);
     await expect(tid(page, 'speed-1')).toHaveClass(/btn-green/);
@@ -617,6 +674,7 @@ test.describe('Sawit Simulator', () => {
     page,
   }) => {
     test.setTimeout(90_000);
+
     const errors = await boot(page);
 
     // Into the dry season, so a shower does not rain the burn out.
@@ -642,6 +700,7 @@ test.describe('Sawit Simulator', () => {
     // A second medium burn: pressure 6 > 5.5.
     await tid(page, 'speed-1').click();
     await page.keyboard.press('Escape');
+
     const c = await canvasCentre(page);
     const offsets: readonly (readonly [number, number])[] = [
       [-78, 45],
@@ -651,20 +710,24 @@ test.describe('Sawit Simulator', () => {
       [-156, 0],
     ];
     let lit = false;
+
     for (const [dx, dy] of offsets) {
       await page.mouse.click(c.x + dx, c.y + dy);
       await page.waitForTimeout(150);
+
       const phase = (
         await tid(page, 'block-phase')
           .textContent()
           .catch(() => '')
       )?.trim();
+
       if (phase === 'Wild') {
         await tid(page, 'action-BurnBlock-2').click();
         lit = true;
         break;
       }
     }
+
     expect(lit).toBe(true);
     await expect(tid(page, 'wildfire-badge')).toBeVisible();
     await expect(
@@ -705,6 +768,7 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'block-phase')).toHaveText('Planted');
 
     const section = tid(page, 'pest-section');
+
     await expect(section).toBeVisible();
     await expect(page.locator('[data-testid^="slot-cell-"]')).toHaveCount(144);
     await expect(tid(page, 'action-SetTrap')).toBeDisabled();
@@ -729,6 +793,7 @@ test.describe('Sawit Simulator', () => {
     page,
   }) => {
     const errors: string[] = [];
+
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto('/play.html?webgl&seed=1&fresh&debug&turbo');
     await expect(page.locator('canvas')).toBeVisible();
@@ -743,9 +808,11 @@ test.describe('Sawit Simulator', () => {
       const blocks = [...state.blocks.values()]
         .filter((b) => {
           const [x, y] = world.toXY(b.id);
+
           return b.owned && b.phase !== 'kopdes' && Math.abs(x - kx) + Math.abs(y - ky) <= 1;
         })
         .map((b) => b.id);
+
       state.weather.activeEvents.push({
         id: 'haze',
         startedAt: state.tick + 1,
@@ -759,6 +826,7 @@ test.describe('Sawit Simulator', () => {
       });
       return blocks.length;
     });
+
     expect(flooded).toBeGreaterThan(0);
 
     await tid(page, 'speed-1').click();
@@ -770,18 +838,23 @@ test.describe('Sawit Simulator', () => {
     // Select a slope block: its panel explains the landslide risk.
     const hasSlope = await page.evaluate(() => {
       const { state } = (window as unknown as DebugWindow).__sawit.sim();
+
       return [...state.blocks.values()].some((b) => b.owned && b.slope);
     });
+
     expect(hasSlope).toBe(true);
 
     // A slide leaves a scar on the block, and the scar puts a pin over it.
     await page.evaluate(() => {
       const { state } = (window as unknown as DebugWindow).__sawit.sim();
       const block = state.blocks.get(state.worldGen.kopdesBlock)!;
+
       block.landslideAt = state.tick;
       block.landslidePalms = 144;
     });
+
     const scar = page.locator('[data-testid="hud-marker"][data-kind="landslide"]');
+
     await expect(scar).toHaveCount(1);
     await scar.getByTestId('hud-marker-alert').waitFor();
     await scar.hover();
@@ -795,7 +868,9 @@ test.describe('Sawit Simulator', () => {
     page,
   }) => {
     test.setTimeout(90_000);
+
     const errors: string[] = [];
+
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto('/play.html?webgl&seed=42&fresh&debug&turbo');
     await expect(page.locator('canvas')).toBeVisible();
@@ -814,6 +889,7 @@ test.describe('Sawit Simulator', () => {
     // card: the saplings buy half of both back.
     await page.evaluate(() => {
       const { state } = (window as unknown as DebugWindow).__sawit.sim();
+
       state.economy.cash = 1e9;
       state.society.attention = 38;
       state.society.operatingBanUntil = state.tick + 100;
@@ -825,11 +901,13 @@ test.describe('Sawit Simulator', () => {
 
     const after = await page.evaluate(() => {
       const { state } = (window as unknown as DebugWindow).__sawit.sim();
+
       return {
         attention: state.society.attention,
         left: state.society.operatingBanUntil - state.tick,
       };
     });
+
     expect(after.attention).toBeLessThan(20);
     expect(after.left).toBeLessThanOrEqual(50);
     expect(errors).toEqual([]);
@@ -839,7 +917,9 @@ test.describe('Sawit Simulator', () => {
     page,
   }) => {
     test.setTimeout(90_000);
+
     const errors: string[] = [];
+
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto('/play.html?webgl&seed=42&fresh&debug&turbo');
     await expect(page.locator('canvas')).toBeVisible();
@@ -849,6 +929,7 @@ test.describe('Sawit Simulator', () => {
       page.evaluate(
         ([a, c]) => {
           const { state } = (window as unknown as DebugWindow).__sawit.sim();
+
           state.society.attention = a as number;
           if (c !== null) state.economy.cash = c as number;
         },
@@ -873,8 +954,10 @@ test.describe('Sawit Simulator', () => {
     await setState(41);
     await tid(page, 'speed-1').click();
     await expect(tid(page, 'card-letter')).toBeVisible({ timeout: 5_000 });
+
     // The card stops the clock; dismissing it starts the estate again.
     const dateOnCard = await tid(page, 'hud-date').textContent();
+
     await tid(page, 'card-dismiss').click();
     await expect(tid(page, 'attention-gauge')).toBeVisible();
     await expect(tid(page, 'hud-date')).not.toHaveText(dateOnCard!, { timeout: 5_000 });
@@ -903,7 +986,9 @@ test.describe('Sawit Simulator', () => {
 
   test('endings: year-end card, bankruptcy, rewind, certificate and sandbox', async ({ page }) => {
     test.setTimeout(90_000);
+
     const errors: string[] = [];
+
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto('/play.html?webgl&seed=42&fresh&debug&turbo');
     await expect(page.locator('canvas')).toBeVisible();
@@ -912,6 +997,7 @@ test.describe('Sawit Simulator', () => {
     // Close year 2 by jumping to its last days: a year-end card, a snapshot, the ISPO button.
     await page.evaluate(() => {
       const { state } = (window as unknown as DebugWindow).__sawit.sim();
+
       state.tick = 2 * 360 - 3;
     });
     await tid(page, 'speed-1').click();
@@ -926,6 +1012,7 @@ test.describe('Sawit Simulator', () => {
     // Deep in the red with nothing to lend against: the bank calls the loans.
     await page.evaluate(() => {
       const { state } = (window as unknown as DebugWindow).__sawit.sim();
+
       state.economy.cash = -1_000_000;
       state.run.insolventFor = 85;
     });
@@ -939,16 +1026,20 @@ test.describe('Sawit Simulator', () => {
     await tid(page, 'epilogue-rewind-3').click();
     await expect(tid(page, 'epilogue')).toHaveCount(0);
     await expect(tid(page, 'hud-date')).toContainText('Year 3');
+
     const after = await page.evaluate(() => {
       const { state } = (window as unknown as DebugWindow).__sawit.sim();
+
       return { ending: state.run.ending ?? null, cash: state.economy.cash };
     });
+
     expect(after.ending).toBeNull();
     expect(after.cash).toBeGreaterThan(0);
 
     // A certified estate: the ceremony, the epilogue, and sandbox.
     await page.evaluate(() => {
       const { state } = (window as unknown as DebugWindow).__sawit.sim();
+
       state.run.ending = 'clean';
       state.run.endedAt = state.tick;
     });
@@ -962,13 +1053,17 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'epilogue')).toHaveCount(0);
     await unlockTurbo(page);
     await tid(page, 'speed-50').click();
+
     const tickA = await page.evaluate(
       () => (window as unknown as DebugWindow).__sawit.sim().state.tick,
     );
+
     await page.waitForTimeout(800);
+
     const tickB = await page.evaluate(
       () => (window as unknown as DebugWindow).__sawit.sim().state.tick,
     );
+
     expect(tickB).toBeGreaterThan(tickA);
 
     expect(errors).toEqual([]);

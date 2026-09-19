@@ -23,16 +23,19 @@ function boltGeometry(seed: number) {
   const steps = 7;
   let x = 0;
   let z = 0;
+
   for (let i = 0; i < steps; i++) {
     const t = i / steps;
     const y = HEIGHT * (1 - t);
     const h = HEIGHT / steps + 0.6;
     const jitter = Math.sin(seed * 12.9898 + i * 4.1) * 1.4 * (1 - t);
     const jitterZ = Math.cos(seed * 78.233 + i * 2.7) * 1.4 * (1 - t);
+
     b.addAABox(x + jitter / 2, y - h / 2, z + jitterZ / 2, 0.85, h, 0.85, { side: Palette.Water });
     x += jitter;
     z += jitterZ;
   }
+
   return b.build();
 }
 
@@ -49,9 +52,12 @@ export class Lightning {
         depthWrite: false,
         blending: AdditiveBlending,
       });
+
       material.colorNode = vec3(3.6, 4.6, 6.2).mul(level);
       material.opacityNode = level;
+
       const mesh = new Mesh(boltGeometry(i + 1), material);
+
       mesh.visible = false;
       mesh.frustumCulled = false;
       this.group.add(mesh);
@@ -62,13 +68,16 @@ export class Lightning {
   /** Throw a bolt at a block. */
   strike(state: SimState, world: World, block: BlockId, nowMs: number): void {
     const bolt = this.bolts[this.next % this.bolts.length]!;
+
     this.next += 1;
+
     const [bx, by] = world.toXY(block);
     const generated = world.generated(bx, by);
     const diverged = state.blocks.get(block);
     const terraced = diverged && diverged.phase !== 'wild';
     const y = terraceHeight(generated.elevation) + (terraced ? 0 : ELEVATION_STEP);
     const half = WORLD.blockSide / 2;
+
     bolt.mesh.position.set(bx * WORLD.blockSide + half, y, by * WORLD.blockSide + half);
     bolt.mesh.visible = true;
     bolt.firedAt = nowMs;
@@ -77,13 +86,16 @@ export class Lightning {
   update(nowMs: number): void {
     for (const bolt of this.bolts) {
       if (bolt.firedAt < 0) continue;
+
       const t = clamp01((nowMs - bolt.firedAt) / BOLT_MS);
+
       if (t >= 1) {
         bolt.mesh.visible = false;
         bolt.level.value = 0;
         bolt.firedAt = -1;
         continue;
       }
+
       // Bright, then two flickers on the way out.
       bolt.level.value = (1 - t) * (t < 0.25 || (t > 0.4 && t < 0.55) ? 1 : 0.35);
     }

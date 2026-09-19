@@ -48,12 +48,14 @@ export async function startSpike(root: HTMLElement): Promise<() => void> {
   // Playwright smoke test and CI exercise the same path (GDD 6.4).
   const forceWebGL = new URLSearchParams(location.search).has('webgl');
   const renderer = new WebGPURenderer({ antialias: true, forceWebGL });
+
   await renderer.init();
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   root.appendChild(renderer.domElement);
 
   const scene = new Scene();
   const fog = new Fog(SKY_WET.clone(), CAMERA_DISTANCE + 10, CAMERA_DISTANCE + 80);
+
   scene.fog = fog;
   scene.background = SKY_WET.clone();
 
@@ -63,6 +65,7 @@ export async function startSpike(root: HTMLElement): Promise<() => void> {
   let frustumSize = 17;
 
   const controls = new MapControls(camera, renderer.domElement);
+
   controls.enableDamping = true;
   controls.dampingFactor = 0.12;
   controls.screenSpacePanning = false;
@@ -76,6 +79,7 @@ export async function startSpike(root: HTMLElement): Promise<() => void> {
       Math.sin(PITCH),
       Math.cos(PITCH) * Math.sin(AZIMUTH),
     );
+
     camera.position.copy(controls.target).addScaledVector(dir, CAMERA_DISTANCE);
     camera.lookAt(controls.target);
   };
@@ -84,6 +88,7 @@ export async function startSpike(root: HTMLElement): Promise<() => void> {
     const w = root.clientWidth || window.innerWidth;
     const h = root.clientHeight || window.innerHeight;
     const aspect = w / h;
+
     camera.left = (-frustumSize * aspect) / 2;
     camera.right = (frustumSize * aspect) / 2;
     camera.top = frustumSize / 2;
@@ -93,14 +98,18 @@ export async function startSpike(root: HTMLElement): Promise<() => void> {
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
   };
+
   placeCamera();
   resize();
   window.addEventListener('resize', resize);
 
   // ── Lighting (GDD 6.1: Lambert only, no specular) ──────────────────────────
   const hemi = new HemisphereLight(0xbcd9e8, 0x6b4a30, 1.05);
+
   scene.add(hemi);
+
   const sun = new DirectionalLight(0xfff2d8, 1.9);
+
   sun.position.set(12, 18, 6);
   scene.add(sun);
   scene.add(new AmbientLight(0xffffff, 0.18));
@@ -111,22 +120,26 @@ export async function startSpike(root: HTMLElement): Promise<() => void> {
 
   // ── Terrain: flat terrace, stepped edges ────────────────────────────────
   const terrain = new Mesh(buildColumnGeometry(makeSpikeField()), material);
+
   scene.add(terrain);
 
   // ── Palms: one InstancedMesh, 144 instances ─────────────────────────────
   const palmGeometry = buildPalmGeometry('mature');
   const palms = new InstancedMesh(palmGeometry, material, PALM_COUNT);
+
   palms.frustumCulled = false;
   scene.add(palms);
 
   /** Wall-clock ms at which each instance starts its pop-in (GDD 6.5). */
   const animStart = new Float32Array(PALM_COUNT);
   const basePosition: Vector3[] = [];
+
   for (let row = 0; row < BLOCK; row++) {
     for (let col = 0; col < BLOCK; col++) {
       // Slight triangular offset per row; real palms are not on a square grid.
       const x = MARGIN + col + 0.5 + (row % 2 === 0 ? 0 : 0.5);
       const z = MARGIN + row + 0.5;
+
       basePosition.push(new Vector3(x, 0, z));
     }
   }
@@ -138,12 +151,15 @@ export async function startSpike(root: HTMLElement): Promise<() => void> {
 
   const replant = (): void => {
     const now = performance.now();
+
     for (let i = 0; i < PALM_COUNT; i++) {
       // Cascade by row so the pop rolls across the block (GDD 6.5).
       const row = Math.floor(i / BLOCK);
       const col = i % BLOCK;
+
       animStart[i] = now + cascadeDelay(row * 2 + col * 0.5);
     }
+
     animating = true;
   };
 
@@ -152,6 +168,7 @@ export async function startSpike(root: HTMLElement): Promise<() => void> {
 
     for (let i = 0; i < PALM_COUNT; i++) {
       const t = clamp01((now - animStart[i]!) / DURATION.popIn);
+
       if (t < 1) stillAnimating = true;
 
       const curve = easeOutBack(t);
@@ -182,6 +199,7 @@ export async function startSpike(root: HTMLElement): Promise<() => void> {
     const sky = SKY_WET.clone()
       .lerp(SKY_DRY, season)
       .lerp(TINT.haze, haze * 0.8);
+
     scene.background = sky;
     fog.color.copy(sky);
     // Clear weather leaves the estate in front of the fog entirely; haze pulls
@@ -192,6 +210,7 @@ export async function startSpike(root: HTMLElement): Promise<() => void> {
     sun.intensity = lerp(1.9, 0.55, haze);
     hemi.intensity = lerp(1.05, 0.7, haze);
   };
+
   applyWeather();
 
   const ui = buildOverlay(root, {
@@ -210,6 +229,7 @@ export async function startSpike(root: HTMLElement): Promise<() => void> {
   replant();
   renderer.setAnimationLoop(() => {
     const now = performance.now();
+
     if (animating) updatePalms(now);
     controls.update();
     frustumSize = 17 / camera.zoom;
@@ -261,6 +281,7 @@ function makeSpikeField(): ColumnField {
       // neighbouring columns: per-column noise carves one-column pits, and the
       // mesher then correctly draws their walls, which reads as speckle.
       const wobble = hash01(Math.floor(x / 3), Math.floor(z / 3));
+
       heights[i] = -0.5 * (out + (wobble > 0.6 ? 1 : 0));
       topSlots[i] =
         hash01(Math.floor(x / 2), Math.floor(z / 2)) > 0.62 ? Palette.Grass : Palette.Forest;
@@ -280,6 +301,7 @@ function makeSpikeField(): ColumnField {
 /** Deterministic 0..1 hash so the spike looks identical on every reload. */
 function hash01(x: number, z: number): number {
   const v = Math.sin(x * 127.1 + z * 311.7) * 43758.5453;
+
   return v - Math.floor(v);
 }
 
@@ -292,6 +314,7 @@ interface OverlayHandlers {
 /** Plain DOM overlay; the real HUD is Svelte + Tailwind (GDD 8, GDD 10.2). */
 function buildOverlay(root: HTMLElement, handlers: OverlayHandlers): HTMLElement {
   const panel = document.createElement('div');
+
   panel.className =
     'absolute top-4 left-4 w-64 rounded-lg bg-black/55 p-4 text-sm text-white backdrop-blur';
   panel.innerHTML = `

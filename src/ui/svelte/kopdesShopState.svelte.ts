@@ -104,6 +104,7 @@ export function shopView(sim: Sim): ShopView {
     indexPct: Math.round(index * 100),
     rows: ITEMS.map((item) => {
       const unit = itemPrice(item, index);
+
       return {
         item,
         icon: ITEM_ICON[item],
@@ -119,6 +120,7 @@ export function shopView(sim: Sim): ShopView {
     workers: (Object.keys(WORKERS) as WorkerKind[]).map((kind) => {
       const spec = WORKERS[kind];
       const hired = state.mobs.some((m) => m.hired && m.species === kind);
+
       return {
         kind,
         icon: WORKER_ICON[kind],

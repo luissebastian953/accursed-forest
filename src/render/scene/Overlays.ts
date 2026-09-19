@@ -30,6 +30,7 @@ function overlayHeight(state: SimState, world: World, block: BlockId, lift: numb
   const s = WORLD.blockSide;
   const phaseOf = (id: BlockId) => state.blocks.get(id)?.phase ?? 'wild';
   let top = -Infinity;
+
   for (const [fx, fz] of [
     [0.5, 0.5],
     [0.08, 0.08],
@@ -39,6 +40,7 @@ function overlayHeight(state: SimState, world: World, block: BlockId, lift: numb
   ] as const) {
     top = Math.max(top, landHeight(world, phaseOf, (bx + fx) * s, (by + fz) * s));
   }
+
   return top + lift;
 }
 
@@ -50,16 +52,19 @@ function buildSelectionFrame() {
   const h = 0.1;
   const inset = 0.35;
   const len = s - inset * 2;
+
   b.addAABox(0, 0, -len / 2 + t / 2, len, h, t, { side: Palette.Water });
   b.addAABox(0, 0, len / 2 - t / 2, len, h, t, { side: Palette.Water });
   b.addAABox(-len / 2 + t / 2, 0, 0, t, h, len, { side: Palette.Water });
   b.addAABox(len / 2 - t / 2, 0, 0, t, h, len, { side: Palette.Water });
+
   // Corner ticks, so the frame still reads when the bars are edge-on.
   for (const sx of [-1, 1]) {
     for (const sz of [-1, 1]) {
       b.addAABox((sx * len) / 2, 0.01, (sz * len) / 2, 0.95, h, 0.95, { side: Palette.Water });
     }
   }
+
   return b.build();
 }
 
@@ -82,6 +87,7 @@ export class SelectionRing {
   /** `_material` is the shared palette material; the ring lights itself. */
   constructor(_material?: Material) {
     const frameMaterial = new MeshBasicNodeMaterial({ transparent: true, depthWrite: false });
+
     frameMaterial.colorNode = vec3(0.32, 1.25, 2.8).mul(this.pulse);
     frameMaterial.opacityNode = float(0.85);
     this.frame = new Mesh(buildSelectionFrame(), frameMaterial);
@@ -91,14 +97,19 @@ export class SelectionRing {
       depthWrite: false,
       blending: AdditiveBlending,
     });
+
     haloMaterial.colorNode = vec3(0.12, 0.55, 1.35).mul(this.pulse);
+
     // Distance from the plane's edge, in plane units; the glow sits on the
     // block's boundary and falls off both ways.
     const p = uv();
     const edge = min(min(p.x, float(1).sub(p.x)), min(p.y, float(1).sub(p.y)));
     const band = float(HALO_SPILL / (1 + HALO_SPILL * 2));
+
     haloMaterial.opacityNode = smoothstep(float(0.13), float(0), edge.sub(band).abs()).mul(0.38);
+
     const side = WORLD.blockSide * (1 + HALO_SPILL * 2);
+
     this.halo = new Mesh(new PlaneGeometry(side, side).rotateX(-Math.PI / 2), haloMaterial);
     this.halo.position.y = -0.05;
 
@@ -115,6 +126,7 @@ export class SelectionRing {
     const y = overlayHeight(state, world, block, 0.35);
 
     const half = WORLD.blockSide / 2;
+
     this.group.position.set(bx * WORLD.blockSide + half, y, by * WORLD.blockSide + half);
     this.group.visible = true;
     if (this.selected !== block) this.shownAt = nowMs;
@@ -135,8 +147,10 @@ export class SelectionRing {
     if (!this.group.visible) return;
     this.pulse.value = pulsing ? 0.82 + 0.18 * Math.sin(nowMs * 0.004) : 1;
     if (this.shownAt < 0) return;
+
     const t = clamp01((nowMs - this.shownAt) / DURATION.popIn);
     const s = Math.max(0.001, easeOutBack(t));
+
     this.group.scale.set(s, 1, s);
     if (t >= 1) this.shownAt = -1;
   }
@@ -166,6 +180,7 @@ export class RangeRing {
     // and a good deal thinner: many of these are on screen at once, and they
     // are the estate's edges, not the block the player is looking at.
     const coreMaterial = new MeshBasicNodeMaterial({ transparent: true, depthWrite: false });
+
     coreMaterial.colorNode = vec3(0.04, 0.22, 0.92);
     coreMaterial.opacityNode = float(0.9);
     this.core = new Mesh(new BoxBuilder().build(), coreMaterial);
@@ -175,6 +190,7 @@ export class RangeRing {
       depthWrite: false,
       blending: AdditiveBlending,
     });
+
     glowMaterial.colorNode = vec3(0.02, 0.11, 0.55);
     glowMaterial.opacityNode = float(0.26);
     this.glow = new Mesh(new BoxBuilder().build(), glowMaterial);
@@ -186,12 +202,14 @@ export class RangeRing {
 
   show(state: SimState, world: World): void {
     const kopdes = state.kopdes;
+
     if (!kopdes) {
       this.hide();
       return;
     }
 
     const key = `${kopdes.blockId}:${kopdes.level}`;
+
     if (key !== this.key) {
       this.key = key;
       this.core.geometry.dispose();
@@ -201,6 +219,7 @@ export class RangeRing {
       // above it reads as a narrow bloom either side of the line.
       this.glow.geometry = buildRangeGeometry(state, world, RANGE_BAR * 2.4, 0.18);
     }
+
     this.group.visible = true;
   }
 
@@ -230,11 +249,15 @@ function buildRangeGeometry(state: SimState, world: World, t: number, lift: numb
   for (let dy = -range; dy <= range; dy++) {
     for (let dx = -range; dx <= range; dx++) {
       if (Math.abs(dx) + Math.abs(dy) > range) continue;
+
       const bx = kx + dx;
       const by = ky + dy;
+
       if (!world.inBounds(bx, by)) continue;
+
       const id = world.toId(bx, by);
       const generated = world.generated(bx, by);
+
       if (generated.biome === 'river') continue;
 
       const y = overlayHeight(state, world, id, lift);
@@ -242,12 +265,14 @@ function buildRangeGeometry(state: SimState, world: World, t: number, lift: numb
       const cz = by * s + s / 2;
       const inset = 0.6;
       const len = s - inset * 2;
+
       b.addAABox(cx, y, cz - len / 2 + t / 2, len, h, t, { side: Palette.Water });
       b.addAABox(cx, y, cz + len / 2 - t / 2, len, h, t, { side: Palette.Water });
       b.addAABox(cx - len / 2 + t / 2, y, cz, t, h, len, { side: Palette.Water });
       b.addAABox(cx + len / 2 - t / 2, y, cz, t, h, len, { side: Palette.Water });
     }
   }
+
   return b.build();
 }
 
@@ -268,21 +293,25 @@ export class HazardRing {
       this.hide();
       return;
     }
+
     const b = new BoxBuilder();
     const s = WORLD.blockSide;
     const t = 0.35;
     const h = 0.25;
+
     for (const id of blocks) {
       const [bx, by] = world.toXY(id);
       const y = overlayHeight(state, world, id, 0.5);
       const cx = bx * s + s / 2;
       const cz = by * s + s / 2;
       const len = s - 1;
+
       b.addAABox(cx, y, cz - len / 2 + t / 2, len, h, t, { side: Palette.Fire });
       b.addAABox(cx, y, cz + len / 2 - t / 2, len, h, t, { side: Palette.Fire });
       b.addAABox(cx - len / 2 + t / 2, y, cz, t, h, len, { side: Palette.Fire });
       b.addAABox(cx + len / 2 - t / 2, y, cz, t, h, len, { side: Palette.Fire });
     }
+
     this.mesh.geometry.dispose();
     this.mesh.geometry = b.build();
     this.mesh.visible = true;

@@ -5,6 +5,7 @@ test.describe('landing page', () => {
     page,
   }) => {
     const scripts: string[] = [];
+
     page.on('request', (r) => {
       if (r.resourceType() === 'script') scripts.push(r.url());
     });
@@ -34,8 +35,10 @@ test.describe('landing page', () => {
       'content',
       'summary_large_image',
     );
+
     const ld = await page.locator('script[type="application/ld+json"]').textContent();
     const graph = (JSON.parse(ld ?? '{}') as { '@graph': { '@type': string }[] })['@graph'];
+
     expect(graph.map((n) => n['@type'])).toEqual([
       'VideoGame',
       'Organization',
@@ -46,20 +49,26 @@ test.describe('landing page', () => {
     ]);
     // Nothing the build was supposed to fill in is still a placeholder.
     expect(ld ?? '').not.toMatch(/__[A-Z_]+__/);
+
     const game = graph.find((n) => n['@type'] === 'VideoGame') as unknown as {
       softwareVersion: string;
       browserRequirements: string;
       potentialAction: { target: { urlTemplate: string } };
     };
+
     expect(game.softwareVersion).toMatch(/^\d+\.\d+\.\d+/);
     expect(game.browserRequirements).toContain('WebGL');
     // The one action a visitor can take from the page, and it goes somewhere.
     expect(game.potentialAction.target.urlTemplate).toContain('/play.html');
+
     const play = await page.request.get('/play.html');
+
     expect(play.status()).toBe(200);
+
     // The assets the head points at actually exist.
     for (const path of ['/icon-32.png', '/icon-180.png', '/og-1200x630.png', '/site.webmanifest']) {
       const response = await page.request.get(path);
+
       expect(response.status(), path).toBe(200);
     }
   });
@@ -78,20 +87,26 @@ test.describe('landing page', () => {
         .or(page.locator('b', { hasText: 'Kebakaran hutan' }))
         .first(),
     ).toBeVisible();
+
     const ld = await page.locator('script[type="application/ld+json"]').textContent();
     const graph = (JSON.parse(ld ?? '{}') as { '@graph': { '@type': string }[] })['@graph'];
+
     expect(graph.map((n) => n['@type'])).toContain('FAQPage');
+
     // The Indonesian page knows it is a translation, and says where it sits.
     const crumbs = graph.find((n) => n['@type'] === 'BreadcrumbList') as unknown as {
       itemListElement: { name: string }[];
     };
+
     expect(crumbs.itemListElement.map((c) => c.name)).toEqual([
       'Sawit Simulator',
       'Bahasa Indonesia',
     ]);
+
     const idPage = graph.find((n) => n['@type'] === 'WebPage') as unknown as {
       translationOfWork: { '@id': string };
     };
+
     expect(idPage.translationOfWork['@id']).toContain('#page');
     await page.getByRole('link', { name: 'English' }).first().click();
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');

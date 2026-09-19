@@ -33,19 +33,25 @@ export function society(ctx: SimContext): void {
 /** Multiplier on the TBS price's long-run mean from inflation and the temporary macro events. */
 export function tbsMeanFactor(state: SimState, forestCover = 0): number {
   let factor = 1 + (state.economy.inputPriceIndex - 1) * MACRO.tbsPassThrough;
+
   for (const event of state.weather.activeEvents) {
     if (!event.id.startsWith(MACRO_PREFIX)) continue;
+
     const spec: MacroEvent | undefined =
       MACRO.events[event.id.slice(MACRO_PREFIX.length) as MacroEventId];
+
     if (spec?.tbsFactor === undefined) continue;
+
     // A buyer who cares about deforestation pays more for an estate that
     // kept its trees: full cover takes half the penalty off.
     const softened =
       spec.forestSoftens && spec.tbsFactor < 1
         ? spec.tbsFactor + (1 - spec.tbsFactor) * 0.5 * Math.max(0, Math.min(1, forestCover))
         : spec.tbsFactor;
+
     factor *= softened;
   }
+
   return factor;
 }
 
@@ -58,6 +64,7 @@ function macroEconomy(ctx: SimContext): void {
       events.push({ type: 'MacroEventEnded', id: event.id.slice(MACRO_PREFIX.length) });
     }
   }
+
   state.weather.activeEvents = state.weather.activeEvents.filter(
     (e) => !e.id.startsWith(MACRO_PREFIX) || e.endsAt > tick,
   );
@@ -70,6 +77,7 @@ function macroEconomy(ctx: SimContext): void {
 
   const weights = MACRO_IDS.map((id) => (drawable(state, id) ? MACRO.events[id].weight : 0));
   const id = MACRO_IDS[pickWeighted(state.rng, weights)];
+
   if (id === undefined) return;
   startMacro(ctx, id);
 }
@@ -84,6 +92,7 @@ export function drawable(state: SimState, id: MacroEventId): boolean {
   const spec: MacroEvent = MACRO.events[id];
   const seen = new Set(state.society.macroSeen);
   const year = Math.floor(state.tick / GROWTH.daysPerYear) + 1;
+
   if (spec.triggered) return false;
   if (spec.days && activeEvent(state, MACRO_PREFIX + id)) return false;
   if (spec.inputRise && state.economy.inputPriceIndex >= MACRO.maxInputIndex) return false;
@@ -110,9 +119,11 @@ export function startMacro(ctx: SimContext, id: MacroEventId): void {
     );
     events.push({ type: 'InputPricesRose', index: state.economy.inputPriceIndex });
   }
+
   const days = spec.days
     ? spec.days.min + nextInt(state.rng, spec.days.max - spec.days.min + 1)
     : 0;
+
   if (spec.days)
     state.weather.activeEvents.push({
       id: MACRO_PREFIX + id,
@@ -129,12 +140,15 @@ export function startMacro(ctx: SimContext, id: MacroEventId): void {
       ATTENTION.max,
     );
   }
+
   if (spec.attention !== undefined) {
     state.society.attention = clamp(state.society.attention + spec.attention, 0, ATTENTION.max);
   }
+
   if (spec.integrity !== undefined) {
     state.society.integrity = clamp(state.society.integrity + spec.integrity, 0, 1);
   }
+
   if (spec.ashDays !== undefined) {
     // Ash falls on the whole estate, which is the one gift in the deck.
     for (const block of state.blocks.values()) {
@@ -150,6 +164,7 @@ export function startMacro(ctx: SimContext, id: MacroEventId): void {
 function integrity(ctx: SimContext): void {
   const { state, events } = ctx;
   const s = state.society;
+
   s.integrity +=
     INTEGRITY.reversionPerDay * (INTEGRITY.baseline - s.integrity) +
     nextGaussian(state.rng) * INTEGRITY.driftSd;
@@ -162,6 +177,7 @@ function integrity(ctx: SimContext): void {
     s.integrity += INTEGRITY.scandalJump;
     events.push({ type: 'IntegrityScandal', integrity: clamp(s.integrity, 0, 1) });
   }
+
   s.integrity = clamp(s.integrity, 0, 1);
 }
 
@@ -176,6 +192,7 @@ function nextToProtected(ctx: SimContext, id: BlockId): boolean {
   for (const n of neighbourIds(ctx.world, id)) {
     if (readBlock(ctx.state, ctx.world, n).biome === 'protected') return true;
   }
+
   return false;
 }
 
@@ -198,12 +215,15 @@ function authority(ctx: SimContext): void {
         burned = true;
         if (nextToProtected(ctx, event.block)) openFor ??= 'protectedForest';
         break;
+
       case 'FireSpread': {
         const target = readBlock(state, world, event.to);
+
         if (!target.owned) raise += ATTENTION.fireIntoUnowned;
         if (target.biome === 'protected') openFor ??= 'protectedForest';
         break;
       }
+
       case 'WildfireStarted':
         if (s.investigationUntil > state.tick) secondWildfire = true;
         else openFor = 'wildfire';
@@ -217,6 +237,7 @@ function authority(ctx: SimContext): void {
   }
 
   let reforesting = 0;
+
   for (const block of state.blocks.values())
     if (block.owned && block.phase === 'reforesting') reforesting += 1;
 
@@ -234,6 +255,7 @@ function authority(ctx: SimContext): void {
 
   // ── The enforcement roll (GDD 3.8) ────────────────────────────────────────
   if (s.operatingBanUntil === state.tick) events.push({ type: 'OperatingBanLifted' });
+
   // Only an honest office rolls, so the ban is rare and a scandal headline
   // always came first. The roll draws from the stream only when it can land.
   if (
@@ -248,6 +270,7 @@ function authority(ctx: SimContext): void {
 
   // ── Warning 2: police at the gate ──────────────────────────────────────
   const investigating = s.investigationUntil > state.tick;
+
   // A case that has run its course closes before anything can open another,
   // so the old offence cannot reopen it; a new one the same day still can.
   if (s.warningLevel === 2 && !investigating) {
@@ -255,6 +278,7 @@ function authority(ctx: SimContext): void {
     s.warningLevel = s.attention >= AUTHORITY.letterClearsBelow ? 1 : 0;
     events.push({ type: 'InvestigationClosed' });
   }
+
   if (!investigating && (openFor !== null || s.attention >= AUTHORITY.investigationAt)) {
     s.investigationUntil = state.tick + AUTHORITY.investigationDays;
     s.warningLevel = 2;
@@ -308,8 +332,11 @@ export function creditReforestation(ctx: SimContext, block: BlockId): void {
   // Halve the days still to run, not the end date: an old ban would otherwise
   // be pushed further out by a plant made near its end.
   const left = Math.max(0, s.operatingBanUntil - state.tick);
+
   if (left > 0) s.operatingBanUntil = state.tick + Math.floor(left * keep);
+
   const investigationLeft = Math.max(0, s.investigationUntil - state.tick);
+
   if (investigationLeft > 0) {
     s.investigationUntil = state.tick + Math.floor(investigationLeft * keep);
   }
@@ -338,6 +365,7 @@ function ecology(ctx: SimContext, burnedToday: boolean): void {
 
   let burning = 0;
   let ashen = 0;
+
   for (const block of state.blocks.values()) {
     if (block.burning) burning += 1;
     if (block.ashUntil > state.tick) ashen += 1;
@@ -370,6 +398,7 @@ export function operatingBanned(state: SimState): boolean {
 
 export function operatingBanReason(state: SimState): string {
   const until = state.society.operatingBanUntil;
+
   return `Operating licence suspended; no clearing, palm planting or harvest until year ${Math.floor(until / 360) + 1}, day ${(until % 360) + 1}.`;
 }
 

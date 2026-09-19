@@ -47,6 +47,7 @@ export function createPaletteMaterial(
   uniforms: PaletteUniforms = createPaletteUniforms(),
 ): PaletteMaterial {
   const material = new MeshLambertNodeMaterial();
+
   material.flatShading = true;
 
   const u = attribute('paletteU', 'float');

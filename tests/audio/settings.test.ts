@@ -11,12 +11,14 @@ import {
 /** A store that remembers, and one that refuses. */
 function memory(seed: Record<string, string> = {}): SettingsStore & { data: Map<string, string> } {
   const data = new Map(Object.entries(seed));
+
   return {
     data,
     getItem: (key) => data.get(key) ?? null,
     setItem: (key, value) => void data.set(key, value),
   };
 }
+
 const broken: SettingsStore = {
   getItem: () => {
     throw new Error('storage off');
@@ -29,6 +31,7 @@ const broken: SettingsStore = {
 describe('sound settings', () => {
   it('round-trip through storage', () => {
     const store = memory();
+
     saveAudioSettings({ muted: true, volume: 0.35 }, store);
     expect(store.data.has(AUDIO_STORAGE_KEY)).toBe(true);
     expect(loadAudioSettings(store)).toEqual({ muted: true, volume: 0.35 });
@@ -44,8 +47,11 @@ describe('sound settings', () => {
 
   it('clamp a volume that wandered, and only read muted as a real true', () => {
     const loud = memory({ [AUDIO_STORAGE_KEY]: JSON.stringify({ muted: 'yes', volume: 4 }) });
+
     expect(loadAudioSettings(loud)).toEqual({ muted: false, volume: 1 });
+
     const bad = memory({ [AUDIO_STORAGE_KEY]: JSON.stringify({ muted: true, volume: 'loud' }) });
+
     expect(loadAudioSettings(bad)).toEqual({ muted: true, volume: DEFAULT_AUDIO_SETTINGS.volume });
   });
 

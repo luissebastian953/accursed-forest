@@ -11,6 +11,7 @@ export function hangVines(
   for (let i = 0; i < count; i++) {
     const a = rand() * Math.PI * 2;
     const length = between(rand, from * 0.35, from * 0.75);
+
     kit.box(
       Math.cos(a) * radius,
       from - length,

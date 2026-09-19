@@ -34,24 +34,34 @@
   /** "Saved today 15:28", or the date for older saves. */
   function savedLabel(iso: string | null): string {
     if (!iso) return t('start.saved');
+
     const when = new Date(iso);
+
     if (Number.isNaN(when.getTime())) return t('start.saved');
+
     const now = new Date();
     const time = when.toLocaleTimeString(localeTag(), { hour: '2-digit', minute: '2-digit' });
+
     if (when.toDateString() === now.toDateString()) return t('start.savedToday', { time });
+
     // eslint-disable-next-line svelte/prefer-svelte-reactivity -- plain arithmetic, not state
     const yesterday = new Date(now);
+
     yesterday.setDate(now.getDate() - 1);
+
     if (when.toDateString() === yesterday.toDateString()) {
       return t('start.savedYesterday', { time });
     }
+
     const date = when.toLocaleDateString(localeTag(), { day: 'numeric', month: 'short' });
+
     return t('start.savedOn', { date, time });
   }
 
   const bearYear = Math.ceil(GROWTH.immatureDays / GROWTH.daysPerYear);
   const facts = $derived.by((): [IconName, string][] => {
     const words = t('start.words').split(',');
+
     return [
       ['coin', t('start.factCash', { cash: formatRp(ECONOMY.startingCash) })],
       ['shop-sapling', t('start.factBear', { year: bearYear })],

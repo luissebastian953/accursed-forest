@@ -11,6 +11,7 @@ type ReforestBlock = Extract<Command, { type: 'ReforestBlock' }>;
 /** How many saplings this block still needs buying for. */
 export function saplingShortfall(ctx: SimContext, block: BlockId): number {
   const b = readBlock(ctx.state, ctx.world, block);
+
   return Math.max(0, seedlingsNeeded(b.biome) - ctx.state.inventory.forestSapling);
 }
 
@@ -30,18 +31,23 @@ export const reforestBlock: CommandHandler<ReforestBlock> = {
       block: command.block,
       species: 'forest',
     });
+
     // Short stock is this command's business, not a reason to refuse.
     if (planting !== null && planting.code !== 'noInventory') return planting;
 
     const short = saplingShortfall(ctx, command.block);
+
     if (short > 0) {
       if (!state.kopdes) {
         return reject('noKopdes', 'Saplings come from a Kopdes. Build one first.');
       }
+
       if (!inKopdesRange(state, world, command.block)) {
         return reject('noKopdes', 'No Kopdes within range of this block to buy saplings from.');
       }
+
       const cost = reforestCost(ctx, command.block);
+
       if (state.economy.cash < cost) {
         return reject(
           'noCash',
@@ -49,19 +55,23 @@ export const reforestBlock: CommandHandler<ReforestBlock> = {
         );
       }
     }
+
     return null;
   },
 
   apply(ctx, command) {
     const { state, events } = ctx;
     const short = saplingShortfall(ctx, command.block);
+
     if (short > 0) {
       const cost = reforestCost(ctx, command.block);
+
       spend(state, cost, 'purchase', `${short} × forestSapling`);
       state.inventory.forestSapling += short;
       events.push({ type: 'ItemBought', item: 'forestSapling', quantity: short });
       events.push({ type: 'CashChanged', cash: state.economy.cash });
     }
+
     plantBlock.apply(ctx, { type: 'PlantBlock', block: command.block, species: 'forest' });
   },
 };

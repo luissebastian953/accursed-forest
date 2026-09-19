@@ -28,9 +28,11 @@ export interface IspoCondition {
 
 export function endings(ctx: SimContext): void {
   const { state } = ctx;
+
   if (runOver(state)) return;
 
   const closedYear = keepBooks(ctx);
+
   if (state.run.sandbox) return;
 
   if (insolvent(ctx)) return;
@@ -59,10 +61,12 @@ function keepBooks(ctx: SimContext): number | null {
       case 'FireSpread':
         stats.blocksBurned += 1;
         spread += 1;
+
         if (!readBlock(state, world, event.to).owned) {
           stats.neighbourBlocksBurned += 1;
           spreadNotYours += 1;
         }
+
         break;
       case 'PalmDied':
         stats.palmsLost += 1;
@@ -91,6 +95,7 @@ function keepBooks(ctx: SimContext): number | null {
             title: `Forest planted back on ${blockList(world, [event.block])}`,
           });
         }
+
         break;
       case 'InvestigationSettled':
         stats.settled += event.cost;
@@ -117,6 +122,7 @@ function keepBooks(ctx: SimContext): number | null {
       title: `Forest chopped on ${blockList(world, chopped)}`,
     });
   }
+
   if (burned.length > 0) {
     chronicle(state, {
       lane: 'estate',
@@ -124,6 +130,7 @@ function keepBooks(ctx: SimContext): number | null {
       title: `${capitalise(blockList(world, burned))} burned to clear`,
     });
   }
+
   if (spread > 0) {
     chronicle(state, {
       lane: 'estate',
@@ -141,6 +148,7 @@ function keepBooks(ctx: SimContext): number | null {
 
 function blockList(world: World, blocks: readonly BlockId[]): string {
   const names = blocks.map((id) => blockLabel(world, id));
+
   if (names.length === 1) return `block ${names[0]}`;
   if (names.length <= 3) return `blocks ${names.join('; ')}`;
   return `${names.length} blocks`;
@@ -159,11 +167,14 @@ function capitalise(text: string): string {
  */
 export function creditLine(state: SimState, world: World): number {
   if (!state.kopdes || operatingBanned(state)) return 0;
+
   let hectares = 0;
+
   for (const block of state.blocks.values()) {
     if (block.phase !== 'planted' || block.species !== 'palm') continue;
     if (inKopdesRange(state, world, block.id)) hectares += 1;
   }
+
   return hectares * BANKRUPTCY.creditPerHectare;
 }
 
@@ -171,12 +182,14 @@ function insolvent(ctx: SimContext): boolean {
   const { state, world, events } = ctx;
   const run = state.run;
   const cash = state.economy.cash;
+
   run.insolventFor = cash < 0 && cash < -creditLine(state, world) ? run.insolventFor + 1 : 0;
   if (run.insolventFor < BANKRUPTCY.daysInRed) return false;
 
   // A ban that stood at any point in this spell is what sank the estate.
   const banned = state.society.operatingBanUntil > state.tick - run.insolventFor;
   const ending = banned ? 'banned' : 'bankrupt';
+
   endRun(state, ending);
   events.push({ type: 'RunEnded', ending });
   return true;
@@ -188,28 +201,38 @@ function insolvent(ctx: SimContext): boolean {
 /** Blocks planted with palms, bearing or not. */
 export function palmHectares(state: SimState): number {
   let n = 0;
+
   for (const block of state.blocks.values()) {
     if (block.phase === 'planted' && block.species === 'palm') n += 1;
   }
+
   return n;
 }
 
 /** Reforesting blocks whose trees have mostly grown past sapling. */
 export function reforestedHectares(state: SimState): number {
   let n = 0;
+
   for (const [id, palms] of state.palms) {
     const block = state.blocks.get(id);
+
     if (block?.phase !== 'reforesting') continue;
+
     let planted = 0;
     let grown = 0;
+
     for (let slot = 0; slot < palms.plantedAt.length; slot++) {
       if (palms.plantedAt[slot]! < 0) continue;
       planted += 1;
+
       const stage = slotStage(palms, slot, 'forest', state.tick);
+
       if (stage === 'immature' || stage === 'mature') grown += 1;
     }
+
     if (planted > 0 && grown >= planted * REBOISASI.grownShare) n += 1;
   }
+
   return n;
 }
 
@@ -227,6 +250,7 @@ export function redemptionReached(state: SimState): boolean {
 /** The reboisasi ending's test: more land back to forest than under palms, by a margin. */
 export function reboisasiReached(state: SimState): boolean {
   const forest = reforestedHectares(state);
+
   return (
     forest >= REBOISASI.minHectares && forest >= palmHectares(state) + REBOISASI.marginHectares
   );
@@ -234,14 +258,19 @@ export function reboisasiReached(state: SimState): boolean {
 
 export function matureHectares(state: SimState): number {
   let n = 0;
+
   for (const [id, palms] of state.palms) {
     const block = state.blocks.get(id);
+
     if (block?.phase !== 'planted' || block.species !== 'palm') continue;
+
     let planted = 0;
+
     for (const t of palms.plantedAt) if (t >= 0) planted += 1;
     if (planted > 0 && bearingCount(palms, 'palm', state.tick) >= planted * ISPO.matureShare)
       n += 1;
   }
+
   return n;
 }
 
@@ -255,22 +284,30 @@ export function slopeForestCover(state: SimState, world: World): number {
   const seen = new Set<BlockId>();
   let sum = 0;
   let n = 0;
+
   for (const block of state.blocks.values()) {
     if (!block.owned) continue;
+
     const [x, y] = world.toXY(block.id);
+
     for (let dy = -r; dy <= r; dy++) {
       for (let dx = -r; dx <= r; dx++) {
         if (!world.inBounds(x + dx, y + dy)) continue;
+
         const id = world.toId(x + dx, y + dy);
+
         if (seen.has(id)) continue;
         seen.add(id);
+
         const b = readBlock(state, world, id);
+
         if (!b.slope || b.biome === 'river') continue;
         sum += forestCoverAround(state, world, id);
         n += 1;
       }
     }
   }
+
   return n === 0 ? estateForestCover(state, world) : sum / n;
 }
 
@@ -328,8 +365,10 @@ function closeYear(ctx: SimContext, year: number): void {
   const run = state.run;
 
   const profit = run.yearProfit;
+
   run.profitTotal += profit;
   run.yearProfit = 0;
+
   const summary: YearSummary = {
     year,
     profit,
@@ -338,11 +377,15 @@ function closeYear(ctx: SimContext, year: number): void {
     forestCover: estateForestCover(state, world),
     conditionsMet: 0,
   };
+
   run.years.push(summary);
   if (run.years.length > ISPO.yearsKept) run.years.splice(0, run.years.length - ISPO.yearsKept);
+
   const closed = ispoConditions(state, world);
+
   summary.conditionsMet = closed.filter((c) => c.met).length;
   events.push({ type: 'YearClosed', summary });
+
   // Quiet years before the first harvest are not part of the story.
   if (summary.matureHectares > 0 || Math.abs(profit) >= 1_000_000) {
     chronicle(state, {
@@ -368,10 +411,13 @@ function closeYear(ctx: SimContext, year: number): void {
   }
 
   const met = (id: IspoConditionId): boolean => closed.find((c) => c.id === id)!.met;
+
   if (met('profit') && met('hectares') && met('kopdes')) {
     const waived = (['noBurn', 'forest'] as const).filter((id) => !met(id));
+
     if (waived.length === 0 || state.society.integrity < ISPO.waiverMaxIntegrity) {
       const ending = waived.length === 0 ? 'clean' : 'dirty';
+
       endRun(state, ending);
       events.push({ type: 'Certified', clean: ending === 'clean', waived: [...waived] });
       events.push({ type: 'RunEnded', ending });

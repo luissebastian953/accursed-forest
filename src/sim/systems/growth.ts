@@ -31,6 +31,7 @@ export function growthMultiplier(state: SimState, block: Readonly<Block>): numbe
   const spec = BIOMES[block.biome];
   // Irrigation lifts the dry-scrub penalty (GDD 3.1).
   let fertilityFactor = block.irrigated && block.biome === 'scrub' ? 1 : spec.fertility;
+
   if (block.fertilizedUntil > state.tick) fertilityFactor *= FERTILIZER_BONUS;
   if (block.ashUntil > state.tick) fertilityFactor *= ASH_BONUS;
   fertilityFactor = clamp(fertilityFactor, fertility.min, fertility.max);
@@ -46,6 +47,7 @@ export function growth(ctx: SimContext): void {
 
   for (const [id, palms] of state.palms) {
     const block = state.blocks.get(id);
+
     if (!block || (block.phase !== 'planted' && block.phase !== 'reforesting')) continue;
     // A burning block grows nothing; its palms are about to be debris.
     if (block.burning) continue;
@@ -55,6 +57,7 @@ export function growth(ctx: SimContext): void {
 
     for (let slot = 0; slot < palms.plantedAt.length; slot++) {
       const plantedAt = palms.plantedAt[slot]!;
+
       if (plantedAt < 0) continue;
 
       const health = palms.health[slot]!;
@@ -62,6 +65,7 @@ export function growth(ctx: SimContext): void {
       const ageDays = tick - plantedAt;
 
       const before = stageOf(species, palms.growth[slot]!, ageDays, health, ganoderma);
+
       if (before === 'dead') continue;
 
       // Symptomatic Ganoderma caps stress (GDD 3.6.1); beetle damage shows in health.
@@ -72,15 +76,18 @@ export function growth(ctx: SimContext): void {
         GROWTH_FACTORS.stress.max,
       );
       const g = blockG * stress;
+
       palms.growth[slot] = palms.growth[slot]! + g;
 
       const after = stageOf(species, palms.growth[slot]!, ageDays, health, ganoderma);
+
       if (after !== before) {
         events.push({ type: 'PalmStageChanged', block: id, slot, from: before, to: after });
       }
 
       if (species === 'palm' && isBearing(after)) {
         const perRound = sampleCurve(YIELD_CURVE, ageInYears(plantedAt, tick));
+
         palms.yieldAcc[slot] =
           palms.yieldAcc[slot]! + (perRound / HARVEST_ROTATION_DAYS) * g * yieldNow;
       }

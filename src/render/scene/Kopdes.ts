@@ -61,6 +61,7 @@ export function buildKopdesGeometry(level: KopdesLevel = 1) {
     // Half the slab's thickness, lifted along the plane's own normal.
     const nx = (-Math.sin(angle) * THICK) / 2;
     const ny = (Math.cos(angle) * THICK) / 2;
+
     m.makeRotationZ(angle).setPosition((x1 + x2) / 2 + nx, (y1 + y2) / 2 + ny, z);
     b.addBox(m.clone().multiply(new Matrix4().makeScale(length, THICK, depth)), faces);
   };
@@ -78,12 +79,14 @@ export function buildKopdesGeometry(level: KopdesLevel = 1) {
     steps: number,
   ) => {
     const run = (x2 - x1) / steps;
+
     for (let i = 0; i < steps; i++) {
       // The tallest point of each step is its uphill edge, so that is the
       // height it takes, less a finger's width: any more and the corner of the
       // step stands proud of the roof it is meant to be holding up, or fights
       // it for the same pixels.
       const top = y1 + ((y2 - y1) * i) / steps - 0.16;
+
       b.addAABox(x1 + run * (i + 0.5), top / 2, 0, Math.abs(run) + 0.01, top, depth, wall);
     }
   };
@@ -113,6 +116,7 @@ export function buildKopdesGeometry(level: KopdesLevel = 1) {
     const reach = reachOf(level);
     const postX = west - reach;
     const eaveWest = 2.9;
+
     plane(postX, eaveWest, west, ridgeY, depth + 0.9, roof);
     // The ridge cap: the two falls meet in something, not in a seam.
     b.addAABox(west, ridgeY + 0.2, 0, 1.2, 0.36, depth + 1, roofLight);
@@ -124,11 +128,14 @@ export function buildKopdesGeometry(level: KopdesLevel = 1) {
     const postTo = (x: number) => {
       const t = (x - postX) / (west - postX);
       const top = eaveWest + (ridgeY - eaveWest) * t - 0.16;
+
       for (const z of [-depth / 2 + 0.45, depth / 2 - 0.45]) {
         b.addAABox(x, top / 2 + 0.16, z, 0.34, top, 0.34, timber);
       }
+
       b.addAABox(x, top + 0.1, 0, 0.26, 0.26, depth - 0.5, timber);
     };
+
     postTo(postX + 0.3);
     if (level >= 4) postTo((postX + west) / 2);
 
@@ -145,6 +152,7 @@ export function buildKopdesGeometry(level: KopdesLevel = 1) {
     // At the west end of the front, under the high side of the roof, so it
     // leans against the tall wall rather than hanging off the low eave.
     const annexX = west + 1;
+
     b.addAABox(annexX, annexTop / 2, annexZ, 2.4, annexTop, 2.2, wall);
     plane(
       annexX - 1.3,
@@ -157,10 +165,12 @@ export function buildKopdesGeometry(level: KopdesLevel = 1) {
       annexZ,
     );
     b.addAABox(annexX, 1.3, annexZ + 1.15, 1, 1.5, 0.14, timber);
+
     // The windows go in the blank east wall, not the front: the front is the
     // door, the step and the annex, and a pane there ends up under the eave
     // or behind the annex roof.
     const wallPaneY = eaveEast - 1.15;
+
     if (level >= 4) {
       for (const z of [-0.9, 0.9]) {
         b.addAABox(east + 0.08, wallPaneY, z, 0.14, 0.95, 1.4, glass);
@@ -181,6 +191,7 @@ export function buildKopdesGeometry(level: KopdesLevel = 1) {
     const downhill = uphill + dormerRun;
     const dormerTop = roofAt(uphill) + 0.5;
     const dormerBase = roofAt(downhill) - 0.7;
+
     b.addAABox(
       (uphill + downhill) / 2,
       (dormerTop + dormerBase) / 2,
@@ -200,9 +211,11 @@ export function buildKopdesGeometry(level: KopdesLevel = 1) {
       0.25,
       dormerZ,
     );
+
     // The panes face down the slope, under the dormer's own eave.
     const paneY = dormerTop - 0.5;
     const paneX = downhill - 0.06;
+
     if (level >= 4) {
       for (const z of [-0.62, 0.62]) {
         b.addAABox(paneX, paneY, dormerZ + z, 0.14, 0.6, 1, glass);
@@ -224,6 +237,7 @@ export function buildKopdesGeometry(level: KopdesLevel = 1) {
   const poleTop = 4.6 + level * 0.7;
   const poleX = east - 0.5;
   const poleZ = -depth / 2 + 0.5;
+
   b.addAABox(poleX, poleTop / 2, poleZ, 0.16, poleTop, 0.16, timber);
   b.addAABox(poleX + 0.55, poleTop - 0.55, poleZ, 0.95, 0.65, 0.08, { side: Palette.KopdesFlag });
 
@@ -231,6 +245,7 @@ export function buildKopdesGeometry(level: KopdesLevel = 1) {
   // rises. Centre what was built on the block it stands on.
   const geometry = b.build();
   const spread = level >= 3 ? reachOf(level) : 0;
+
   geometry.translate(spread / 2 - (east + west) / 2, 0, level >= 2 ? -0.7 : 0);
   return geometry;
 }
@@ -238,6 +253,7 @@ export function buildKopdesGeometry(level: KopdesLevel = 1) {
 /** The guard post: a hut the size of a phone box, a hi-vis roof, a lamp on a pole. */
 export function buildGuardPostGeometry() {
   const b = new BoxBuilder();
+
   b.addAABox(0, 0.1, 0, 2.4, 0.2, 2.4, { side: Palette.Laterite });
   b.addAABox(0, 1.2, 0, 1.6, 2, 1.6, { side: Palette.KopdesWall });
   // Window band and door.
@@ -271,21 +287,27 @@ export class KopdesMesh {
       this.post.visible = false;
       return;
     }
+
     const level = Math.max(1, Math.min(4, state.kopdes.level)) as KopdesLevel;
+
     if (level !== this.level) {
       this.level = level;
       this.mesh.geometry.dispose();
       this.mesh.geometry = buildKopdesGeometry(level);
     }
+
     const block = state.blocks.get(state.kopdes.blockId);
     const [bx, by] = world.toXY(state.kopdes.blockId);
     const side = WORLD.blockSide;
     const half = side / 2;
     const y = terraceHeight(block?.elevation ?? 0);
+
     this.mesh.position.set(bx * side + half, y, by * side + half);
     this.mesh.visible = true;
+
     // The post stands where the guard idles, a little further out so the two do not overlap.
     const { dx, dz } = WORKER_JOBS.guardPost;
+
     this.post.position.set(
       bx * side + half + (dx + 0.06) * side,
       y,

@@ -17,6 +17,7 @@ const VARIANTS = 3;
 
 export async function startGallery(root: HTMLElement): Promise<() => void> {
   root.style.position = 'relative';
+
   const handle = await createRenderer(root, {
     forceWebGL: new URLSearchParams(location.search).has('webgl'),
   });
@@ -34,17 +35,22 @@ export async function startGallery(root: HTMLElement): Promise<() => void> {
   ids.forEach((id, index) => {
     const cx = (index % PER_ROW) * SPACING + SPACING / 2;
     const cz = Math.floor(index / PER_ROW) * SPACING + SPACING / 2;
+
     builder.addAABox(cx, -0.25, cz, SPACING - 1, 0.5, SPACING - 1, {
       side: Palette.Laterite,
       top: Palette.Grass,
     });
+
     for (let v = 0; v < VARIANTS; v++) {
       let n = (index + 1) * 7919 + v * 104729;
       const rand = (): number => (n = (n * 1103515245 + 12345) % 2147483648) / 2147483648;
+
       kit.at({ x: cx - 2.5 + v * 2.5, y: 0, z: cz + (v - 1) * 1.2, scale: 1, turn: v * 0.9 });
       MODELS[id].build(kit, rand);
     }
+
     const el = document.createElement('div');
+
     el.className =
       'pointer-events-none absolute -translate-x-1/2 rounded bg-black/60 px-1.5 py-0.5 text-xs text-white';
     el.textContent = MODELS[id].name;
@@ -53,6 +59,7 @@ export async function startGallery(root: HTMLElement): Promise<() => void> {
   });
 
   const mesh = new Mesh(builder.build(), material);
+
   scene.add(mesh);
 
   const width = PER_ROW * SPACING;
@@ -62,6 +69,7 @@ export async function startGallery(root: HTMLElement): Promise<() => void> {
     bounds: { minX: 0, maxX: width, minZ: 0, maxZ: depth },
     baseFrustum: 44,
   });
+
   rig.jumpTo(width / 2, depth / 2);
 
   const weather = {
@@ -80,9 +88,11 @@ export async function startGallery(root: HTMLElement): Promise<() => void> {
 
   const resize = (): void => {
     const { width: w, height: h } = handle.resize();
+
     rig.setAspect(w / h);
   };
   const observer = new ResizeObserver(resize);
+
   observer.observe(root);
   resize();
 
@@ -90,6 +100,7 @@ export async function startGallery(root: HTMLElement): Promise<() => void> {
     if (event.key === 'q' || event.key === 'Q') rig.rotate(-1, performance.now());
     if (event.key === 'e' || event.key === 'E') rig.rotate(1, performance.now());
   };
+
   window.addEventListener('keydown', onKey);
 
   const loop = new GameLoop({
@@ -98,15 +109,19 @@ export async function startGallery(root: HTMLElement): Promise<() => void> {
     frame: (dt, nowMs) => {
       rig.update(dt, nowMs);
       sky.update(weather, uniforms, { smoke: 0, ash: 0 }, dt);
+
       const rect = handle.canvas.getBoundingClientRect();
+
       for (const label of labels) {
         projected.copy(label.at).project(rig.camera);
         label.el.style.left = `${((projected.x + 1) / 2) * rect.width}px`;
         label.el.style.top = `${((1 - projected.y) / 2) * rect.height}px`;
       }
+
       handle.render(scene, rig.camera);
     },
   });
+
   loop.start();
 
   return () => {

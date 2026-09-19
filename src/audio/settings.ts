@@ -20,11 +20,15 @@ function browserStore(): SettingsStore | null {
 
 export function loadAudioSettings(store: SettingsStore | null = browserStore()): AudioSettings {
   if (!store) return { ...DEFAULT_AUDIO_SETTINGS };
+
   try {
     const raw = store.getItem(AUDIO_STORAGE_KEY);
+
     if (!raw) return { ...DEFAULT_AUDIO_SETTINGS };
+
     const parsed = JSON.parse(raw) as Partial<AudioSettings>;
     const volume = Number(parsed.volume);
+
     return {
       muted: parsed.muted === true,
       volume: Number.isFinite(volume)
@@ -42,6 +46,7 @@ export function saveAudioSettings(
   store: SettingsStore | null = browserStore(),
 ): void {
   if (!store) return;
+
   try {
     store.setItem(AUDIO_STORAGE_KEY, JSON.stringify(settings));
   } catch {

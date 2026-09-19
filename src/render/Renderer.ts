@@ -17,6 +17,7 @@ export async function createRenderer(
   options: { forceWebGL?: boolean } = {},
 ): Promise<RendererHandle> {
   const renderer = new WebGPURenderer({ antialias: true, forceWebGL: options.forceWebGL ?? false });
+
   await renderer.init();
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   root.appendChild(renderer.domElement);
@@ -27,9 +28,11 @@ export async function createRenderer(
   const resize = (): { width: number; height: number } => {
     const width = root.clientWidth || window.innerWidth;
     const height = root.clientHeight || window.innerHeight;
+
     renderer.setSize(width, height);
     return { width, height };
   };
+
   resize();
 
   return {

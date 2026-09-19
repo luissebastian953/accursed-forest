@@ -33,6 +33,7 @@ export class Sparkles {
     const geometry = new BoxBuilder()
       .addAABox(0, 0, 0, 0.3, 0.3, 0.3, { side: Palette.Sparkle })
       .build();
+
     this.mesh = new InstancedMesh(geometry, material, MAX);
     this.mesh.count = 0;
     this.mesh.frustumCulled = false;
@@ -41,18 +42,23 @@ export class Sparkles {
   /** Shine over each point. Time is the wall clock, so the glints keep turning. */
   update(points: readonly SparklePoint[], nowMs: number): void {
     const count = Math.min(points.length, MAX_POINTS);
+
     this.mesh.count = count * PER_POINT;
     if (count === 0) return;
+
     const time = nowMs / 1000;
 
     let i = 0;
+
     for (let p = 0; p < count; p++) {
       const point = points[p]!;
+
       for (let g = 0; g < PER_POINT; g++) {
         const phase = (g / PER_POINT) * Math.PI * 2;
         const angle = time * TURN + phase;
         // Each glint swells and shrinks in its own time, so the ring twinkles.
         const pulse = 0.55 + 0.45 * Math.sin(time * 4 + phase * 1.7);
+
         _p.set(
           point.x + Math.cos(angle) * RADIUS,
           point.y + LIFT + Math.sin(time * 2.2 + phase) * BOB,
@@ -63,6 +69,7 @@ export class Sparkles {
         this.mesh.setMatrixAt(i++, _m.compose(_p, _q, _s));
       }
     }
+
     this.mesh.instanceMatrix.needsUpdate = true;
   }
 
@@ -103,6 +110,7 @@ export class SparkleBurst {
     const geometry = new BoxBuilder()
       .addAABox(0, 0, 0, 0.3, 0.3, 0.3, { side: Palette.Sparkle })
       .build();
+
     this.mesh = new InstancedMesh(geometry, material, BURST_MAX);
     this.mesh.count = 0;
     this.mesh.frustumCulled = false;
@@ -121,9 +129,11 @@ export class SparkleBurst {
   burst(x: number, y: number, z: number, count = 14): void {
     for (let i = 0; i < count; i++) {
       if (this.used >= BURST_MAX) return;
+
       const slot = this.used++;
       const angle = this.random() * Math.PI * 2;
       const out = this.between(BURST_OUT);
+
       this.x[slot] = x;
       this.y[slot] = y;
       this.z[slot] = z;
@@ -142,12 +152,17 @@ export class SparkleBurst {
       this.mesh.count = 0;
       return;
     }
+
     let live = 0;
+
     for (let i = 0; i < this.used; i++) {
       const life = this.life[i]! - dtSeconds;
+
       if (life <= 0) continue;
+
       // Compact as it goes: the dead leave, the living keep their order.
       const slot = live++;
+
       this.life[slot] = life;
       this.vy[i] = this.vy[i]! - BURST_GRAVITY * dtSeconds;
       this.x[slot] = this.x[i]! + this.vx[i]! * dtSeconds;
@@ -162,11 +177,13 @@ export class SparkleBurst {
       // A glint is brightest at the top of its arc and shrinks out of sight.
       const t = this.life[slot]! / BURST_LIFE;
       const scale = 0.45 + 1.15 * Math.sin(Math.PI * Math.min(1, t * 1.25));
+
       _p.set(this.x[slot]!, this.y[slot]!, this.z[slot]!);
       _q.setFromAxisAngle(_axis, this.turn[slot]!);
       _s.setScalar(scale);
       this.mesh.setMatrixAt(slot, _m.compose(_p, _q, _s));
     }
+
     this.used = live;
     this.mesh.count = live;
     this.mesh.instanceMatrix.needsUpdate = true;

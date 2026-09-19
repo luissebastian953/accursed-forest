@@ -37,25 +37,32 @@ async function measureAll(page: Page): Promise<Measured[]> {
       let peak = 0;
       let firstAt = -1;
       let lastAt = 0;
+
       for (let i = 0; i < d.length; i++) {
         const a = Math.abs(d[i]!);
+
         if (a > peak) peak = a;
+
         if (a > 0.002) {
           if (firstAt < 0) firstAt = i;
           lastAt = i;
         }
       }
+
       const from = firstAt < 0 ? 0 : firstAt;
       const span = Math.max(1, lastAt - from);
       let sum = 0;
       let crossings = 0;
       let last = 0;
+
       for (let i = from; i <= lastAt; i++) {
         const v = d[i]!;
+
         sum += v * v;
         if (v > 0 !== last > 0) crossings += 1;
         last = v;
       }
+
       out.push({
         name,
         peak,
@@ -67,14 +74,18 @@ async function measureAll(page: Page): Promise<Measured[]> {
 
     for (const [name, recipe] of Object.entries(ONE_SHOTS)) {
       const probe = new OfflineAudioContext(1, 48000 * 8, 48000);
+
       recipe(probe, probe.destination, 0);
       measure(await probe.startRendering(), name);
     }
+
     for (const [name, recipe] of Object.entries(LOOPS)) {
       const probe = new OfflineAudioContext(1, 48000 * 3, 48000);
+
       recipe(probe, probe.destination, 0);
       measure(await probe.startRendering(), name);
     }
+
     return out;
   });
 }
@@ -97,30 +108,41 @@ async function cyclicity(page: Page, name: string): Promise<number> {
     ).__bench;
     const rate = 48000;
     const probe = new OfflineAudioContext(1, rate * 10, rate);
+
     LOOPS[loop]!(probe, probe.destination, 0);
+
     const d = (await probe.startRendering()).getChannelData(0);
 
     // The envelope, as RMS over 25 ms windows.
     const win = Math.floor(rate * 0.025);
     const n = Math.floor(d.length / win);
     const env = new Float32Array(n);
+
     for (let i = 0; i < n; i++) {
       let sum = 0;
+
       for (let j = 0; j < win; j++) sum += d[i * win + j]! ** 2;
       env[i] = Math.sqrt(sum / win);
     }
+
     let mean = 0;
+
     for (let i = 0; i < n; i++) mean += env[i]!;
     mean /= n;
+
     let variance = 0;
+
     for (let i = 0; i < n; i++) variance += (env[i]! - mean) ** 2;
 
     let worst = 0;
+
     for (let lag = Math.floor(1 / 0.025); lag < n / 2; lag++) {
       let sum = 0;
+
       for (let i = 0; i + lag < n; i++) sum += (env[i]! - mean) * (env[i + lag]! - mean);
       worst = Math.max(worst, sum / variance);
     }
+
     return worst;
   }, name);
 }
@@ -128,6 +150,7 @@ async function cyclicity(page: Page, name: string): Promise<number> {
 test.describe('synthesised sound', () => {
   test('every sound makes a noise, and none of them clips', async ({ page }) => {
     const sounds = await measureAll(page);
+
     expect(sounds.length).toBeGreaterThanOrEqual(13);
 
     for (const sound of sounds) {

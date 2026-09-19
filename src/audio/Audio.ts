@@ -67,26 +67,34 @@ export class Audio {
       if (this.ctx.state === 'suspended') void this.ctx.resume();
       return;
     }
+
     const Ctor: typeof AudioContext | undefined =
       typeof AudioContext !== 'undefined' ? AudioContext : undefined;
+
     if (!Ctor) return;
+
     const ctx = new Ctor();
     const master = ctx.createGain();
+
     master.gain.value = this.settings.muted ? 0 : this.settings.volume;
     master.connect(ctx.destination);
+
     for (const bus of ['ui', 'world', 'drama', 'music'] as const) {
       const gain = ctx.createGain();
+
       // The UI sits well under the world: it is chrome, not the estate.
       gain.gain.value = bus === 'ui' ? 0.45 : bus === 'music' ? 0.6 : 0.9;
       gain.connect(master);
       this.buses.set(bus, gain);
     }
+
     this.ctx = ctx;
     this.master = master;
   }
 
   setSettings(settings: Partial<AudioSettings>): void {
     this.settings = { ...this.settings, ...settings };
+
     if (this.master) {
       this.master.gain.value = this.settings.muted ? 0 : this.settings.volume;
     }
@@ -98,6 +106,7 @@ export class Audio {
 
   setBusLevel(bus: Bus, level: number): void {
     const gain = this.buses.get(bus);
+
     if (gain) gain.gain.value = Math.max(0, Math.min(1, level));
   }
 
@@ -109,6 +118,7 @@ export class Audio {
    */
   play(id: OneShotId, nowMs = performance.now(), delaySeconds = 0): boolean {
     const ctx = this.ctx;
+
     if (!ctx || this.settings.muted) return false;
 
     // Calls inside one frame arrive microseconds apart, never at the same
@@ -117,13 +127,16 @@ export class Audio {
       this.frameAt = nowMs;
       this.thisFrame = 0;
     }
+
     if (this.thisFrame >= MAX_PER_FRAME) return false;
 
     const gap = MIN_GAP_MS[id] ?? DEFAULT_GAP_MS;
     const last = this.lastPlayed.get(id) ?? -Infinity;
+
     if (nowMs - last < gap) return false;
 
     const bus = this.buses.get(BUS_OF[id]);
+
     if (!bus) return false;
     ONE_SHOTS[id](ctx, bus, ctx.currentTime + Math.max(0, delaySeconds));
     this.lastPlayed.set(id, nowMs);
@@ -134,22 +147,30 @@ export class Audio {
   /** Start a loop if it is not already running, fading it in. */
   startLoop(id: LoopId, fadeSeconds = 0): void {
     const ctx = this.ctx;
+
     if (!ctx || this.running.has(id)) return;
+
     const bus = this.buses.get(BUS_OF[id]);
+
     if (!bus) return;
+
     const handle = LOOPS[id](ctx, bus, ctx.currentTime);
+
     if (fadeSeconds > 0) {
       const at = ctx.currentTime;
+
       handle.gain.gain.cancelScheduledValues(at);
       handle.gain.gain.setValueAtTime(0, at);
       handle.gain.gain.linearRampToValueAtTime(handle.level, at + fadeSeconds);
     }
+
     this.running.set(id, handle);
   }
 
   /** Stop a loop, fading it out rather than cutting it. */
   stopLoop(id: LoopId, fadeSeconds = 0.25): void {
     const handle = this.running.get(id);
+
     if (!handle || !this.ctx) return;
     handle.stop(this.ctx.currentTime, fadeSeconds);
     this.running.delete(id);
@@ -161,8 +182,11 @@ export class Audio {
    */
   setLoopLevel(id: LoopId, scale: number, rampSeconds = 0.4): void {
     const handle = this.running.get(id);
+
     if (!handle || !this.ctx) return;
+
     const at = this.ctx.currentTime;
+
     handle.gain.gain.cancelScheduledValues(at);
     handle.gain.gain.linearRampToValueAtTime(
       handle.level * Math.max(0, Math.min(1, scale)),

@@ -37,12 +37,14 @@ export interface SimOptions {
 
 export function createSim(seed: number, options: SimOptions = {}): Sim {
   const world = createWorld(seed, options.width, options.height);
+
   return new SimImpl(createInitialState(world, options.name ?? ''), world);
 }
 
 /** Rebuild a `Sim` around state that came out of a save. */
 export function restoreSim(state: SimState): Sim {
   const world = createWorld(state.worldGen.seed, state.worldGen.width, state.worldGen.height);
+
   return new SimImpl(state, world);
 }
 
@@ -60,21 +62,26 @@ class SimImpl implements Sim {
     if (runOver(this.state) && command.type !== 'KeepPlaying') {
       return { ok: false, code: 'gameOver', reason: 'The run is over.' };
     }
+
     const handler = handlerFor(command);
+
     if (!handler) {
       return { ok: false, code: 'notImplemented', reason: `${command.type} is not available yet.` };
     }
+
     return handler.validate(this.ctx, command);
   }
 
   dispatch(command: Command): DispatchResult {
     const rejection = this.validate(command);
+
     if (rejection) return rejection;
 
     // validate() already proved the handler exists.
     handlerFor(command)!.apply(this.ctx, command);
 
     const log = this.state.commandLog;
+
     log.push({ tick: this.state.tick, command });
     if (log.length > ECONOMY.commandLogCap) log.splice(0, log.length - ECONOMY.commandLogCap);
 
@@ -83,6 +90,7 @@ class SimImpl implements Sim {
 
   tick(): SimEvent[] {
     const { state, world } = this.ctx;
+
     if (runOver(state)) return this.ctx.events.drain();
     state.tick += 1;
     rebuildActiveSet(state, world);

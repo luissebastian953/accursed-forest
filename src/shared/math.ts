@@ -29,6 +29,7 @@ export function remap(
 
 export function smoothstep(edge0: number, edge1: number, v: number): number {
   const t = invLerp(edge0, edge1, v);
+
   return t * t * (3 - 2 * t);
 }
 
@@ -52,12 +53,14 @@ export function sampleCurve(
   x: number,
 ): number {
   const first = knots[0];
+
   if (first === undefined) return 0;
   if (x <= first[0]) return first[1];
 
   for (let i = 1; i < knots.length; i++) {
     const prev = knots[i - 1]!;
     const next = knots[i]!;
+
     if (x <= next[0]) return lerp(prev[1], next[1], invLerp(prev[0], next[0], x));
   }
 

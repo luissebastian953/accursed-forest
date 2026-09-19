@@ -192,8 +192,10 @@ function landView(sim: Sim, id: BlockId, chop: ActionView): BlockView['land'] {
  */
 function settleView(state: SimState, phase: string): BlockView['settle'] {
   if (phase !== 'kopdes' || !settleable(state)) return null;
+
   const listening = settleListening(state);
   const cost = settleCost(state);
+
   return {
     cost,
     enabled: listening && state.economy.cash >= cost,
@@ -211,6 +213,7 @@ function blockIcon(biome: Biome, phase: string): IconName {
   if (phase === 'reforesting') return 'shop-sapling';
   if (phase === 'planted') return 'biome-palm-planted';
   if (phase === 'cleared' || phase === 'clearing') return 'biome-forest-cleared';
+
   switch (biome) {
     case 'forest':
     case 'protected':
@@ -239,7 +242,9 @@ const INTENSITY_KEY: Record<FireIntensity, string> = {
 
 function phaseLabel(phase: string, progress: number, burning: boolean, intensity: number): string {
   const pct = Math.round(progress * 100);
+
   if (burning) return t('block.phaseBurning', { level: t(FIRE_LEVEL_KEY[intensity] ?? ''), pct });
+
   switch (phase) {
     case 'wild':
       return t('block.phaseWild');
@@ -279,6 +284,7 @@ function slopeLine(sim: Sim, id: BlockId): string {
         ? t('block.riskModerate')
         : t('block.riskLow');
   const now = isWetSeason(state.weather.dayOfYear) ? t('block.wetSeasonNow') : '';
+
   return t('block.slopeLine', { cover, risk, pct: Math.round(season * 100) }) + crop + now;
 }
 
@@ -307,6 +313,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
 
   const actions: ActionView[] = [];
   let burnable = false;
+
   if (!block.owned) {
     actions.push(
       action(t('block.buyLand'), { type: 'BuyBlock', block: id }, 'action-BuyBlock', {
@@ -335,10 +342,13 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
             }),
           );
         }
+
         burnable = isFuel(block, false);
         break;
+
       case 'cleared': {
         const needed = seedlingsNeeded(block.biome);
+
         actions.push(
           action(
             t('block.plantPalms', { n: needed }),
@@ -346,8 +356,10 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
             'action-PlantBlock-palm',
           ),
         );
+
         if (state.kopdes && state.inventory.bibit < needed) {
           const shortfall = needed - state.inventory.bibit;
+
           actions.push(
             action(
               t('block.buyBibit', { n: shortfall }),
@@ -357,6 +369,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
             ),
           );
         }
+
         actions.push(
           action(
             t('block.reforest'),
@@ -368,6 +381,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
             },
           ),
         );
+
         if (!state.kopdes) {
           actions.push(
             action(
@@ -380,13 +394,16 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
             ),
           );
         }
+
         burnable = isFuel(block, false);
         break;
       }
+
       case 'planted':
         if (block.species === 'palm') {
           const palms = state.palms.get(id);
           const ready = palms ? harvestableKg(palms, 'palm', state.tick) : 0;
+
           actions.push(
             action(t('block.harvest'), { type: 'HarvestBlock', block: id }, 'action-HarvestBlock', {
               icon: 'harvest-basket',
@@ -394,6 +411,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
             }),
           );
         }
+
         actions.push(
           action(
             t('block.fertilize'),
@@ -411,8 +429,10 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
           ),
         );
         break;
+
       case 'kopdes': {
         const cost = kopdesUpgradeCost(state.kopdes?.level ?? 1);
+
         actions.push(
           action(t('block.upgradeKopdes'), { type: 'UpgradeKopdes' }, 'action-UpgradeKopdes', {
             ...(cost !== null ? { cost } : {}),
@@ -420,6 +440,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
         );
         break;
       }
+
       case 'clearing':
         break;
     }
@@ -435,6 +456,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
           ),
         );
       }
+
       if (!block.irrigated) {
         actions.push(
           action(
@@ -448,6 +470,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
           ),
         );
       }
+
       if (!block.drained) {
         actions.push(
           action(t('block.drain'), { type: 'DrainBlock', block: id }, 'action-DrainBlock', {
@@ -492,9 +515,11 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
           : null,
     },
   ];
+
   if (block.owned && block.phase !== 'kopdes' && state.kopdes) {
     const distance = distanceToKopdes(state, world, id) ?? 0;
     const inRange = inKopdesRange(state, world, id);
+
     tiles.push({
       label: t('block.tileKopdes'),
       value: inRange
@@ -506,6 +531,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
       testId: 'block-range',
     });
   }
+
   if (block.phase === 'wild') {
     tiles.push({
       label: t('block.tilePlantable'),
@@ -513,6 +539,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
       note: null,
     });
   }
+
   if (block.debris > 0) {
     tiles.push({
       label: t('block.tileDebris'),
@@ -521,6 +548,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
       testId: 'block-debris',
     });
   }
+
   if (block.ashUntil > state.tick) {
     tiles.push({
       label: t('block.tileAsh'),
@@ -528,6 +556,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
       note: null,
     });
   }
+
   if (block.fertilizedUntil > state.tick) {
     tiles.push({
       label: t('block.tileFertilized'),
@@ -535,6 +564,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
       note: null,
     });
   }
+
   if (block.slope) {
     tiles.push({
       label: t('block.tileSlope'),
@@ -547,17 +577,22 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
   // Palms on the block.
   let palmsView: BlockView['palms'] = null;
   const palms = state.palms.get(id);
+
   if (palms) {
     const stageCounts: Partial<Record<GrowthStage, number>> = {};
     let growthSum = 0;
     let growthN = 0;
+
     for (let slot = 0; slot < palms.plantedAt.length; slot++) {
       if (palms.plantedAt[slot]! < 0) continue;
+
       const stage = slotStage(palms, slot, block.species, state.tick);
+
       stageCounts[stage] = (stageCounts[stage] ?? 0) + 1;
       growthSum += palms.growth[slot]!;
       growthN += 1;
     }
+
     const meanGrowth = growthN > 0 ? growthSum / growthN : 0;
     const forest = block.species === 'forest';
     // Forest has its own thresholds: sapling to young tree, young to mature.
@@ -570,6 +605,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     const bearing = forest ? 0 : (stageCounts.mature ?? 0) + (stageCounts.senile ?? 0);
     const kg = block.species === 'palm' ? harvestableKg(palms, 'palm', state.tick) : 0;
     const days = daysUntilRipe(block, state.tick);
+
     palmsView = {
       heading: block.species === 'forest' ? t('block.forest') : t('block.palms'),
       count: growthN,
@@ -601,6 +637,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
   // Reforested trees are not palms: beetles and Ganoderma never touch them, so
   // no slot grid and no palm treatments. A gap can still be replanted.
   const palmTrees = palms && block.species === 'palm' ? palms : undefined;
+
   if (palms && !palmTrees && block.owned) {
     const replant = action(
       t('block.replantGaps'),
@@ -608,11 +645,13 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
       'action-ReplantBlock',
       { minor: true },
     );
+
     if (replant.rejection === null) actions.push(replant);
   }
 
   // Beetles, Ganoderma, treatments, the slot grid and per-palm actions (GDD 3.4).
   let pests: BlockView['pests'] = null;
+
   if (block.owned && (palmTrees || block.debris > 0 || block.beetles > 0)) {
     const tick = state.tick;
     const capacity = beetleCapacity(block.debris);
@@ -621,6 +660,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     // Sanitising is the one that fixes the cause rather than the symptom, so
     // it leads the treatments instead of sitting on its own below them.
     const treatments: ActionView[] = [];
+
     if (block.debris > 0) {
       treatments.push(
         action(t('block.sanitize'), { type: 'SanitizeBlock', block: id }, 'action-SanitizeBlock', {
@@ -628,6 +668,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
         }),
       );
     }
+
     treatments.push(
       action(t('block.setTraps'), { type: 'SetTrap', block: id }, 'action-SetTrap', {
         minor: true,
@@ -641,6 +682,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
         },
       ),
     );
+
     if (palmTrees) {
       treatments.push(
         action(
@@ -656,29 +698,38 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
         }),
       );
     }
+
     const windows: string[] = [];
+
     if (block.trapsUntil > tick)
       windows.push(t('block.trapsWindow', { n: block.trapsUntil - tick }));
+
     if (block.metarhiziumUntil > tick) {
       windows.push(t('block.metaWindow', { n: block.metarhiziumUntil - tick }));
     }
+
     if (block.trichodermaUntil > tick) {
       windows.push(t('block.trichoWindow', { n: block.trichodermaUntil - tick }));
     }
 
     let grid: SlotGrid | null = null;
+
     if (palmTrees) {
       const cells = [];
+
       for (let slot = 0; slot < palmTrees.plantedAt.length; slot++) {
         const stage = slotStage(palmTrees, slot, block.species, state.tick);
         const g = palmTrees.ganoderma[slot]!;
         let cls = 'bg-[#efe1bf]';
+
         if (stage === 'dead') cls = 'bg-[#6f6f6f]';
         else if (g === 2) cls = 'bg-[#ffb03a]';
         else if (stage === 'mature' || stage === 'senile') cls = 'bg-[#3faa4c]';
         else if (stage === 'immature') cls = 'bg-[#7fb03a]';
         else if (stage === 'seedling') cls = 'bg-[#cbe08a]';
+
         const health = palmTrees.health[slot]!;
+
         if (stage !== 'empty' && stage !== 'dead' && health < 128) cls += ' opacity-60';
         if (palmTrees.trenched[slot] === 1) cls += ' ring-2 ring-[#5a8bff]';
         if (selectedSlot === slot) cls += ' outline outline-2 outline-[#4a3320]';
@@ -695,12 +746,15 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
           }),
         });
       }
+
       let detail: SlotDetail = null;
+
       if (selectedSlot !== null && palmTrees.plantedAt[selectedSlot]! >= 0) {
         const slot = selectedSlot;
         const stage = slotStage(palmTrees, slot, block.species, state.tick);
         const g = palmTrees.ganoderma[slot]!;
         const lines: string[] = [];
+
         if (g === 2) lines.push(t('block.ganoSick'));
         if (g === 3) lines.push(t('block.deadStump'));
         if (palmTrees.trenched[slot] === 1) lines.push(t('block.trenched'));
@@ -739,6 +793,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
           text: t('block.slotEmpty', { at: slotLabel(selectedSlot) }),
         };
       }
+
       grid = { cells, detail };
     }
 
@@ -761,6 +816,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
 
   // Burn: three intensities, the spread preview on hover, the pressure it adds.
   let burn: BlockView['burn'] = null;
+
   if (burnable) {
     const wildfire = isWildfire(state);
     const fuel = neighbourIds(world, id).filter((n) =>
@@ -769,6 +825,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     const threshold = FIRE.wildfireThreshold;
     const pressure = state.society.firePressure;
     const elNino = state.weather.regime === 'elNino' ? t('block.elNinoDoubled') : '';
+
     burn = {
       fuel,
       meta: t('block.burnMeta', {
@@ -780,6 +837,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
         const command: Command = { type: 'BurnBlock', block: id, intensity };
         const rejection = sim.validate(command)?.reason ?? null;
         const tips = pressure + FIRE.pressure[intensity] > threshold;
+
         return {
           intensity,
           label: t(INTENSITY_KEY[intensity]),
@@ -818,6 +876,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
       : null;
 
   const kopdes = state.kopdes;
+
   return {
     x: x + 1,
     y: y + 1,

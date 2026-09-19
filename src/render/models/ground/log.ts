@@ -6,6 +6,7 @@ export const fallenLog: Model = {
   radius: 1.6,
   build(kit, rand) {
     const length = between(rand, 2, 3);
+
     // Lying down: a box as long as the log, tipped over onto the ground.
     kit.box(0, 0.21 - length / 2, 0, 0.42, length, 0.42, Palette.Log, {
       tiltX: Math.PI / 2 - 0.05,

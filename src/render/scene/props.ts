@@ -13,6 +13,7 @@ const SPOTS = 6;
 /** Deterministic 0..1 from three integers. */
 export function hash01(a: number, b: number, c: number): number {
   let h = Math.imul(a ^ 0x9e3779b9, 0x85ebca6b);
+
   h ^= Math.imul(b + 0x632be5ab, 0xc2b2ae35);
   h ^= Math.imul(c + 0x27d4eb2f, 0x165667b1);
   h ^= h >>> 15;
@@ -65,6 +66,7 @@ interface Growth {
 const m = MODELS;
 const nearWater = ({ x, z, ctx }: Spot): boolean => {
   const edge = ctx.riverEdge(Math.floor(x), Math.floor(z));
+
   return edge >= 0 && edge <= 3;
 };
 const high = ({ block }: Spot): boolean => block.elevation >= 2;
@@ -172,8 +174,11 @@ class Grower {
     const inset = f.inset ?? 0;
     const lx = Math.floor(x) - (f.originX ?? 0) + inset;
     const lz = Math.floor(z) - (f.originZ ?? 0) + inset;
+
     if (lx < inset || lz < inset || lx >= f.size - inset || lz >= f.size - inset) return null;
+
     const slot = f.topSlots[lz * f.size + lx]!;
+
     if (
       slot === Palette.River ||
       slot === Palette.RiverDeep ||
@@ -192,6 +197,7 @@ class Grower {
     const px = Math.min(x0 + SIDE - reach, Math.max(x0 + reach, x));
     const pz = Math.min(z0 + SIDE - reach, Math.max(z0 + reach, z));
     const y = this.ground(px, pz);
+
     if (y === null) return;
     this.kit.at({ x: px, y, z: pz, scale, turn: this.rand() * Math.PI * 2 });
     model.build(this.kit, this.rand);
@@ -202,10 +208,12 @@ class Grower {
     const cell = SIDE / cells;
     const x0 = this.block.bx * SIDE;
     const z0 = this.block.by * SIDE;
+
     for (let j = 0; j < cells; j++) {
       for (let i = 0; i < cells; i++) {
         const jx = jitter ? this.rand() : 0.5;
         const jz = jitter ? this.rand() : 0.5;
+
         visit(x0 + (i + jx) * cell, z0 + (j + jz) * cell);
       }
     }
@@ -214,13 +222,17 @@ class Grower {
   roll(table: readonly Growth[], x: number, z: number): void {
     const spot: Spot = { x, z, block: this.block, ctx: this.ctx };
     let roll = this.rand();
+
     for (const row of table) {
       if (row.where && !row.where(spot)) continue;
+
       if (roll < row.p) {
         const [lo, hi] = row.scale ?? [0.9, 1.1];
+
         this.grow(row.model, x, z, lo + (hi - lo) * this.rand());
         return;
       }
+
       roll -= row.p;
     }
   }
@@ -235,6 +247,7 @@ export function growBlock(builder: BoxBuilder, ctx: PropContext, block: PropBloc
     // read as a mess from across the estate.
     g.spots(SPOTS, true, (x, z) => {
       const roll = g.rand();
+
       if (roll < 0.42) g.grow(MODELS.spoilHeap, x, z, 0.75 + g.rand() * 0.6);
       else if (roll < 0.68) g.grow(MODELS.snappedBranch, x, z, 0.8 + g.rand() * 0.5);
     });
@@ -243,6 +256,7 @@ export function growBlock(builder: BoxBuilder, ctx: PropContext, block: PropBloc
 
   if (block.burnt) {
     const p = SNAGS[block.biome] ?? 0;
+
     g.spots(SPOTS, true, (x, z) => {
       if (g.rand() < p) g.grow(MODELS.burntTree, x, z, 0.8 + g.rand() * 0.4);
     });
@@ -261,10 +275,12 @@ export function growBlock(builder: BoxBuilder, ctx: PropContext, block: PropBloc
     const centre = SIDE / 2;
     const cx = block.bx * SIDE + centre;
     const cz = block.by * SIDE + centre;
+
     if (g.rand() < 0.7) g.grow(MODELS.weepingFig, cx, cz, 0.9);
     // Houses round the fig, facing every which way.
     g.spots(3, true, (x, z) => {
       const middle = Math.abs(x - cx) < 3 && Math.abs(z - cz) < 3;
+
       if (!middle && g.rand() < 0.55) g.grow(MODELS.stiltHouse, x, z, 0.95 + g.rand() * 0.2);
     });
   }
@@ -277,6 +293,7 @@ export function growBlock(builder: BoxBuilder, ctx: PropContext, block: PropBloc
     // Village land does not spill its houses and flowers into its neighbours.
     const land = shown === 'village' || shown === 'rubber' ? block.biome : shown;
     const table = TABLE[land];
+
     if (table) g.roll(table, x, z);
   });
 }
@@ -308,30 +325,37 @@ export function growFence(
   const segment = (cx: number, cz: number, alongZ: boolean): void => {
     const w = alongZ ? THICK : 1;
     const d = alongZ ? 1 : THICK;
+
     for (const [h, y] of [
       [0.08, HEIGHT * 0.82],
       [0.07, HEIGHT * 0.5],
     ] as const) {
       builder.addAABox(cx, block.y + y, cz, w, h, d, rail);
     }
+
     const px = alongZ ? cx : cx - 0.5;
     const pz = alongZ ? cz - 0.5 : cz;
+
     builder.addAABox(px, block.y + HEIGHT / 2, pz, 0.12, HEIGHT, 0.12, post);
   };
 
   for (let row = 0; row < side; row++) {
     for (let col = 0; col < side; col++) {
       if (block.planted[row * side + col] !== 1) continue;
+
       // Only the planted side draws, so a boundary is fenced once.
       if (col + 1 < side && block.planted[row * side + col + 1] === 0) {
         segment(x0 + col + 1, z0 + row + 0.5, true);
       }
+
       if (col > 0 && block.planted[row * side + col - 1] === 0) {
         segment(x0 + col, z0 + row + 0.5, true);
       }
+
       if (row + 1 < side && block.planted[(row + 1) * side + col] === 0) {
         segment(x0 + col + 0.5, z0 + row + 1, false);
       }
+
       if (row > 0 && block.planted[(row - 1) * side + col] === 0) {
         segment(x0 + col + 0.5, z0 + row, false);
       }

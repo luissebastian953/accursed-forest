@@ -1,10 +1,14 @@
 import { autoplay } from '../src/sim/autoplay.ts';
 
 const args = new Map<string, string>();
+
 for (let i = 2; i < process.argv.length; i++) {
   const arg = process.argv[i]!;
+
   if (!arg.startsWith('--')) continue;
+
   const next = process.argv[i + 1];
+
   if (next !== undefined && !next.startsWith('--')) {
     args.set(arg.slice(2), next);
     i += 1;
@@ -33,10 +37,12 @@ for (const seed of seeds) {
       ? { managePests: true, expand: { reserve: 40_000_000, maxBlocks: 24 }, spareForest }
       : {}),
   });
+
   console.log(
     `\nseed ${seed} · ${startBlocks} block(s)${ispo ? ' · expanding' : ''} · fertilize=${fertilize} · lowest cash ${rp(lowestCash)} · ending ${ending ?? '—'}${endedYear ? ` in year ${endedYear}` : ''}`,
   );
   console.log('  year    cash      net   profit   sold kg  planted bearing  price  ISPO');
+
   for (const r of rows) {
     console.log(
       `  ${String(r.year).padStart(4)} ${rp(r.cash)} ${rp(r.net)} ${rp(r.profit)} ${String(Math.round(r.soldKg)).padStart(8)} ${String(r.planted).padStart(8)} ${String(r.bearing).padStart(7)} ${String(r.tbsPrice).padStart(6)}   ${r.conditions}/5`,

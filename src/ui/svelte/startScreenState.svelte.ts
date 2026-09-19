@@ -99,10 +99,13 @@ export class StartScreen {
   get preview(): { name: string; code: string; isNew: boolean } {
     const name = this.ui.name.trim();
     const code = this.ui.code.trim();
+
     if (name === '' && code === '') {
       return { name: this.view.estateName, code: this.view.estateCode, isNew: false };
     }
+
     const seed = seedFromEstateCode(code === '' ? name : code);
+
     return { name, code: seed === null ? '' : estateCodeFor(seed), isNew: true };
   }
 
@@ -127,11 +130,14 @@ export class StartScreen {
   submitCode(): void {
     const name = this.ui.name.trim();
     const code = this.ui.code.trim();
+
     this.ui.error = null;
+
     if (name === '' && code === '') {
       this.handlers.start();
       return;
     }
+
     this.ui.error = this.handlers.useCode(code, name);
   }
 

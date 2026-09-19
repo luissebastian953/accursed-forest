@@ -47,6 +47,7 @@ export class NewsTicker {
   update(news: readonly NewsItem[], unread: number): void {
     const latest = news.at(-1);
     const key = `${news.length}:${latest?.tick ?? -1}:${latest?.title ?? ''}:${unread}`;
+
     if (key === this.lastKey) return;
     this.lastKey = key;
     state.items = news

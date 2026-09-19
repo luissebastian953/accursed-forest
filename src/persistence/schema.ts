@@ -409,14 +409,17 @@ export type SaveChunk = z.infer<typeof ChunkSchema>;
 export function chunkKeyOf(width: number, block: BlockId): string {
   const x = block % width;
   const y = (block - x) / width;
+
   return `${Math.floor(x / WORLD.chunkSide)}:${Math.floor(y / WORLD.chunkSide)}`;
 }
 
 export function parseChunkKey(key: string): { cx: number; cy: number } {
   const [cx, cy] = key.split(':').map(Number);
+
   if (cx === undefined || cy === undefined || !Number.isInteger(cx) || !Number.isInteger(cy)) {
     throw new SaveError('corrupt', `bad chunk key "${key}"`);
   }
+
   return { cx, cy };
 }
 
@@ -450,11 +453,14 @@ export function serializeState(
   const chunkFor = (block: BlockId): SaveChunk => {
     const key = chunkKeyOf(state.width, block);
     let chunk = chunks.get(key);
+
     if (!chunk) {
       const { cx, cy } = parseChunkKey(key);
+
       chunk = { cx, cy, blocks: [], palms: [] };
       chunks.set(key, chunk);
     }
+
     return chunk;
   };
 
@@ -519,6 +525,7 @@ function decodePalms(block: BlockId, data: SerializedPalmArrays): PalmArrays {
     ganodermaSince: decodeInt32(data.ganodermaSince),
     trenched: decodeUint8(data.trenched),
   };
+
   for (const [name, array] of Object.entries(palms)) {
     if (array.length !== SLOTS_PER_BLOCK) {
       throw new SaveError(
@@ -527,11 +534,13 @@ function decodePalms(block: BlockId, data: SerializedPalmArrays): PalmArrays {
       );
     }
   }
+
   return palms;
 }
 
 function decodeActiveEvent(e: z.infer<typeof ActiveEventSchema>): ActiveEvent {
   const out: ActiveEvent = { id: e.id, startedAt: e.startedAt, endsAt: e.endsAt };
+
   if (e.blocks !== undefined) out.blocks = e.blocks;
   return out;
 }
@@ -546,12 +555,14 @@ function decodeNews(n: z.infer<typeof NewsItemSchema>): NewsItem {
     body: n.body,
     effects: n.effects,
   };
+
   if (n.blocks !== undefined) out.blocks = n.blocks;
   return out;
 }
 
 function decodeLedger(e: z.infer<typeof LedgerEntrySchema>): LedgerEntry {
   const out: LedgerEntry = { tick: e.tick, kind: e.kind, amount: e.amount };
+
   if (e.note !== undefined) out.note = e.note;
   return out;
 }
@@ -568,6 +579,7 @@ function decodeRun(r: z.infer<typeof RunSchema>): RunState {
     chronicle: r.chronicle.map((c) => ({ ...c })),
     sandbox: r.sandbox,
   };
+
   if (r.endedAt !== undefined) out.endedAt = r.endedAt;
   if (r.ending !== undefined) out.ending = r.ending;
   return out;
@@ -580,12 +592,15 @@ function decodeCommandLog(log: z.infer<typeof HeadSchema>['commandLog']): Comman
 /** Validate raw parsed JSON and rebuild a `SimState`. Throws `SaveError`. */
 export function deserializeState(manifestJson: unknown, chunkJsons: Iterable<unknown>): SimState {
   const manifest = ManifestSchema.safeParse(manifestJson);
+
   if (!manifest.success) {
     throw new SaveError('corrupt', `manifest: ${manifest.error.issues[0]?.message ?? 'invalid'}`, {
       cause: manifest.error,
     });
   }
+
   const m = manifest.data;
+
   if (m.schema !== CURRENT_SCHEMA) {
     throw new SaveError(
       m.schema > CURRENT_SCHEMA ? 'newerSchema' : 'corrupt',
@@ -598,16 +613,19 @@ export function deserializeState(manifestJson: unknown, chunkJsons: Iterable<unk
 
   for (const raw of chunkJsons) {
     const parsed = ChunkSchema.safeParse(raw);
+
     if (!parsed.success) {
       throw new SaveError('corrupt', `chunk: ${parsed.error.issues[0]?.message ?? 'invalid'}`, {
         cause: parsed.error,
       });
     }
+
     for (const block of parsed.data.blocks) blocks.set(block.id, { ...block });
     for (const [id, data] of parsed.data.palms) palms.set(id, decodePalms(id, data));
   }
 
   const h = m.head;
+
   return {
     version: STATE_VERSION,
     seed: m.seed,

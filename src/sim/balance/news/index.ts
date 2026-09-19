@@ -50,5 +50,6 @@ const SUFFIXES = [
 /** A fictional kabupaten name for this world, fixed by the seed. */
 export function regionName(seed: number): string {
   const s = seed >>> 0;
+
   return `Kabupaten ${PREFIXES[s % PREFIXES.length]} ${SUFFIXES[Math.floor(s / 8) % SUFFIXES.length]}`;
 }

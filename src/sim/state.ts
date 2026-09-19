@@ -105,13 +105,17 @@ export function createInitialState(world: World, name = ''): SimState {
   for (let y = params.startY; y < params.startY + params.startSize; y++) {
     for (let x = params.startX; x < params.startX + params.startSize; x++) {
       const generated = world.generated(x, y);
+
       if (!generated.forSale) continue;
+
       const block = writeBlock(state, world, world.toId(x, y));
+
       block.owned = true;
     }
   }
 
   const kopdesBlock = writeBlock(state, world, params.kopdesBlock);
+
   kopdesBlock.owned = true;
   kopdesBlock.phase = 'cleared';
   kopdesBlock.clearProgress = 1;
@@ -130,16 +134,19 @@ export function readBlock(state: SimState, world: World, id: BlockId): Readonly<
 /** Get a block for mutation, materialising it into the sparse map if needed. */
 export function writeBlock(state: SimState, world: World, id: BlockId): Block {
   let block = state.blocks.get(id);
+
   if (!block) {
     block = world.blockById(id);
     state.blocks.set(id, block);
   }
+
   return block;
 }
 
 export function neighbourIds(world: World, id: BlockId): BlockId[] {
   const [x, y] = world.toXY(id);
   const out: BlockId[] = [];
+
   if (x > 0) out.push(world.toId(x - 1, y));
   if (x < world.width - 1) out.push(world.toId(x + 1, y));
   if (y > 0) out.push(world.toId(x, y - 1));
@@ -151,11 +158,13 @@ export function hasOwnedNeighbour(state: SimState, world: World, id: BlockId): b
   for (const n of neighbourIds(world, id)) {
     if (state.blocks.get(n)?.owned) return true;
   }
+
   return false;
 }
 
 export function countOwned(state: SimState): number {
   let n = 0;
+
   for (const block of state.blocks.values()) if (block.owned) n += 1;
   return n;
 }
@@ -165,6 +174,7 @@ export function countOwned(state: SimState): number {
 function record(state: SimState, entry: LedgerEntry): void {
   if (entry.kind !== 'capital') state.run.yearProfit += entry.amount;
   state.economy.ledger.push(entry);
+
   if (state.economy.ledger.length > ECONOMY.ledgerCap) {
     state.economy.ledger.splice(0, state.economy.ledger.length - ECONOMY.ledgerCap);
   }

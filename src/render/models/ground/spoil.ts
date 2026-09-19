@@ -9,6 +9,7 @@ export const spoilHeap: Model = {
   build(kit, rand) {
     const width = between(rand, 1.6, 2.6);
     const height = between(rand, 0.35, 0.7);
+
     kit.box(0, height / 2, 0, width, height, width * between(rand, 0.7, 1), Palette.Dirt, {
       top: Palette.Laterite,
       turn: rand() * Math.PI,
@@ -24,10 +25,13 @@ export const spoilHeap: Model = {
       Palette.Dirt,
       { top: Palette.Laterite, turn: rand() * Math.PI },
     );
+
     // Stones the slide turned up.
     const stones = Math.floor(between(rand, 1, 4));
+
     for (let i = 0; i < stones; i++) {
       const s = between(rand, 0.18, 0.34);
+
       kit.box(
         between(rand, -width * 0.5, width * 0.5),
         s / 2,
@@ -49,11 +53,13 @@ export const snappedBranch: Model = {
   build(kit, rand) {
     const length = between(rand, 1.2, 2.2);
     const tilt = between(rand, 0.5, 1.1) * (rand() < 0.5 ? -1 : 1);
+
     kit.box(0, length * 0.38, 0, 0.16, length, 0.16, Palette.Log, {
       tiltZ: tilt,
       turn: rand() * Math.PI,
       bottom: true,
     });
+
     // A fork part way up, so it reads as a branch rather than a post.
     if (rand() < 0.75) {
       kit.box(
@@ -67,6 +73,7 @@ export const snappedBranch: Model = {
         { tiltZ: tilt + between(rand, 0.5, 0.9), turn: rand() * Math.PI, bottom: true },
       );
     }
+
     // The mud it is driven into.
     kit.box(0, 0.08, 0, between(rand, 0.5, 0.8), 0.16, between(rand, 0.5, 0.8), Palette.Dirt, {
       top: Palette.Dirt,

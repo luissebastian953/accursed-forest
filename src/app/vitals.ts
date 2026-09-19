@@ -8,6 +8,7 @@ declare global {
 
 function send(metric: Metric): void {
   const value = Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value);
+
   if (typeof window.gtag === 'function') {
     window.gtag('event', metric.name, {
       value,
@@ -18,6 +19,7 @@ function send(metric: Metric): void {
       non_interaction: true,
     });
   }
+
   if (import.meta.env.DEV) {
     // eslint-disable-next-line no-console -- the one place a dev build talks to the console on purpose
     console.debug(`[vitals] ${metric.name} ${metric.value.toFixed(1)} (${metric.rating})`);

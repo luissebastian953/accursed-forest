@@ -30,12 +30,14 @@ function harness(rate: () => number, maxTicksPerFrame?: number) {
           cancelFrame: () => {},
         },
   );
+
   return { loop, ticks: () => ticks, frames };
 }
 
 describe('game loop (GDD 4.2)', () => {
   it('runs 1× as one tick every ten seconds', () => {
     const h = harness(() => TICKS_PER_SECOND[1]);
+
     h.loop.step(0);
     // 21 seconds of 16 ms frames: two ten-second ticks, with a second left over.
     for (let t = 16; t <= 21_008; t += 16) h.loop.step(t);
@@ -44,6 +46,7 @@ describe('game loop (GDD 4.2)', () => {
 
   it('runs 50× as five ticks per second at a 60 Hz frame rate', () => {
     const h = harness(() => TICKS_PER_SECOND[50]);
+
     h.loop.step(0);
     for (let t = 1000 / 60; t <= 5000; t += 1000 / 60) h.loop.step(t);
     expect(h.ticks()).toBeGreaterThanOrEqual(24);
@@ -52,6 +55,7 @@ describe('game loop (GDD 4.2)', () => {
 
   it('a turbo scale multiplies every rate, for the browser suite', () => {
     const turbo = new TimeControl(20);
+
     turbo.set(50);
     expect(turbo.ticksPerSecond).toBe(TICKS_PER_SECOND[50] * 20);
     expect(turbo.secondsPerTick).toBeCloseTo(1 / (TICKS_PER_SECOND[50] * 20));
@@ -61,6 +65,7 @@ describe('game loop (GDD 4.2)', () => {
 
   it('renders a frame every step, ticks or not', () => {
     const h = harness(() => 0);
+
     h.loop.step(0);
     h.loop.step(16);
     h.loop.step(32);
@@ -70,6 +75,7 @@ describe('game loop (GDD 4.2)', () => {
 
   it('drops the backlog after a stall instead of catching up', () => {
     const h = harness(() => TICKS_PER_SECOND[50], 6);
+
     h.loop.step(0);
     h.loop.step(100_000); // a hundred seconds hidden: would be 500 ticks
     expect(h.ticks()).toBe(6);
@@ -81,6 +87,7 @@ describe('game loop (GDD 4.2)', () => {
   it('a speed change does not release a burst earned at the old rate', () => {
     let rate = TICKS_PER_SECOND[1];
     const h = harness(() => rate);
+
     h.loop.step(0);
     h.loop.step(8000); // 80% of the way to a 1× tick
     rate = TICKS_PER_SECOND[50];
@@ -91,6 +98,7 @@ describe('game loop (GDD 4.2)', () => {
   it('pausing resets the accumulator', () => {
     let rate = TICKS_PER_SECOND[1];
     const h = harness(() => rate);
+
     h.loop.step(0);
     h.loop.step(9_990);
     rate = 0;
@@ -163,12 +171,14 @@ describe('game loop resilience', () => {
 describe('time control (GDD 3.1.1, GDD 8)', () => {
   it('defaults to 1× and reports ticks per second', () => {
     const tc = new TimeControl();
+
     expect(tc.speed).toBe(1);
     expect(tc.ticksPerSecond).toBe(TICKS_PER_SECOND[1]);
   });
 
   it('toggles pause back to the last running speed', () => {
     const tc = new TimeControl();
+
     tc.set(50);
     tc.togglePause();
     expect(tc.speed).toBe(0);
@@ -179,6 +189,7 @@ describe('time control (GDD 3.1.1, GDD 8)', () => {
 
   it('the fire lock caps the speed at 10× without forgetting the request', () => {
     const tc = new TimeControl();
+
     tc.set(50);
     tc.lockToRealtime(true);
     expect(tc.speed).toBe(10);
@@ -190,6 +201,7 @@ describe('time control (GDD 3.1.1, GDD 8)', () => {
 
   it('the fire lock does not unpause', () => {
     const tc = new TimeControl();
+
     tc.set(0);
     tc.lockToRealtime(true);
     expect(tc.speed).toBe(0);
@@ -199,6 +211,7 @@ describe('time control (GDD 3.1.1, GDD 8)', () => {
     const tc = new TimeControl();
     const seen: [number, boolean][] = [];
     const off = tc.subscribe((s, l) => seen.push([s, l]));
+
     tc.set(10);
     tc.set(10); // no-op
     tc.lockToRealtime(true);

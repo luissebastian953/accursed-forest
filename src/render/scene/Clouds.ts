@@ -43,9 +43,11 @@ function cloudGeometry(): ReturnType<BoxBuilder['build']> {
     [6, 0.6, 0.8, 3, 1.2, 3.4, 0],
     [-6, 0.7, -0.6, 3, 1.4, 3, 0],
   ].map(([x, y, z, w, h, d]) => [x!, y!, z!, w!, h!, d!]);
+
   for (const [x, y, z, w, h, d] of slabs) {
     b.addAABox(x, y, z, w, h, d, { side: Palette.Cloud, top: Palette.CloudTop });
   }
+
   return b.build();
 }
 
@@ -61,6 +63,7 @@ export class Clouds {
     this.mesh = new InstancedMesh(cloudGeometry(), material, COUNT);
     this.mesh.count = COUNT;
     this.mesh.frustumCulled = false;
+
     for (let i = 0; i < COUNT; i++) {
       this.x[i] = this.random() * TILE;
       this.z[i] = this.random() * TILE;
@@ -92,9 +95,11 @@ export class Clouds {
 
     const centreX = (view.minX + view.maxX) / 2;
     const centreZ = (view.minZ + view.maxZ) / 2;
+
     for (let i = 0; i < COUNT; i++) {
       let x = this.x[i]! + _drift.x;
       let z = this.z[i]! + _drift.z;
+
       // Wrap around the tile that follows the view, so panning never outruns them.
       x = centreX + ((((x - centreX + TILE * 1.5) % TILE) + TILE) % TILE) - TILE / 2;
       z = centreZ + ((((z - centreZ + TILE * 1.5) % TILE) + TILE) % TILE) - TILE / 2;
@@ -107,6 +112,7 @@ export class Clouds {
       _s.setScalar(this.scale[i]!);
       this.mesh.setMatrixAt(i, _m.compose(_p, _q, _s));
     }
+
     this.mesh.instanceMatrix.needsUpdate = true;
   }
 

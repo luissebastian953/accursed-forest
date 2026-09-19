@@ -24,6 +24,7 @@ const state = $state<{ items: ToastItem[] }>({ items: [] });
 /** Take one off, whether it ran out or was closed by hand. */
 export function dismissToast(id: number): void {
   const index = state.items.findIndex((item) => item.id === id);
+
   if (index >= 0) state.items.splice(index, 1);
 }
 
@@ -48,6 +49,7 @@ export class Toasts {
 
   push(text: string, kind: ToastKind = 'info'): void {
     const toast: ToastItem = { id: this.nextId++, text, kind };
+
     state.items.push(toast);
     while (state.items.length > AT_ONCE) state.items.shift();
     setTimeout(() => dismissToast(toast.id), this.ttlMs);

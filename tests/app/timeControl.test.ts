@@ -13,6 +13,7 @@ import {
 describe('the fire lock', () => {
   it('caps the clock rather than pinning it to real time', () => {
     const time = new TimeControl();
+
     time.set(TURBO_SPEED);
     time.lockToRealtime(true);
     expect(time.speed).toBe(FIRE_LOCK_SPEED);
@@ -24,6 +25,7 @@ describe('the fire lock', () => {
 
   it('leaves a pause paused', () => {
     const time = new TimeControl();
+
     time.set(0);
     time.lockToRealtime(true);
     expect(time.speed).toBe(0);

@@ -23,23 +23,29 @@ function siteGeometry(groundAt: (dx: number, dz: number) => number) {
     [half, half],
     [-half, half],
   ];
+
   // Pillars, each footed on its own bit of ground, with a lashing near the top.
   for (const [x, z] of corners) {
     const y = groundAt(x, z);
+
     b.addAABox(x, y + HEIGHT / 2, z, 0.34, HEIGHT, 0.34, { side: Palette.PalmTrunk });
     b.addAABox(x, y + HEIGHT - 0.5, z, 0.42, 0.18, 0.42, { side: Palette.Sand });
   }
+
   // Ropes: a thin box from pillar to pillar at each height, sagging a touch.
   const m = new Matrix4();
+
   for (let i = 0; i < corners.length; i++) {
     const [x0, z0] = corners[i]!;
     const [x1, z1] = corners[(i + 1) % corners.length]!;
     const length = Math.hypot(x1 - x0, z1 - z0);
     const angle = Math.atan2(x1 - x0, z1 - z0);
+
     for (const rope of ROPES) {
       const y0 = groundAt(x0, z0) + rope;
       const y1 = groundAt(x1, z1) + rope;
       const tilt = Math.atan2(y1 - y0, length);
+
       m.makeRotationY(angle)
         .multiply(new Matrix4().makeRotationX(-tilt))
         .setPosition((x0 + x1) / 2, (y0 + y1) / 2 - 0.12, (z0 + z1) / 2);
@@ -48,6 +54,7 @@ function siteGeometry(groundAt: (dx: number, dz: number) => number) {
       });
     }
   }
+
   return b.build();
 }
 
@@ -67,15 +74,19 @@ export class WorkSite {
    */
   sync(state: SimState, world: World): void {
     const working = workedBlocks(state);
+
     for (const [id, mesh] of this.sites) {
       if (working.has(id)) continue;
       this.group.remove(mesh);
       mesh.geometry.dispose();
       this.sites.delete(id);
     }
+
     const side = WORLD.blockSide;
+
     for (const id of working) {
       if (this.sites.has(id)) continue;
+
       const [bx, by] = world.toXY(id);
       const cx = bx * side + side / 2;
       const cz = by * side + side / 2;
@@ -83,6 +94,7 @@ export class WorkSite {
         siteGeometry((dx, dz) => this.groundAt(cx + dx, cz + dz)),
         this.material,
       );
+
       mesh.position.set(cx, 0, cz);
       this.group.add(mesh);
       this.sites.set(id, mesh);

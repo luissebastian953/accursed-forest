@@ -28,10 +28,12 @@ export class Picker {
     if (!point) {
       point = this.raycaster.ray.intersectPlane(this.ground, this.hit);
     }
+
     if (!point) return null;
 
     const bx = Math.floor(point.x / WORLD.blockSide);
     const by = Math.floor(point.z / WORLD.blockSide);
+
     if (!this.world.inBounds(bx, by)) return null;
     return this.world.toId(bx, by);
   }

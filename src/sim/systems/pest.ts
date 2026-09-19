@@ -24,9 +24,11 @@ export interface GanodermaCounts {
 
 export function ganodermaCounts(palms: PalmArrays): GanodermaCounts {
   const counts: GanodermaCounts = { latent: 0, symptomatic: 0, dead: 0, planted: 0 };
+
   for (let slot = 0; slot < palms.plantedAt.length; slot++) {
     if (palms.plantedAt[slot]! < 0) continue;
     counts.planted += 1;
+
     switch (palms.ganoderma[slot]) {
       case 1:
         counts.latent += 1;
@@ -39,16 +41,20 @@ export function ganodermaCounts(palms: PalmArrays): GanodermaCounts {
         break;
     }
   }
+
   return counts;
 }
 
 /** The plague meter: beetles against a scale, plus the visibly infected share. */
 export function pestPressure(block: Readonly<Block>, palms: PalmArrays | undefined): number {
   let pressure = block.beetles / PLAGUE.beetleScale;
+
   if (palms) {
     const c = ganodermaCounts(palms);
+
     if (c.planted > 0) pressure += ((c.symptomatic + c.dead) / c.planted) * PLAGUE.infectedScale;
   }
+
   return pressure;
 }
 
@@ -58,8 +64,10 @@ export function pest(ctx: SimContext): void {
 
   // ── Beetles: every breeding site, planted or not ────────────────────────
   const spill: { id: number; amount: number }[] = [];
+
   for (const block of state.blocks.values()) {
     if (!state.active.has(block.id)) continue;
+
     const capacity = beetleCapacity(block.debris);
 
     if (capacity <= 0) {
@@ -68,8 +76,10 @@ export function pest(ctx: SimContext): void {
     }
 
     if (block.beetles < BEETLES.seedPopulation) block.beetles = BEETLES.seedPopulation;
+
     const growth =
       BEETLES.growthPerDay * (block.metarhiziumUntil > tick ? BEETLES.metarhiziumGrowthFactor : 1);
+
     block.beetles += growth * block.beetles * (1 - block.beetles / capacity);
     if (block.trapsUntil > tick)
       block.beetles = Math.max(0, block.beetles - BEETLES.trapKillPerDay);
@@ -77,11 +87,14 @@ export function pest(ctx: SimContext): void {
 
     if (block.beetles > BEETLES.seedPopulation) {
       const flying = block.beetles * BEETLES.spilloverPerDay;
+
       for (const n of neighbourIds(world, block.id)) spill.push({ id: n, amount: flying });
     }
   }
+
   for (const { id, amount } of spill) {
     const target = state.blocks.get(id);
+
     if (target && beetleCapacity(target.debris) > 0) target.beetles += amount;
   }
 
@@ -91,8 +104,10 @@ export function pest(ctx: SimContext): void {
   // ── Palms: beetle damage, Ganoderma seeding, progression, spread ────────
   for (const [id, palms] of state.palms) {
     const block = state.blocks.get(id);
+
     if (!block || (block.phase !== 'planted' && block.phase !== 'reforesting') || block.burning)
       continue;
+
     const species = block.species;
 
     // Beetles bore young palms.
@@ -100,14 +115,22 @@ export function pest(ctx: SimContext): void {
       const expected = block.beetles * BEETLES.damagePerBeetle;
       const whole = Math.floor(expected);
       const fraction = expected - whole;
+
       for (let slot = 0; slot < palms.plantedAt.length; slot++) {
         if (palms.plantedAt[slot]! < 0) continue;
+
         const stage = slotStage(palms, slot, species, tick);
+
         if (!isYoung(stage)) continue;
+
         const loss = whole + (chance(state.rng, fraction) ? 1 : 0);
+
         if (loss === 0) continue;
+
         const health = Math.max(0, palms.health[slot]! - loss);
+
         palms.health[slot] = health;
+
         if (health === 0) {
           palms.ganoderma[slot] = 0;
           events.push({ type: 'PalmDied', block: id, slot, cause: 'beetles' });
@@ -121,6 +144,7 @@ export function pest(ctx: SimContext): void {
     const flooded = floodedNow?.has(id) ? FLOOD.ganodermaSeedFactor : 1;
     const seed =
       (GANODERMA.baseSeedPerDay + block.debris * GANODERMA.seedPerDebrisPerDay) * flooded;
+
     if (chance(state.rng, seed)) infectRandomHealthy(palms, tick, state.rng);
 
     // Progression and spread.
@@ -132,11 +156,13 @@ export function pest(ctx: SimContext): void {
 
     for (let slot = 0; slot < palms.plantedAt.length; slot++) {
       const stage = palms.ganoderma[slot]!;
+
       if (stage === 0 || palms.plantedAt[slot]! < 0) continue;
 
       if (stage < 3) {
         const young = isYoung(slotStage(palms, slot, species, tick));
         const since = tick - palms.ganodermaSince[slot]!;
+
         if (
           stage === 1 &&
           since >= (young ? GANODERMA.latentDays.immature : GANODERMA.latentDays.mature)
@@ -157,10 +183,13 @@ export function pest(ctx: SimContext): void {
       }
 
       if (palms.trenched[slot] === 1) continue;
+
       const p = spreadFactor * (palms.ganoderma[slot] === 3 ? GANODERMA.stumpSourceFactor : 1);
       const n = slotNeighbours(slot, neighbourSlots);
+
       for (let i = 0; i < n; i++) {
         const target = neighbourSlots[i]!;
+
         if (
           palms.plantedAt[target]! < 0 ||
           palms.ganoderma[target] !== 0 ||
@@ -175,6 +204,7 @@ export function pest(ctx: SimContext): void {
 
     // ── Plague flag, with hysteresis ──────────────────────────────────────
     const pressure = pestPressure(block, palms);
+
     if (!block.plagued && pressure >= PLAGUE.onAt) {
       block.plagued = true;
       events.push({ type: 'PlagueStarted', block: id });
@@ -187,11 +217,15 @@ export function pest(ctx: SimContext): void {
 
 function infectRandomHealthy(palms: PalmArrays, tick: Tick, rng: SimContext['state']['rng']): void {
   const healthy: number[] = [];
+
   for (let slot = 0; slot < palms.plantedAt.length; slot++) {
     if (palms.plantedAt[slot]! >= 0 && palms.ganoderma[slot] === 0) healthy.push(slot);
   }
+
   if (healthy.length === 0) return;
+
   const slot = healthy[Math.floor(nextFloat(rng) * healthy.length)]!;
+
   palms.ganoderma[slot] = 1;
   palms.ganodermaSince[slot] = tick;
 }

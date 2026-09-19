@@ -58,6 +58,7 @@ export function createWorld(
   const toId = (x: number, y: number): BlockId => y * width + x;
   const toXY = (id: BlockId): [number, number] => {
     const x = id % width;
+
     return [x, (id - x) / width];
   };
 
@@ -69,6 +70,7 @@ export function createWorld(
   const terrainAt = (x: number, y: number): CellTerrain & { height01: number } => {
     const key = toId(x, y);
     const cached = terrainCache[key];
+
     if (cached) return cached;
 
     const elev = elevation.elevation(x, y);
@@ -78,10 +80,13 @@ export function createWorld(
     // A slope is any block with a lower neighbour: canyon-adjacent, or simply
     // higher than the land beside it (GDD 3.6.2).
     let slope = false;
+
     for (const [dx, dy] of NEIGHBOURS) {
       const nx = x + dx;
       const ny = y + dy;
+
       if (!inBounds(nx, ny)) continue;
+
       if (elevation.elevation(nx, ny) < elev) {
         slope = true;
         break;
@@ -102,6 +107,7 @@ export function createWorld(
       isWater,
       height01: elevation.height01(x, y),
     };
+
     terrainCache[key] = cell;
     return cell;
   };
@@ -131,8 +137,10 @@ export function createWorld(
   const generated = (x: number, y: number): GeneratedBlock => {
     if (!inBounds(x, y))
       throw new RangeError(`block (${x}, ${y}) is outside the ${width}x${height} world`);
+
     const key = toId(x, y);
     const cached = generatedCache[key];
+
     if (cached) return cached;
 
     const terrain = terrainAt(x, y);
@@ -152,6 +160,7 @@ export function createWorld(
       forSale: BIOMES[biome].forSale,
       isProtected: protectedHere,
     };
+
     generatedCache[key] = block;
     return block;
   };
@@ -169,6 +178,7 @@ export function createWorld(
 
   const block = (x: number, y: number): Block => {
     const g = generated(x, y);
+
     return {
       id: toId(x, y),
       biome: g.biome,
@@ -211,6 +221,7 @@ export function createWorld(
     block,
     blockById: (id) => {
       const [x, y] = toXY(id);
+
       return block(x, y);
     },
     inBounds,
@@ -228,10 +239,12 @@ const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 export function estateCodeFor(seed: number): string {
   let value = seed >>> 0;
   let code = '';
+
   for (let i = 0; i < 7; i++) {
     code = ALPHABET[value % ALPHABET.length]! + code;
     value = Math.floor(value / ALPHABET.length);
   }
+
   return `${code.slice(0, 3)}-${code.slice(3)}`;
 }
 
@@ -241,9 +254,11 @@ export function estateCodeFor(seed: number): string {
  */
 function hashWords(words: string): number {
   let hash = 0x811c9dc5;
+
   for (const ch of words) {
     hash = Math.imul(hash ^ ch.codePointAt(0)!, 0x01000193);
   }
+
   // One final mix: FNV leaves the low bits of short strings a little ordered,
   // and the low bits are what the worldgen fields read first.
   hash = Math.imul(hash ^ (hash >>> 16), 0x21f0aaad);
@@ -265,18 +280,23 @@ export function seedFromEstateCode(code: string): number | null {
     .normalize('NFKC')
     .toUpperCase()
     .replace(/[^\p{L}\p{N}]/gu, '');
+
   if (clean === '') {
     // Nothing usable, but not empty: emoji and punctuation still name a world.
     const raw = code.trim();
+
     return raw === '' ? null : hashWords(raw);
   }
 
   if (clean.length === 7 && [...clean].every((ch) => ALPHABET.includes(ch))) {
     let value = 0;
+
     for (const ch of clean) {
       value = value * ALPHABET.length + ALPHABET.indexOf(ch);
     }
+
     return value >>> 0;
   }
+
   return hashWords(clean);
 }

@@ -97,22 +97,28 @@ const SNAPSHOT_KEY = new RegExp(`^${KEY_PREFIX}:save:year:(\\d+)$`);
 
 function randomSeed(): number {
   const buffer = new Uint32Array(1);
+
   crypto.getRandomValues(buffer);
   return buffer[0]!;
 }
 
 export async function startApp(root: HTMLElement): Promise<() => void> {
   const params = new URLSearchParams(location.search);
+
   root.style.position = 'relative';
+
   // The world fills the root; the block panel is an aside laid over its right
   // edge that slides in with a selection (GDD 8 panel 9). Laying it over rather
   // than docking it means the canvas never resizes when it comes and goes;
   // the HUD and ticker shift left by its width instead (`--chrome-right`).
   // Modals mount on the root so they cover both.
   const stage = document.createElement('div');
+
   stage.className = 'absolute inset-0';
   stage.style.setProperty('--chrome-right', '0px');
+
   const aside = document.createElement('aside');
+
   aside.className =
     'aside aside-hidden absolute bottom-0 right-0 top-0 z-10 flex flex-col overflow-hidden border-l-2 border-[#f2e0b0] bg-[#fff6e0]';
   root.append(stage, aside);
@@ -122,16 +128,22 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   // first gesture anywhere on the page opens it; after that the calls below
   // are cheap no-ops that keep a suspended context awake.
   const audio = new Audio();
+
   audio.setSettings(loadAudioSettings());
+
   const unlockAudio = (): void => audio.unlock();
+
   root.addEventListener('pointerdown', unlockAudio, { passive: true });
   root.addEventListener('keydown', unlockAudio, { passive: true });
+
   // Every button in the UI taps; a locked one thuds. Disabled buttons never
   // fire click, but Chromium still delivers pointerdown to them, which is
   // the one place this can be heard from.
   const uiPress = (event: PointerEvent): void => {
     const button = (event.target as Element | null)?.closest('button');
+
     if (!button) return;
+
     if (button.disabled) audio.play('ui-button-denied');
     // A tap on the handset's own screen is a tap on glass, not on a button
     // in front of the player: the shop and the news feed stay quiet.
@@ -139,6 +151,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       audio.play('ui-button-press');
     }
   };
+
   root.addEventListener('pointerdown', uiPress, { capture: true, passive: true });
 
   /** The aside slides in from the right with a selection and away without one. */
@@ -162,12 +175,15 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   function bootSim(): Sim {
     const seedParam = params.get('seed');
+
     if (seedParam !== null) return freshSim(Number(seedParam) >>> 0);
     if (params.has('fresh') || !slot.exists()) return freshSim(randomSeed());
+
     try {
       return restoreSim(slot.load());
     } catch (error) {
       const message = error instanceof SaveError ? error.message : String(error);
+
       toasts.push(`Could not load the save: ${message}. Starting a new estate.`, 'error');
       return freshSim(randomSeed());
     }
@@ -192,10 +208,13 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   /** Years with a snapshot, newest first. */
   function snapshotYears(): number[] {
     const years: number[] = [];
+
     for (const key of storage.keys()) {
       const match = SNAPSHOT_KEY.exec(key);
+
       if (match) years.push(Number(match[1]));
     }
+
     return years.sort((a, b) => b - a);
   }
 
@@ -206,18 +225,23 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   /** Snapshot the start of `year`. On a full disk the oldest snapshots make room. */
   function writeSnapshot(year: number): void {
     const years = snapshotYears();
+
     for (const old of years.slice(SNAPSHOTS_KEPT - 1)) snapshotSlot(old).delete();
+
     for (let attempt = 0; attempt < SNAPSHOTS_KEPT; attempt++) {
       try {
         snapshotSlot(year).save(sim.state);
         return;
       } catch (error) {
         snapshotSlot(year).delete();
+
         const oldest = snapshotYears().at(-1);
+
         if (!(error instanceof QuotaError) || oldest === undefined) {
           toasts.push(`Could not keep a snapshot of Year ${year}: storage is full.`, 'warn');
           return;
         }
+
         snapshotSlot(oldest).delete();
       }
     }
@@ -256,6 +280,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   const rangeRing = new RangeRing(material);
   const hazardRing = new HazardRing(material);
   const fires = new Fires(material);
+
   scene.add(
     chunks.group,
     palms.group,
@@ -281,9 +306,11 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   const excavator = new Excavator(material, groundAt);
   const workSite = new WorkSite(material, groundAt);
   const spectral = createPaletteMaterial(paletteTexture, uniforms).material;
+
   spectral.transparent = true;
   spectral.opacity = 0.45;
   spectral.depthWrite = false;
+
   // The glints live on the see-through material, like the ghost.
   const sparkles = new Sparkles(spectral);
   const sparkleBurst = new SparkleBurst(spectral);
@@ -296,6 +323,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     groundAt,
   });
   const glow = new Glow(handle.renderer, scene, rig.camera);
+
   scene.add(
     coins.mesh,
     sparkles.mesh,
@@ -312,10 +340,12 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     timber.group,
     mobField.group,
   );
+
   const visible: GroundRect = { minX: 0, maxX: 0, minZ: 0, maxZ: 0 };
 
   // Edge vignette while anything burns (GDD 8 panel 7).
   const vignette = document.createElement('div');
+
   vignette.className = 'pointer-events-none absolute inset-0 z-[5] transition-opacity duration-700';
   vignette.style.boxShadow = 'inset 0 0 140px 30px rgba(255, 96, 24, 0.55)';
   vignette.style.opacity = '0';
@@ -337,11 +367,13 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     onError: (error) => {
       // The save outranks the rewind: make room by dropping the oldest snapshots.
       const oldest = snapshotYears().slice(-3);
+
       if (error instanceof QuotaError && oldest.length > 0) {
         for (const year of oldest) snapshotSlot(year).delete();
         queueMicrotask(() => autosave.saveNow());
         return;
       }
+
       saveError = error instanceof Error ? error.message : String(error);
       toasts.push(`Autosave failed: ${saveError}`, 'error');
     },
@@ -363,6 +395,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       else {
         // The Ministry looks at the close of each year (GDD 3.8).
         const dayOfYear = sim.state.tick % GROWTH.daysPerYear;
+
         certificate.show({
           conditions: ispoConditions(sim.state, sim.world),
           daysToCheck: GROWTH.daysPerYear - dayOfYear,
@@ -401,6 +434,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   function markNewsRead(): void {
     newsReadTick = sim.state.tick;
+
     try {
       localStorage.setItem(readKey(), String(newsReadTick));
     } catch {
@@ -410,10 +444,12 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   function unreadWarnings(): number {
     let n = 0;
+
     for (const item of sim.state.society.news) {
       if (item.tick > newsReadTick && (item.severity === 'warning' || item.severity === 'critical'))
         n += 1;
     }
+
     return n;
   }
 
@@ -444,6 +480,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     dismiss: () => closeCard(),
     settle: () => {
       const result = dispatch({ type: 'SettleInvestigation' });
+
       if (result.ok) {
         police.sync(sim.state, sim.world, worldNow());
         closeCard();
@@ -481,9 +518,12 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   function showEpilogue(): void {
     if (epilogueTimer !== null) clearTimeout(epilogueTimer);
     epilogueTimer = null;
+
     const { state } = sim;
     const ending = state.run.ending;
+
     if (!ending) return;
+
     const keys: Record<typeof ending, string[]> = {
       clean: ['ispo.clean'],
       dirty: ['ispo.dirty'],
@@ -494,6 +534,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       banned: ['ending.banned'],
       arrested: ['authority.arrested'],
     };
+
     epilogue.show({
       ending,
       endedAt: state.run.endedAt ?? state.tick,
@@ -518,6 +559,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   function rewindTo(year: number): void {
     try {
       const next = restoreSim(snapshotSlot(year).load());
+
       // The future after this year belongs to the timeline being abandoned.
       clearSnapshots(year);
       switchSim(next);
@@ -543,6 +585,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
             : n.key.startsWith('authority.investigation'),
       ) ?? null;
     const settle = { type: 'SettleInvestigation' } as const;
+
     cards.show({
       kind,
       tick: state.tick,
@@ -589,6 +632,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
           'error',
         );
       }
+
       refreshMenu();
     },
   });
@@ -614,6 +658,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   function refreshMenu(): void {
     let lastSavedAt: string | null = null;
     const manifest = storage.get(slot.manifestKey);
+
     if (manifest) {
       try {
         lastSavedAt = (JSON.parse(manifest) as { savedAt?: string }).savedAt ?? null;
@@ -621,6 +666,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         lastSavedAt = null;
       }
     }
+
     menu.update({
       estateCode: sim.world.estateCode,
       estateName: sim.state.estateName,
@@ -636,6 +682,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     const history = sim.state.economy.tbsPriceHistory;
     const now = sim.state.economy.tbsPrice;
     const earlier = history[Math.max(0, history.length - 11)] ?? now;
+
     if (now > earlier * 1.01) return 1;
     if (now < earlier * 0.99) return -1;
     return 0;
@@ -654,11 +701,14 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     const { state } = sim;
     const left = (id: string): number | null => {
       const e = activeEvent(state, id);
+
       return e ? Math.max(0, e.endsAt - state.tick) : null;
     };
     const chips: EventChip[] = [];
+
     if (isWildfire(state))
       chips.push({ id: 'wildfire', label: t('events.wildfire'), daysLeft: null, tone: 'fire' });
+
     if (activeEvent(state, HAZE_EVENT)) {
       chips.push({
         id: 'haze',
@@ -667,6 +717,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         tone: 'smoke',
       });
     }
+
     if (activeEvent(state, ASH_EVENT))
       chips.push({
         id: 'ash',
@@ -674,8 +725,10 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         daysLeft: left(ASH_EVENT),
         tone: 'ash',
       });
+
     if (activeEvent(state, FLOOD_EVENT)) {
       const n = activeEvent(state, FLOOD_EVENT)!.blocks?.length ?? 0;
+
       chips.push({
         id: 'flood',
         label:
@@ -688,6 +741,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         tone: 'water',
       });
     }
+
     if (activeEvent(state, DROUGHT_EVENT)) {
       chips.push({
         id: 'drought',
@@ -696,7 +750,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         tone: 'dry',
       });
     }
+
     const plagued = plaguedCount();
+
     if (plagued > 0)
       chips.push({
         id: 'plague',
@@ -707,9 +763,12 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         daysLeft: null,
         tone: 'pest',
       });
+
     for (const event of state.weather.activeEvents) {
       if (!event.id.startsWith(MACRO_PREFIX)) continue;
+
       const id = event.id.slice(MACRO_PREFIX.length);
+
       chips.push({
         id,
         label: t(`events.${id}`),
@@ -717,6 +776,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         tone: 'econ',
       });
     }
+
     if (state.society.operatingBanUntil > state.tick) {
       chips.push({
         id: 'ban',
@@ -725,6 +785,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         tone: 'pest',
       });
     }
+
     if (state.run.insolventFor > 0 && !runOver(state)) {
       chips.push({
         id: 'insolvent',
@@ -736,6 +797,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         tone: 'pest',
       });
     }
+
     if (state.society.investigationUntil > state.tick) {
       chips.push({
         id: 'investigation',
@@ -744,11 +806,13 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         tone: 'pest',
       });
     }
+
     return chips;
   }
 
   function plaguedCount(): number {
     let n = 0;
+
     for (const block of sim.state.blocks.values()) if (block.plagued) n += 1;
     return n;
   }
@@ -796,14 +860,18 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
    */
   function syncWeatherAudio(dtSeconds: number): void {
     const { sky, rain: wetness } = sim.state.weather;
+
     if (sky === 'rain' || sky === 'storm') {
       rainDryFor = 0;
       audio.startLoop('rain-light', RAIN_FADE_IN);
+
       const over = (wetness - SKY.rainAbove) / (1 - SKY.rainAbove);
+
       // Rain is weather, not an event: it sits under the estate's own noises.
       audio.setLoopLevel('rain-light', 0.3 + 0.28 * Math.max(0, Math.min(1, over)));
       return;
     }
+
     rainDryFor += dtSeconds;
     if (rainDryFor >= RAIN_HOLD) audio.stopLoop('rain-light', RAIN_FADE_OUT);
   }
@@ -829,13 +897,16 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     const side = WORLD.blockSide;
     const from = rig.target;
     const blocks = Math.hypot(bx * side + side / 2 - from.x, by * side + side / 2 - from.z) / side;
+
     if (blocks <= THUNDER_NEAR_BLOCKS) {
       audio.play('thunder-near');
       return;
     }
+
     // Sound lags light: a bolt across the estate is heard a moment after it
     // is seen, and the further off the longer the wait.
     const far = Math.min(1, (blocks - THUNDER_NEAR_BLOCKS) / 20);
+
     audio.play('thunder-far', performance.now(), 0.3 + far * 2.2);
   }
 
@@ -884,30 +955,38 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   function dispatch(command: Command) {
     const cashBefore = sim.state.economy.cash;
     const result = sim.dispatch(command);
+
     if (!result.ok) audio.play('ui-button-denied');
+
     if (result.ok) {
       ispoCount = null;
+
       // Money leaving on the player's own order. Coming in is the tick's
       // business (sales), except the tap, which pays with a burst of its own.
       const cashAfter = sim.state.economy.cash;
+
       if (cashAfter < cashBefore) audio.play('cash-out');
       else if (cashAfter > cashBefore && command.type !== 'TapMob') audio.play('cash-in');
+
       // Commands take effect at once even while paused: the sim's own events
       // only surface on the next tick.
       if ('block' in command) {
         chunks.markBlockDirty(command.block);
         dirty.mark(sim.state.width, command.block);
       }
+
       if (command.type === 'PlantBlock') {
         palmsDirty = true;
         animateBlocks.add(command.block);
       }
+
       // The new building and its glints belong to the click, not to the tick
       // that follows it: at 1x that was a second of nothing happening.
       if (command.type === 'UpgradeKopdes') {
         kopdes.sync(sim.state, sim.world);
         cheerKopdes();
       }
+
       if (
         command.type === 'ChopBlock' ||
         command.type === 'PlantBlock' ||
@@ -915,6 +994,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       ) {
         forestCover = estateForestCover(sim.state, sim.world);
       }
+
       if (
         command.type === 'HarvestBlock' ||
         command.type === 'RemovePalm' ||
@@ -923,20 +1003,24 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       ) {
         palmsDirty = true;
       }
+
       if (command.type === 'TapMob') {
         const caught = sim.state.mobs.find((m) => m.id === command.mob);
+
         toasts.push(
           caught?.species === 'babiNgepet'
             ? t('mobs.babiNgepet', { amount: formatRp(BABI_NGEPET.caughtDrop) })
             : t('mobs.golden', { amount: formatRp(SHINY.reward) }),
         );
       }
+
       if (command.type === 'ChopBlock' || command.type === 'BurnBlock') {
         // The crew and their scaffolding are on the block before the next tick.
         mobField.syncSim(sim.state);
         workSite.sync(sim.state, sim.world);
         excavator.sync(sim.state, sim.world, worldNow());
       }
+
       if (command.type === 'BurnBlock') {
         syncFireState();
         hazardRing.hide();
@@ -947,14 +1031,17 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
           isWildfire(sim.state) ? 'error' : 'warn',
         );
       }
+
       if (command.type === 'HireWorker' || command.type === 'DismissWorker') {
         mobField.syncSim(sim.state);
         kopdes.sync(sim.state, sim.world);
       }
+
       if (command.type === 'PlaceKopdes' || command.type === 'UpgradeKopdes') {
         kopdes.sync(sim.state, sim.world);
         if (shop.isOpen) rangeRing.show(sim.state, sim.world);
       }
+
       // The ring is the cursor, not the world: it keeps wall time, so it
       // still pops in when a paused player clicks a block.
       if (ring.block !== null) ring.show(sim.state, sim.world, ring.block, performance.now());
@@ -962,6 +1049,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     } else {
       toasts.push(result.reason, 'warn');
     }
+
     return result;
   }
 
@@ -973,6 +1061,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       setAsideOpen(false);
       return;
     }
+
     ring.show(sim.state, sim.world, block, performance.now());
     panel.show(sim, block);
     setAsideOpen(true);
@@ -980,12 +1069,14 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   function focusBlock(block: BlockId): void {
     const [bx, by] = sim.world.toXY(block);
+
     rig.focus((bx + 0.5) * WORLD.blockSide, (by + 0.5) * WORLD.blockSide, performance.now());
   }
 
   function focusStart(): void {
     const k = sim.state.kopdes?.blockId ?? sim.state.worldGen.kopdesBlock;
     const [bx, by] = sim.world.toXY(k);
+
     rig.jumpTo((bx + 0.5) * WORLD.blockSide, (by + 0.5) * WORLD.blockSide);
   }
 
@@ -1031,6 +1122,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
    */
   function watchedByAuthorities(): boolean {
     const s = sim.state.society;
+
     if (s.lettersReceived === 0) return false;
     return (
       s.attention > 0 ||
@@ -1047,6 +1139,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
    * it walks every block, and again whenever a command changes something.
    */
   let ispoCount: { tick: number; met: number } | null = null;
+
   function ispoMetNow(): number {
     if (ispoCount === null || ispoCount.tick !== sim.state.tick) {
       ispoCount = {
@@ -1054,6 +1147,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         met: ispoConditions(sim.state, sim.world).filter((c) => c.met).length,
       };
     }
+
     return ispoCount.met;
   }
 
@@ -1074,29 +1168,36 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       toasts.push(`Year ${d.yearPassed + 1} begins; ${regimeLine(sim.state.weather.regime)}`);
     for (const block of d.ripeBlocks) toasts.push(`Ripe: ${blockName(block)} is ready to harvest.`);
     if (d.sold.length > 0 || d.timber.length > 0) audio.play('cash-in');
+
     for (const sale of d.sold) {
       toasts.push(
         `Sold ${formatKg(sale.kilograms)} of TBS at ${formatRp(sale.price)}/kg: ${formatRp(sale.revenue)}.`,
       );
     }
+
     for (const t of d.timber)
       toasts.push(`Timber from ${blockName(t.block)} sold for ${formatRp(t.revenue)}.`);
+
     if (d.kopdesUpgraded !== null) {
       toasts.push(`Kopdes upgraded to level ${d.kopdesUpgraded}.`);
       if (shop.isOpen) rangeRing.show(sim.state, sim.world);
     }
+
     if (d.investigationDropped) {
       police.sync(sim.state, sim.world, worldNow());
       toasts.push('The police file is closed. Nothing on the estate is drawing attention now.');
     }
+
     if (d.reforestationCredit) {
       const { banDaysLeft } = d.reforestationCredit;
+
       toasts.push(
         banDaysLeft > 0
           ? `Reforestation noted. Half the suspicion lifts, and the suspension is down to ${banDaysLeft} days.`
           : 'Reforestation noted. Half the suspicion against the estate lifts.',
       );
     }
+
     if (d.wildfireStarted)
       toasts.push('Wildfire. The fire is no longer yours; it burns until the rain comes.', 'error');
     if (d.wildfireEnded) toasts.push('The wildfire is out. The smoke will take a while to clear.');
@@ -1105,7 +1206,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       toasts.push(`Fire spread to ${blockName(d.fireSpread[0]!.to)}.`, 'warn');
     else if (d.fireSpread.length > 1)
       toasts.push(`Fire spread to ${d.fireSpread.length} blocks.`, 'warn');
+
     const lostPalms = d.palmsBurned.reduce((sum, p) => sum + p.count, 0);
+
     if (d.palmsBurned.length === 1)
       toasts.push(`${lostPalms} palms burned on ${blockName(d.palmsBurned[0]!.block)}.`, 'error');
     else if (d.palmsBurned.length > 1)
@@ -1114,7 +1217,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       toasts.push(`Rain put out the fire on ${blockName([...d.extinguished][0]!)}.`);
     else if (d.extinguished.size > 1)
       toasts.push(`Rain put out fires on ${d.extinguished.size} blocks.`);
+
     const burnedClear = [...d.burnFinished].filter((b) => !d.extinguished.has(b));
+
     if (burnedClear.length === 1)
       toasts.push(`${blockName(burnedClear[0]!)} burned clear; the ash will feed it for a season.`);
     else if (burnedClear.length > 1) toasts.push(`${burnedClear.length} blocks burned clear.`);
@@ -1127,7 +1232,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     // The year, and how the run ends (GDD 3.8).
     if (d.yearClosed && !runOver(sim.state)) {
       writeSnapshot(d.yearClosed.year + 1);
+
       const years = sim.state.run.years;
+
       yearEnd.show({
         summary: d.yearClosed,
         previous: years.at(-2) ?? null,
@@ -1135,6 +1242,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
           d.yearClosed.year + 1 >= ISPO.progressFromYear ? d.yearClosed.conditionsMet : null,
       });
     }
+
     if (d.certified && sim.state.kopdes) {
       // The win: the Ministry's banner and fireworks, and the President's
       // motorcade up to the Kopdes door. The epilogue opens once he is there.
@@ -1145,7 +1253,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       toasts.push('The Ministry has sent a banner. ISPO certified.');
       toasts.push('A motorcade is coming up the road. The President is here.');
       time.set(0);
+
       const run = sim;
+
       epilogueTimer = setTimeout(() => {
         if (sim === run && runOver(sim.state)) showEpilogue();
       }, MOTORCADE_MS);
@@ -1173,6 +1283,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       const match = sim.state.society.news.findLast(
         (n) => n.key === item.key && n.tick === sim.state.tick,
       );
+
       if (match)
         toasts.push(
           `📰 ${match.title}`,
@@ -1186,18 +1297,24 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         weatherStartLine(started.id, started.days),
         started.id === 'haze' ? 'warn' : 'error',
       );
+
     for (const ended of d.weatherEnded) {
       const line = weatherEndLine(ended);
+
       if (line) toasts.push(line);
     }
+
     if (d.flooded.size > 0) {
       for (const block of d.flooded) chunks.markBlockDirty(block);
     }
+
     if (d.weatherEnded.includes(FLOOD_EVENT)) {
       // The water goes down: every block that was under it needs its ground back.
       for (const block of lastFlooded) chunks.markBlockDirty(block);
     }
+
     lastFlooded = floodedNow();
+
     for (const slide of d.landslides) {
       toasts.push(
         slide.palmsLost > 0
@@ -1206,44 +1323,55 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         'error',
       );
     }
+
     if (d.ashSettled) toasts.push('The ash has settled. It will feed the soil for a season.');
     if (d.sparks.size > 0) toasts.push('Drought: a spark caught a debris pile.', 'error');
+
     for (const bolt of d.lightning) {
       lightning.strike(sim.state, sim.world, bolt.block, worldNow());
       sky.flash(worldNow());
       thunderFor(bolt.block);
+
       if (bolt.ignited) {
         toasts.push(`Lightning has set ${blockName(bolt.block)} alight.`, 'error');
         chunks.markBlockDirty(bolt.block);
       }
     }
+
     if (d.lightning.some((b) => b.ignited)) syncFireState();
 
     // Trees down, thieves, and the people on the estate.
     fellChoppedTrees(d.felled);
+
     for (const theft of d.stolen) {
       toasts.push(
         `Thieves took ${formatKg(theft.kilograms)} of fruit from ${blockName(theft.block)}. A security guard would have stopped them.`,
         'error',
       );
     }
+
     if (d.cashStolen > 0) {
       toasts.push(
         `${formatRp(d.cashStolen)} is missing from the Kopdes. Staff blame a pig that stood up.`,
         'error',
       );
     }
+
     if (d.thiefCaught) toasts.push('Security saw off a fruit thief.');
     mobField.syncSim(sim.state);
     workSite.sync(sim.state, sim.world);
     excavator.sync(sim.state, sim.world, worldNow());
+
     const drowned = d.palmsDied.filter((p) => p.cause === 'flood').length;
+
     if (drowned > 0)
       toasts.push(
         `${drowned} young palm${drowned === 1 ? '' : 's'} drowned in the flood.`,
         'error',
       );
+
     const ashed = d.palmsDied.filter((p) => p.cause === 'ash').length;
+
     if (ashed > 0)
       toasts.push(`${ashed} young palm${ashed === 1 ? '' : 's'} lost to the ash.`, 'error');
     forestCover = estateForestCover(sim.state, sim.world);
@@ -1255,20 +1383,24 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         'warn',
       );
     }
+
     const byBeetles = d.palmsDied.filter((p) => p.cause === 'beetles').length;
     const byGanoderma = d.palmsDied.filter((p) => p.cause === 'ganoderma').length;
+
     if (byBeetles > 0) {
       toasts.push(
         `${byBeetles} young palm${byBeetles === 1 ? '' : 's'} killed by beetles; sanitize the debris.`,
         'error',
       );
     }
+
     if (byGanoderma > 0) {
       toasts.push(
         `${byGanoderma} palm${byGanoderma === 1 ? '' : 's'} died of Ganoderma. The stumps are still infectious.`,
         'error',
       );
     }
+
     for (const block of d.plagueStarted)
       toasts.push(`Plague on ${blockName(block)}; pests are out of hand there.`, 'error');
     for (const block of d.plagueEnded)
@@ -1301,6 +1433,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   function atmosphere(): { smoke: number; ash: number } {
     const { state } = sim;
     const smoke = isWildfire(state) ? 1 : activeEvent(state, HAZE_EVENT) ? 0.6 : 0;
+
     return { smoke, ash: activeEvent(state, ASH_EVENT) ? 1 : 0 };
   }
 
@@ -1321,15 +1454,20 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
    * loaded save, a 50× skip) just drops what remains.
    */
   const treesFelled = new Map<BlockId, number>();
+
   function fellChoppedTrees(cleared: ReadonlySet<BlockId>): void {
     const now = worldNow();
+
     for (const block of sim.state.blocks.values()) {
       if (block.phase !== 'clearing' || !BIOMES[block.biome].forestCover) continue;
+
       const due = Math.min(TREES_PER_BLOCK - 1, Math.floor(block.clearProgress * TREES_PER_BLOCK));
       const done = treesFelled.get(block.id) ?? 0;
+
       for (let i = done; i < due; i++) timber.fell(sim.world, block.id, now + (i - done) * 600, i);
       if (due > done) treesFelled.set(block.id, due);
     }
+
     for (const block of cleared) {
       timber.fellAll(sim.world, block, now, treesFelled.get(block) ?? 0);
       treesFelled.delete(block);
@@ -1350,10 +1488,13 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   function syncHudMarkers(): void {
     hudMarkerItems.length = 0;
+
     const { state, world } = sim;
     const width = handle.canvas.clientWidth;
     const height = handle.canvas.clientHeight;
+
     rig.camera.updateMatrixWorld();
+
     const side = WORLD.blockSide;
     const pin = (
       block: BlockId,
@@ -1365,6 +1506,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       const [bx, by] = world.toXY(block);
       const cx = bx * side + side / 2;
       const cz = by * side + side / 2;
+
       pinPoint.set(cx, groundAt(cx, cz) + PIN_LIFT, cz).project(rig.camera);
       // Behind the camera, or off the edge: no pin, and no work done for one.
       if (pinPoint.z > 1) return;
@@ -1409,11 +1551,15 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
     for (const [id, palms] of state.palms) {
       const block = state.blocks.get(id);
+
       if (!block?.owned || block.species !== 'palm') continue;
+
       const counts = ganodermaCounts(palms);
       const sick = counts.symptomatic + counts.dead;
+
       if (sick > 0) {
         const treated = block.trichodermaUntil > state.tick;
+
         pin(
           id,
           'ganoderma',
@@ -1425,6 +1571,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
           !treated,
         );
       }
+
       if (block.beetles >= BEETLES_WORTH_A_PIN) {
         pin(
           id,
@@ -1438,6 +1585,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         );
       }
     }
+
     // The Kopdes always keeps its pin, and so does a landslide: it is one
     // block's whole crop. The pest ones give way to the worst of them.
     const kept = hudMarkerItems.filter((m) => m.kind === 'workshop' || m.kind === 'landslide');
@@ -1445,32 +1593,44 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       .filter((m) => m.kind !== 'workshop' && m.kind !== 'landslide')
       .sort((a, b) => Number(b.alert) - Number(a.alert))
       .slice(0, MAX_PEST_PINS);
+
     hudMarkers.update([...kept, ...pests]);
   }
 
   /** Head-room above the work site's pillars for the progress ring. */
   const MARKER_LIFT = 7;
   const markerPoint = new Vector3();
+
   /** A progress ring over every block a crew is working, projected each frame. */
   function syncWorkMarkers(): void {
     const working = workedBlocks(sim.state);
+
     if (working.size === 0) {
       workMarkers.update([]);
       return;
     }
+
     const side = WORLD.blockSide;
     const width = handle.canvas.clientWidth;
     const height = handle.canvas.clientHeight;
+
     rig.camera.updateMatrixWorld();
+
     const items: WorkMarker[] = [];
+
     for (const id of working) {
       const block = sim.state.blocks.get(id);
+
       if (!block) continue;
+
       const [bx, by] = sim.world.toXY(id);
       const cx = bx * side + side / 2;
       const cz = by * side + side / 2;
+
       markerPoint.set(cx, groundAt(cx, cz) + MARKER_LIFT, cz).project(rig.camera);
+
       const digging = block.excavateUntil > sim.state.tick;
+
       items.push({
         id,
         x: ((markerPoint.x + 1) / 2) * width,
@@ -1481,6 +1641,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         kind: digging ? 'dig' : block.burning ? 'burn' : 'chop',
       });
     }
+
     workMarkers.update(items);
   }
 
@@ -1488,6 +1649,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     // Nothing in the world moves while the clock is stopped.
     const running = time.speed > 0;
     const worldDt = running ? dt : 0;
+
     if (running) worldMs += dt * 1000;
 
     rig.update(dt, nowMs);
@@ -1499,6 +1661,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       animateBlocks = new Set();
       palmsDirty = false;
     }
+
     palms.update(worldMs);
     ring.update(nowMs, running);
     police.update(worldMs);
@@ -1531,6 +1694,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       if (panel.selected !== null) panel.refresh();
       if (shop.isOpen) shop.refresh();
     }
+
     // Bloom only while something glows: it costs a few full-screen passes.
     // Fire, gold coins in the air, and the glints over anything worth
     // clicking, which is also what marks the golden capybara.
@@ -1554,6 +1718,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   function onTheEstate(mob: (typeof sim.state.mobs)[number]): boolean {
     const x = Math.floor(mob.x);
     const y = Math.floor(mob.z);
+
     if (!sim.world.inBounds(x, y)) return false;
     return sim.state.blocks.get(sim.world.toId(x, y))?.owned ?? false;
   }
@@ -1570,15 +1735,19 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   const sparklePoints: SparklePoint[] = [];
   const wispPoints: WispPoint[] = [];
+
   /** One throw of glints over the Kopdes, from the roof and the corners. */
   function cheerKopdes(): void {
     const kopdes = sim.state.kopdes;
+
     if (!kopdes) return;
+
     const side = WORLD.blockSide;
     const [bx, by] = sim.world.toXY(kopdes.blockId);
     const x = bx * side + side / 2;
     const z = by * side + side / 2;
     const y = groundAt(x, z);
+
     for (const [dx, dy, dz, n] of [
       [0, 5.2, 0, 16],
       [-2.4, 3, 1.8, 9],
@@ -1591,50 +1760,66 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   function syncSparkles(nowMs: number): void {
     sparklePoints.length = 0;
     wispPoints.length = 0;
+
     for (const mob of sim.state.mobs) {
       const glints = worthAClick(mob);
       // The babi ngepet smokes from the moment it sets foot on the estate,
       // which is also the moment it is worth clicking.
       const smokes = mob.species === 'babiNgepet' && (mob.standing || onTheEstate(mob));
+
       if (!glints && !smokes) continue;
+
       const drawn = mobField.positionOf(mob.id);
       const x = drawn?.x ?? mob.x * WORLD.blockSide;
       const z = drawn?.z ?? mob.z * WORLD.blockSide;
       const y = drawn?.y ?? groundAt(x, z);
+
       if (glints) sparklePoints.push({ x, y, z });
       if (smokes) wispPoints.push({ x, y, z });
     }
+
     sparkles.update(sparklePoints, nowMs);
     wisps.update(wispPoints, nowMs);
   }
 
   const TAP_RADIUS_PX = 42;
   const tapPoint = new Vector3();
+
   function tapMobAt(ndcX: number, ndcY: number): boolean {
     const width = handle.canvas.clientWidth;
     const height = handle.canvas.clientHeight;
     const clickX = ((ndcX + 1) / 2) * width;
     const clickY = ((1 - ndcY) / 2) * height;
+
     rig.camera.updateMatrixWorld();
+
     let best: { id: number; distance: number } | null = null;
+
     for (const mob of sim.state.mobs) {
       if (!worthAClick(mob)) continue;
+
       const drawn = mobField.positionOf(mob.id);
       const x = drawn?.x ?? mob.x * WORLD.blockSide;
       const z = drawn?.z ?? mob.z * WORLD.blockSide;
+
       tapPoint.set(x, (drawn?.y ?? groundAt(x, z)) + 1, z).project(rig.camera);
+
       const distance = Math.hypot(
         ((tapPoint.x + 1) / 2) * width - clickX,
         ((1 - tapPoint.y) / 2) * height - clickY,
       );
+
       if (distance <= TAP_RADIUS_PX && (!best || distance < best.distance)) {
         best = { id: mob.id, distance };
       }
     }
+
     if (!best) return false;
+
     const mob = sim.state.mobs.find((m) => m.id === best.id);
     const runs = mob?.species === 'babiNgepet';
     const at = mobField.positionOf(best.id);
+
     if (!dispatch({ type: 'TapMob', mob: best.id }).ok) return false;
     // Coins first, so they fall from where it was standing.
     if (at) coins.burst(at.x, at.y + 1.2, at.z, runs ? 14 : 10);
@@ -1654,6 +1839,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     },
     onDoubleClick: (ndc) => {
       const block = picker.pickBlock(ndc.x, ndc.y);
+
       if (block !== null) {
         select(block);
         focusBlock(block);
@@ -1689,9 +1875,11 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   const resize = (): void => {
     const { width, height } = handle.resize();
+
     rig.setAspect(width / height);
   };
   const observer = new ResizeObserver(resize);
+
   observer.observe(stage);
   resize();
 
@@ -1711,6 +1899,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   excavator.sync(sim.state, sim.world, worldNow());
   if (runOver(sim.state)) showEpilogue();
   time.subscribe(() => refreshHud());
+
   // `?debug` exposes the running sim for the browser suite and for poking at
   // events by hand. Single-player and local, so this is a console, not a cheat.
   if (params.has('debug')) {
@@ -1729,6 +1918,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
           render: { drawCalls: number; triangles: number };
           memory: { geometries: number; textures: number; programs: number; total: number };
         };
+
         return {
           geometries: info.memory.geometries,
           textures: info.memory.textures,
@@ -1764,11 +1954,13 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     );
   // A run that is already over reopens on its epilogue, not the title.
   const titleScreen = !params.has('seed') && !params.has('fresh') && !runOver(sim.state);
+
   /** What the welcome-back card says about the loaded save. */
   function saveSummary(): SaveSummary {
     const { state } = sim;
     let savedAt: string | null = null;
     const manifest = storage.get(slot.manifestKey);
+
     if (manifest) {
       try {
         savedAt = (JSON.parse(manifest) as { savedAt?: string }).savedAt ?? null;
@@ -1776,18 +1968,22 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         savedAt = null;
       }
     }
+
     let planted = 0;
     let beetleBlocks = 0;
+
     for (const block of state.blocks.values()) {
       if (block.phase === 'planted') planted += 1;
       if (block.phase === 'planted' && block.beetles > BEETLES.seedPopulation) beetleBlocks += 1;
     }
+
     const chips: SaveSummary['chips'] = eventChips().map((c) => ({
       icon: c.tone === 'water' ? 'rain' : c.tone === 'fire' ? 'fire' : 'haze',
       label:
         c.daysLeft === null ? c.label : t('events.withDays', { label: c.label, n: c.daysLeft }),
       tone: c.tone,
     }));
+
     if (beetleBlocks > 0)
       chips.push({
         icon: 'beetle',
@@ -1797,7 +1993,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
             : t('events.beetlesMany', { n: beetleBlocks }),
         tone: 'pest',
       });
+
     const met = ispoConditions(state, sim.world).filter((c) => c.met).length;
+
     chips.push({ icon: 'certificate-ispo', label: t('events.ispo', { met }), tone: 'plain' });
     return {
       code: state.estateName
@@ -1811,6 +2009,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       chips,
     };
   }
+
   const startScreen = new StartScreen(root, {
     start: () => beginPlay(),
     resume: () => beginPlay(),
@@ -1827,6 +2026,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       // world, so naming an estate is enough to start one.
       const from = code === '' ? name : code;
       const seed = from === '' ? randomSeed() : seedFromEstateCode(from);
+
       if (seed === null) return t('start.codeError');
       switchSim(freshSim(seed, name));
       beginPlay();
@@ -1835,6 +2035,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     howToPlay: () => help.toggle(),
     settings: () => menu.toggle(),
   });
+
   /** Fade the title out and pull the camera in on the estate; the clock starts with it. */
   function beginPlay(): void {
     playing = true;
@@ -1842,12 +2043,15 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     startScreen.dismiss();
     hud.setHidden(false);
     ticker.setHidden(false);
+
     const now = performance.now();
+
     if (sim.state.kopdes) focusBlock(sim.state.kopdes.blockId);
     rig.zoomTo(1.5, now, START_FADE_MS + 900);
     time.set(1);
     welcome();
   }
+
   if (titleScreen) {
     time.set(0);
     rig.setZoom(0.62);

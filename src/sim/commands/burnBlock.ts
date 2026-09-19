@@ -13,17 +13,23 @@ type BurnBlock = Extract<Command, { type: 'BurnBlock' }>;
 export const burnBlock: CommandHandler<BurnBlock> = {
   validate(ctx, command) {
     const { state, world } = ctx;
+
     if (!world.inBounds(...world.toXY(command.block))) {
       return reject('unknownBlock', 'That block is outside the map.');
     }
+
     const block = readBlock(state, world, command.block);
+
     if (!block.owned) return reject('notOwned', 'You do not own this block.');
+
     if (block.bannedUntil > state.tick) {
       return reject('banned', `Clearing is banned here until day ${block.bannedUntil}.`);
     }
+
     if (operatingBanned(state)) return reject('banned', operatingBanReason(state));
     if (underInvestigation(state)) return reject('banned', investigationReason(state));
     if (block.burning) return reject('burning', 'This block is already burning.');
+
     if (!isFuel(block, false)) {
       return reject(
         'noFuel',
@@ -34,9 +40,11 @@ export const burnBlock: CommandHandler<BurnBlock> = {
             : 'Nothing here will burn.',
       );
     }
+
     if (state.economy.cash < FIRE.burnCost) {
       return reject('noCash', `A burn crew costs Rp ${FIRE.burnCost.toLocaleString('id-ID')}.`);
     }
+
     return null;
   },
 
@@ -44,6 +52,7 @@ export const burnBlock: CommandHandler<BurnBlock> = {
     const { state, events } = ctx;
     // Under a wildfire every new fire is a wildfire.
     const intensity = isWildfire(state) ? 3 : command.intensity;
+
     ignite(ctx, command.block, intensity);
     staffBlock(ctx, command.block);
     spend(state, FIRE.burnCost, 'wages', `burn: block ${command.block}`);

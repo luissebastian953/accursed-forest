@@ -25,6 +25,7 @@ export function isWildfire(state: SimState): boolean {
  */
 export function isFuel(block: Readonly<Block>, wildfire: boolean): boolean {
   if (block.burning) return false;
+
   switch (block.phase) {
     case 'wild':
       return block.biome !== 'river' && block.biome !== 'village';
@@ -55,6 +56,7 @@ export function fuelFactor(block: Readonly<Block>): number {
     block.phase === 'cleared' || block.phase === 'clearing'
       ? 1 + (block.debris / 100) * FIRE.debrisFuel
       : 1;
+
   return dryness * debris;
 }
 
@@ -66,15 +68,19 @@ export function ignite(
   natural = false,
 ): Block {
   const block = writeBlock(ctx.state, ctx.world, id);
+
   block.burning = true;
   block.fireIntensity = intensity;
   block.clearProgress = 0;
+
   const fires = ctx.state.weather.naturalFires;
+
   if (natural) {
     if (!fires.includes(id)) fires.push(id);
   } else if (fires.includes(id)) {
     ctx.state.weather.naturalFires = fires.filter((b) => b !== id);
   }
+
   return block;
 }
 
@@ -92,8 +98,10 @@ function forgetNaturalFire(state: SimState, id: BlockId): void {
 export function finishBurn(ctx: SimContext, block: Block): void {
   const { state, events } = ctx;
   const palms = state.palms.get(block.id);
+
   if (palms) {
     let count = 0;
+
     for (const t of palms.plantedAt) if (t >= 0) count += 1;
     state.palms.delete(block.id);
     block.debris = Math.min(100, block.debris + FIRE.debrisFromBurnedPalms);
@@ -120,6 +128,7 @@ export function extinguish(ctx: SimContext, block: Block): void {
     ctx.events.push({ type: 'FireExtinguished', block: block.id });
     return;
   }
+
   block.burning = false;
   block.fireIntensity = 0;
   block.clearProgress = 0;
@@ -135,21 +144,26 @@ export function extinguish(ctx: SimContext, block: Block): void {
  */
 export function startWildfire(state: SimState, events: EventSink): void {
   if (isWildfire(state)) return;
+
   const tick = state.tick;
+
   state.weather.activeEvents.push({ id: WILDFIRE_EVENT, startedAt: tick, endsAt: tick + 1 });
   state.weather.activeEvents.push({
     id: HAZE_EVENT,
     startedAt: tick,
     endsAt: tick + FIRE.hazeTailDays,
   });
+
   for (const block of state.blocks.values()) {
     if (block.burning) block.fireIntensity = 3;
   }
+
   events.push({ type: 'WildfireStarted' });
 }
 
 export function burningBlocks(state: SimState): Block[] {
   const out: Block[] = [];
+
   for (const block of state.blocks.values()) if (block.burning) out.push(block);
   return out;
 }

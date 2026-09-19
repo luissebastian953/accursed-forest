@@ -68,6 +68,7 @@
       value: s.settled > 0 ? formatRp(s.settled) : t('epilogue.none'),
       tone: s.settled > 0 ? 'warn' : 'plain',
     });
+
     switch (view.ending) {
       case 'clean':
         return [

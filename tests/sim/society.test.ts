@@ -22,17 +22,22 @@ import type { BlockId } from '@sim/types.ts';
 
 function ownedWild(sim: Sim): BlockId[] {
   const out: BlockId[] = [];
+
   for (const block of sim.state.blocks.values()) {
     if (block.owned && block.phase === 'wild' && BIOMES[block.biome].clearable) out.push(block.id);
   }
+
   return out;
 }
 
 /** Run the news system alone over a hand-made set of events. */
 function newsFor(sim: Sim, events: SimEvent[]) {
   const sink = new EventSink();
+
   for (const e of events) sink.push(e);
+
   const before = sim.state.society.news.length;
+
   newsSystem({ state: sim.state, world: sim.world, events: sink });
   return sim.state.society.news.slice(before);
 }
@@ -45,8 +50,10 @@ function tickFor<T extends SimEvent['type']>(
 ): Extract<SimEvent, { type: T }> | null {
   for (let i = 0; i < limit; i++) {
     const hit = sim.tick().find((e) => e.type === type);
+
     if (hit) return hit as Extract<SimEvent, { type: T }>;
   }
+
   return null;
 }
 
@@ -62,9 +69,11 @@ describe('news templates (GDD 3.7)', () => {
       until: 'Year 3, day 1',
       cost: 'Rp 75.000.000',
     };
+
     for (const [key, t] of Object.entries(NEWS_TEMPLATES)) {
       expect(t.titles.length, key).toBeGreaterThan(0);
       expect(t.bodies.length, key).toBeGreaterThan(0);
+
       for (const text of [...t.titles, ...t.bodies, ...t.effects]) {
         expect(render(text, sim.state, vars), `${key}: ${text}`).not.toMatch(/\{\w+\}/);
       }
@@ -95,11 +104,14 @@ describe('news templates (GDD 3.7)', () => {
     ];
     const REAL =
       /\b(Prabowo|Subianto|Jokowi|Joko|Widodo|Mulyono|Bahlil|Lahadalia|Purbaya|Sadewa|Amran|Sulaiman|Raja Juli|Antoni|Suahasil|Nazara|Kibutsuji|Muzan|Tanjiro|Kamado)\b/;
+
     for (const [key, t] of Object.entries(NEWS_TEMPLATES)) {
       for (const text of [...t.titles, ...t.bodies]) {
         expect(text, `${key} names a real person`).not.toMatch(REAL);
+
         // A title followed by a name is fine only for the cast.
         const named = text.match(/\b(?:President|Minister|Governor|General|Pak|Bu) ([A-Z]\w+)/);
+
         if (named) expect(CAST, `${key} names ${named[1]}`).toContain(named[1]);
       }
     }
@@ -131,9 +143,12 @@ describe('news system (GDD 3.7)', () => {
 
   it.each(cases)('%s makes a headline', (_label, events, key) => {
     const sim = createSim(42);
+
     sim.state.tick = 400;
+
     const items = newsFor(sim, events);
     const item = items.find((i) => i.key === key);
+
     expect(item, key).toBeDefined();
     expect(item!.title.length).toBeGreaterThan(10);
     expect(item!.lane).toBe(NEWS_TEMPLATES[key]!.lane);
@@ -141,19 +156,23 @@ describe('news system (GDD 3.7)', () => {
 
   it('many events of one kind in a tick make one headline', () => {
     const sim = createSim(42);
+
     sim.state.tick = 400;
+
     const items = newsFor(sim, [
       { type: 'Landslide', block: 1, below: null, palmsLost: 10 },
       { type: 'Landslide', block: 2, below: null, palmsLost: 20 },
       { type: 'Landslide', block: 3, below: null, palmsLost: 30 },
     ]);
     const slides = items.filter((i) => i.key === 'landslide');
+
     expect(slides.length).toBe(1);
     expect(slides[0]!.blocks).toEqual([1, 2, 3]);
   });
 
   it('honours the cooldown', () => {
     const sim = createSim(42);
+
     sim.state.tick = 400;
     expect(
       newsFor(sim, [{ type: 'LetterReceived' }]).some((i) => i.key === 'authority.letter'),
@@ -170,19 +189,25 @@ describe('news system (GDD 3.7)', () => {
 
   it("your own wildfire's smoke is not a separate haze story", () => {
     const sim = createSim(42);
+
     sim.state.tick = 400;
+
     const items = newsFor(sim, [
       { type: 'WildfireStarted' },
       { type: 'WeatherEventStarted', id: 'haze', days: 20 },
     ]);
+
     expect(items.some((i) => i.key === 'wildfire.start')).toBe(true);
     expect(items.some((i) => i.key === 'haze.start')).toBe(false);
   });
 
   it("the words of the news never touch the simulation's random stream", () => {
     const sim = createSim(42);
+
     sim.state.tick = 400;
+
     const before = cloneRng(sim.state.rng);
+
     newsFor(
       sim,
       cases.flatMap(([, events]) => events),
@@ -192,24 +217,32 @@ describe('news system (GDD 3.7)', () => {
 
   it('keeps at most the cap', () => {
     const sim = createSim(42);
+
     for (let i = 0; i < NEWS.cap + 50; i++) {
       sim.state.tick = 1000 + i * 1000;
       newsFor(sim, [{ type: 'Arrested', reason: 'attention' }]);
     }
+
     expect(sim.state.society.news.length).toBe(NEWS.cap);
   });
 
   it('a long run publishes a steady, deterministic feed across all three lanes', () => {
     const run = (): string[] => {
       const sim = createSim(1234);
+
       for (let i = 0; i < 12 * GROWTH.daysPerYear; i++) sim.tick();
       return sim.state.society.news.map((n) => `${n.tick}:${n.key}:${n.title}`);
     };
     const a = run();
+
     expect(a).toEqual(run());
+
     const sim = createSim(1234);
+
     for (let i = 0; i < 12 * GROWTH.daysPerYear; i++) sim.tick();
+
     const lanes = new Set(sim.state.society.news.map((n) => n.lane));
+
     expect(lanes.has('natural')).toBe(true);
     expect(lanes.has('economic')).toBe(true);
     expect(sim.state.society.news.length).toBeGreaterThan(12);
@@ -219,20 +252,25 @@ describe('news system (GDD 3.7)', () => {
 describe('integrity (GDD 3.7)', () => {
   it('stays in 0..1, drifts back toward its baseline, and scandals push it up for a while', () => {
     let scandals = 0;
+
     for (const seed of [1, 2, 3, 4, 5]) {
       const sim = createSim(seed);
+
       for (let i = 0; i < 25 * GROWTH.daysPerYear; i++) {
         const before = sim.state.society.integrity;
         const events = sim.tick();
         const after = sim.state.society.integrity;
+
         expect(after).toBeGreaterThanOrEqual(0);
         expect(after).toBeLessThanOrEqual(1);
+
         if (events.some((e) => e.type === 'IntegrityScandal')) {
           scandals += 1;
           expect(after).toBeGreaterThan(Math.min(1, before + INTEGRITY.scandalJump) - 0.05);
         }
       }
     }
+
     expect(scandals).toBeGreaterThan(3);
   });
 });
@@ -241,13 +279,17 @@ describe('macro economy (GDD 3.7)', () => {
   it('inflation ratchets the input index up, never past the cap, and lifts TBS by half as much', () => {
     const sim = createSim(9);
     let last = sim.state.economy.inputPriceIndex;
+
     for (let i = 0; i < 25 * GROWTH.daysPerYear; i++) {
       sim.tick();
+
       const index = sim.state.economy.inputPriceIndex;
+
       expect(index).toBeGreaterThanOrEqual(last);
       expect(index).toBeLessThanOrEqual(MACRO.maxInputIndex + 1e-9);
       last = index;
     }
+
     expect(last).toBeGreaterThan(1.05);
     // With no temporary events running the TBS factor is exactly the pass-through.
     sim.state.weather.activeEvents = sim.state.weather.activeEvents.filter(
@@ -259,22 +301,28 @@ describe('macro economy (GDD 3.7)', () => {
   it('a temporary event moves the TBS mean while it runs and ends with an announcement', () => {
     const sim = createSim(9);
     const base = tbsMeanFactor(sim.state);
+
     sim.state.weather.activeEvents.push({
       id: `${MACRO_PREFIX}millStrike`,
       startedAt: sim.state.tick,
       endsAt: sim.state.tick + 3,
     });
     expect(tbsMeanFactor(sim.state)).toBeCloseTo(base * MACRO.events.millStrike.tbsFactor, 9);
+
     const ended = tickFor(sim, 'MacroEventEnded', 5);
+
     expect(ended?.id).toBe('millStrike');
     expect(tbsMeanFactor(sim.state)).toBeCloseTo(base, 9);
   });
 
   it('shop prices follow the index', () => {
     const sim = createSim(9);
+
     sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
     sim.state.economy.inputPriceIndex = 1.5;
+
     const cash = sim.state.economy.cash;
+
     sim.dispatch({ type: 'BuyItem', item: 'fertilizer', quantity: 1 });
     expect(cash - sim.state.economy.cash).toBe(Math.round(1_250_000 * 1.5));
   });
@@ -288,13 +336,20 @@ describe('authority (GDD 3.9)', () => {
 
   it('a medium burn raises attention by its weight times the integrity factor', () => {
     const sim = createSim(42);
+
     while (sim.state.weather.dayOfYear < 130) sim.tick();
     quiet(sim);
+
     const factor = attentionFactor(sim.state);
+
     sim.dispatch({ type: 'BurnBlock', block: ownedWild(sim)[0]!, intensity: 2 });
+
     const before = sim.state.society.attention;
+
     sim.tick();
+
     const gained = sim.state.society.attention - before;
+
     expect(gained).toBeGreaterThan(ATTENTION.burn[2] * factor * 0.8);
     expect(gained).toBeLessThan(ATTENTION.burn[2] * 1.6);
   });
@@ -302,6 +357,7 @@ describe('authority (GDD 3.9)', () => {
   it('low integrity makes the meter climb slower than high', () => {
     const low = createSim(42);
     const high = createSim(42);
+
     low.state.society.integrity = 0.1;
     high.state.society.integrity = 0.9;
     expect(attentionFactor(low.state)).toBeLessThan(attentionFactor(high.state));
@@ -312,9 +368,12 @@ describe('authority (GDD 3.9)', () => {
     const forest = [...sim.state.blocks.values()].find(
       (b) => b.owned && b.biome === 'forest' && b.phase === 'wild',
     )!;
+
     sim.dispatch({ type: 'ChopBlock', block: forest.id });
     expect(tickFor(sim, 'ForestChopped', 60)).not.toBeNull();
+
     const after = sim.state.society.attention;
+
     expect(after).toBeGreaterThan(0);
 
     sim.state.society.attention = 50;
@@ -324,7 +383,9 @@ describe('authority (GDD 3.9)', () => {
     sim.state.economy.cash = 1e9;
     sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
     sim.dispatch({ type: 'BuyItem', item: 'forestSapling', quantity: SLOTS_PER_BLOCK });
+
     const beforePlant = sim.state.society.attention;
+
     expect(sim.dispatch({ type: 'PlantBlock', block: forest.id, species: 'forest' })).toEqual({
       ok: true,
     });
@@ -338,7 +399,9 @@ describe('authority (GDD 3.9)', () => {
     const open = [...sim.state.blocks.values()].find(
       (b) => b.owned && b.phase === 'wild' && BIOMES[b.biome].openLand === true,
     );
+
     expect(open).toBeDefined();
+
     const id = open!.id;
 
     sim.state.economy.cash = 1e9;
@@ -352,6 +415,7 @@ describe('authority (GDD 3.9)', () => {
     });
 
     const s = sim.state.society;
+
     s.attention = 60;
     s.operatingBanUntil = sim.state.tick + 100;
     s.investigationUntil = sim.state.tick + 40;
@@ -371,6 +435,7 @@ describe('authority (GDD 3.9)', () => {
   it('an empty meter closes the case: no suspicion, no police', () => {
     const sim = createSim(7);
     const s = sim.state.society;
+
     s.attention = ATTENTION.decayPerDay / 2;
     s.warningLevel = 2;
     s.investigationUntil = sim.state.tick + 50;
@@ -390,6 +455,7 @@ describe('authority (GDD 3.9)', () => {
     const sim = createSim(42);
     const biome = sim.state.blocks.get(ownedWild(sim)[0]!)!.biome;
     const base = chopCost(biome, sim.state);
+
     sim.state.society.attention = AUTHORITY.letterAt + 1;
     expect(tickFor(sim, 'LetterReceived', 2)).not.toBeNull();
     expect(sim.state.society.warningLevel).toBe(1);
@@ -405,14 +471,18 @@ describe('authority (GDD 3.9)', () => {
 
   it('Warning 2: at 70 the police ban chopping and burning for six months; the harvest carries on', () => {
     const sim = createSim(42);
+
     sim.state.society.attention = AUTHORITY.investigationAt + 1;
+
     const opened = tickFor(sim, 'InvestigationOpened', 2);
+
     expect(opened?.reason).toBe('attention');
     expect(underInvestigation(sim.state)).toBe(true);
     expect(sim.state.society.warningLevel).toBe(2);
 
     const block = ownedWild(sim)[0]!;
     const chop = sim.validate({ type: 'ChopBlock', block });
+
     expect(chop).toMatchObject({ code: 'banned' });
     expect(chop!.reason).toMatch(/police investigation/);
     expect(sim.validate({ type: 'BurnBlock', block, intensity: 1 })).toMatchObject({
@@ -431,17 +501,22 @@ describe('authority (GDD 3.9)', () => {
 
   it('a case that runs its course closes for good: the old attention does not reopen it', () => {
     const sim = createSim(42);
+
     // Well over the police line, and nothing done about it for the whole case.
     sim.state.society.attention = 90;
     tickFor(sim, 'InvestigationOpened', 2);
+
     const until = sim.state.society.investigationUntil;
     const reopened: unknown[] = [];
     let closed = false;
+
     while (sim.state.tick <= until + 5) {
       const events = sim.tick();
+
       if (events.some((e) => e.type === 'InvestigationClosed')) closed = true;
       reopened.push(...events.filter((e) => e.type === 'InvestigationOpened'));
     }
+
     expect(closed).toBe(true);
     expect(reopened).toEqual([]);
     expect(underInvestigation(sim.state)).toBe(false);
@@ -456,18 +531,25 @@ describe('authority (GDD 3.9)', () => {
 
   it('any wildfire brings the police at once; a second one while they are here is an arrest', () => {
     const sim = createSim(42);
+
     while (sim.state.weather.dayOfYear < 130) sim.tick();
+
     const [a, b] = ownedWild(sim);
+
     sim.dispatch({ type: 'BurnBlock', block: a!, intensity: 2 });
     sim.dispatch({ type: 'BurnBlock', block: b!, intensity: 2 }); // tips the wildfire
+
     const opened = tickFor(sim, 'InvestigationOpened', 2);
+
     expect(opened?.reason).toBe('wildfire');
 
     // Let that fire end, then deliver a second wildfire the way the fire system would.
     for (let i = 0; i < 400 && sim.state.weather.activeEvents.some((e) => e.id === 'wildfire'); i++)
       sim.tick();
     (sim as unknown as { ctx: { events: EventSink } }).ctx.events.push({ type: 'WildfireStarted' });
+
     const arrested = tickFor(sim, 'Arrested', 2);
+
     expect(arrested?.reason).toBe('secondWildfire');
     expect(sim.state.run.ending).toBe('arrested');
     expect(sim.dispatch({ type: 'BuyItem', item: 'bibit', quantity: 1 })).toMatchObject({
@@ -477,6 +559,7 @@ describe('authority (GDD 3.9)', () => {
 
   it('attention at 100 is an arrest', () => {
     const sim = createSim(42);
+
     sim.state.society.attention = AUTHORITY.arrestAt;
     expect(tickFor(sim, 'Arrested', 2)?.reason).toBe('attention');
     expect(sim.state.run.ending).toBe('arrested');
@@ -485,10 +568,13 @@ describe('authority (GDD 3.9)', () => {
 
   it('burning next to protected forest goes straight to the police', () => {
     const sim = createSim(42);
+
     while (sim.state.weather.dayOfYear < 130) sim.tick();
+
     const block = ownedWild(sim)[0]!;
     const [x, y] = sim.world.toXY(block);
     const neighbour = writeBlock(sim.state, sim.world, sim.world.toId(x + 1, y));
+
     neighbour.biome = 'protected';
     sim.dispatch({ type: 'BurnBlock', block, intensity: 1 });
     expect(tickFor(sim, 'InvestigationOpened', 2)?.reason).toBe('protectedForest');
@@ -496,6 +582,7 @@ describe('authority (GDD 3.9)', () => {
 
   it('settling works only while integrity is low, costs dearly, and says what it was', () => {
     const sim = createSim(42);
+
     sim.state.society.attention = AUTHORITY.investigationAt + 1;
     tickFor(sim, 'InvestigationOpened', 2);
     sim.state.economy.cash = 1e9;
@@ -504,8 +591,10 @@ describe('authority (GDD 3.9)', () => {
     expect(sim.validate({ type: 'SettleInvestigation' })).toMatchObject({ code: 'wrongPhase' });
 
     sim.state.society.integrity = 0.2;
+
     const cost = settleCost(sim.state);
     const cash = sim.state.economy.cash;
+
     expect(sim.dispatch({ type: 'SettleInvestigation' })).toEqual({ ok: true });
     expect(cash - sim.state.economy.cash).toBe(cost);
     expect(underInvestigation(sim.state)).toBe(false);
@@ -525,10 +614,12 @@ describe('authority (GDD 3.9)', () => {
     const forest = [...sim.state.blocks.values()]
       .filter((b) => b.owned && b.biome === 'forest' && b.phase === 'wild')
       .slice(0, 4);
+
     for (const b of forest) {
       sim.dispatch({ type: 'ChopBlock', block: b.id });
       for (let i = 0; i < 180; i++) sim.tick();
     }
+
     expect(sim.state.society.lettersReceived).toBe(0);
   });
 });

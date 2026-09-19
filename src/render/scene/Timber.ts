@@ -12,6 +12,7 @@ import { Palette } from '../materials/paletteSlots.ts';
 const FALL_MS = 2200;
 const REST_MS = 1400;
 const SINK_MS = 2600;
+
 /** Trees a forest block gives up over a chop. */
 export const TREES_PER_BLOCK = 4;
 
@@ -24,6 +25,7 @@ interface Falling {
 function treeGeometry(seed: number) {
   const b = new BoxBuilder();
   const scale = 0.85 + ((seed * 7) % 5) * 0.08;
+
   b.addAABox(0, 1.3 * scale, 0, 0.36, 2.6 * scale, 0.36, { side: Palette.Bark });
   b.addAABox(0, 3 * scale, 0, 2.6 * scale, 1 * scale, 2.4 * scale, { side: Palette.Canopy });
   b.addAABox(0.2, 3.8 * scale, -0.2, 1.7 * scale, 0.8 * scale, 1.6 * scale, {
@@ -54,6 +56,7 @@ export class Timber {
     const x = bx * side + side / 2 + Math.cos(angle) * 3.2;
     const z = by * side + side / 2 + Math.sin(angle) * 3.2;
     const groundY = this.groundAt(x, z);
+
     mesh.position.set(x, groundY, z);
     // Yaw first, then the tip: the tree falls the way it faces, away from the crew.
     mesh.rotation.order = 'YXZ';
@@ -72,23 +75,30 @@ export class Timber {
     for (let i = this.falling.length - 1; i >= 0; i--) {
       const tree = this.falling[i]!;
       const t = nowMs - tree.startedAt;
+
       if (t < 0) continue;
+
       if (t < FALL_MS) {
         // A slow lean, then the drop, then one shudder on the ground.
         const f = t / FALL_MS;
         const angle =
           f < 0.78 ? easeInCubic(f / 0.78) : 1 - (1 - easeOutBounce((f - 0.78) / 0.22)) * 0.06;
+
         tree.mesh.rotation.x = angle * (Math.PI / 2 - 0.05);
         continue;
       }
+
       if (t < FALL_MS + REST_MS) continue;
+
       const sink = (t - FALL_MS - REST_MS) / SINK_MS;
+
       if (sink >= 1) {
         this.group.remove(tree.mesh);
         tree.mesh.geometry.dispose();
         this.falling.splice(i, 1);
         continue;
       }
+
       tree.mesh.position.y = tree.groundY - sink * sink * 1.4;
     }
   }

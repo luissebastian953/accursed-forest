@@ -34,6 +34,7 @@ export class Wisps {
     const geometry = new BoxBuilder()
       .addAABox(0, 0, 0, 0.85, 0.85, 0.85, { side: Palette.Smoke })
       .build();
+
     this.mesh = new InstancedMesh(geometry, material, MAX);
     this.mesh.count = 0;
     this.mesh.frustumCulled = false;
@@ -42,19 +43,24 @@ export class Wisps {
   /** Smoke over each point. Time is the wall clock, so it keeps rising. */
   update(points: readonly WispPoint[], nowMs: number): void {
     const count = Math.min(points.length, MAX_POINTS);
+
     this.mesh.count = count * PER_POINT;
     if (count === 0) return;
+
     const time = nowMs / 1000;
 
     let i = 0;
+
     for (let p = 0; p < count; p++) {
       const point = points[p]!;
+
       for (let g = 0; g < PER_POINT; g++) {
         // Each puff runs the same climb, offset so they leave in a stream.
         const offset = g / PER_POINT;
         const t = (time / RISE_SECONDS + offset) % 1;
         const angle = offset * Math.PI * 2 + t * 1.2;
         const radius = SPREAD + t * DRIFT;
+
         _p.set(
           point.x + Math.cos(angle) * radius,
           point.y + 0.35 + t * RISE,
@@ -67,6 +73,7 @@ export class Wisps {
         this.mesh.setMatrixAt(i++, _m.compose(_p, _q, _s));
       }
     }
+
     this.mesh.instanceMatrix.needsUpdate = true;
   }
 

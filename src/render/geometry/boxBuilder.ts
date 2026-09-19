@@ -98,9 +98,11 @@ export class BoxBuilder {
       const u = paletteU(slot);
 
       const [nx, ny, nz] = FACE_NORMALS[face];
+
       _n.set(nx, ny, nz).applyMatrix3(normalMatrix).normalize();
 
       const corners = FACE_CORNERS[face];
+
       // two triangles: 0-1-2, 0-2-3
       for (const [a, b, c] of [
         [0, 1, 2],
@@ -108,6 +110,7 @@ export class BoxBuilder {
       ] as const) {
         for (const index of [a, b, c]) {
           const corner = corners[index]!;
+
           _v.set(corner[0], corner[1], corner[2]).applyMatrix4(matrix);
           this.positions.push(_v.x, _v.y, _v.z);
           this.normals.push(_n.x, _n.y, _n.z);
@@ -131,6 +134,7 @@ export class BoxBuilder {
     skip?: Partial<Record<FaceKey, boolean>>,
   ): this {
     const m = new Matrix4().makeScale(sx, sy, sz).setPosition(cx, cy, cz);
+
     return this.addBox(m, faces, skip);
   }
 
@@ -162,6 +166,7 @@ export interface MeshArrays {
 /** Wrap mesher output in a geometry. The arrays are adopted, not copied. */
 export function geometryFromArrays(arrays: MeshArrays): BufferGeometry {
   const geometry = new BufferGeometry();
+
   geometry.setAttribute('position', new Float32BufferAttribute(arrays.positions, 3));
   geometry.setAttribute('normal', new Float32BufferAttribute(arrays.normals, 3));
   geometry.setAttribute('paletteU', new Float32BufferAttribute(arrays.paletteU, 1));
@@ -171,6 +176,7 @@ export function geometryFromArrays(arrays: MeshArrays): BufferGeometry {
 }
 
 const _normal = new Matrix3();
+
 function _normalBasis(matrix: Matrix4): Matrix3 {
   return _normal.setFromMatrix4(matrix).invert().transpose();
 }

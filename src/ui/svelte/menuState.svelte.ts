@@ -86,8 +86,11 @@ export class Menu {
     const name = this.state.name.trim();
     const code = this.state.code.trim();
     const from = code === '' ? name : code;
+
     if (from === '') return { code: '', random: true };
+
     const seed = seedFromEstateCode(from);
+
     return seed === null
       ? { code: '', random: true }
       : { code: estateCodeFor(seed), random: false };
@@ -127,6 +130,7 @@ export class Menu {
 
   update(view: MenuView): void {
     this.state.view = view;
+
     // The name box starts on what this estate is called, so a player renaming
     // one is editing rather than retyping. Only refilled while the menu is
     // shut, or when the estate itself changed: never over what is being typed.
@@ -145,11 +149,14 @@ export class Menu {
   create(): void {
     const name = this.state.name.trim();
     const code = this.state.code.trim();
+
     // The button is dead until the estate has a name, so there is always
     // something to seed from: the seed box when it is filled, the name when it
     // is not. A world drawn at random comes from the title card instead.
     if (name === '') return;
+
     const seed = seedFromEstateCode(code === '' ? name : code) ?? 0;
+
     this.state.code = '';
     this.hide();
     this.handlers.newGame(seed, name);

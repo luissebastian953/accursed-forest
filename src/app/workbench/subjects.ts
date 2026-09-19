@@ -80,6 +80,7 @@ function meshSubject(
     group,
     build(ctx) {
       const mesh = geometry(ctx);
+
       return {
         object: mesh,
         dispose: () => mesh.geometry.dispose(),
@@ -93,12 +94,15 @@ function modelSubject(id: ModelId): Subject {
   return meshSubject(`model:${id}`, MODELS[id].name, 'Scenery', (ctx) => {
     const builder = new BoxBuilder();
     const kit = new ModelKit(builder);
+
     for (let v = 0; v < 3; v++) {
       let n = (v + 1) * 7919;
       const rand = (): number => (n = (n * 1103515245 + 12345) % 2147483648) / 2147483648;
+
       kit.at({ x: (v - 1) * 4.5, y: 0, z: 0, scale: 1, turn: v * 0.9 });
       MODELS[id].build(kit, rand);
     }
+
     return new Mesh(builder.build(), ctx.material);
   });
 }
@@ -125,17 +129,23 @@ function mobSubject(id: string): Subject {
       // be up. A bare trunk appears under it while it climbs and goes again
       // after: a whole tree would only hide the thing being looked at.
       const trunk = new BoxBuilder();
+
       // Set back a little, so the climber is seen from the front rather than
       // through the bark.
       trunk.addAABox(0, 3.6, -0.6, 0.7, 7.2, 0.7, { side: Palette.PalmTrunk });
+
       const tree = new Mesh(trunk.build(), ctx.material);
+
       tree.visible = false;
+
       const group = new Group();
+
       group.add(field.group, tree);
 
       const down = (): void => {
         tree.visible = false;
       };
+
       return {
         object: group,
         update: (dt) => field.update(dt, 1),
@@ -259,6 +269,7 @@ export const SUBJECTS: readonly Subject[] = [
     build(ctx) {
       const coins = new Coins(ctx.material);
       const group = new Group();
+
       group.add(coins.mesh);
       coins.burst(0, 1, 0, 12);
       return {
@@ -279,6 +290,7 @@ export const SUBJECTS: readonly Subject[] = [
     build(ctx) {
       const sparkles = new Sparkles(ctx.spectral);
       const group = new Group();
+
       group.add(sparkles.mesh);
       return {
         object: group,
@@ -294,6 +306,7 @@ export const SUBJECTS: readonly Subject[] = [
     build(ctx) {
       const clouds = new Clouds(ctx.spectral);
       const group = new Group();
+
       group.add(clouds.mesh);
       // They fly 60 units up over a 320-unit tile: at estate scale they would
       // fill the stage, so the whole sky is shrunk onto the plinth.

@@ -35,13 +35,16 @@ function workedEstate(seed = 42): Sim {
   });
 
   const wild: BlockId[] = [];
+
   for (const block of state.blocks.values()) {
     if (block.owned && block.phase === 'wild' && BIOMES[block.biome].clearable) wild.push(block.id);
   }
+
   expect(sim.dispatch({ type: 'ChopBlock', block: wild[0]! })).toEqual({ ok: true });
   expect(sim.dispatch({ type: 'ChopBlock', block: wild[1]! })).toEqual({ ok: true });
 
   for (let i = 0; i < 50; i++) sim.tick();
+
   for (const id of [wild[0]!, wild[1]!]) {
     if (state.blocks.get(id)!.phase === 'cleared') {
       expect(sim.dispatch({ type: 'PlantBlock', block: id, species: 'palm' })).toEqual({
@@ -53,7 +56,9 @@ function workedEstate(seed = 42): Sim {
   // Buy one neighbour so a block outside the start square is diverged too.
   outer: for (const block of [...state.blocks.values()]) {
     if (!block.owned) continue;
+
     const [x, y] = world.toXY(block.id);
+
     for (const [dx, dy] of [
       [1, 0],
       [-1, 0],
@@ -62,8 +67,11 @@ function workedEstate(seed = 42): Sim {
     ] as const) {
       const nx = x + dx;
       const ny = y + dy;
+
       if (!world.inBounds(nx, ny)) continue;
+
       const id = world.toId(nx, ny);
+
       if (!state.blocks.get(id)?.owned && world.generated(nx, ny).forSale) {
         expect(sim.dispatch({ type: 'BuyBlock', block: id })).toEqual({ ok: true });
         break outer;
@@ -82,10 +90,12 @@ function stripPalmFields(storage: ReturnType<typeof memoryStorage>, chunkKeys: s
     const chunk = JSON.parse(decompressFromUTF16(storage.get(storageKey)!)!) as {
       palms: [number, Record<string, unknown>][];
     };
+
     for (const [, arrays] of chunk.palms) {
       delete arrays['ganodermaSince'];
       delete arrays['trenched'];
     }
+
     storage.map.set(storageKey, compressToUTF16(JSON.stringify(chunk)));
   }
 }
@@ -103,6 +113,7 @@ function fingerprint(state: SimState): string {
       Array.from(p.yieldAcc),
     ]);
   const { active: _active, version: _version, ...rest } = state;
+
   return JSON.stringify({ ...rest, blocks, palms });
 }
 
@@ -112,6 +123,7 @@ describe('save round-trip (GDD 7)', () => {
     const slot = slotFor();
 
     slot.save(sim.state);
+
     const loaded = slot.load();
 
     expect(fingerprint(loaded)).toBe(fingerprint(sim.state));
@@ -120,22 +132,27 @@ describe('save round-trip (GDD 7)', () => {
   it('a restored sim continues identically; the RNG position survives the trip', () => {
     const sim = workedEstate();
     const slot = slotFor();
+
     slot.save(sim.state);
 
     const restored = restoreSim(slot.load());
+
     for (let i = 0; i < 300; i++) {
       sim.tick();
       restored.tick();
     }
+
     expect(fingerprint(restored.state)).toBe(fingerprint(sim.state));
   });
 
   it('stores only diverged blocks, never the world', () => {
     const sim = workedEstate();
     const storage = memoryStorage();
+
     slotFor(storage).save(sim.state);
 
     let total = 0;
+
     for (const value of storage.map.values()) total += value.length * 2; // UTF-16 bytes
     // A 60-odd block estate with two planted blocks: well under 100 KB.
     expect(total).toBeLessThan(100_000);
@@ -144,6 +161,7 @@ describe('save round-trip (GDD 7)', () => {
     const expectedChunks = new Set(
       [...sim.state.blocks.keys()].map((id) => chunkKeyOf(sim.state.width, id)),
     );
+
     expect(new Set(manifest.chunks)).toEqual(expectedChunks);
     expect(manifest.chunks.length).toBeLessThan((WORLD.width / WORLD.chunkSide) ** 2 / 4);
   });
@@ -151,9 +169,11 @@ describe('save round-trip (GDD 7)', () => {
   it('uses the documented key layout', () => {
     const sim = workedEstate();
     const storage = memoryStorage();
+
     slotFor(storage, 'slot1').save(sim.state);
 
     const keys = storage.keys();
+
     expect(keys).toContain('accursed-forest:save:slot1');
     expect(keys.filter((k) => /^accursed-forest:save:slot1:c:\d+:\d+$/.test(k)).length).toBe(
       keys.length - 1,
@@ -164,6 +184,7 @@ describe('save round-trip (GDD 7)', () => {
     const sim = workedEstate();
     const storage = memoryStorage();
     const slot = slotFor(storage);
+
     expect(slot.exists()).toBe(false);
     slot.save(sim.state);
     expect(slot.exists()).toBe(true);
@@ -176,6 +197,7 @@ describe('save round-trip (GDD 7)', () => {
     const storage = memoryStorage();
     const a = workedEstate(1);
     const b = workedEstate(2);
+
     slotFor(storage, 'slot0').save(a.state);
     slotFor(storage, 'slot1').save(b.state);
     expect(fingerprint(slotFor(storage, 'slot0').load())).toBe(fingerprint(a.state));
@@ -190,12 +212,15 @@ describe('dirty chunks (GDD 7)', () => {
     const slot = slotFor(storage);
 
     const full = slot.save(sim.state);
+
     expect(full.length).toBeGreaterThan(2);
     storage.writes.length = 0;
 
     const dirty = new DirtyChunks();
     const someBlock = [...sim.state.palms.keys()][0]!;
+
     dirty.mark(sim.state.width, someBlock);
+
     const written = slot.save(sim.state, dirty.take());
 
     expect(written).toEqual([
@@ -208,17 +233,21 @@ describe('dirty chunks (GDD 7)', () => {
   it('an empty dirty set writes just the manifest', () => {
     const sim = workedEstate();
     const slot = slotFor();
+
     slot.save(sim.state);
     expect(slot.save(sim.state, new Set())).toEqual([slot.manifestKey]);
   });
 
   it('marking the same chunk twice is one entry; take() empties; restore() puts back', () => {
     const dirty = new DirtyChunks();
+
     dirty.mark(64, 0);
     dirty.mark(64, 1); // same 4x4 chunk
     dirty.mark(64, 64 * 8); // a different chunk
     expect(dirty.size).toBe(2);
+
     const taken = dirty.take();
+
     expect(dirty.size).toBe(0);
     dirty.restore(taken);
     expect(dirty.size).toBe(2);
@@ -228,7 +257,9 @@ describe('dirty chunks (GDD 7)', () => {
 describe('failure modes (GDD 7)', () => {
   it('a missing slot is a clear error', () => {
     const slot = slotFor();
+
     expect(() => slot.load()).toThrow(SaveError);
+
     try {
       slot.load();
     } catch (error) {
@@ -240,9 +271,11 @@ describe('failure modes (GDD 7)', () => {
     const sim = workedEstate();
     const storage = memoryStorage();
     const slot = slotFor(storage);
+
     slot.save(sim.state);
 
     const manifest = JSON.parse(storage.get(slot.manifestKey)!) as { schema: number };
+
     manifest.schema = CURRENT_SCHEMA + 5;
     storage.map.set(slot.manifestKey, JSON.stringify(manifest));
 
@@ -260,9 +293,11 @@ describe('failure modes (GDD 7)', () => {
     const sim = workedEstate();
     const storage = memoryStorage();
     const slot = slotFor(storage);
+
     slot.save(sim.state);
 
     const chunkKey = storage.keys().find((k) => k.includes(':c:'))!;
+
     storage.map.set(chunkKey, 'not compressed json at all');
     expect(() => slot.load()).toThrow(SaveError);
   });
@@ -271,11 +306,13 @@ describe('failure modes (GDD 7)', () => {
     const sim = workedEstate();
     const storage = memoryStorage();
     const slot = slotFor(storage);
+
     slot.save(sim.state);
 
     const manifest = JSON.parse(storage.get(slot.manifestKey)!) as {
       head: { economy: { cash: unknown } };
     };
+
     manifest.head.economy.cash = 'lots';
     storage.map.set(slot.manifestKey, JSON.stringify(manifest));
 
@@ -292,8 +329,11 @@ describe('failure modes (GDD 7)', () => {
     const sim = workedEstate();
     const storage = memoryStorage();
     const slot = slotFor(storage);
+
     slot.save(sim.state);
+
     const chunkKey = storage.keys().find((k) => k.includes(':c:'))!;
+
     storage.remove(chunkKey);
     expect(() => slot.load()).toThrow(/missing/);
   });
@@ -321,6 +361,7 @@ describe('migrations (GDD 7)', () => {
       },
     ];
     const save = raw(1);
+
     migrate(save, steps, 3);
     expect(order).toEqual([1, 2]);
     expect(save.manifest).toEqual({ schema: 3, a: true, b: true });
@@ -328,12 +369,14 @@ describe('migrations (GDD 7)', () => {
 
   it('is a no-op at the current schema', () => {
     const save = raw(CURRENT_SCHEMA);
+
     migrate(save);
     expect(save.manifest['schema']).toBe(CURRENT_SCHEMA);
   });
 
   it('a gap in the chain is an error, not a skipped step', () => {
     const steps: Migration[] = [{ from: 2, up: () => {} }];
+
     expect(() => migrate(raw(1), steps, 3)).toThrow(/no migration from schema 1/);
   });
 
@@ -347,6 +390,7 @@ describe('migrations (GDD 7)', () => {
         },
       },
     ];
+
     expect(() => migrate(raw(5), steps, 2)).toThrow(SaveError);
     expect(ran).toBe(false);
   });
@@ -354,6 +398,7 @@ describe('migrations (GDD 7)', () => {
   it('a save slot applies its migrations on load: a v1 save opens in the current build', () => {
     const sim = workedEstate();
     const storage = memoryStorage();
+
     slotFor(storage).save(sim.state);
 
     // Rewind to what M1a wrote: no sales fields, no pest arrays, schema 1.
@@ -363,6 +408,7 @@ describe('migrations (GDD 7)', () => {
       head: { economy: Record<string, unknown> };
       chunks: string[];
     };
+
     manifest.schema = 1;
     delete manifest.head.economy['tbsPriceHistory'];
     delete manifest.head.economy['tbsPending'];
@@ -371,14 +417,17 @@ describe('migrations (GDD 7)', () => {
     stripPalmFields(storage, manifest.chunks);
 
     const loaded = slotFor(storage).load();
+
     expect(loaded.economy.tbsPending).toBe(0);
     expect(loaded.economy.soldKgTotal).toBe(0);
     expect(loaded.economy.tbsPriceHistory).toEqual([loaded.economy.tbsPrice]);
+
     for (const palms of loaded.palms.values()) {
       expect(palms.ganodermaSince.length).toBe(SLOTS_PER_BLOCK);
       expect(palms.ganodermaSince.every((v) => v === -1)).toBe(true);
       expect(palms.trenched.every((v) => v === 0)).toBe(true);
     }
+
     // Everything the v1 save did carry survives untouched.
     expect(loaded.economy.cash).toBe(sim.state.economy.cash);
     expect(loaded.tick).toBe(sim.state.tick);
@@ -388,15 +437,20 @@ describe('migrations (GDD 7)', () => {
   it('a v2 save (M1b/M1c) opens in the current build with clean palms', () => {
     const sim = workedEstate();
     const storage = memoryStorage();
+
     slotFor(storage).save(sim.state);
+
     const key = `${KEY_PREFIX}:save:slot0`;
     const manifest = JSON.parse(storage.get(key)!) as { schema: number; chunks: string[] };
+
     manifest.schema = 2;
     storage.map.set(key, JSON.stringify(manifest));
     stripPalmFields(storage, manifest.chunks);
 
     const loaded = slotFor(storage).load();
+
     expect(loaded.palms.size).toBe(sim.state.palms.size);
+
     for (const [id, palms] of loaded.palms) {
       expect(Array.from(palms.growth)).toEqual(Array.from(sim.state.palms.get(id)!.growth));
       expect(palms.ganodermaSince.every((v) => v === -1)).toBe(true);
@@ -405,20 +459,26 @@ describe('migrations (GDD 7)', () => {
 
   it('a v3 save (M1d/M1e) opens in the current build with an empty letter count', () => {
     const sim = workedEstate();
+
     for (let i = 0; i < 200; i++) sim.tick();
+
     const storage = memoryStorage();
+
     slotFor(storage).save(sim.state);
+
     const key = `${KEY_PREFIX}:save:slot0`;
     const manifest = JSON.parse(storage.get(key)!) as {
       schema: number;
       head: { society: { lettersReceived?: number; news: { key?: string }[] } };
     };
+
     manifest.schema = 3;
     delete manifest.head.society.lettersReceived;
     for (const item of manifest.head.society.news) delete item.key;
     storage.map.set(key, JSON.stringify(manifest));
 
     const loaded = slotFor(storage).load();
+
     expect(loaded.society.lettersReceived).toBe(0);
     expect(loaded.society.news.length).toBe(sim.state.society.news.length);
     expect(loaded.society.news.every((n) => n.key === 'legacy')).toBe(true);
@@ -427,7 +487,9 @@ describe('migrations (GDD 7)', () => {
   it('a v4 save (M1f) opens with its books rebuilt from the ledger and the news', () => {
     const sim = workedEstate();
     const storage = memoryStorage();
+
     slotFor(storage).save(sim.state);
+
     const key = `${KEY_PREFIX}:save:slot0`;
     const manifest = JSON.parse(storage.get(key)!) as {
       schema: number;
@@ -437,6 +499,7 @@ describe('migrations (GDD 7)', () => {
         economy: { ledger: { kind: string; note?: string }[] };
       };
     };
+
     manifest.schema = 4;
     delete manifest.head.society['operatingBanUntil'];
     manifest.head.run = { startedAt: 0, yearSnapshots: [], insolventFor: 0 };
@@ -445,6 +508,7 @@ describe('migrations (GDD 7)', () => {
     storage.map.set(key, JSON.stringify(manifest));
 
     const loaded = slotFor(storage).load();
+
     expect(loaded.society.operatingBanUntil).toBe(-1);
     expect(loaded.run.sandbox).toBe(false);
     expect(loaded.run.lastBurnAt).toBe(-1);
@@ -471,11 +535,13 @@ describe('migrations (GDD 7)', () => {
       now: NOW,
       compressManifest: true,
     });
+
     plain.save(sim.state);
     snapshot.save(sim.state);
 
     const plainText = storage.get(plain.manifestKey)!;
     const packed = storage.get(snapshot.manifestKey)!;
+
     expect(plainText.startsWith('{')).toBe(true);
     expect(packed.length).toBeLessThan(plainText.length / 3);
     expect(fingerprint(snapshot.load())).toBe(fingerprint(sim.state));
@@ -483,6 +549,7 @@ describe('migrations (GDD 7)', () => {
 
   it('an ended run survives the trip: ending, chronicle, year summaries', () => {
     const sim = workedEstate();
+
     for (let i = 0; i < 400; i++) sim.tick();
     sim.state.economy.cash = -1;
     for (let i = 0; i < 100 && !sim.state.run.ending; i++) sim.tick();
@@ -490,26 +557,32 @@ describe('migrations (GDD 7)', () => {
     expect(sim.state.run.years.length).toBeGreaterThan(0);
 
     const slot = slotFor();
+
     slot.save(sim.state);
     expect(fingerprint(slot.load())).toBe(fingerprint(sim.state));
   });
 
   it('an estate keeps its name across a save, and an unnamed one stays unnamed', () => {
     const named = createSim(42, { name: 'Penyawit Handal' });
+
     for (let i = 0; i < 20; i++) named.tick();
+
     const slot = slotFor();
+
     slot.save(named.state);
     expect(slot.load().estateName).toBe('Penyawit Handal');
 
     // A save from before estates had names opens with none, not with junk.
     const plain = createSim(42);
     const other = slotFor();
+
     other.save(plain.state);
     expect(other.load().estateName).toBe('');
   });
 
   it('the real migration list covers every schema from 1 to current', () => {
     const covered = new Set(MIGRATIONS.map((m) => m.from));
+
     for (let schema = 1; schema < CURRENT_SCHEMA; schema++) expect(covered.has(schema)).toBe(true);
   });
 });
@@ -537,6 +610,7 @@ describe('autosave (GDD 7)', () => {
     expect(saved[0]!.length).toBeGreaterThan(2); // full write
 
     const someBlock = [...sim.state.palms.keys()][0]!;
+
     dirty.mark(sim.state.width, someBlock);
     autosave.onTick(60);
     expect(saved.length).toBe(2);
@@ -556,6 +630,7 @@ describe('autosave (GDD 7)', () => {
       dirty: new DirtyChunks(),
       onSaved: (k) => saved.push(k),
     });
+
     autosave.onTick(0);
     expect(saved).toEqual([]);
   });

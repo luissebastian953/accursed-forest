@@ -21,6 +21,7 @@ export const NOISE_TAG = {
 
 export function noiseFor(seed: number, tag: number): (x: number, y: number) => number {
   const rng: RngState = forkRng(seed, tag);
+
   return createNoise2D(() => nextFloat(rng));
 }
 
@@ -51,6 +52,7 @@ export function createElevationField(seed: number): ElevationField {
     height01,
     elevation(x, y) {
       const steps = WORLD.maxElevation + 1;
+
       return Math.min(WORLD.maxElevation, Math.floor(height01(x, y) * steps));
     },
   };

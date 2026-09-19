@@ -52,12 +52,14 @@ export class NewsPanel {
   /** Re-render if open and the feed grew or the badge changed. */
   update(news: readonly NewsItem[], status: NewsStatus): void {
     if (!this.ui.open) return;
+
     const current = this.feed;
     const same =
       news.length === current.news.length &&
       news.at(-1) === current.news.at(-1) &&
       status.unread === current.status.unread &&
       status.tick === current.status.tick;
+
     if (same) return;
     this.feed = { news, status };
   }

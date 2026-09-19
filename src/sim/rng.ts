@@ -8,9 +8,12 @@ export interface RngState {
 /** splitmix32; expands a single seed into well-mixed 32-bit words. */
 function splitmix32(seed: number): () => number {
   let x = seed | 0;
+
   return () => {
     x = (x + 0x9e3779b9) | 0;
+
     let t = x ^ (x >>> 16);
+
     t = Math.imul(t, 0x21f0aaad);
     t = t ^ (t >>> 15);
     t = Math.imul(t, 0x735a2d97);
@@ -25,6 +28,7 @@ function rotl(x: number, k: number): number {
 export function createRng(seed: number): RngState {
   const mix = splitmix32(seed);
   const state: RngState = { a: mix(), b: mix(), c: mix(), d: mix() };
+
   // The all-zero state is a fixed point of xoshiro and must never occur.
   if ((state.a | state.b | state.c | state.d) === 0) state.a = 1;
   return state;
@@ -92,16 +96,20 @@ export function pick<T>(state: RngState, items: readonly T[]): T | undefined {
  */
 export function pickWeighted(state: RngState, weights: readonly number[]): number {
   let total = 0;
+
   for (const w of weights) total += w > 0 ? w : 0;
   if (total <= 0) return -1;
 
   let roll = nextFloat(state) * total;
+
   for (let i = 0; i < weights.length; i++) {
     const w = weights[i]!;
+
     if (w <= 0) continue;
     roll -= w;
     if (roll < 0) return i;
   }
+
   return weights.length - 1;
 }
 
@@ -110,5 +118,6 @@ export function nextGaussian(state: RngState): number {
   // u must be non-zero for the log.
   const u = 1 - nextFloat(state);
   const v = nextFloat(state);
+
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
 }

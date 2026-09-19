@@ -24,20 +24,24 @@ export function daysUntilRipe(block: Readonly<Block>, tick: Tick): number | null
 /** Palms on the block that are old enough to bear fruit. */
 export function bearingCount(palms: PalmArrays, species: Species, tick: Tick): number {
   let n = 0;
+
   for (let slot = 0; slot < palms.plantedAt.length; slot++) {
     if (palms.plantedAt[slot]! < 0) continue;
     if (isBearing(slotStage(palms, slot, species, tick))) n += 1;
   }
+
   return n;
 }
 
 /** Kilograms waiting on the bearing palms of a block. */
 export function harvestableKg(palms: PalmArrays, species: Species, tick: Tick): number {
   let kg = 0;
+
   for (let slot = 0; slot < palms.plantedAt.length; slot++) {
     if (palms.plantedAt[slot]! < 0) continue;
     if (isBearing(slotStage(palms, slot, species, tick))) kg += palms.yieldAcc[slot]!;
   }
+
   return kg;
 }
 
@@ -51,6 +55,7 @@ export function pickBlock(ctx: SimContext, id: BlockId, auto: boolean): number {
   const palms = state.palms.get(id)!;
 
   let kilograms = 0;
+
   for (let slot = 0; slot < palms.plantedAt.length; slot++) {
     if (palms.plantedAt[slot]! < 0) continue;
     if (!isBearing(slotStage(palms, slot, 'palm', state.tick))) continue;
@@ -85,17 +90,21 @@ export function harvest(ctx: SimContext): void {
 
   for (const [id, palms] of state.palms) {
     const block = state.blocks.get(id);
+
     if (!block || block.phase !== 'planted' || block.species !== 'palm') continue;
 
     let bearing = false;
+
     for (let slot = 0; slot < palms.plantedAt.length; slot++) {
       const plantedAt = palms.plantedAt[slot]!;
+
       if (plantedAt < 0) continue;
       if (!isBearing(slotStage(palms, slot, 'palm', tick))) continue;
       bearing = true;
 
       // Rot: fruit does not wait on the tree forever.
       const cap = sampleCurve(YIELD_CURVE, ageInYears(plantedAt, tick)) * HARVEST.overripeCapRounds;
+
       if (palms.yieldAcc[slot]! > cap) palms.yieldAcc[slot] = cap;
     }
 
@@ -105,9 +114,11 @@ export function harvest(ctx: SimContext): void {
       block.lastHarvest = tick;
       continue;
     }
+
     if (tick - block.lastHarvest === HARVEST_ROTATION_DAYS) {
       events.push({ type: 'BlockRipe', block: id });
     }
+
     if (autoCrew && isRipe(block, tick) && harvestableKg(palms, 'palm', tick) > 0) {
       if (inKopdesRange(state, ctx.world, id)) pickBlock(ctx, id, true);
     }

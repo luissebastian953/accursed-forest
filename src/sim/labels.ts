@@ -5,6 +5,7 @@ import type { World } from './worldgen/index.ts';
 /** "45, 24" for the block at (44, 23). */
 export function blockLabel(world: World, id: BlockId): string {
   const [x, y] = world.toXY(id);
+
   return `${x + 1}, ${y + 1}`;
 }
 

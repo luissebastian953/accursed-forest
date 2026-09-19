@@ -14,23 +14,29 @@ export function itemPrice(item: ItemId, priceIndex: number): number {
 export const buyItem: CommandHandler<BuyItem> = {
   validate(ctx, command) {
     const { state } = ctx;
+
     if (!state.kopdes) return reject('noKopdes', 'Build a Kopdes first; it is where you buy.');
+
     if (!Number.isInteger(command.quantity) || command.quantity <= 0) {
       return reject('badQuantity', 'Quantity must be a whole number above zero.');
     }
+
     const cost = itemPrice(command.item, shopIndex(state)) * command.quantity;
+
     if (state.economy.cash < cost) {
       return reject(
         'noCash',
         `That costs Rp ${cost.toLocaleString('id-ID')}; you have Rp ${Math.max(0, state.economy.cash).toLocaleString('id-ID')}.`,
       );
     }
+
     return null;
   },
 
   apply(ctx, command) {
     const { state, events } = ctx;
     const cost = itemPrice(command.item, shopIndex(state)) * command.quantity;
+
     spend(state, cost, 'purchase', `${command.quantity} × ${command.item}`);
     state.inventory[command.item] += command.quantity;
     events.push({ type: 'ItemBought', item: command.item, quantity: command.quantity });

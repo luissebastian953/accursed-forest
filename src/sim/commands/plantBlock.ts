@@ -30,31 +30,37 @@ export function plantingCost(
 export const plantBlock: CommandHandler<PlantBlock> = {
   validate(ctx, command) {
     const { state, world } = ctx;
+
     if (!world.inBounds(...world.toXY(command.block))) {
       return reject('unknownBlock', 'That block is outside the map.');
     }
 
     const block = readBlock(state, world, command.block);
+
     if (!block.owned) return reject('notOwned', 'You do not own this block.');
     if (block.burning) return reject('burning', 'This block is on fire.');
     // Planting forest back is what the ban is asking for.
     if (command.species === 'palm' && operatingBanned(state))
       return reject('banned', operatingBanReason(state));
+
     if (block.bannedUntil > state.tick) {
       return reject('banned', `Planting is banned here until day ${block.bannedUntil}.`);
     }
+
     // Grass and scrub have nothing standing on them, so saplings go straight
     // in. Palms still want the land prepared first.
     const openWild =
       block.phase === 'wild' &&
       command.species === 'forest' &&
       BIOMES[block.biome].openLand === true;
+
     if (block.phase !== 'cleared' && !openWild) {
       return reject(
         'wrongPhase',
         block.phase === 'wild' ? 'Clear the block first.' : 'This block is already in use.',
       );
     }
+
     // Nothing takes root in spoil: the slide comes off the hectare first.
     if (block.landslideAt >= 0) {
       return reject('wrongPhase', 'Dig the slide out before planting anything here.');
@@ -63,13 +69,16 @@ export const plantBlock: CommandHandler<PlantBlock> = {
     const item = seedlingItem(command.species);
     const needed = seedlingsNeeded(block.biome);
     const have = state.inventory[item];
+
     if (have < needed) {
       const label = command.species === 'forest' ? 'saplings' : 'bibit';
+
       return reject(
         'noInventory',
         `Needs ${needed} ${label}; you have ${have}. Buy them at the Kopdes.`,
       );
     }
+
     return null;
   },
 
@@ -82,6 +91,7 @@ export const plantBlock: CommandHandler<PlantBlock> = {
 
     const palms = createPalmArrays();
     const count = plantSlots(palms, needed, state.tick);
+
     state.palms.set(command.block, palms);
 
     block.species = command.species;

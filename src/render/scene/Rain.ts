@@ -34,6 +34,7 @@ export class Rain {
     const geometry = new BoxBuilder()
       .addAABox(0, 0, 0, 0.06, 1.1, 0.06, { side: Palette.Rain })
       .build();
+
     this.mesh = new InstancedMesh(geometry, material, MAX_DROPS);
     this.mesh.count = 0;
     this.mesh.frustumCulled = false;
@@ -66,8 +67,11 @@ export class Rain {
       ? DRIZZLE + (1 - DRIZZLE) * clamp01((rain - SKY.rainAbove) / (1 - SKY.rainAbove))
       : 0;
     const step = Math.min(1, EASE * dtSeconds);
+
     this.intensity += (target - this.intensity) * step;
+
     const count = Math.floor(MAX_DROPS * this.intensity);
+
     this.mesh.count = count;
     if (count === 0) return;
 
@@ -75,23 +79,27 @@ export class Rain {
     const d = view.maxZ - view.minZ;
     const fall = running ? SPEED * dtSeconds : 0;
     const drift = running ? DRIFT_X * dtSeconds : 0;
+
     for (let i = 0; i < count; i++) {
       let x = this.x[i]! + drift;
       let y = this.y[i]! - fall;
       let z = this.z[i]!;
       const outside =
         x < view.minX - 4 || x > view.maxX + 4 || z < view.minZ - 4 || z > view.maxZ + 4;
+
       if (y < -1 || outside || (x === 0 && z === 0)) {
         x = view.minX + this.random() * w;
         z = view.minZ + this.random() * d;
         y = y < -1 ? TOP : this.random() * TOP;
       }
+
       this.x[i] = x;
       this.y[i] = y;
       this.z[i] = z;
       this.m.makeRotationZ(-0.1).setPosition(x, y, z);
       this.mesh.setMatrixAt(i, this.m);
     }
+
     this.mesh.instanceMatrix.needsUpdate = true;
   }
 

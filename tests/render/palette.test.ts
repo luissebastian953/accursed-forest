@@ -11,6 +11,7 @@ import { PALETTE_WIDTH, Palette, createPaletteTexture, paletteU } from '@render/
 
 function slotBytes(data: Uint8Array, slot: number, row: 0 | 1): number[] {
   const at = (row * PALETTE_WIDTH + slot) * 4;
+
   return [data[at]!, data[at + 1]!, data[at + 2]!, data[at + 3]!];
 }
 
@@ -31,6 +32,7 @@ describe('the palette strip', () => {
 
   it('lights the gold, and nothing else', () => {
     const glowing = [Palette.Coin, Palette.Sparkle, Palette.FurCapybaraGold];
+
     for (const slot of glowing) {
       for (const row of [0, 1] as const) {
         expect(slotBytes(data, slot, row)[3]).toBeGreaterThan(0);
@@ -39,6 +41,7 @@ describe('the palette strip', () => {
 
     // Everything else is unlit: land that glowed would bloom in daylight.
     const dark = [Palette.Grass, Palette.PalmFrond, Palette.River, Palette.Cloud, Palette.ApeGrey];
+
     for (const slot of dark) {
       expect(slotBytes(data, slot, 0)[3]).toBe(0);
       expect(slotBytes(data, slot, 1)[3]).toBe(0);
@@ -49,6 +52,7 @@ describe('the palette strip', () => {
     // A washed-out gold is one whose blue has crept up: it reads as cream.
     for (const slot of [Palette.Coin, Palette.FurCapybaraGold]) {
       const [r, g, b] = slotBytes(data, slot, 0) as [number, number, number, number];
+
       expect(r).toBeGreaterThan(200);
       expect(g).toBeGreaterThan(80);
       expect(g).toBeLessThan(r);

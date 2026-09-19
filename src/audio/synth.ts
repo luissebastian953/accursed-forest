@@ -17,11 +17,14 @@ export type NoiseColour = 'white' | 'pink' | 'brown';
  */
 export function noiseBuffer(ctx: BaseAudioContext, colour: NoiseColour = 'white'): AudioBuffer {
   let byColour = noiseCache.get(ctx);
+
   if (!byColour) {
     byColour = new Map();
     noiseCache.set(ctx, byColour);
   }
+
   const cached = byColour.get(colour);
+
   if (cached) return cached;
 
   const length = Math.floor(ctx.sampleRate * NOISE_SECONDS);
@@ -40,6 +43,7 @@ export function noiseBuffer(ctx: BaseAudioContext, colour: NoiseColour = 'white'
   } else if (colour === 'brown') {
     // A random walk, kept off the rails by leaking back toward zero.
     let last = 0;
+
     for (let i = 0; i < length; i++) {
       last = (last + random() * 0.08) * 0.996;
       // Scaled to sit around the same level as the white and pink buffers:
@@ -51,31 +55,40 @@ export function noiseBuffer(ctx: BaseAudioContext, colour: NoiseColour = 'white'
     // Pink: the Voss-McCartney approximation, cheap and close enough.
     const rows = new Float32Array(6);
     let running = 0;
+
     for (let i = 0; i < length; i++) {
       let index = 0;
       let n = i;
+
       while (index < rows.length && (n & 1) === 0) {
         n >>= 1;
         index += 1;
       }
+
       if (index < rows.length) {
         running -= rows[index]!;
         rows[index] = random() * 0.5;
         running += rows[index]!;
       }
+
       data[i] = (running + random() * 0.2) * 0.9;
     }
   }
+
   // Fold the tail into the head so the loop point is not a step.
   const seam = Math.min(Math.floor(ctx.sampleRate * NOISE_SEAM), Math.floor(length / 2));
   const kept = length - seam;
   const seamless = ctx.createBuffer(1, kept, ctx.sampleRate);
   const out = seamless.getChannelData(0);
+
   out.set(data.subarray(0, kept));
+
   for (let i = 0; i < seam; i++) {
     const w = i / seam;
+
     out[i] = data[i]! * w + data[kept + i]! * (1 - w);
   }
+
   byColour.set(colour, seamless);
   return seamless;
 }
@@ -87,6 +100,7 @@ export function noiseSource(
   at = 0,
 ): AudioBufferSourceNode {
   const source = ctx.createBufferSource();
+
   source.buffer = noiseBuffer(ctx, colour);
   source.loop = true;
   source.start(at);
@@ -115,10 +129,13 @@ export function envelope(ctx: BaseAudioContext, at: number, shape: EnvelopeShape
   const gain = ctx.createGain();
   const floor = 0.0001;
   const top = at + Math.max(attack, 0.001);
+
   gain.gain.setValueAtTime(floor, at);
   gain.gain.linearRampToValueAtTime(peak, top);
   if (hold > 0) gain.gain.setValueAtTime(peak, top + hold);
+
   const end = top + hold + decay;
+
   if (curve === 'exponential') gain.gain.exponentialRampToValueAtTime(floor, end);
   else gain.gain.linearRampToValueAtTime(0, end);
   return gain;
@@ -138,6 +155,7 @@ export function tone(
 ): OscillatorNode {
   const { type = 'sine', from, to = from, seconds, detune = 0 } = options;
   const osc = ctx.createOscillator();
+
   osc.type = type;
   osc.detune.value = detune;
   osc.frequency.setValueAtTime(from, at);
@@ -161,12 +179,15 @@ export function filter(
 ): BiquadFilterNode {
   const { type = 'lowpass', from, to = from, seconds = 0, q = 1 } = options;
   const node = ctx.createBiquadFilter();
+
   node.type = type;
   node.Q.value = q;
   node.frequency.setValueAtTime(from, at);
+
   if (to !== from && seconds > 0) {
     node.frequency.exponentialRampToValueAtTime(Math.max(to, 1), at + seconds);
   }
+
   return node;
 }
 
@@ -178,9 +199,12 @@ export function lfo(
 ): OscillatorNode {
   const { rate, depth, type = 'sine', at = 0 } = options;
   const osc = ctx.createOscillator();
+
   osc.type = type;
   osc.frequency.value = rate;
+
   const gain = ctx.createGain();
+
   gain.gain.value = depth;
   osc.connect(gain).connect(target);
   osc.start(at);
@@ -201,12 +225,15 @@ export function drift(
 ): AudioBufferSourceNode {
   const { seconds, depth, at = 0 } = options;
   const source = ctx.createBufferSource();
+
   source.buffer = noiseBuffer(ctx, 'brown');
   source.loop = true;
   // The brown walk leaks back toward zero over about five milliseconds, so
   // playing it that much slower stretches one wander to `seconds`.
   source.playbackRate.value = Math.max(0.0001, 0.005 / Math.max(seconds, 0.001));
+
   const gain = ctx.createGain();
+
   gain.gain.value = depth;
   source.connect(gain).connect(target);
   source.start(at);
@@ -216,9 +243,11 @@ export function drift(
 /** Chain nodes in order and return the last, so a recipe reads top to bottom. */
 export function chain<T extends AudioNode>(first: AudioNode, ...rest: [...AudioNode[], T]): T {
   let node = first;
+
   for (const next of rest) {
     node.connect(next);
     node = next;
   }
+
   return node as T;
 }

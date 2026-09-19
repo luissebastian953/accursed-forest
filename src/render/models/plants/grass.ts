@@ -6,6 +6,7 @@ export const grassTuft: Model = {
   radius: 0.4,
   build(kit, rand) {
     const slot = rand() < 0.5 ? Palette.GrassLight : Palette.Reed;
+
     kit.box(0, 0, 0, 0.45, between(rand, 0.3, 0.55), 0.4, slot, { turn: rand() });
   },
 };

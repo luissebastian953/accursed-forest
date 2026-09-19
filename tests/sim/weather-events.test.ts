@@ -31,9 +31,11 @@ import type { BlockId } from '@sim/types.ts';
 
 function ownedWild(sim: Sim): BlockId[] {
   const out: BlockId[] = [];
+
   for (const block of sim.state.blocks.values()) {
     if (block.owned && block.phase === 'wild' && BIOMES[block.biome].clearable) out.push(block.id);
   }
+
   return out;
 }
 
@@ -42,30 +44,37 @@ function nearWild(sim: Sim): BlockId {
   const [kx, ky] = sim.world.toXY(sim.state.worldGen.kopdesBlock);
   let best = -1;
   let bestD = Infinity;
+
   for (const id of ownedWild(sim)) {
     const [x, y] = sim.world.toXY(id);
     const d = Math.abs(x - kx) + Math.abs(y - ky);
+
     if (d < bestD) {
       bestD = d;
       best = id;
     }
   }
+
   return best;
 }
 
 function tickUntil(sim: Sim, predicate: () => boolean, limit = 5000): number {
   let n = 0;
+
   while (!predicate() && n < limit) {
     sim.tick();
     n += 1;
   }
+
   return n;
 }
 
 function plant(sim: Sim, block: BlockId): void {
   if (!sim.state.kopdes)
     sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
+
   const b = writeBlock(sim.state, sim.world, block);
+
   b.phase = 'cleared';
   b.debris = 0;
   sim.state.economy.cash = 1_000_000_000;
@@ -77,6 +86,7 @@ function plant(sim: Sim, block: BlockId): void {
 
 function startEvent(sim: Sim, id: string, days: number, blocks?: BlockId[]): void {
   const event = { id, startedAt: sim.state.tick + 1, endsAt: sim.state.tick + 1 + days };
+
   sim.state.weather.activeEvents.push(blocks ? { ...event, blocks } : event);
 }
 
@@ -84,16 +94,20 @@ describe('event deck (GDD 3.6)', () => {
   it('deals about one event a year, and ash is rare', () => {
     const counts: Record<string, number> = {};
     const years = 3 * 25;
+
     for (const seed of [11, 12, 13]) {
       const sim = createSim(seed);
+
       for (let i = 0; i < 25 * GROWTH.daysPerYear; i++) {
         for (const e of sim.tick()) {
           if (e.type === 'WeatherEventStarted') counts[e.id] = (counts[e.id] ?? 0) + 1;
         }
       }
     }
+
     const perYear = (id: string): number => (counts[id] ?? 0) / years;
     const dealt = perYear('haze') + perYear('flood') + perYear('ash');
+
     expect(dealt).toBeGreaterThan(0.6);
     expect(dealt).toBeLessThan(2.2);
     expect(perYear('ash')).toBeLessThan(0.25);
@@ -103,10 +117,13 @@ describe('event deck (GDD 3.6)', () => {
     // With a flood held open all year, wet-season draws must not become ash falls.
     let ash = 0;
     const years = 40;
+
     for (let seed = 1; seed <= years; seed++) {
       const sim = createSim(seed);
+
       for (let i = 0; i < GROWTH.daysPerYear; i++) {
         const s = sim.state;
+
         if (!activeEvent(s, FLOOD_EVENT)) {
           s.weather.activeEvents.push({
             id: FLOOD_EVENT,
@@ -115,10 +132,12 @@ describe('event deck (GDD 3.6)', () => {
             blocks: [],
           });
         }
+
         for (const e of sim.tick())
           if (e.type === 'WeatherEventStarted' && e.id === ASH_EVENT) ash += 1;
       }
     }
+
     expect(ash / years).toBeLessThan(0.3);
   });
 
@@ -126,23 +145,30 @@ describe('event deck (GDD 3.6)', () => {
     const run = (): string[] => {
       const sim = createSim(5);
       const seen: string[] = [];
+
       for (let i = 0; i < 6 * GROWTH.daysPerYear; i++) {
         for (const e of sim.tick()) {
           if (e.type === 'WeatherEventStarted') seen.push(`${sim.state.tick}:${e.id}:${e.days}`);
         }
       }
+
       return seen;
     };
+
     expect(run()).toEqual(run());
   });
 
   it('events end on schedule and announce it', () => {
     const sim = createSim(42);
+
     startEvent(sim, HAZE_EVENT, 5);
+
     const seen: string[] = [];
+
     for (let i = 0; i < 8; i++) {
       for (const e of sim.tick()) if (e.type === 'WeatherEventEnded') seen.push(e.id);
     }
+
     expect(seen).toContain(HAZE_EVENT);
     expect(activeEvent(sim.state, HAZE_EVENT)).toBeUndefined();
   });
@@ -153,32 +179,43 @@ describe('haze and ash (GDD 3.6)', () => {
     // Twin runs share every random draw; only the haze differs.
     const hazed = createSim(42);
     const clear = createSim(42);
+
     startEvent(hazed, HAZE_EVENT, 400);
+
     let sunMax = 0;
+
     for (let i = 0; i < 360; i++) {
       hazed.tick();
       clear.tick();
       sunMax = Math.max(sunMax, hazed.state.weather.sun);
     }
+
     expect(sunMax).toBeLessThanOrEqual(HAZE.light + 1e-9);
+
     const gap = clear.state.economy.tbsPrice - hazed.state.economy.tbsPrice;
+
     expect(gap).toBeGreaterThan(2650 * HAZE.priceDip * 0.8);
   });
 
   it('ash dims the sun, scorches young fronds, then leaves the estate fertile', () => {
     const sim = createSim(42);
     const young = ownedWild(sim)[0]!;
+
     plant(sim, young);
+
     const palms = sim.state.palms.get(young)!;
 
     startEvent(sim, ASH_EVENT, 6);
     sim.tick();
     expect(sim.state.weather.sun).toBeLessThanOrEqual(ASH.light + 1e-9);
+
     const before = palms.health[0]!;
+
     for (let i = 0; i < 3; i++) sim.tick();
     expect(palms.health[0]).toBeLessThan(before);
 
     const seen: string[] = [];
+
     for (let i = 0; i < 5; i++) for (const e of sim.tick()) seen.push(e.type);
     expect(seen).toContain('AshSettled');
     expect(sim.state.blocks.get(young)!.ashUntil).toBeGreaterThan(
@@ -189,6 +226,7 @@ describe('haze and ash (GDD 3.6)', () => {
   it('the harvest refusal during ash says why', () => {
     const sim = createSim(42);
     const block = nearWild(sim);
+
     plant(sim, block);
     tickUntil(
       sim,
@@ -207,6 +245,7 @@ describe('flood (GDD 3.6)', () => {
   it('drowns young palms on low river ground, washes fertilizer out, spares drained blocks', () => {
     const sim = createSim(42);
     const [wet, dry] = ownedWild(sim);
+
     plant(sim, wet!);
     plant(sim, dry!);
     sim.dispatch({ type: 'DrainBlock', block: dry! });
@@ -214,7 +253,9 @@ describe('flood (GDD 3.6)', () => {
     sim.dispatch({ type: 'FertilizeBlock', block: wet! });
 
     startEvent(sim, FLOOD_EVENT, 10, [wet!, dry!]);
+
     let died = 0;
+
     for (let i = 0; i < 10; i++) {
       for (const e of sim.tick()) if (e.type === 'PalmDied' && e.cause === 'flood') died += 1;
     }
@@ -222,7 +263,9 @@ describe('flood (GDD 3.6)', () => {
     expect(died).toBe(SLOTS_PER_BLOCK);
     expect(sim.state.blocks.get(wet!)!.fertilizedUntil).toBeLessThanOrEqual(sim.state.tick);
     expect(sim.state.blocks.get(wet!)!.debris).toBeGreaterThan(FLOOD.debrisPerDay * 5);
+
     const dryPalms = sim.state.palms.get(dry!)!;
+
     expect(dryPalms.health.every((h, i) => dryPalms.plantedAt[i]! < 0 || h === 255)).toBe(true);
   });
 });
@@ -231,19 +274,24 @@ describe('drought (GDD 3.6)', () => {
   it('an El Niño dry season brings drought, dries unirrigated land, and real rain breaks it', () => {
     const sim = createSim(42);
     const [bare, watered] = ownedWild(sim);
+
     sim.state.economy.cash = 1_000_000_000;
     sim.dispatch({ type: 'IrrigateBlock', block: watered! });
 
     let started = false;
+
     for (let i = 0; i < 6 * GROWTH.daysPerYear && !started; i++) {
       sim.state.weather.regime = 'elNino';
       started = sim.tick().some((e) => e.type === 'WeatherEventStarted' && e.id === DROUGHT_EVENT);
     }
+
     expect(started).toBe(true);
+
     for (let i = 0; i < 5; i++) {
       sim.state.weather.regime = 'elNino';
       sim.tick();
     }
+
     if (activeEvent(sim.state, DROUGHT_EVENT)) {
       expect(sim.state.blocks.get(bare!)!.moisture).toBeLessThan(
         sim.state.blocks.get(watered!)!.moisture,
@@ -254,13 +302,16 @@ describe('drought (GDD 3.6)', () => {
     // is the point of it; a wet regime is what ends a drought. A short one may
     // already have broken during the five ticks above.
     let ended = !activeEvent(sim.state, DROUGHT_EVENT);
+
     for (let i = 0; i < 2 * GROWTH.daysPerYear && !ended; i++) {
       sim.state.weather.regime = 'laNina';
+
       if (sim.tick().some((e) => e.type === 'WeatherEventEnded' && e.id === DROUGHT_EVENT)) {
         ended = true;
         expect(sim.state.weather.rain).toBeGreaterThanOrEqual(DROUGHT.breaksAtRain);
       }
     }
+
     expect(ended).toBe(true);
     expect(activeEvent(sim.state, DROUGHT_EVENT)).toBeUndefined();
   });
@@ -269,8 +320,11 @@ describe('drought (GDD 3.6)', () => {
     const days = (regime: 'normal' | 'elNino'): number => {
       const sim = createSim(42);
       const block = ownedWild(sim)[0]!;
+
       plant(sim, block);
+
       const plantedAt = sim.state.tick;
+
       tickUntil(
         sim,
         () => {
@@ -281,6 +335,7 @@ describe('drought (GDD 3.6)', () => {
       );
       return sim.state.tick - plantedAt;
     };
+
     expect(days('elNino') - days('normal')).toBeGreaterThan(60);
   });
 });
@@ -291,14 +346,19 @@ describe('forest cover (GDD 3.6.2)', () => {
     const forest = [...sim.state.blocks.values()].find(
       (b) => b.owned && b.biome === 'forest' && b.phase === 'wild',
     );
+
     expect(forest).toBeDefined();
+
     const before = forestCoverAround(sim.state, sim.world, forest!.id);
+
     expect(before).toBeGreaterThan(0);
     expect(before).toBeLessThanOrEqual(1);
 
     writeBlock(sim.state, sim.world, forest!.id).phase = 'cleared';
     expect(forestCoverAround(sim.state, sim.world, forest!.id)).toBeLessThan(before);
+
     const estate = estateForestCover(sim.state, sim.world);
+
     expect(estate).toBeGreaterThanOrEqual(0);
     expect(estate).toBeLessThanOrEqual(1);
   });
@@ -306,6 +366,7 @@ describe('forest cover (GDD 3.6.2)', () => {
   it('reforested land counts half while young and fully once mature (GDD 3.10)', () => {
     const sim = createSim(42);
     const block = ownedWild(sim)[0]!;
+
     writeBlock(sim.state, sim.world, block).phase = 'cleared';
     sim.state.economy.cash = 1_000_000_000;
     sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
@@ -313,6 +374,7 @@ describe('forest cover (GDD 3.6.2)', () => {
     expect(sim.dispatch({ type: 'PlantBlock', block, species: 'forest' })).toEqual({ ok: true });
 
     const own = (): number => forestCoverAround(sim.state, sim.world, block, 0);
+
     expect(own()).toBe(0);
     sim.state.palms.get(block)!.growth.fill(400);
     expect(own()).toBeCloseTo(0.5, 6);
@@ -325,6 +387,7 @@ describe('landslides (GDD 3.6.2)', () => {
   it('only slopes slide, only in the wet season', () => {
     const sim = createSim(42);
     const block = { ...sim.world.block(10, 10), slope: true, phase: 'planted' as const };
+
     sim.state.weather.wetStreak = 6;
     expect(landslideChance(sim.state, sim.world, { ...block, slope: false }, true)).toBe(0);
     expect(landslideChance(sim.state, sim.world, block, false)).toBe(0);
@@ -335,9 +398,11 @@ describe('landslides (GDD 3.6.2)', () => {
     const sim = createSim(42);
     const block = ownedWild(sim)[0]!;
     const b = writeBlock(sim.state, sim.world, block);
+
     b.slope = true;
     b.phase = 'cleared';
     sim.state.weather.wetStreak = 6;
+
     const bare = landslideChance(sim.state, sim.world, b, true);
 
     expect(sim.dispatch({ type: 'CoverCropBlock', block })).toEqual({ ok: true });
@@ -358,13 +423,18 @@ describe('landslides (GDD 3.6.2)', () => {
     const high = [...sim.state.blocks.values()].find(
       (b) => b.owned && b.slope && b.phase === 'wild',
     );
+
     expect(high).toBeDefined();
     plant(sim, high!.id);
+
     const planted = BIOMES[sim.state.blocks.get(high!.id)!.biome].plantableSlots;
 
     const sink = new EventSink();
+
     slide(sim.state, sim.world, sink, high!.id);
+
     const landslide = sink.drain().find((e) => e.type === 'Landslide');
+
     if (!landslide || landslide.type !== 'Landslide') throw new Error('no Landslide event');
 
     expect(landslide.block).toBe(high!.id);
@@ -372,6 +442,7 @@ describe('landslides (GDD 3.6.2)', () => {
     expect(sim.state.palms.has(high!.id)).toBe(false);
     expect(sim.state.blocks.get(high!.id)!.phase).toBe('cleared');
     expect(sim.state.blocks.get(high!.id)!.debris).toBeGreaterThanOrEqual(LANDSLIDE.debrisOnBlock);
+
     if (landslide.below !== null) {
       expect(sim.state.blocks.get(landslide.below)!.debris).toBeGreaterThanOrEqual(
         LANDSLIDE.debrisBelow,
@@ -384,14 +455,19 @@ describe('landslides (GDD 3.6.2)', () => {
     const high = [...sim.state.blocks.values()].find(
       (b) => b.owned && b.slope && b.phase === 'wild',
     );
+
     expect(high).toBeDefined();
     plant(sim, high!.id);
+
     const planted = BIOMES[sim.state.blocks.get(high!.id)!.biome].plantableSlots;
+
     expect(sim.state.blocks.get(high!.id)!.landslideAt).toBe(-1);
 
     sim.state.tick += 200;
     slide(sim.state, sim.world, new EventSink(), high!.id);
+
     const scarred = sim.state.blocks.get(high!.id)!;
+
     expect(scarred.landslideAt).toBe(sim.state.tick);
     expect(scarred.landslidePalms).toBe(planted);
 
@@ -404,11 +480,13 @@ describe('landslides (GDD 3.6.2)', () => {
     expect(
       sim.dispatch({ type: 'BuyItem', item: 'forestSapling', quantity: SLOTS_PER_BLOCK }),
     ).toEqual({ ok: true });
+
     for (const species of ['palm', 'forest'] as const) {
       expect(sim.validate({ type: 'PlantBlock', block: high!.id, species })).toMatchObject({
         code: 'wrongPhase',
       });
     }
+
     expect(sim.state.blocks.get(high!.id)!.landslideAt).toBe(scarred.landslideAt);
 
     // Dug out, it takes seedlings again.
@@ -427,10 +505,13 @@ describe('landslides (GDD 3.6.2)', () => {
     const sim = createSim(1);
     const { state } = sim;
     const high = [...state.blocks.values()].find((b) => b.owned && b.slope && b.phase === 'wild');
+
     expect(high).toBeDefined();
     plant(sim, high!.id);
     slide(sim.state, sim.world, new EventSink(), high!.id);
+
     const block = () => sim.state.blocks.get(high!.id)!;
+
     expect(block().landslideAt).toBeGreaterThanOrEqual(0);
     expect(block().debris).toBeGreaterThan(0);
 
@@ -455,6 +536,7 @@ describe('landslides (GDD 3.6.2)', () => {
       expect(block().landslideAt).toBeGreaterThanOrEqual(0);
       sim.tick();
     }
+
     // Spoil, scar and debris all gone together.
     expect(block().landslideAt).toBe(-1);
     expect(block().landslidePalms).toBe(0);
@@ -472,36 +554,46 @@ describe('landslides (GDD 3.6.2)', () => {
       const SEEDS = 40;
       const runs = (forested: boolean): number => {
         let slid = 0;
+
         for (let seed = 1; seed <= SEEDS; seed++) {
           const sim = createSim(seed);
           const block = ownedWild(sim)[0]!;
           const [x, y] = sim.world.toXY(block);
+
           // Surround the slope with forest, or strip it bare.
           for (let dy = -2; dy <= 2; dy++) {
             for (let dx = -2; dx <= 2; dx++) {
               if (!sim.world.inBounds(x + dx, y + dy) || (dx === 0 && dy === 0)) continue;
+
               const n = writeBlock(sim.state, sim.world, sim.world.toId(x + dx, y + dy));
+
               n.biome = forested ? 'forest' : 'grassfield';
               n.phase = forested ? 'wild' : 'cleared';
             }
           }
+
           const b = writeBlock(sim.state, sim.world, block);
+
           b.slope = true;
           b.biome = 'grassfield';
           plant(sim, block);
+
           for (let i = 0; i < 2 * GROWTH.daysPerYear; i++) {
             sim.state.weather.regime = 'laNina';
+
             if (sim.tick().some((e) => e.type === 'Landslide' && e.block === block)) {
               slid += 1;
               break;
             }
           }
         }
+
         return slid;
       };
       // Statistical, so over 40 seeds: measured ~75% bare against ~15% forested.
       const bare = runs(false);
       const forested = runs(true);
+
       expect(bare).toBeGreaterThanOrEqual(SEEDS * 0.55);
       expect(forested).toBeLessThanOrEqual(SEEDS * 0.3);
       expect(bare).toBeGreaterThanOrEqual(forested * 3);
@@ -522,11 +614,13 @@ describe('the sky and its lightning (GDD 3.6)', () => {
     const sim = createSim(42);
     let changes = 0;
     let last = sim.state.weather.sky;
+
     for (let i = 0; i < 2 * GROWTH.daysPerYear; i++) {
       sim.tick();
       if (sim.state.weather.sky !== last) changes += 1;
       last = sim.state.weather.sky;
     }
+
     // Spells of 3–7 days, storms excepted: well under one change a day.
     expect(changes).toBeLessThan(GROWTH.daysPerYear * 2 * 0.4);
     expect(changes).toBeGreaterThan(40);
@@ -537,10 +631,12 @@ describe('the sky and its lightning (GDD 3.6)', () => {
     // rain only a few dozen times; three years is enough to see every kind.
     const sim = createSim(42);
     const seen = new Set<string>();
+
     for (let i = 0; i < 1080; i++) {
       sim.tick();
       seen.add(sim.state.weather.sky);
     }
+
     expect([...seen].sort()).toEqual(['clear', 'cloudy', 'rain', 'storm']);
   });
 
@@ -548,14 +644,19 @@ describe('the sky and its lightning (GDD 3.6)', () => {
     let strikes = 0;
     let fires = 0;
     let stormDays = 0;
+
     for (let seed = 1; seed <= 6; seed++) {
       const sim = createSim(seed);
+
       for (let i = 0; i < 1080; i++) {
         const storm = (() => {
           const events = sim.tick();
+
           return events.filter((e) => e.type === 'LightningStruck');
         })();
+
         if (sim.state.weather.sky === 'storm') stormDays += 1;
+
         for (const strike of storm) {
           expect(sim.state.weather.sky).toBe('storm');
           strikes += 1;
@@ -564,6 +665,7 @@ describe('the sky and its lightning (GDD 3.6)', () => {
         }
       }
     }
+
     expect(stormDays).toBeGreaterThan(100);
     expect(strikes).toBeGreaterThan(20);
     expect(fires).toBeGreaterThan(0);
@@ -572,9 +674,11 @@ describe('the sky and its lightning (GDD 3.6)', () => {
   it("a lightning fire is nobody's fault: no pressure, no attention", () => {
     const sim = createSim(3);
     let struck = false;
+
     for (let i = 0; i < 2000 && !struck; i++) {
       for (const e of sim.tick()) if (e.type === 'LightningStruck' && e.ignited) struck = true;
     }
+
     expect(struck).toBe(true);
     expect(sim.state.society.firePressure).toBe(0);
     expect(sim.state.society.attention).toBe(0);

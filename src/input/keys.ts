@@ -14,6 +14,7 @@ export interface KeyHandlers {
 export function attachKeys(handlers: KeyHandlers, target: Window = window): () => void {
   const onKey = (event: KeyboardEvent): void => {
     const el = event.target as HTMLElement | null;
+
     if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
     if (event.metaKey || event.ctrlKey || event.altKey) return;
 

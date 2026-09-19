@@ -11,6 +11,7 @@ export function linear(t: number): number {
 
 export function easeInQuad(t: number): number {
   const x = clamp01(t);
+
   return x * x;
 }
 
@@ -25,6 +26,7 @@ export function easeInCubic(t: number): number {
 export function easeOutCubic(t: number): number {
   const x = clamp01(t);
   const u = 1 - x;
+
   return 1 - u * u * u;
 }
 
@@ -32,18 +34,21 @@ export function easeOutCubic(t: number): number {
 export function easeOutBack(t: number, k: number = BACK_K): number {
   const x = clamp01(t);
   const u = x - 1;
+
   return 1 + (k + 1) * u * u * u + k * u * u;
 }
 
 /** Anticipation squat before vanishing. Pop-out. */
 export function easeInBack(t: number, k: number = BACK_K): number {
   const x = clamp01(t);
+
   return (k + 1) * x * x * x - k * x * x;
 }
 
 /** Several diminishing wobbles. Stage-change grow burst, Kopdes level-up. */
 export function easeOutElastic(t: number): number {
   const x = clamp01(t);
+
   if (x === 0) return 0;
   if (x === 1) return 1;
   return Math.pow(2, -10 * x) * Math.sin(((x * 10 - 0.75) * (2 * Math.PI)) / 3) + 1;
@@ -75,6 +80,7 @@ export function easeOutBounce(t: number): number {
  */
 export function squashStretch(curveValue: number, amount = 1): { sy: number; sxz: number } {
   const sy = Math.max(1e-4, 1 + amount * (curveValue - 1));
+
   return { sy, sxz: 1 / Math.sqrt(sy) };
 }
 

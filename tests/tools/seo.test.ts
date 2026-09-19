@@ -20,6 +20,7 @@ const sitemap = renderSitemap(SITE, (page) => DATES[page.file]!);
 function urlBlock(path: string): string {
   const blocks = sitemap.split('<url>').slice(1);
   const block = blocks.find((b) => b.includes(`<loc>${SITE}${path}</loc>`));
+
   expect(block, path).toBeDefined();
   return block!;
 }
@@ -28,6 +29,7 @@ describe('the sitemap', () => {
   it('lists exactly the indexable pages, absolute, and never the game page', () => {
     const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
     const pages = locs.filter((loc) => !SITE_IMAGES.some((image) => loc!.endsWith(image)));
+
     expect(pages).toEqual([`${SITE}/`, `${SITE}/id/`]);
     expect(sitemap).not.toContain('play.html');
   });
@@ -40,6 +42,7 @@ describe('the sitemap', () => {
   it('gives every page the full hreflang set: itself, its twin, and x-default', () => {
     for (const page of SITE_PAGES) {
       const block = urlBlock(page.path);
+
       expect(block).toContain(`hreflang="en" href="${SITE}/"`);
       expect(block).toContain(`hreflang="id" href="${SITE}/id/"`);
       expect(block).toContain(`hreflang="x-default" href="${SITE}/"`);
@@ -66,6 +69,7 @@ describe('the sitemap', () => {
     const odd = renderSitemap(SITE, () => '2026-01-01', [
       { path: '/?a=1&b=2', file: 'x.html', lang: 'en' },
     ]);
+
     expect(odd).toContain('<loc>https://sawit.example/?a=1&amp;b=2</loc>');
   });
 });
@@ -73,6 +77,7 @@ describe('the sitemap', () => {
 describe('robots.txt', () => {
   it('allows everything, the game page included, so its noindex can be read', () => {
     const robots = renderRobots(SITE);
+
     expect(robots).toContain('User-agent: *\nAllow: /');
     expect(robots).not.toContain('Disallow');
     expect(robots).toContain(`Sitemap: ${SITE}/sitemap.xml`);

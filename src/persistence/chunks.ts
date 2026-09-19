@@ -66,12 +66,15 @@ export class SaveSlot {
 
     for (const [chunkKey, chunk] of chunks) {
       if (dirty !== 'all' && !dirty.has(chunkKey)) continue;
+
       const key = this.chunkStorageKey(chunkKey);
+
       this.storage.set(key, compressToUTF16(JSON.stringify(chunk)));
       written.push(key);
     }
 
     const json = JSON.stringify(manifest);
+
     this.storage.set(this.manifestKey, this.compressManifest ? compressToUTF16(json) : json);
     written.push(this.manifestKey);
     return written;
@@ -80,30 +83,40 @@ export class SaveSlot {
   /** Read, migrate, validate and decode. Throws `SaveError`. */
   load(): SimState {
     const raw = this.readRaw();
+
     migrate(raw, this.migrations);
     return deserializeState(raw.manifest, raw.chunks.values());
   }
 
   private readRaw(): RawSave {
     const manifestText = this.storage.get(this.manifestKey);
+
     if (manifestText === null) throw new SaveError('missing', `no save in slot "${this.slot}"`);
 
     const manifestJson = manifestText.startsWith('{')
       ? manifestText
       : decompressFromUTF16(manifestText);
+
     if (!manifestJson) throw new SaveError('corrupt', 'manifest did not decompress');
+
     const manifest = parseJson(manifestJson, 'manifest');
     const listed = manifest['chunks'];
+
     if (!Array.isArray(listed)) throw new SaveError('corrupt', 'manifest has no chunk list');
 
     const chunks = new Map<string, Record<string, unknown>>();
+
     for (const chunkKey of listed) {
       if (typeof chunkKey !== 'string')
         throw new SaveError('corrupt', 'manifest chunk list is not strings');
+
       const text = this.storage.get(this.chunkStorageKey(chunkKey));
+
       if (text === null)
         throw new SaveError('corrupt', `manifest lists chunk ${chunkKey} but it is missing`);
+
       const json = decompressFromUTF16(text);
+
       if (!json) throw new SaveError('corrupt', `chunk ${chunkKey} did not decompress`);
       chunks.set(chunkKey, parseJson(json, `chunk ${chunkKey}`));
     }
@@ -114,6 +127,7 @@ export class SaveSlot {
   /** Remove the manifest and every chunk key it lists (plus any strays). */
   delete(): void {
     const prefix = `${this.manifestKey}:c:`;
+
     for (const key of this.storage.keys()) {
       if (key === this.manifestKey || key.startsWith(prefix)) this.storage.remove(key);
     }
@@ -122,14 +136,17 @@ export class SaveSlot {
 
 function parseJson(text: string, what: string): Record<string, unknown> {
   let value: unknown;
+
   try {
     value = JSON.parse(text);
   } catch (error) {
     throw new SaveError('corrupt', `${what} is not JSON`, { cause: error });
   }
+
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
     throw new SaveError('corrupt', `${what} is not an object`);
   }
+
   return value as Record<string, unknown>;
 }
 
@@ -151,6 +168,7 @@ export class DirtyChunks {
   /** Hand over the dirty set and start clean. */
   take(): Set<string> {
     const out = this.set;
+
     this.set = new Set();
     return out;
   }

@@ -61,10 +61,12 @@ const YOUNG_SCALE = 0.45;
 /** Which of the wild forest's trees came back in this slot. */
 function speciesFor(roll: number): ForestSpecies {
   let left = roll;
+
   for (const species of FOREST_SPECIES) {
     left -= SPECIES_DRAW[species].weight;
     if (left <= 0) return species;
   }
+
   return 'rainforest';
 }
 
@@ -77,15 +79,19 @@ const UP = new Vector3(0, 1, 0);
 /** Deterministic 0..1 per slot so palms never all face the same way. */
 function slotHash(block: BlockId, slot: number): number {
   const v = Math.sin(block * 12.9898 + slot * 78.233) * 43758.5453;
+
   return v - Math.floor(v);
 }
 
 function allKeys(): MeshKey[] {
   const keys: MeshKey[] = [];
+
   for (const stage of PALM_STAGES) keys.push(`${stage}:healthy`, `${stage}:sick`);
+
   for (const variant of FOREST_VARIANTS) {
     keys.push(`forest:sapling:${variant}`, `forest:shrub:${variant}`);
   }
+
   for (const species of FOREST_SPECIES) keys.push(`forest:tree:${species}`);
   keys.push('stump');
   return keys;
@@ -100,7 +106,9 @@ export class Palms {
   constructor(private readonly material: Material) {
     for (const key of allKeys()) {
       this.entries.set(key, []);
+
       const forest = key.startsWith('forest:');
+
       this.ensureCapacity(key, key === 'stump' || forest ? INITIAL_CAPACITY / 4 : INITIAL_CAPACITY);
     }
   }
@@ -114,6 +122,7 @@ export class Palms {
 
     for (const [id, palms] of state.palms) {
       const block = state.blocks.get(id);
+
       if (!block || (block.phase !== 'planted' && block.phase !== 'reforesting')) continue;
 
       const [bx, by] = world.toXY(id);
@@ -125,6 +134,7 @@ export class Palms {
 
       for (let slot = 0; slot < palms.plantedAt.length; slot++) {
         const stage = slotStage(palms, slot, block.species, state.tick);
+
         if (stage === 'empty') continue;
 
         const row = Math.floor(slot / WORLD.blockSide);
@@ -139,6 +149,7 @@ export class Palms {
           const small: MeshKey = `forest:sapling:${slotHash(id + 7919, slot) < 0.5 ? 'a' : 'b'}`;
           let key: MeshKey;
           let size = 0.78 + slotHash(id + 15485863, slot) * 0.5;
+
           if (stage === 'dead') {
             key = 'stump';
             size = 1;
@@ -154,6 +165,7 @@ export class Palms {
           } else {
             continue;
           }
+
           // Planted by hand, not on a grid: a little scatter in both directions.
           this.entries.get(key)!.push({
             x: originX + col + 0.5 + (slotHash(id + 104729, slot) - 0.5) * 0.7,
@@ -186,8 +198,11 @@ export class Palms {
 
     for (const key of this.entries.keys()) {
       const list = this.entries.get(key)!;
+
       this.ensureCapacity(key, list.length);
+
       const mesh = this.meshes.get(key)!;
+
       mesh.count = list.length;
       for (let i = 0; i < list.length; i++) this.writeMatrix(mesh, i, list[i]!, nowMs);
       mesh.instanceMatrix.needsUpdate = true;
@@ -200,20 +215,26 @@ export class Palms {
   /** Advance pop-in animations. Cheap when nothing is animating. */
   update(nowMs: number): void {
     if (!this.animating) return;
+
     let still = false;
 
     for (const [key, list] of this.entries) {
       const mesh = this.meshes.get(key)!;
       let touched = false;
+
       for (let i = 0; i < list.length; i++) {
         const entry = list[i]!;
+
         if (entry.animStart < 0) continue;
+
         const t = (nowMs - entry.animStart) / DURATION.popIn;
+
         if (t >= 1) entry.animStart = -1;
         else still = true;
         this.writeMatrix(mesh, i, entry, nowMs);
         touched = true;
       }
+
       if (touched) mesh.instanceMatrix.needsUpdate = true;
     }
 
@@ -226,6 +247,7 @@ export class Palms {
       mesh.geometry.dispose();
       mesh.dispose();
     }
+
     this.meshes.clear();
   }
 
@@ -238,6 +260,7 @@ export class Palms {
       const t = clamp01((nowMs - entry.animStart) / DURATION.popIn);
       const curve = easeOutBack(t);
       const squash = squashStretch(curve, 0.9);
+
       scale = t <= 0 ? 0 : curve * entry.size;
       sy = squash.sy;
       sxz = squash.sxz;
@@ -252,18 +275,23 @@ export class Palms {
 
   private geometryFor(key: MeshKey) {
     if (key === 'stump') return buildStumpGeometry();
+
     if (key.startsWith('forest:')) {
       const [, form, name] = key.split(':');
+
       if (form === 'tree') return buildForestTreeGeometry(name as ForestSpecies);
       if (form === 'shrub') return buildShrubGeometry(name as ForestVariant);
       return buildSaplingGeometry(name as ForestVariant);
     }
+
     const [stage, variant] = key.split(':') as [PalmStage, 'healthy' | 'sick'];
+
     return buildPalmGeometry(stage, variant);
   }
 
   private ensureCapacity(key: MeshKey, needed: number): void {
     const existing = this.meshes.get(key);
+
     if (existing && existing.instanceMatrix.count >= needed) return;
 
     const capacity = Math.max(
@@ -272,6 +300,7 @@ export class Palms {
     );
     const geometry = existing?.geometry ?? this.geometryFor(key);
     const mesh = new InstancedMesh(geometry, this.material, capacity);
+
     mesh.frustumCulled = false;
     mesh.count = 0;
 
@@ -279,6 +308,7 @@ export class Palms {
       this.group.remove(existing);
       existing.dispose();
     }
+
     this.group.add(mesh);
     this.meshes.set(key, mesh);
   }

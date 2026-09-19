@@ -64,6 +64,7 @@ export class Sky {
     // The wet season is centred ~45 days after it starts (Nov → mid-Dec/Jan).
     const wetCentre = (SEASONS.wetStartDay + 45) % SEASONS.daysPerYear;
     const phase = ((dayOfYear - wetCentre) / SEASONS.daysPerYear) * Math.PI * 2;
+
     return 0.5 - 0.5 * Math.cos(phase);
   }
 
@@ -85,6 +86,7 @@ export class Sky {
     nowMs = 0,
   ): void {
     const step = clamp01(dtSeconds * EASE_PER_SECOND);
+
     this.smoke = lerp(this.smoke, target.smoke, step);
     this.ash = lerp(this.ash, target.ash, step);
 
@@ -93,8 +95,10 @@ export class Sky {
     const murk = Math.max(this.smoke, this.ash);
 
     uniforms.season.value = season;
+
     // Ash reads grey, smoke amber; whichever is thicker leads the colour.
     const ashShare = this.smoke + this.ash > 0 ? this.ash / (this.smoke + this.ash) : 0;
+
     this.tint.copy(TINT.haze).lerp(TINT.ash, ashShare);
     uniforms.tintColor.value.copy(this.tint);
     uniforms.tintAmount.value = murk * 0.55;
@@ -119,6 +123,7 @@ export class Sky {
 
     this.sun.intensity = lerp(1.9, 1.1, rain * 0.6) * lerp(1, 0.3, murk) + flash * 2.4;
     this.hemi.intensity = lerp(1.05, 0.85, rain * 0.5) * lerp(1, 0.75, murk) + flash * 1.7;
+
     if (flash > 0) {
       this.sky.lerp(FLASH_COLOUR, flash * 0.75);
       (this.scene.background as Color).copy(this.sky);

@@ -24,6 +24,7 @@ export const MIGRATIONS: readonly Migration[] = [
     up(save) {
       const head = save.manifest['head'] as { economy?: Record<string, unknown> } | undefined;
       const economy = head?.economy;
+
       if (!economy) throw new SaveError('corrupt', 'v1 manifest has no economy');
       economy['tbsPriceHistory'] ??= [economy['tbsPrice']];
       economy['tbsPending'] ??= 0;
@@ -36,12 +37,17 @@ export const MIGRATIONS: readonly Migration[] = [
     up(save) {
       const cleanSince = encodeTypedArray(new Int32Array(SLOTS_PER_BLOCK).fill(-1));
       const noTrench = encodeTypedArray(new Uint8Array(SLOTS_PER_BLOCK));
+
       for (const chunk of save.chunks.values()) {
         const palms = chunk['palms'];
+
         if (!Array.isArray(palms)) continue;
+
         for (const entry of palms) {
           if (!Array.isArray(entry) || entry.length < 2) continue;
+
           const arrays = entry[1] as Record<string, unknown>;
+
           arrays['ganodermaSince'] ??= cleanSince;
           arrays['trenched'] ??= noTrench;
         }
@@ -54,9 +60,12 @@ export const MIGRATIONS: readonly Migration[] = [
     up(save) {
       const head = save.manifest['head'] as { society?: Record<string, unknown> } | undefined;
       const society = head?.society;
+
       if (!society) throw new SaveError('corrupt', 'v3 manifest has no society');
       society['lettersReceived'] ??= 0;
+
       const news = society['news'];
+
       if (Array.isArray(news)) {
         for (const item of news) {
           if (item && typeof item === 'object')
@@ -82,6 +91,7 @@ export const MIGRATIONS: readonly Migration[] = [
         | undefined;
       const run = head?.run;
       const society = head?.society;
+
       if (!head || !run || !society) throw new SaveError('corrupt', 'v4 manifest has no run');
 
       const tick = head.tick ?? 0;
@@ -93,6 +103,7 @@ export const MIGRATIONS: readonly Migration[] = [
         kind: string;
         amount: number;
       }[];
+
       for (const entry of ledger) {
         if (
           entry.kind === 'purchase' &&
@@ -101,9 +112,11 @@ export const MIGRATIONS: readonly Migration[] = [
           entry.kind = 'capital';
           continue;
         }
+
         if (entry.tick > yearStart) yearProfit += entry.amount;
         else profitTotal += entry.amount;
       }
+
       const burns = (head.commandLog ?? []).filter((r) => r.command.type === 'BurnBlock');
       const news = (society['news'] ?? []) as {
         tick: number;
@@ -144,6 +157,7 @@ export const MIGRATIONS: readonly Migration[] = [
     from: 5,
     up(save) {
       const head = save.manifest['head'] as { kopdes?: Record<string, unknown> | null } | undefined;
+
       if (head?.kopdes) head.kopdes['autoHarvest'] ??= false;
     },
   },
@@ -154,6 +168,7 @@ export const MIGRATIONS: readonly Migration[] = [
     up(save) {
       const head = save.manifest['head'] as { weather?: Record<string, unknown> } | undefined;
       const weather = head?.weather;
+
       if (!weather) throw new SaveError('corrupt', 'v6 manifest has no weather');
       weather['sky'] ??= skyFor(Number(weather['rain'] ?? 0));
     },
@@ -163,6 +178,7 @@ export const MIGRATIONS: readonly Migration[] = [
     from: 7,
     up(save) {
       const head = save.manifest['head'] as Record<string, unknown> | undefined;
+
       if (!head) throw new SaveError('corrupt', 'v7 manifest has no head');
       head['mobs'] ??= [];
       head['nextMobId'] ??= 1;
@@ -173,6 +189,7 @@ export const MIGRATIONS: readonly Migration[] = [
     from: 8,
     up(save) {
       const head = save.manifest['head'] as { weather?: Record<string, unknown> } | undefined;
+
       if (!head?.weather) throw new SaveError('corrupt', 'v8 manifest has no weather');
       head.weather['skyUntil'] ??= 0;
     },
@@ -182,7 +199,9 @@ export const MIGRATIONS: readonly Migration[] = [
     from: 9,
     up(save) {
       const head = save.manifest['head'] as { mobs?: Record<string, unknown>[] } | undefined;
+
       if (!head?.mobs) throw new SaveError('corrupt', 'v9 manifest has no mobs');
+
       for (const mob of head.mobs) {
         mob['intentUntil'] ??= 0;
         mob['ax'] ??= mob['x'];
@@ -196,6 +215,7 @@ export const MIGRATIONS: readonly Migration[] = [
     from: 10,
     up(save) {
       const head = save.manifest['head'] as { weather?: Record<string, unknown> } | undefined;
+
       if (!head?.weather) throw new SaveError('corrupt', 'v10 manifest has no weather');
       head.weather['naturalFires'] ??= [];
     },
@@ -205,7 +225,9 @@ export const MIGRATIONS: readonly Migration[] = [
     from: 11,
     up(save) {
       const head = save.manifest['head'] as { mobs?: Record<string, unknown>[] } | undefined;
+
       if (!head?.mobs) throw new SaveError('corrupt', 'v11 manifest has no mobs');
+
       for (const mob of head.mobs) {
         mob['climb'] ??= 0;
         mob['shiny'] ??= false;
@@ -227,7 +249,9 @@ export const MIGRATIONS: readonly Migration[] = [
     up(save) {
       for (const chunk of save.chunks.values()) {
         const blocks = chunk['blocks'] as Record<string, unknown>[] | undefined;
+
         if (!blocks) continue;
+
         for (const block of blocks) {
           block['landslideAt'] ??= -1;
           block['landslidePalms'] ??= 0;
@@ -240,10 +264,13 @@ export const MIGRATIONS: readonly Migration[] = [
     from: 14,
     up(save) {
       const head = save.manifest['head'] as { inventory?: Record<string, unknown> } | undefined;
+
       if (!head?.inventory) throw new SaveError('corrupt', 'v14 manifest has no inventory');
       head.inventory['excavationCrew'] ??= 0;
+
       for (const chunk of save.chunks.values()) {
         const blocks = chunk['blocks'] as Record<string, unknown>[] | undefined;
+
         if (!blocks) continue;
         for (const block of blocks) block['excavateUntil'] ??= -1;
       }
@@ -263,6 +290,7 @@ export const MIGRATIONS: readonly Migration[] = [
     from: 16,
     up(save) {
       const head = save.manifest['head'] as { society?: Record<string, unknown> } | undefined;
+
       if (!head?.society) throw new SaveError('corrupt', 'v16 manifest has no society');
       head.society['macroSeen'] ??= [];
     },
@@ -279,9 +307,11 @@ export function migrate(
   target: number = CURRENT_SCHEMA,
 ): void {
   const found = save.manifest['schema'];
+
   if (typeof found !== 'number' || !Number.isInteger(found) || found < 1) {
     throw new SaveError('corrupt', `manifest has no valid schema number (got ${String(found)})`);
   }
+
   if (found > target) {
     throw new SaveError(
       'newerSchema',
@@ -290,11 +320,14 @@ export function migrate(
   }
 
   let schema = found;
+
   while (schema < target) {
     const step = migrations.find((m) => m.from === schema);
+
     if (!step) {
       throw new SaveError('corrupt', `no migration from schema ${schema} to ${schema + 1}`);
     }
+
     step.up(save);
     schema += 1;
     save.manifest['schema'] = schema;

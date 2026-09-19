@@ -71,10 +71,13 @@
    */
   function badge(c: IspoCondition): string {
     if (c.met) return t('certificate.met');
+
     if (c.id === 'noBurn') {
       const days = Math.ceil((c.target - c.value) * 360);
+
       return t('certificate.daysLeft', { days });
     }
+
     return t('certificate.inProgress');
   }
 

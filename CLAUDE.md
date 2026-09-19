@@ -44,6 +44,11 @@ in `localStorage`. English and Indonesian.
 
 - No em dashes and no middle dots, anywhere: copy, code, commits, docs.
   Commas, colons and periods.
+- A blank line on both sides of anything that ends in a block (`if`/`else`
+  chains, loops, `switch`, functions, block-bodied arrows) and around a run
+  of declarations; consecutive declarations stay together and `else` stays
+  on its closing brace. `@stylistic/padding-line-between-statements` enforces
+  it and `eslint --fix` applies it, so write freely and let the fixer space it.
 - Comments explain a surprise, not a function's existence. Reasons that would
   stop someone undoing a decision belong in an ADR, with the comment pointing
   at it.

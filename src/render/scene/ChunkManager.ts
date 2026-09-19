@@ -93,9 +93,12 @@ export class ChunkManager {
   /** Something on this block changed its terrain look (phase, fire, elevation). */
   markBlockDirty(block: BlockId): void {
     const [cx, cy] = chunkOfBlock(this.world, block);
+
     this.markDirty(`${cx}:${cy}`);
+
     // A terrace edge changes the neighbour's border culling too.
     const [bx, by] = this.world.toXY(block);
+
     if (bx % WORLD.chunkSide === 0 && cx > 0) this.markDirty(`${cx - 1}:${cy}`);
     if (bx % WORLD.chunkSide === WORLD.chunkSide - 1 && cx < this.chunksX - 1)
       this.markDirty(`${cx + 1}:${cy}`);
@@ -107,7 +110,9 @@ export class ChunkManager {
   private markDirty(key: string): void {
     this.lru.get(key)?.dispose();
     this.lru.delete(key);
+
     const loaded = this.loaded.get(key);
+
     if (loaded) {
       loaded.dirty = true;
       this.pendingDirty.add(key);
@@ -130,20 +135,26 @@ export class ChunkManager {
     const centreY = (visible.minZ + visible.maxZ) / 2 / CHUNK_COLUMNS;
 
     const wanted: { key: string; distance: number }[] = [];
+
     for (let cy = minCy; cy <= maxCy; cy++) {
       for (let cx = minCx; cx <= maxCx; cx++) {
         const key = `${cx}:${cy}`;
         const loaded = this.loaded.get(key);
+
         if (loaded) {
           loaded.lastVisibleMs = nowMs;
           continue;
         }
+
         if (this.isInFlight(key)) continue;
+
         const dx = cx + 0.5 - centreX;
         const dy = cy + 0.5 - centreY;
+
         wanted.push({ key, distance: dx * dx + dy * dy });
       }
     }
+
     wanted.sort((a, b) => a.distance - b.distance);
     this.queue = wanted.map((w) => w.key);
 
@@ -158,11 +169,13 @@ export class ChunkManager {
     while (this.inFlight.size < this.maxInFlight && this.queue.length > 0) {
       const key = this.queue.shift()!;
       const cached = this.lru.get(key);
+
       if (cached) {
         this.lru.delete(key);
         this.adopt(key, cached, nowMs);
         continue;
       }
+
       this.request(key);
     }
 
@@ -173,10 +186,12 @@ export class ChunkManager {
 
   dispose(): void {
     this.worker.terminate();
+
     for (const loaded of this.loaded.values()) {
       this.group.remove(loaded.mesh);
       loaded.mesh.geometry.dispose();
     }
+
     this.loaded.clear();
     for (const geometry of this.lru.values()) geometry.dispose();
     this.lru.clear();
@@ -190,12 +205,14 @@ export class ChunkManager {
   private request(key: string): void {
     const [cx, cy] = key.split(':').map(Number) as [number, number];
     const requestId = this.nextRequestId++;
+
     this.inFlight.set(requestId, key);
 
     const diverged = [];
     const tick = this.getTick();
     const flooded = this.getFlooded();
     const palms = this.getPalms();
+
     for (const block of this.getDiverged())
       diverged.push(toLite(block, tick, flooded.has(block.id), palms.get(block.id)));
 
@@ -209,12 +226,15 @@ export class ChunkManager {
       cy,
       diverged,
     };
+
     this.worker.postMessage(request);
   }
 
   private onBuilt(message: WorkerResponse): void {
     if (message.type !== 'built') return;
+
     const key = this.inFlight.get(message.requestId);
+
     this.inFlight.delete(message.requestId);
     if (!key) return;
 
@@ -226,6 +246,7 @@ export class ChunkManager {
     });
 
     const existing = this.loaded.get(key);
+
     if (existing) {
       // Atomic swap for a dirty rebuild.
       existing.mesh.geometry.dispose();
@@ -233,11 +254,13 @@ export class ChunkManager {
       existing.dirty = false;
       return;
     }
+
     this.adopt(key, geometry, performance.now());
   }
 
   private adopt(key: string, geometry: BufferGeometry, nowMs: number): void {
     const mesh = new Mesh(geometry, this.material);
+
     mesh.frustumCulled = true;
     this.group.add(mesh);
     this.loaded.set(key, { mesh, lastVisibleMs: nowMs, dirty: false });
@@ -252,9 +275,12 @@ export class ChunkManager {
       loaded.mesh.geometry.dispose();
       return;
     }
+
     this.lru.set(key, loaded.mesh.geometry);
+
     while (this.lru.size > this.lruSize) {
       const oldest = this.lru.keys().next().value;
+
       if (oldest === undefined) break;
       this.lru.get(oldest)?.dispose();
       this.lru.delete(oldest);

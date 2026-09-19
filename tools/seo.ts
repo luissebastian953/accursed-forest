@@ -30,21 +30,27 @@ export const SITE_IMAGES: readonly string[] = ['/brand/hero-estate-1600.webp', '
  */
 export function normalizeSiteUrl(raw: string | undefined): string {
   const value = (raw ?? '').trim().replace(/\/+$/, '');
+
   if (value === '') return '';
+
   let url: URL;
+
   try {
     url = new URL(value);
   } catch {
     throw new Error(`VITE_SITE_URL must be an absolute URL like https://example.com, got "${raw}"`);
   }
+
   if (url.protocol !== 'https:' && url.protocol !== 'http:') {
     throw new Error(`VITE_SITE_URL must start with https:// (or http://), got "${raw}"`);
   }
+
   if (url.pathname !== '/' || url.search !== '' || url.hash !== '') {
     throw new Error(
       `VITE_SITE_URL must be the bare origin the pages are served from, like ${url.origin}, got "${raw}"`,
     );
   }
+
   return url.origin;
 }
 
@@ -88,6 +94,7 @@ export function renderSitemap(
       '  </url>',
     ].join('\n'),
   );
+
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
@@ -107,6 +114,7 @@ export function renderSitemap(
  */
 export function renderRobots(siteUrl: string): string {
   const lines = ['User-agent: *', 'Allow: /'];
+
   if (siteUrl) lines.push('', `Sitemap: ${siteUrl}/sitemap.xml`);
   return `${lines.join('\n')}\n`;
 }

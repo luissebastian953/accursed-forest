@@ -20,6 +20,7 @@ export function economy(ctx: SimContext): void {
   if (e.tbsPending > 0) {
     const kilograms = e.tbsPending;
     const revenue = Math.round(kilograms * e.tbsPrice);
+
     earn(state, revenue, 'sale', `${Math.round(kilograms)} kg TBS @ ${e.tbsPrice}`);
     e.soldKgTotal += kilograms;
     e.tbsPending = 0;
@@ -29,18 +30,22 @@ export function economy(ctx: SimContext): void {
   // ── Upkeep ─────────────────────────────────────────────────────────────
   let planted = 0;
   let irrigated = 0;
+
   for (const block of state.blocks.values()) {
     if (block.phase === 'planted') planted += 1;
     if (block.irrigated && block.owned) irrigated += 1;
   }
+
   const upkeep = Math.round(
     (planted * ECONOMY.upkeepPerPlantedBlock + irrigated * ECONOMY.irrigationUpkeepPerDay) *
       (operatingBanned(state) ? OPERATING_BAN.upkeepFactor : 1),
   );
+
   if (upkeep > 0) spend(state, upkeep, 'upkeep');
 
   // A supply contract the headlines handed the co-op, paid by the day.
   const contract = macroKopdesPay(state);
+
   if (contract > 0) earn(state, contract, 'sale', 'co-op supply contract');
 
   // ── Price walk ─────────────────────────────────────────────────────────
@@ -51,10 +56,12 @@ export function economy(ctx: SimContext): void {
     ECONOMY.tbsPriceMean * macro * (activeEvent(state, HAZE_EVENT) ? 1 - HAZE.priceDip : 1);
   const pull = ECONOMY.tbsPriceMeanReversion * (mean - e.tbsPrice);
   const noise = nextGaussian(state.rng) * ECONOMY.tbsPriceDrift;
+
   e.tbsPrice = Math.round(
     clamp(e.tbsPrice + pull + noise, ECONOMY.tbsPriceMin * macro, ECONOMY.tbsPriceMax * macro),
   );
   e.tbsPriceHistory.push(e.tbsPrice);
+
   if (e.tbsPriceHistory.length > ECONOMY.priceHistoryCap) {
     e.tbsPriceHistory.splice(0, e.tbsPriceHistory.length - ECONOMY.priceHistoryCap);
   }

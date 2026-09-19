@@ -93,6 +93,7 @@ function quadruped(options: {
     ['legBL', -legX, -legZ],
     ['legBR', legX, -legZ],
   ];
+
   for (const [name, x, z] of legs) {
     parts.push({
       name,
@@ -135,6 +136,7 @@ function quadruped(options: {
       slot,
       role: 'still' as PartRole,
     });
+
     // The small slabs share an edge with the big ones, so each side reads as
     // one ragged patch rather than a row of windows.
     parts.push(
@@ -451,6 +453,7 @@ function ape(options: {
   // from, and a rod through the middle of the body reads as a spit.
   if (options.tail) {
     const tail = options.tail;
+
     parts.push({
       name: 'tail',
       parent: 'body',
@@ -467,6 +470,7 @@ function ape(options: {
 
   for (const side of [-1, 1]) {
     const arm = side < 0 ? 'armL' : 'armR';
+
     parts.push({
       name: arm,
       parent: 'body',

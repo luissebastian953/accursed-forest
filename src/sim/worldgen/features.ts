@@ -33,23 +33,30 @@ export function findProtectedForest(input: FeatureInputs): Set<number> {
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const key = y * width + x;
+
       if (seen[key] === 1 || !eligible(x, y)) continue;
 
       const cluster: number[] = [];
       const stack = [key];
+
       seen[key] = 1;
 
       while (stack.length > 0) {
         const current = stack.pop()!;
+
         cluster.push(current);
+
         const cx = current % width;
         const cy = (current - cx) / width;
 
         for (const [dx, dy] of NEIGHBOURS) {
           const nx = cx + dx;
           const ny = cy + dy;
+
           if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+
           const nKey = ny * width + nx;
+
           if (seen[nKey] === 1 || !eligible(nx, ny)) continue;
           seen[nKey] = 1;
           stack.push(nKey);
@@ -63,17 +70,21 @@ export function findProtectedForest(input: FeatureInputs): Set<number> {
   if (best.length < PROTECTED.minClusterSize) return new Set();
 
   const result = new Set(best);
+
   // Buffer ring: forest immediately around the core is protected too.
   for (const key of best) {
     const x = key % width;
     const y = (key - x) / width;
+
     for (const [dx, dy] of NEIGHBOURS) {
       const nx = x + dx;
       const ny = y + dy;
+
       if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
       if (biomeAt(nx, ny) === 'forest') result.add(ny * width + nx);
     }
   }
+
   return result;
 }
 
@@ -112,9 +123,11 @@ export function findStartSite(
     for (let dx = -START_SITE.searchRadius; dx <= START_SITE.searchRadius; dx++) {
       const originX = centreX + dx - Math.floor(size / 2);
       const originY = centreY + dy - Math.floor(size / 2);
+
       if (originX < 0 || originY < 0 || originX + size > width || originY + size > height) continue;
 
       const score = scoreSite(originX, originY, size, input, isProtected);
+
       if (score > bestScore) {
         bestScore = score;
         bestX = originX;
@@ -133,10 +146,12 @@ export function findStartSite(
   for (let y = bestY + 1; y < bestY + size - 1; y++) {
     for (let x = bestX + 1; x < bestX + size - 1; x++) {
       if (!ALLOWED.has(biomeAt(x, y)) || isProtected(x, y)) continue;
+
       // Prefer flat, central, and not right on the water.
       const distance = Math.abs(x - midX) + Math.abs(y - midY);
       const riverPenalty = riverDistanceAt(x, y) < 2 ? 6 : 0;
       const score = -distance - riverPenalty + (biomeAt(x, y) === 'grassfield' ? 2 : 0);
+
       if (score > kopdesScore) {
         kopdesScore = score;
         kopdesX = x;
@@ -163,6 +178,7 @@ function scoreSite(
   for (let y = originY; y < originY + size; y++) {
     for (let x = originX; x < originX + size; x++) {
       const biome = biomeAt(x, y);
+
       if (isProtected(x, y) || biome === 'river' || biome === 'village') blocked += 1;
       else if (ALLOWED.has(biome)) allowed += 1;
       nearestRiver = Math.min(nearestRiver, riverDistanceAt(x, y));
@@ -171,23 +187,29 @@ function scoreSite(
 
   const cells = size * size;
   const share = allowed / cells;
+
   if (share < START_SITE.minAllowedShare) return share - 10;
 
   let forest = 0;
   let area = 0;
   const r = START_SITE.forestRing;
+
   for (let y = originY - r; y < originY + size + r; y++) {
     for (let x = originX - r; x < originX + size + r; x++) {
       if (x < 0 || y < 0 || x >= input.width || y >= input.height) continue;
       area += 1;
+
       const biome = biomeAt(x, y);
+
       if (biome === 'forest' || isProtected(x, y)) forest += 1;
     }
   }
+
   const forestBonus =
     Math.min(1, forest / area / START_SITE.forestTarget) * START_SITE.forestWeight;
 
   const riverBonus = nearestRiver <= START_SITE.riverWithin ? 3 : 0;
+
   return share * 10 + riverBonus + forestBonus - (blocked / cells) * 8;
 }
 
@@ -223,36 +245,46 @@ export function findVillages(
     );
 
   const candidates: number[] = [];
+
   for (let y = 0; y < height; y++)
     for (let x = 0; x < width; x++) if (suitable(x, y)) candidates.push(y * width + x);
 
   const villages = new Set<number>();
   const count = VILLAGES.min + nextInt(rng, VILLAGES.max - VILLAGES.min + 1);
+
   for (let v = 0; v < count && candidates.length > 0; v++) {
     const seedKey = candidates.splice(nextInt(rng, candidates.length), 1)[0]!;
     const sx = seedKey % width;
     const sy = (seedKey - sx) / width;
     // Keep villages apart: no two within eight blocks.
     let tooClose = false;
+
     for (const key of villages) {
       const x = key % width;
+
       if (Math.abs(x - sx) + Math.abs((key - x) / width - sy) < 8) tooClose = true;
     }
+
     if (tooClose) continue;
 
     const size = VILLAGES.minSize + nextInt(rng, VILLAGES.maxSize - VILLAGES.minSize + 1);
     const cluster = [seedKey];
+
     for (let i = 0; i < cluster.length && cluster.length < size; i++) {
       const key = cluster[i]!;
       const x = key % width;
       const y = (key - x) / width;
+
       for (const [dx, dy] of NEIGHBOURS) {
         const nKey = (y + dy) * width + (x + dx);
+
         if (cluster.length < size && suitable(x + dx, y + dy) && !cluster.includes(nKey))
           cluster.push(nKey);
       }
     }
+
     for (const key of cluster) villages.add(key);
   }
+
   return villages;
 }

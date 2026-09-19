@@ -15,6 +15,7 @@ export class Glow {
   constructor(renderer: WebGPURenderer, scene: Scene, camera: Camera) {
     const scenePass = pass(scene, camera);
     const colour = scenePass.getTextureNode('output');
+
     this.pipeline = new RenderPipeline(renderer);
     this.pipeline.outputNode = colour.add(
       bloom(colour, GLOW.strength, GLOW.radius, GLOW.threshold),

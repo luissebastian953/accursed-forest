@@ -23,12 +23,15 @@ export function weather(ctx: SimContext): void {
 
   const season = isWetSeason(w.dayOfYear) ? SEASONS.rain.wet : SEASONS.rain.dry;
   const multiplier = SEASONS.regime.rainMultiplier[w.regime];
+
   w.rain = clamp01(season.mean * multiplier + nextGaussian(state.rng) * season.sd);
 
   let sun = 1 - SEASONS.cloudPerRain * w.rain;
+
   if (activeEvent(state, HAZE_EVENT)) sun *= isWildfire(state) ? FIRE.hazeLight : HAZE.light;
   if (activeEvent(state, ASH_EVENT)) sun *= ASH.light;
   w.sun = clamp01(sun);
+
   // A dry spell can still end in thunder, and those are the storms that burn.
   const dryStorm =
     w.dryStreak >= SKY.dryStormStreak &&
@@ -37,12 +40,15 @@ export function weather(ctx: SimContext): void {
     chance(state.rng, SKY.dryStormChance);
   // The sky changes in spells of a few days, not every morning; thunder is the exception.
   const today = dryStorm ? 'storm' : skyFor(w.rain);
+
   if (today === 'storm' || state.tick >= w.skyUntil || w.sky === 'storm') {
     w.sky = today;
+
     // Drawn from a side stream: how long the clouds hang about must not
     // reshuffle the rain, the prices or where the lightning lands.
     const spellRng = forkRng(state.seed ^ SKY.stream, state.tick);
     const spell = SKY.spellDays.min + nextInt(spellRng, SKY.spellDays.max - SKY.spellDays.min + 1);
+
     w.skyUntil = state.tick + spell;
   }
 
@@ -53,7 +59,9 @@ export function weather(ctx: SimContext): void {
   // generated value, which is what makes the sparse map work.
   for (const block of state.blocks.values()) {
     if (!state.active.has(block.id)) continue;
+
     let m = block.moisture + (w.rain - block.moisture) * SEASONS.moistureRelax;
+
     if (block.irrigated) m = Math.max(m, SEASONS.irrigationFloor);
     if (block.drained) m = Math.min(m, SEASONS.drainageCeiling);
     block.moisture = clamp01(m);
@@ -73,5 +81,6 @@ export function rollRegime(rng: RngState, previous: ClimateRegime): ClimateRegim
   const weights = REGIMES.map(
     (r) => SEASONS.regime.weights[r] + (r === previous ? SEASONS.regime.persistence : 0),
   );
+
   return REGIMES[pickWeighted(rng, weights)] ?? 'normal';
 }

@@ -124,9 +124,11 @@ export class MapRig {
   /** Snap-rotate a quarter turn (GDD 6.2: four diagonals). */
   rotate(direction: 1 | -1, nowMs: number): void {
     this.diagonal = (this.diagonal + direction + DIAGONALS) % DIAGONALS;
+
     const to = Math.PI / 4 + (this.diagonal * Math.PI) / 2;
     // Take the short way round.
     let from = this.azimuth;
+
     while (to - from > Math.PI) from += Math.PI * 2;
     while (from - to > Math.PI) from -= Math.PI * 2;
     this.azimuthTween = { from, to, start: nowMs, duration: DURATION.cameraFocus };
@@ -135,16 +137,21 @@ export class MapRig {
   update(_dtSeconds: number, nowMs: number): void {
     if (this.focusTween) {
       const t = clamp((nowMs - this.focusTween.start) / this.focusTween.duration, 0, 1);
+
       this.controls.target.lerpVectors(this.focusTween.from, this.focusTween.to, easeOutCubic(t));
       if (t >= 1) this.focusTween = null;
     }
+
     if (this.azimuthTween) {
       const t = clamp((nowMs - this.azimuthTween.start) / this.azimuthTween.duration, 0, 1);
+
       this.azimuth = lerp(this.azimuthTween.from, this.azimuthTween.to, easeOutCubic(t));
       if (t >= 1) this.azimuthTween = null;
     }
+
     if (this.zoomTween) {
       const t = clamp((nowMs - this.zoomTween.start) / this.zoomTween.duration, 0, 1);
+
       this.camera.zoom = lerp(this.zoomTween.from, this.zoomTween.to, easeOutCubic(t));
       if (t >= 1) this.zoomTween = null;
     }
@@ -153,6 +160,7 @@ export class MapRig {
 
     // Clamp the pan to the world plus a margin.
     const target = this.controls.target;
+
     target.x = clamp(target.x, this.bounds.minX - BOUNDS_MARGIN, this.bounds.maxX + BOUNDS_MARGIN);
     target.z = clamp(target.z, this.bounds.minZ - BOUNDS_MARGIN, this.bounds.maxZ + BOUNDS_MARGIN);
     target.y = 0;
@@ -179,15 +187,18 @@ export class MapRig {
       [1, 1],
     ] as const) {
       this.corner.set(nx, ny, -1).unproject(this.camera);
+
       // Ray from the near-plane corner along the view direction to the ground.
       const t = -this.corner.y / this.direction.y;
       const gx = this.corner.x + this.direction.x * t;
       const gz = this.corner.z + this.direction.z * t;
+
       out.minX = Math.min(out.minX, gx);
       out.maxX = Math.max(out.maxX, gx);
       out.minZ = Math.min(out.minZ, gz);
       out.maxZ = Math.max(out.maxZ, gz);
     }
+
     return out;
   }
 
@@ -197,6 +208,7 @@ export class MapRig {
 
   private applyFrustum(): void {
     const size = this.baseFrustum;
+
     this.camera.left = (-size * this.aspect) / 2;
     this.camera.right = (size * this.aspect) / 2;
     this.camera.top = size / 2;

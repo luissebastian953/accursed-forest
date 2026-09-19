@@ -19,6 +19,7 @@ export const HEIGHT_QUANTUM = 0.5;
 export const CHUNK_COLUMNS = WORLD.chunkSide * WORLD.blockSide;
 /** How far below the lowest land the diorama slab reaches. */
 export const FLOOR_Y = -4;
+
 /** River water sits this far below the land it cuts through. */
 const WATER_DROP = 0.75;
 /** Water may reach blocks at most this many cells from a river block. */
@@ -39,6 +40,7 @@ function riverSlot(look: LandLook, gx: number, gz: number): number {
       (gz - RIVER_PATCH_OFFSET) / RIVER_PATCH_SCALE,
     ) +
     (hash01(gx, gz, 13) - 0.5) * 0.3;
+
   return v < -0.42 ? Palette.RiverDeep : Palette.River;
 }
 
@@ -50,8 +52,10 @@ interface LandLook {
 
 /** Per-world render extras: built once, reused by every chunk. */
 const looks = new WeakMap<World, LandLook>();
+
 function lookFor(world: World): LandLook {
   let look = looks.get(world);
+
   if (!look) {
     look = {
       channel: buildRiverChannel(world),
@@ -60,6 +64,7 @@ function lookFor(world: World): LandLook {
     };
     looks.set(world, look);
   }
+
   return look;
 }
 
@@ -111,11 +116,14 @@ export function toLite(
   palms?: { plantedAt: Int32Array | ArrayLike<number> } | undefined,
 ): DivergedBlockLite {
   let planted: Uint8Array | null = null;
+
   if (palms && (block.phase === 'planted' || block.phase === 'reforesting')) {
     const slots = palms.plantedAt.length;
+
     planted = new Uint8Array(slots);
     for (let i = 0; i < slots; i++) planted[i] = palms.plantedAt[i]! >= 0 ? 1 : 0;
   }
+
   return {
     id: block.id,
     biome: block.biome,
@@ -153,10 +161,13 @@ export function landHeight(
   const side = WORLD.blockSide;
   const bx = Math.floor(x / side);
   const by = Math.floor(z / side);
+
   if (!world.inBounds(bx, by)) return FLOOR_Y;
+
   if (TERRACED.has(phaseOf(world.toId(bx, by)))) {
     return terraceHeight(world.generated(bx, by).elevation);
   }
+
   const gx = Math.floor(x);
   const gz = Math.floor(z);
   const u = (gx + 0.5) / side - 0.5;
@@ -170,6 +181,7 @@ export function landHeight(
   const h01 = continuousHeight(world, x0, y0 + 1);
   const h11 = continuousHeight(world, x0 + 1, y0 + 1);
   const h = (h00 * (1 - fx) + h10 * fx) * (1 - fy) + (h01 * (1 - fx) + h11 * fx) * fy;
+
   return Math.max(FLOOR_Y + HEIGHT_QUANTUM, quantise(h, HEIGHT_QUANTUM));
 }
 
@@ -177,6 +189,7 @@ export function landHeight(
 function continuousHeight(world: World, bx: number, by: number): number {
   const x = Math.min(world.width - 1, Math.max(0, bx));
   const y = Math.min(world.height - 1, Math.max(0, by));
+
   return world.generated(x, y).height01 * (WORLD.maxElevation + 1) * ELEVATION_STEP;
 }
 
@@ -192,6 +205,7 @@ function topSlot(
   if (flooded) return Palette.WaterShallow;
   // Torn open: bare earth, whatever the block was before the slope went.
   if (slid) return Palette.Dirt;
+
   switch (phase) {
     case 'planted':
     case 'reforesting':
@@ -204,6 +218,7 @@ function topSlot(
     case 'wild':
       break;
   }
+
   switch (biome) {
     case 'grassfield':
       return Palette.Grass;
@@ -294,12 +309,14 @@ export function buildChunkField(
 
         const nearRiver = (world.rivers.distance[world.toId(bx, by)] ?? Infinity) <= WATER_REACH;
         const edge = nearRiver ? look.channel.edge(gx, gz) : Infinity;
+
         if (edge < 0) {
           h -= WATER_DROP;
           heights[i] = Math.max(FLOOR_Y + HEIGHT_QUANTUM, quantise(h, HEIGHT_QUANTUM));
           topSlots[i] = flooded ? Palette.WaterShallow : riverSlot(look, gx, gz);
           continue;
         }
+
         heights[i] = Math.max(FLOOR_Y + HEIGHT_QUANTUM, quantise(h, HEIGHT_QUANTUM));
 
         if (!burning && !flooded) {
@@ -308,10 +325,12 @@ export function buildChunkField(
             topSlots[i] = Palette.Bank;
             continue;
           }
+
           const lookBiome =
             biome === 'river' ? 'riverbank' : warpedBiome(world, diverged, gx, gz, biome, look);
           const slot = topSlot(lookBiome, 'wild', false, false, false);
           const v = look.tint(gx / TINT_SCALE, gz / TINT_SCALE) + (hash01(gx, gz, 7) - 0.5) * 0.5;
+
           topSlots[i] = tinted(slot, v);
           continue;
         }
@@ -330,6 +349,7 @@ export function buildChunkField(
       // Bare ground is earth, which the mottling below turns into brown with
       // stony patches rather than one flat colour.
       const slot = bare ? Palette.Dirt : topSlot(biome, phase, burning, ashy, flooded, slid);
+
       // Burned ground is mottled char and ash, and torn ground is mottled
       // earth and stone: neither is one flat colour.
       topSlots[i] =
@@ -379,11 +399,16 @@ function warpedBiome(
   const wz = look.warp(gx / EDGE_WARP_SCALE + 31.7, gz / EDGE_WARP_SCALE - 12.3) * EDGE_WARP;
   const bx = Math.floor((gx + wx) / WORLD.blockSide);
   const by = Math.floor((gz + wz) / WORLD.blockSide);
+
   if (!world.inBounds(bx, by)) return biome;
+
   const id = world.toId(bx, by);
   const other = diverged.get(id);
+
   if (other && other.phase !== 'wild') return biome;
+
   const sampled = other?.biome ?? world.generated(bx, by).biome;
+
   return sampled === 'river' ? biome : sampled;
 }
 
@@ -396,6 +421,7 @@ export function buildChunkArrays(
 ): MeshArrays {
   const field = buildChunkField(world, cx, cy, diverged);
   const look = lookFor(world);
+
   return buildColumnArrays(field, (builder) => {
     const ctx = {
       seed: world.params.seed,
@@ -404,9 +430,11 @@ export function buildChunkArrays(
       lookBiome: (gx: number, gz: number, own: Biome) =>
         warpedBiome(world, diverged, gx, gz, own, look),
     };
+
     for (let by = cy * WORLD.chunkSide; by < (cy + 1) * WORLD.chunkSide; by++) {
       for (let bx = cx * WORLD.chunkSide; bx < (cx + 1) * WORLD.chunkSide; bx++) {
         if (!world.inBounds(bx, by)) continue;
+
         const id = world.toId(bx, by);
         const lite = diverged.get(id);
         // Burned land keeps its snags through the ash window; other estate land is bare.
@@ -414,6 +442,7 @@ export function buildChunkArrays(
         // A slid block keeps its spoil and its snapped branches until it is
         // dug out or planted over.
         const slid = lite?.slid ?? false;
+
         // A planted hectare grows no scenery, but it is fenced along the
         // edge of the crop.
         if (lite?.planted !== null && lite?.planted !== undefined) {
@@ -424,8 +453,11 @@ export function buildChunkArrays(
             planted: lite.planted,
           });
         }
+
         if (lite && lite.phase !== 'wild' && !burnt && !slid) continue;
+
         const generated = world.generated(bx, by);
+
         growBlock(builder, ctx, {
           id,
           bx,
@@ -444,5 +476,6 @@ export function buildChunkArrays(
 /** Chunk coordinates of a block. */
 export function chunkOfBlock(world: Pick<World, 'toXY'>, block: BlockId): [cx: number, cy: number] {
   const [x, y] = world.toXY(block);
+
   return [Math.floor(x / WORLD.chunkSide), Math.floor(y / WORLD.chunkSide)];
 }

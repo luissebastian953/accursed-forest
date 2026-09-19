@@ -36,13 +36,17 @@
   let scale = $state(1);
   $effect(() => {
     if (!frame) return;
+
     const fit = (width: number) => Math.min(1.1, Math.max(0.7, width / REFERENCE_WIDTH));
+
     // Size once now: the observer's first call waits for a frame, and the
     // software renderer can hold that frame for a second.
     scale = fit(frame.getBoundingClientRect().width);
+
     const observer = new ResizeObserver(([entry]) => {
       scale = fit(entry?.contentRect.width ?? REFERENCE_WIDTH);
     });
+
     observer.observe(frame);
     return () => observer.disconnect();
   });

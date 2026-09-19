@@ -21,6 +21,7 @@ export function attachPointer(element: HTMLElement, handlers: PointerHandlers): 
 
   const toNdc = (event: PointerEvent): Ndc => {
     const rect = element.getBoundingClientRect();
+
     return {
       x: ((event.clientX - rect.left) / rect.width) * 2 - 1,
       y: -(((event.clientY - rect.top) / rect.height) * 2 - 1),
@@ -38,12 +39,15 @@ export function attachPointer(element: HTMLElement, handlers: PointerHandlers): 
   const onUp = (event: PointerEvent): void => {
     if (!pointerDown || event.button !== 0) return;
     pointerDown = false;
+
     const moved = Math.hypot(event.clientX - downX, event.clientY - downY);
     const held = performance.now() - downAt;
+
     if (moved > CLICK_SLOP_PX || held > CLICK_MAX_MS) return;
 
     const ndc = toNdc(event);
     const now = performance.now();
+
     if (now - lastClickAt < DOUBLE_CLICK_MS) {
       lastClickAt = -Infinity;
       handlers.onDoubleClick(ndc);
@@ -55,6 +59,7 @@ export function attachPointer(element: HTMLElement, handlers: PointerHandlers): 
 
   element.addEventListener('pointerdown', onDown);
   element.addEventListener('pointerup', onUp);
+
   return () => {
     element.removeEventListener('pointerdown', onDown);
     element.removeEventListener('pointerup', onUp);

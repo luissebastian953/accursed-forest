@@ -41,6 +41,7 @@ describe('chunk field (GDD 6.3, GDD 6.7)', () => {
     // Bilinear blending is monotone between block centres, so no interior
     // column can be lower than all four of its neighbours by a full step.
     const world = createWorld(42);
+
     for (const [cx, cy] of [
       [4, 4],
       [8, 6],
@@ -49,13 +50,16 @@ describe('chunk field (GDD 6.3, GDD 6.7)', () => {
       const f = buildChunkField(world, cx, cy, EMPTY);
       const at = (x: number, z: number): number => f.heights[z * f.size + x]!;
       let pits = 0;
+
       for (let z = 2; z < f.size - 2; z++) {
         for (let x = 2; x < f.size - 2; x++) {
           const h = at(x, z);
           const lowestNeighbour = Math.min(at(x + 1, z), at(x - 1, z), at(x, z + 1), at(x, z - 1));
+
           if (h < lowestNeighbour - HEIGHT_QUANTUM * 1.5) pits += 1;
         }
       }
+
       expect(pits).toBe(0);
     }
   });
@@ -64,7 +68,9 @@ describe('chunk field (GDD 6.3, GDD 6.7)', () => {
     const sim = createSim(42);
     const { world, state } = sim;
     const planted = [...state.blocks.values()].find((b) => b.owned && b.phase === 'wild')!;
+
     planted.phase = 'planted';
+
     const diverged = new Map<number, DivergedBlockLite>([[planted.id, toLite(planted, 0)]]);
 
     const [cx, cy] = chunkOfBlock(world, planted.id);
@@ -78,6 +84,7 @@ describe('chunk field (GDD 6.3, GDD 6.7)', () => {
     for (let z = 0; z < WORLD.blockSide; z++) {
       for (let x = 0; x < WORLD.blockSide; x++) {
         const i = (localZ + z) * field.size + (localX + x);
+
         expect(field.heights[i]).toBe(expected);
         expect(field.topSlots[i]).toBe(Palette.Terrace);
       }
@@ -88,12 +95,14 @@ describe('chunk field (GDD 6.3, GDD 6.7)', () => {
     const sim = createSim(42);
     const { world, state } = sim;
     const block = [...state.blocks.values()].find((b) => b.owned && b.phase === 'wild')!;
+
     block.phase = 'planted';
 
     // Slots fill in order, so plant the first half of the rows and no more.
     const slots = WORLD.blockSide * WORLD.blockSide;
     const half = slots / 2;
     const plantedAt = new Int32Array(slots).fill(-1);
+
     for (let i = 0; i < half; i++) plantedAt[i] = 0;
 
     const lite = toLite(block, 0, false, { plantedAt });
@@ -108,6 +117,7 @@ describe('chunk field (GDD 6.3, GDD 6.7)', () => {
       for (let x = 0; x < WORLD.blockSide; x++) {
         const i = (localZ + z) * field.size + (localX + x);
         const occupied = plantedAt[z * WORLD.blockSide + x]! >= 0;
+
         // Green where something stands; bare earth, mottled with stone,
         // where nothing does.
         if (occupied) {
@@ -118,6 +128,7 @@ describe('chunk field (GDD 6.3, GDD 6.7)', () => {
             `slot ${z * WORLD.blockSide + x}`,
           ).toContain(field.topSlots[i]);
         }
+
         // And the ground is still a terrace either way: it is one hectare.
         expect(field.heights[i]).toBe(terraceHeight(block.elevation));
       }
@@ -136,6 +147,7 @@ describe('chunk field (GDD 6.3, GDD 6.7)', () => {
       const f = buildChunkField(world, cx, cy, new Map([[block.id, lite]]));
       const lx = (bx - cx * WORLD.chunkSide) * WORLD.blockSide + f.inset! + 5;
       const lz = (by - cy * WORLD.chunkSide) * WORLD.blockSide + f.inset! + 5;
+
       return f.topSlots[lz * f.size + lx]!;
     };
 
@@ -152,33 +164,46 @@ describe('chunk field (GDD 6.3, GDD 6.7)', () => {
     const world = createWorld(42);
     const blocks = new Map<number, { water: number }>();
     const seen = new Set<string>();
+
     for (const key of world.rivers.water) {
       const [cx, cy] = chunkOfBlock(world, key);
+
       if (seen.has(`${cx}:${cy}`)) continue;
       seen.add(`${cx}:${cy}`);
+
       const f = buildChunkField(world, cx, cy, EMPTY);
+
       for (let z = f.inset!; z < f.size - f.inset!; z++) {
         for (let x = f.inset!; x < f.size - f.inset!; x++) {
           if (!RIVER_SLOTS.has(f.topSlots[z * f.size + x]!)) continue;
+
           const bx = Math.floor((f.originX! + x - f.inset!) / WORLD.blockSide);
           const by = Math.floor((f.originZ! + z - f.inset!) / WORLD.blockSide);
           const id = world.toId(bx, by);
+
           expect(world.rivers.distance[id]).toBeLessThanOrEqual(2);
+
           const entry = blocks.get(id) ?? { water: 0 };
+
           entry.water += 1;
           blocks.set(id, entry);
         }
       }
+
       if (seen.size >= 6) break;
     }
+
     let river = 0;
     let wet = 0;
+
     for (const key of world.rivers.water) {
       const [cx, cy] = chunkOfBlock(world, key);
+
       if (!seen.has(`${cx}:${cy}`)) continue;
       river += 1;
       if ((blocks.get(key)?.water ?? 0) > 0) wet += 1;
     }
+
     expect(river).toBeGreaterThan(0);
     expect(wet / river).toBeGreaterThan(0.9);
   });
@@ -187,16 +212,21 @@ describe('chunk field (GDD 6.3, GDD 6.7)', () => {
     const world = createWorld(42);
     let light = 0;
     let deep = 0;
+
     for (const key of [...world.rivers.water].slice(0, 40)) {
       const [cx, cy] = chunkOfBlock(world, key);
       const f = buildChunkField(world, cx, cy, EMPTY);
+
       for (const slot of f.topSlots) {
         if (slot === Palette.River) light += 1;
         else if (slot === Palette.RiverDeep) deep += 1;
       }
     }
+
     expect(light).toBeGreaterThan(0);
+
     const share = deep / (light + deep);
+
     expect(share).toBeGreaterThan(0.02);
     expect(share).toBeLessThan(0.35);
   });
@@ -204,6 +234,7 @@ describe('chunk field (GDD 6.3, GDD 6.7)', () => {
   it('wild ground is not one flat colour per block', () => {
     const world = createWorld(42);
     const f = buildChunkField(world, 6, 6, EMPTY);
+
     expect(new Set(f.topSlots).size).toBeGreaterThan(3);
   });
 
@@ -216,6 +247,7 @@ describe('chunk field (GDD 6.3, GDD 6.7)', () => {
 describe('chunk mesh (GDD 6.7 budgets)', () => {
   it('meshes a chunk inside the triangle budget with faces culled', () => {
     const world = createWorld(42);
+
     for (const [cx, cy] of [
       [0, 0],
       [7, 7],
@@ -223,6 +255,7 @@ describe('chunk mesh (GDD 6.7 budgets)', () => {
       [8, 3],
     ] as const) {
       const arrays = buildChunkArrays(world, cx, cy, EMPTY);
+
       expect(arrays.triangles).toBeGreaterThan(CHUNK_COLUMNS * CHUNK_COLUMNS * 2 - 1); // at least every top
       // GDD 6.7: ~6–10k triangles per culled 48×48 chunk, plus the trees and
       // rocks merged into it (a chunk of protected forest is the worst case).
@@ -240,9 +273,11 @@ describe('chunk mesh (GDD 6.7 budgets)', () => {
     const arrays = buildChunkArrays(world, cx, cy, EMPTY);
     const minX = cx * CHUNK_COLUMNS;
     const minZ = cy * CHUNK_COLUMNS;
+
     for (let i = 0; i < arrays.positions.length; i += 3) {
       const x = arrays.positions[i]!;
       const z = arrays.positions[i + 2]!;
+
       expect(x).toBeGreaterThanOrEqual(minX - 1e-6);
       expect(x).toBeLessThanOrEqual(minX + CHUNK_COLUMNS + 1e-6);
       expect(z).toBeGreaterThanOrEqual(minZ - 1e-6);
@@ -254,6 +289,7 @@ describe('chunk mesh (GDD 6.7 budgets)', () => {
     const world = createWorld(42);
     const a = buildChunkField(world, 5, 6, EMPTY);
     const b = buildChunkField(world, 6, 6, EMPTY);
+
     // a's east border column must equal b's first emitted column, so a's
     // eastmost emitted faces are culled exactly where b's land begins.
     for (let z = 0; z < a.size; z++) {
@@ -264,8 +300,11 @@ describe('chunk mesh (GDD 6.7 budgets)', () => {
   it('builds a chunk fast enough for the worker budget', () => {
     const world = createWorld(42);
     const t0 = performance.now();
+
     for (let i = 0; i < 8; i++) buildColumnArrays(buildChunkField(world, 4 + i, 4, EMPTY));
+
     const perChunk = (performance.now() - t0) / 8;
+
     expect(perChunk).toBeLessThan(40);
   });
 });
@@ -274,6 +313,7 @@ describe('the fence along the crop (GDD 6.3)', () => {
   /** Triangles the fence adds for one block with this occupancy. */
   function fenceTriangles(planted: Uint8Array): number {
     const builder = new BoxBuilder();
+
     growFence(builder, { bx: 0, by: 0, y: 0, planted });
     return builder.triangleCount;
   }
@@ -288,16 +328,22 @@ describe('the fence along the crop (GDD 6.3)', () => {
 
     // Half planted: one straight run across the block, and no more.
     const half = new Uint8Array(slots);
+
     for (let i = 0; i < slots / 2; i++) half[i] = 1;
+
     const straight = fenceTriangles(half);
+
     expect(straight).toBeGreaterThan(0);
 
     // A ragged edge is a longer fence than a straight one.
     const ragged = new Uint8Array(slots);
+
     for (let i = 0; i < slots; i++) {
       const row = Math.floor(i / WORLD.blockSide);
+
       ragged[i] = row < 6 || (row === 6 && i % WORLD.blockSide < 4) ? 1 : 0;
     }
+
     expect(fenceTriangles(ragged)).toBeGreaterThan(straight);
   });
 
@@ -306,6 +352,7 @@ describe('the fence along the crop (GDD 6.3)', () => {
     // case never reaches the fence at all.
     const sim = createSim(42);
     const block = [...sim.state.blocks.values()].find((b) => b.owned && b.phase === 'wild')!;
+
     expect(toLite(block, 0).planted).toBeNull();
   });
 });

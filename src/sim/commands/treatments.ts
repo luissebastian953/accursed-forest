@@ -46,19 +46,24 @@ type TreatmentCommand = Extract<Command, { type: keyof typeof TREATMENTS }>;
 function validateTreatment(ctx: SimContext, command: TreatmentCommand): Rejection | null {
   const { state, world } = ctx;
   const t: Treatment = TREATMENTS[command.type];
+
   if (!world.inBounds(...world.toXY(command.block)))
     return reject('unknownBlock', 'That block is outside the map.');
+
   const block = readBlock(state, world, command.block);
+
   if (!block.owned) return reject('notOwned', 'You do not own this block.');
   if (block.burning) return reject('burning', 'This block is on fire.');
   if (t.needsPalms && !state.palms.has(command.block))
     return reject('wrongPhase', 'Nothing planted here to treat.');
+
   if (block[t.field] > state.tick) {
     return reject(
       'occupied',
       `${t.label} already active for ${block[t.field] - state.tick} more days.`,
     );
   }
+
   if (state.inventory[t.item] < 1) return reject('noInventory', t.buy);
   return null;
 }
@@ -67,8 +72,11 @@ function applyTreatment(ctx: SimContext, command: TreatmentCommand): void {
   const { state, world, events } = ctx;
   const t: Treatment = TREATMENTS[command.type];
   const block: Block = writeBlock(state, world, command.block);
+
   state.inventory[t.item] -= 1;
+
   const until: Tick = state.tick + t.days;
+
   block[t.field] = until;
   if (command.type === 'SetTrap') events.push({ type: 'TrapSet', block: command.block });
   else
