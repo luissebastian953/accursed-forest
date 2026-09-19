@@ -25,6 +25,11 @@ import { SPECIES_IDS, SPECIES } from '@render/mobs/species';
 import { MODELS, ModelKit, type ModelId } from '@render/models/index';
 import { Clouds } from '@render/scene/Clouds';
 import { Coins } from '@render/scene/Coins';
+import {
+  buildGuardPostGeometry,
+  buildKopdesGeometry,
+  type KopdesLevel,
+} from '@render/scene/Kopdes';
 import { Sparkles } from '@render/scene/Sparkles';
 
 /** The shared vocabulary of things a subject may be able to do. */
@@ -237,6 +242,20 @@ export const SUBJECTS: readonly Subject[] = [
   ),
 
   // ── Scenery ─────────────────────────────────────────────────────────────
+  ...([1, 2, 3, 4] as KopdesLevel[]).map((level) =>
+    meshSubject(
+      `kopdes:${level}`,
+      `Kopdes, level ${level}`,
+      'Scenery',
+      (ctx) => new Mesh(buildKopdesGeometry(level), ctx.material),
+    ),
+  ),
+  meshSubject(
+    'kopdes:guard',
+    'Guard post',
+    'Scenery',
+    (ctx) => new Mesh(buildGuardPostGeometry(), ctx.material),
+  ),
   ...(Object.keys(MODELS) as ModelId[]).map(modelSubject),
 
   // ── Mobs ────────────────────────────────────────────────────────────────

@@ -76,6 +76,9 @@ const COLOURS: Partial<Record<number, [Hex, Hex]>> = {
   [Palette.KopdesWall]: [0xd9cbb0, 0xe6dabf],
   [Palette.KopdesRoof]: [0x8c3f2e, 0xa04c37],
   [Palette.KopdesFlag]: [0xc23b2e, 0xd14738],
+  [Palette.KopdesRoofLight]: [0xb35a42, 0xc9694c],
+  [Palette.KopdesTrim]: [0x3f8f45, 0x4fa353],
+  [Palette.KopdesGlass]: [0x3d4a52, 0x4c5a63],
 
   [Palette.HouseWall]: [0xd8c9a6, 0xe4d6b4],
   [Palette.HouseWood]: [0x8a6440, 0x9c734b],

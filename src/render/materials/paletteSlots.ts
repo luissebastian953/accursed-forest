@@ -58,6 +58,12 @@ export const Palette = {
   KopdesWall: 40,
   KopdesRoof: 41,
   KopdesFlag: 42,
+  /** The lighter red of a dormer or an annex, so additions read as additions. */
+  KopdesRoofLight: 43,
+  /** Painted trim: the co-op's green, earned at the upper levels. */
+  KopdesTrim: 87,
+  /** Window glass, darker than the walls and lighter than a cave mouth. */
+  KopdesGlass: 88,
 
   HouseWall: 44,
   HouseWood: 45,
