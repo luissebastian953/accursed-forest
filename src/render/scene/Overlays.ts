@@ -157,12 +157,33 @@ export class SelectionRing {
  * levels up; a few hundred boxes at most.
  */
 export class RangeRing {
-  readonly mesh: Mesh;
+  readonly group = new Group();
+  private readonly core: Mesh;
+  private readonly glow: Mesh;
   private key = '';
 
-  constructor(material: Material) {
-    this.mesh = new Mesh(new BoxBuilder().build(), material);
-    this.mesh.visible = false;
+  /** `_material` is the shared palette material; these rings light themselves. */
+  constructor(_material?: Material) {
+    // The same flat, self-lit treatment as the selection ring, a shade deeper
+    // and a good deal thinner: many of these are on screen at once, and they
+    // are the estate's edges, not the block the player is looking at.
+    const coreMaterial = new MeshBasicNodeMaterial({ transparent: true, depthWrite: false });
+    coreMaterial.colorNode = vec3(0.04, 0.22, 0.92);
+    coreMaterial.opacityNode = float(0.9);
+    this.core = new Mesh(new BoxBuilder().build(), coreMaterial);
+
+    const glowMaterial = new MeshBasicNodeMaterial({
+      transparent: true,
+      depthWrite: false,
+      blending: AdditiveBlending,
+    });
+    glowMaterial.colorNode = vec3(0.02, 0.11, 0.55);
+    glowMaterial.opacityNode = float(0.26);
+    this.glow = new Mesh(new BoxBuilder().build(), glowMaterial);
+    this.glow.position.y = -0.02;
+
+    this.group.add(this.core, this.glow);
+    this.group.visible = false;
   }
 
   show(state: SimState, world: World): void {
@@ -175,28 +196,37 @@ export class RangeRing {
     const key = `${kopdes.blockId}:${kopdes.level}`;
     if (key !== this.key) {
       this.key = key;
-      this.mesh.geometry.dispose();
-      this.mesh.geometry = buildRangeGeometry(state, world);
+      this.core.geometry.dispose();
+      this.glow.geometry.dispose();
+      this.core.geometry = buildRangeGeometry(state, world, RANGE_BAR, 0.2);
+      // The glow is the same frame a little wider and a little lower: from
+      // above it reads as a narrow bloom either side of the line.
+      this.glow.geometry = buildRangeGeometry(state, world, RANGE_BAR * 2.4, 0.18);
     }
-    this.mesh.visible = true;
+    this.group.visible = true;
   }
 
   hide(): void {
-    this.mesh.visible = false;
+    this.group.visible = false;
   }
 
   dispose(): void {
-    this.mesh.geometry.dispose();
+    this.core.geometry.dispose();
+    this.glow.geometry.dispose();
+    (this.core.material as Material).dispose();
+    (this.glow.material as Material).dispose();
   }
 }
 
-function buildRangeGeometry(state: SimState, world: World) {
+/** How thick the range frame's bars are: narrower than the selection ring. */
+const RANGE_BAR = 0.12;
+
+function buildRangeGeometry(state: SimState, world: World, t: number, lift: number) {
   const kopdes = state.kopdes!;
   const range = kopdesRange(kopdes.level);
   const [kx, ky] = world.toXY(kopdes.blockId);
   const b = new BoxBuilder();
   const s = WORLD.blockSide;
-  const t = 0.18;
   const h = 0.15;
 
   for (let dy = -range; dy <= range; dy++) {
@@ -209,15 +239,15 @@ function buildRangeGeometry(state: SimState, world: World) {
       const generated = world.generated(bx, by);
       if (generated.biome === 'river') continue;
 
-      const y = overlayHeight(state, world, id, 0.2);
+      const y = overlayHeight(state, world, id, lift);
       const cx = bx * s + s / 2;
       const cz = by * s + s / 2;
       const inset = 0.6;
       const len = s - inset * 2;
-      b.addAABox(cx, y, cz - len / 2 + t / 2, len, h, t, { side: Palette.PalmFrondYoung });
-      b.addAABox(cx, y, cz + len / 2 - t / 2, len, h, t, { side: Palette.PalmFrondYoung });
-      b.addAABox(cx - len / 2 + t / 2, y, cz, t, h, len, { side: Palette.PalmFrondYoung });
-      b.addAABox(cx + len / 2 - t / 2, y, cz, t, h, len, { side: Palette.PalmFrondYoung });
+      b.addAABox(cx, y, cz - len / 2 + t / 2, len, h, t, { side: Palette.Water });
+      b.addAABox(cx, y, cz + len / 2 - t / 2, len, h, t, { side: Palette.Water });
+      b.addAABox(cx - len / 2 + t / 2, y, cz, t, h, len, { side: Palette.Water });
+      b.addAABox(cx + len / 2 - t / 2, y, cz, t, h, len, { side: Palette.Water });
     }
   }
   return b.build();
