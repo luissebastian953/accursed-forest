@@ -1,11 +1,3 @@
-/**
- * Top bar and time controls (§8 panels 1–2, 5–8), in the cartoon kit: one
- * cream card of pills, icons from `icons.ts`, and chunky buttons. `Hud`
- * keeps the pre-Svelte constructor and `setHidden`/`update`/
- * `dispose` surface so `App.ts` is unchanged; the view it is given is held
- * raw and swapped whole on every update.
- */
-
 import { mount, unmount, type Component } from 'svelte';
 
 import type { Speed } from '@app/timeControl';

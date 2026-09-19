@@ -1,5 +1,3 @@
-/** Formatting helpers shared by the panels. Sim time is an integer tick (§10.2). */
-
 import { GROWTH } from '@sim/balance/growth';
 
 import { t } from '../i18n/index.ts';

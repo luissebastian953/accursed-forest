@@ -1,18 +1,3 @@
-/**
- * Fire on burning blocks (§6.4 "Fire"): glowing box particles.
- *
- * Each burning block holds a few flame sources, more at higher intensity.
- * Every source keeps emitting cubes that rise, swell and shrink as they cool
- * from white-hot through yellow and orange to deep red; embers drift higher
- * and wink out; smoke rolls off the top. Flame colours are brighter than
- * white, so the bloom pass (`render/Glow.ts`) makes them glow. Under each
- * fire an additive glow patch warms the ground, and a small pool of point
- * lights (always present, so shaders never recompile) lights the trees
- * beside the brightest fires.
- *
- * Purely visual: nothing here feeds back into the simulation.
- */
-
 import { distance, float, smoothstep, uniform, uv, vec2, vec3 } from 'three/tsl';
 import {
   AdditiveBlending,

@@ -1,11 +1,3 @@
-/**
- * Moisture layer (§4.6).
- *
- * Its own noise field, biased downward by elevation so lowlands are wetter.
- * Proximity to a river adds moisture on top, but that needs the traced river
- * cells, so it is applied by `worldgen/index.ts` once rivers exist.
- */
-
 import { NOISE, WORLD } from '../balance/world.ts';
 
 import { NOISE_TAG, noiseFor, type ElevationField } from './elevation.ts';

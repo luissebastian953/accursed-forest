@@ -1,8 +1,3 @@
-/**
- * BuyBlock (§3.1.1): instant title on a for-sale block adjacent to land you
- * already own. Buying does not clear; a bought forest still needs chopping.
- */
-
 import { manhattan } from '@shared/math';
 
 import { BIOMES } from '../balance/biomes.ts';

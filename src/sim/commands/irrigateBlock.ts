@@ -1,8 +1,3 @@
-/**
- * IrrigateBlock (§3.1): a per-block upgrade. Lifts the dry-scrub penalty,
- * floors moisture in the dry season, and costs water every day after.
- */
-
 import { IRRIGATION_COST } from '../balance/prices.ts';
 import { readBlock, spend, writeBlock } from '../state.ts';
 import type { Command } from '../types.ts';

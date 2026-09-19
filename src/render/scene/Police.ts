@@ -1,9 +1,3 @@
-/**
- * Police cars at the Kopdes (§3.9, §6.3): boxy bodies and cabins with a light
- * bar that blinks. They drive up while an investigation is open, and a
- * SWAT-style truck joins them at the arrest.
- */
-
 import { uniform, vec3 } from 'three/tsl';
 import { Group, Mesh, MeshBasicNodeMaterial, type Material } from 'three/webgpu';
 

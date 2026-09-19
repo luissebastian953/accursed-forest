@@ -1,11 +1,3 @@
-/**
- * Messages between `ChunkManager` and the mesher worker (§6.7).
- *
- * The worker owns its own `World` (rebuilt from the seed on first use) and
- * receives only the diverged blocks it needs, so the main thread never ships
- * terrain. Mesh arrays come back as transferables.
- */
-
 import type { DivergedBlockLite } from './chunkField.ts';
 
 export interface BuildChunkRequest {

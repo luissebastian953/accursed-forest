@@ -1,8 +1,3 @@
-/**
- * Pest treatments (§3.4): pheromone traps, Metarhizium and Trichoderma, each
- * a kit from the Kopdes applied to one block for a window of days.
- */
-
 import { BEETLES, GANODERMA } from '../balance/pests.ts';
 import { readBlock, writeBlock, type SimContext } from '../state.ts';
 import type { Block, Command, ItemId, Rejection, Tick } from '../types.ts';

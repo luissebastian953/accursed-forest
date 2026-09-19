@@ -1,12 +1,3 @@
-/**
- * What the headlines are doing to the estate right now (§3.7).
- *
- * Every lever in `MACRO_EVENTS` is read through this one module, and each
- * reader is used in exactly one place in the sim, so an event cannot quietly
- * reach anything it did not declare. The multipliers compound: two events
- * that both raise shop prices raise them together.
- */
-
 import {
   MACRO_EVENTS,
   MACRO_PREFIX,

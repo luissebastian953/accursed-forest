@@ -1,13 +1,3 @@
-/**
- * `t('panel.key')` looks a message up in the active locale, falls back to
- * English (a missing translation should never blank a label), and falls
- * back to the key itself if even English is missing (a mistyped key reads
- * as itself in the UI, not as an empty string).
- *
- * `{name}`-style placeholders are filled from the second argument:
- * `t('epilogue.chronicleCount', { count: 12 })`.
- */
-
 import { lookup } from './catalog.ts';
 import { locale } from './locale.svelte.ts';
 

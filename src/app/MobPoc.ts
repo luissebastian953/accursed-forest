@@ -1,18 +1,3 @@
-/**
- * `?mobs`: the mob proof of concept.
- *
- * A real estate (seed 42, streamed chunks) with a crowd of rigged mobs walking
- * over it, and a readout of what they cost: frame time, the time spent posing
- * them, draw calls and triangles. Buttons set the crowd size and switch between
- * the two ways of drawing it; one scene node per body part, or every part
- * skinned on the CPU into one merged mesh; so the question "will this make
- * the game heavy?" gets a
- * number rather than an opinion. "Chop a tree" plays the tree-fall animation.
- *
- * `?mobs&count=200&mode=nodes` presets the crowd for scripted measurement, and
- * `window.__mobs` exposes the stats.
- */
-
 import { Mesh, Scene } from 'three/webgpu';
 
 import { easeInQuad, easeOutBounce } from '@render/anim/easing';

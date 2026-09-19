@@ -1,5 +1,3 @@
-/** Mountain pine (Pinus merkusii on the highland ridges): stacked tiers narrowing to a point. */
-
 import { Palette } from '../../materials/paletteSlots.ts';
 import { between, type Model } from '../kit.ts';
 

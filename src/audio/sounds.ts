@@ -1,12 +1,3 @@
-/**
- * The estate's noises, written out rather than recorded (§6.6).
- *
- * A one-shot is a function that schedules its nodes at a time and returns how
- * long it lasts. A loop builds a running graph and hands back a stop. Both
- * take the context they draw on, so the same recipe plays live and renders
- * offline for the tests.
- */
-
 import { chain, drift, envelope, filter, lfo, noiseSource, tone } from './synth.ts';
 
 /** Everything a one-shot needs: where to play it and when. */

@@ -1,14 +1,3 @@
-/**
- * Elevation layer (§4.6).
- *
- * Continental noise (low frequency) plus hills (mid) plus detail (high),
- * combined into a continuous 0..1 height and quantised to `elevation` 0..3.
- * The continuous height is what the column mesher uses for the half-unit steps
- * inside a block; the quantised value is what the simulation reasons about.
- *
- * Pure: `f(seed, x, y)` with no state beyond the noise functions themselves.
- */
-
 import { createNoise2D } from 'simplex-noise';
 
 import { NOISE, WORLD } from '../balance/world.ts';

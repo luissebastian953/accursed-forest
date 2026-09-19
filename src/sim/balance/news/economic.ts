@@ -1,5 +1,3 @@
-/** Economic lane (§3.7): the price walk and the macro deck. */
-
 import type { NewsTemplate } from './types.ts';
 
 export const ECONOMIC: Record<string, NewsTemplate> = {

@@ -1,17 +1,3 @@
-/**
- * The palette strip (§6.4).
- *
- * Every vertex in the world carries a `paletteU` attribute instead of a UV.
- * The palette is a 256x2 texture: row 0 is the wet-season colour for each slot,
- * row 1 is the dry-season colour, and the alpha channel of both is how much
- * light the slot gives off rather than opacity. A single `season` uniform lerps between them,
- * and an event tint uniform (haze amber-grey, ash grey) is mixed on top, so the
- * whole world shifts mood with two floats.
- *
- * Colours are the real-place set from §6.1: saturated sawit green, yellow-green
- * young fronds, laterite red-orange soil, dark peat brown, ochre grassfield.
- */
-
 import {
   DataTexture,
   LinearSRGBColorSpace,

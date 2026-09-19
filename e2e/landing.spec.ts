@@ -1,9 +1,3 @@
-/**
- * The landing page (§ organic): static HTML that says what the game is, loads
- * no engine, and hands off to `play.html`. The game page paints its boot
- * shell before the engine arrives and takes it down once the app is up.
- */
-
 import { expect, test } from '@playwright/test';
 
 test.describe('landing page', () => {

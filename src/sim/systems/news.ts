@@ -1,10 +1,3 @@
-/**
- * News system (§3.7). Runs last each tick and turns what happened into
- * headlines: every item comes from a template keyed by a sim event or a
- * derived condition, the UI never invents one. Events of the same kind in the
- * same tick make one headline; a key does not repeat within its cooldown.
- */
-
 import { GROWTH } from '../balance/growth.ts';
 import { NEWS, NEWS_TEMPLATES, regionName, type NewsTemplate } from '../balance/news/index.ts';
 import { MACRO } from '../balance/society.ts';

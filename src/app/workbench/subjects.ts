@@ -1,13 +1,3 @@
-/**
- * What the workbench can put on the turntable, and what each one can be asked
- * to do. One entry per thing worth looking at on its own: a scenery model, a
- * palm at a stage, a mob, an effect.
- *
- * Every subject implements whichever of the shared actions make sense for it.
- * The panel draws the whole vocabulary either way and greys out what a
- * subject has not implemented, so the gaps are as visible as the behaviour.
- */
-
 import { Group, Mesh, type Material, type Object3D, type OrthographicCamera } from 'three/webgpu';
 
 import type { GroundRect } from '@render/camera/MapRig';

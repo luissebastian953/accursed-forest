@@ -1,9 +1,3 @@
-/**
- * Save migrations (§7): an ordered list of `schema N → N+1` steps applied to
- * the raw JSON before it is validated and decoded. A save from a newer schema
- * than this build knows is refused with a clear error, never half-read.
- */
-
 import { encodeTypedArray } from '@shared/base64';
 import { ECONOMY } from '@sim/balance/prices';
 import { SLOTS_PER_BLOCK } from '@sim/balance/world';

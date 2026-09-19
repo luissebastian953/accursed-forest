@@ -1,5 +1,3 @@
-/** Understory bushes: a lumpy mound, and a flowering variant dotted with blooms. */
-
 import { Palette } from '../../materials/paletteSlots.ts';
 import { between, oneOf, type Model } from '../kit.ts';
 

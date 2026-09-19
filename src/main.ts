@@ -1,10 +1,3 @@
-/**
- * The game's entry (`play.html`). The engine is a megabyte of three.js, so
- * it is loaded on demand behind the boot shell the page painted already;
- * the shell comes down once the app has mounted. `index.html` is the static
- * landing page and loads none of this.
- */
-
 import './ui/styles.css';
 import { reportVitals } from './app/vitals.ts';
 

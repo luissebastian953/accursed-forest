@@ -1,12 +1,3 @@
-/**
- * Growth and yield tunables (§2, §3.6.1).
- *
- * Palms accumulate growth-days, not calendar days: each tick a palm gains
- * `1 * G` where `G = light * moistureCurve(moisture) * fertility * stress`.
- * Stages are thresholds on accumulated growth-days; senescence is calendar age,
- * because palms get tall whether or not they grew well.
- */
-
 export const GROWTH = {
   /**
    * Growth-days from planting to first fruit. The design doc's ~900 was a

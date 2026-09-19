@@ -1,19 +1,3 @@
-/**
- * The headline deck's own copy (§3.7): what the ticker says when one of the
- * events in `macroEvents.ts` lands.
- *
- * The country here is invented, and so is everyone in it. President Prerows,
- * Energy Minister BehLOL, Finance Minister Purboy, Agriculture Minister
- * Amrun, Forestry Minister Rajuli, his deputy Nazarra and the former
- * president Mulyonows hold offices that do not exist in a kabupaten that does
- * not exist. What the deck satirises is the shape: that a sentence said into
- * a microphone moves the price of a seedling, and that nobody who says it is
- * ever the one who pays.
- *
- * The lane decides the colour, the severity decides the weight, and `effects`
- * is the "what this does to you" line the player actually reads.
- */
-
 import type { NewsTemplate } from './types.ts';
 
 export const STATEMENTS: Record<string, NewsTemplate> = {

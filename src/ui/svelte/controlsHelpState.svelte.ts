@@ -1,10 +1,3 @@
-/**
- * Controls (§8 panel 4): which button does what, in a popover from the top
- * bar's "?" button or the H key. `ControlsHelp` keeps the pre-Svelte
- * constructor and `toggle`/`show`/`hide`/`isOpen`/`dispose` surface so
- * `App.ts` is unchanged.
- */
-
 import { mount, unmount, type Component } from 'svelte';
 
 import ControlsHelpView from './ControlsHelp.svelte';

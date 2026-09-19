@@ -1,26 +1,3 @@
-/**
- * Where the scenery grows (§6.1, §6.3). The models live in `render/models/`;
- * this file is the ecology; which of them each kind of land carries, and
- * how thickly.
- *
- * - forest: rainforest trees, the odd emergent giant hung with vines, fallen
- *   logs, understory bushes and flowers, a weeping fig or a wood cabin now and then
- * - protected forest: the same, denser and older, more giants
- * - riverbank: willows, reeds at the water's edge, flowers
- * - grassland: tufts, wildflowers, bushes, a lone tree, rarely an abandoned house
- * - scrub: dry bushes, dead trees, cactus, tumbleweed, rocks
- * - hills: pines and boulders; spires and caves on the high ridges
- * - villages: stilt houses around a weeping fig
- * - burning, or burned within the ash window: charred snags on charred ground
- *
- * Props are merged into the chunk mesh the worker builds, so they stream and
- * rebuild with the terrain: chop a forest block and its chunk is remeshed
- * without the trees. Each block visits a jittered grid of spots, asks what the
- * ground there shows (the same warped edges the ground colour uses, so forest
- * edges wander across the block grid), and rolls that land's table. A hash of
- * (seed, block, draw) makes a block always grow the same things.
- */
-
 import { WORLD } from '@sim/balance/world';
 import type { Biome } from '@sim/types';
 

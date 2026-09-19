@@ -1,10 +1,3 @@
-/**
- * Mesher worker (§6.7): builds one chunk's column mesh per request and posts
- * the arrays back as transferables. World generation happens here too; the
- * worker has the same seeded generator, so the main thread never serialises
- * terrain.
- */
-
 import { buildChunkArrays, type DivergedBlockLite } from '@render/scene/chunkField';
 import type { WorkerRequest, WorkerResponse } from '@render/scene/chunkProtocol';
 import { createWorld, type World } from '@sim/worldgen/index';

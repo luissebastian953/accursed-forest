@@ -1,5 +1,3 @@
-/** Small numeric helpers shared by every layer. No allocations, no dependencies. */
-
 export const TAU = Math.PI * 2;
 
 export function clamp(v: number, min: number, max: number): number {

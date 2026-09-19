@@ -1,8 +1,3 @@
-/**
- * Emergent giant: a tree that stands over the canopy, with buttress roots
- * flaring at its foot, a crown of broad layers, and vines hanging from it.
- */
-
 import { Palette } from '../../materials/paletteSlots.ts';
 import { between, type Model } from '../kit.ts';
 import { hangVines } from '../plants/vines.ts';

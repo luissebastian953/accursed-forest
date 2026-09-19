@@ -1,15 +1,3 @@
-/**
- * Per-block palm storage, the stage function and the planting lattice
- * (§3.4, §3.6.1, §4.4).
- *
- * Palms are struct-of-arrays over the block's slots. Growth is accumulated
- * growth-days; the stage is a threshold on that, except senescence, which is
- * calendar age; palms get tall whether or not they grew well.
- *
- * Slots form a 12×12 triangular lattice: odd rows are offset half a slot, so
- * every palm has six neighbours. Ganoderma spreads root to root along it.
- */
-
 import { FOREST_GROWTH, GROWTH } from './balance/growth.ts';
 import { SLOTS_PER_BLOCK, WORLD } from './balance/world.ts';
 import type { GrowthStage, PalmArrays, Species, Tick } from './types.ts';

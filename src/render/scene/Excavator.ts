@@ -1,13 +1,3 @@
-/**
- * The excavator (§3.6.2): the machine that comes with the crew when a
- * landslide is dug out. It crawls onto the block, swings its boom into the
- * spoil, lifts, turns to dump, and goes back for more, for as long as the
- * crew is on the block.
- *
- * One machine at a time, like the motorcade: the estate never has two slides
- * being dug at once often enough to be worth the parts.
- */
-
 import { Group, Mesh, type Material } from 'three/webgpu';
 
 import { clamp01 } from '@shared/math';

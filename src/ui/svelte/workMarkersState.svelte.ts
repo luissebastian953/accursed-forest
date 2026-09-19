@@ -1,10 +1,3 @@
-/**
- * Progress rings over the blocks a crew is working (§8 panel 22b): a circle
- * that fills as the chop, the burn or the dig advances, pinned above
- * the work site. The App projects each block's centre every frame and hands
- * the positions over; nothing here touches the camera.
- */
-
 import { mount, unmount, type Component } from 'svelte';
 
 import type { BlockId } from '@sim/types';

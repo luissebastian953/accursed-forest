@@ -1,5 +1,3 @@
-/** Willow by the water: a leaning trunk, a rounded crown, and curtains of strands hanging to the bank. */
-
 import { Palette } from '../../materials/paletteSlots.ts';
 import { between, type Model } from '../kit.ts';
 

@@ -1,11 +1,3 @@
-/**
- * Core simulation types (design doc §4.4).
- *
- * Everything here is plain data: no classes with behaviour, no references to
- * anything outside `sim/`. If it cannot be JSON-ish serialised (typed arrays
- * excepted, see `persistence/`), it does not belong in `SimState`.
- */
-
 import type { RngState } from './rng.ts';
 
 /** One tick is one simulated day. */

@@ -1,9 +1,3 @@
-/**
- * The shape every command file exports (§4.2). `validate` returns a typed
- * `Rejection` the UI shows verbatim, or `null` to proceed; `apply` may assume
- * validation passed.
- */
-
 import type { SimContext } from '../state.ts';
 import type { Command, Rejection } from '../types.ts';
 

@@ -1,19 +1,3 @@
-/**
- * The simulation's public API (§4.2).
- *
- *   const sim = createSim(seed);
- *   sim.dispatch({ type: 'ChopBlock', block });   // validated; may be rejected
- *   const events = sim.tick();                    // one day; returns what happened
- *
- * Pure TypeScript: nothing here knows about Three.js, the DOM or the clock.
- * The systems run in a fixed order each tick. The full chain from §4.2 is
- *
- *   weather → worldEvents → terrain → growth → pest → harvest → economy → mobs → society → endings → news
- *
- * Once the run is over (and not continued in sandbox) the world stops: `tick()`
- * does nothing and every command but `KeepPlaying` is refused.
- */
-
 import { rebuildActiveSet } from './activeSet.ts';
 import { ECONOMY } from './balance/prices.ts';
 import { handlerFor } from './commands/index.ts';

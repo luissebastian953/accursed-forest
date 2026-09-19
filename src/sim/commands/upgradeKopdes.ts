@@ -1,8 +1,3 @@
-/**
- * UpgradeKopdes (§3.3): each level extends the range within which TBS can be
- * sold same-day. Level-ups add a wing to the building (render, M1b+).
- */
-
 import { ECONOMY, KOPDES_UPGRADE_COST } from '../balance/prices.ts';
 import { spend } from '../state.ts';
 import type { Command } from '../types.ts';

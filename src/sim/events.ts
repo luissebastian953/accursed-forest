@@ -1,11 +1,3 @@
-/**
- * Events a tick produces (§4.2 step 4).
- *
- * `sim/` does not emit; `tick()` returns the array and the layers above consume
- * it after the tick, syncing only what changed. Every event names the blocks it
- * touched so `render/sync.ts` can build its dirty set without diffing state.
- */
-
 import type {
   BlockId,
   Ending,

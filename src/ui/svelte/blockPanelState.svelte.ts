@@ -1,18 +1,3 @@
-/**
- * The block panel (§8 panel 9): what the selected block is, and what you can
- * do with it. Invalid actions stay visible with the sim's own rejection
- * reason, so the player learns the rules by reading, not by guessing.
- *
- * Planted blocks get a pest section with a clickable 12×12 slot grid; the
- * per-palm panel of §8 #10 without needing per-palm 3D picking.
- *
- * `BlockPanel` keeps the pre-Svelte constructor and
- * `show`/`refresh`/`selected`/`dispose` surface so `App.ts` is unchanged.
- * The sim is not reactive, so `refresh()` bumps a version and the view
- * derives a plain snapshot (`blockView`) from it; the snapshot carries its
- * text already localized, so a language switch re-derives it too.
- */
-
 import { mount, unmount, type Component } from 'svelte';
 
 import { BIOMES } from '@sim/balance/biomes';

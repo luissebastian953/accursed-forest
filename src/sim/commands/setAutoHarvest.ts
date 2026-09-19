@@ -1,9 +1,3 @@
-/**
- * SetAutoHarvest (§3.3): hand the picking to the Kopdes crew, or take it back.
- * While it is on, every ripe block in range is picked the day it ripens for a
- * small surcharge, and `HarvestBlock` is refused; the crew has it.
- */
-
 import type { Command } from '../types.ts';
 
 import { reject, type CommandHandler } from './handler.ts';

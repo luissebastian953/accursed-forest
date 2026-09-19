@@ -1,5 +1,3 @@
-/** Every headline template, by key (§3.7). */
-
 import { ECONOMIC } from './economic.ts';
 import { ENDINGS } from './endings.ts';
 import { GOVERNMENT } from './government.ts';

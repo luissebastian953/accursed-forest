@@ -1,10 +1,3 @@
-/**
- * The Kopdes building (§6.3): chunky box body, oversized pitched-roof slab,
- * a flag block. Level-ups add a wing (M1b). Hiring a security guard puts a
- * small post hut on the corner of the block, where the guard waits between
- * patrols.
- */
-
 import { Matrix4, Mesh, type Material } from 'three/webgpu';
 
 import { WORKER_JOBS } from '@sim/balance/mobs';

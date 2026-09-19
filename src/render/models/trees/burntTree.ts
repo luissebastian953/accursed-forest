@@ -1,5 +1,3 @@
-/** What a wildfire leaves standing: a charred snag, snapped short, one stub of a branch. */
-
 import { Palette } from '../../materials/paletteSlots.ts';
 import { between, type Model } from '../kit.ts';
 

@@ -1,9 +1,3 @@
-/**
- * Forest cover and landslides (§3.6.2). Wild forest you leave standing is
- * doing work: every slope block's slide chance scales with the share of
- * forest around it, so clearing every forest block makes the rains dangerous.
- */
-
 import { BIOMES } from './balance/biomes.ts';
 import { COVER_CROP, FOREST_COVER_WEIGHT, LANDSLIDE } from './balance/events.ts';
 import { FOREST_GROWTH } from './balance/growth.ts';

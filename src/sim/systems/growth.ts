@@ -1,15 +1,3 @@
-/**
- * Growth system (§3.6.1).
- *
- * Each tick a palm gains `G` growth-days, where
- *
- *     G = light × moistureCurve(moisture) × fertility × stress
- *
- * The first three factors are per block; stress is per palm (health, and in
- * M1d the pest stages). Stage thresholds live in `palms.ts`; yield accumulates
- * on bearing palms at the same rate, so a hazy round is visibly lighter.
- */
-
 import { clamp, sampleCurve } from '@shared/math';
 
 import { BIOMES } from '../balance/biomes.ts';

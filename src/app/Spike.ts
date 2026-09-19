@@ -1,20 +1,3 @@
-/**
- * The art spike (design doc §6.9).
- *
- * One flat 12x12 block with stepped edges, 144 procedural slab-frond palms,
- * hemisphere + directional light, linear fog, a `season` slider (wet -> dry
- * palette lerp), a `haze` slider (fog colour/density + event tint) and a
- * "Replant" button that pops all 144 palms in with the row cascade.
- *
- * Pass criteria: it looks like Kalimantan in September at one end and a wet
- * January at the other, the fronds read as palms from the diagonal, and the
- * cascade pop-in makes you want to press the button again.
- *
- * This is deliberately pre-sim: no `sim/` imports, no game state. It exists to
- * prove the art direction and the WebGPU/TSL/instancing stack before M1a builds
- * on top of it.
- */
-
 import { MapControls } from 'three/addons/controls/MapControls.js';
 import {
   AmbientLight,

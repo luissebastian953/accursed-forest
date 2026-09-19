@@ -1,10 +1,3 @@
-/**
- * Core Web Vitals from real visitors (§ organic): LCP, INP and CLS, plus
- * FCP and TTFB, sent to Google Analytics 4 as events when `gtag` is on the
- * page, and logged in development so a regression shows up in the console
- * before it shows up in Search Console.
- */
-
 import { onCLS, onFCP, onINP, onLCP, onTTFB, type Metric } from 'web-vitals';
 
 declare global {

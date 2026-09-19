@@ -1,5 +1,3 @@
-/** Natural lane (§3.7): generated directly by the weather and the land. */
-
 import type { NewsTemplate } from './types.ts';
 
 export const NATURAL: Record<string, NewsTemplate> = {

@@ -1,8 +1,3 @@
-/**
- * The workbench's entry (`workbench.html`). A development page: it boots the
- * same renderer and materials the game does, with none of the simulation.
- */
-
 import './ui/styles.css';
 
 const root = document.querySelector<HTMLDivElement>('#app');

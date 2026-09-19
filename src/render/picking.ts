@@ -1,8 +1,3 @@
-/**
- * Picking (§6.6): raycast the terrain chunks for block selection. Per-palm
- * picking against the instanced meshes arrives with the palm panel (M1b+).
- */
-
 import { Plane, Raycaster, Vector2, Vector3, type Camera, type Object3D } from 'three/webgpu';
 
 import { WORLD } from '@sim/balance/world';

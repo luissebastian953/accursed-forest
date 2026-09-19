@@ -1,8 +1,3 @@
-/**
- * Society tunables (§3.7, §3.9): the hidden integrity stat, the macro-economic
- * deck, and the authority meter with its warnings and arrest.
- */
-
 import { MACRO_EVENTS } from './macroEvents.ts';
 
 export const INTEGRITY = {

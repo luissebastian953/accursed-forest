@@ -1,17 +1,3 @@
-/**
- * World generation entry point (§4.6).
- *
- * `createWorld(seed, width, height)` runs the map-scale passes once (rivers,
- * protected forest, start site) and returns a `World` whose `block(x, y)` is a
- * pure function of the seed and coordinates. Nothing about untouched land is
- * ever stored: `SimState.blocks` holds only blocks that diverged, and reading
- * any other block comes here.
- *
- * Determinism: every random draw comes from streams forked off the seed with a
- * fixed tag, so the same seed always produces the same world regardless of what
- * the main simulation stream has done.
- */
-
 import { BIOMES } from '../balance/biomes.ts';
 import { NOISE, WORLD } from '../balance/world.ts';
 import { forkRng } from '../rng.ts';

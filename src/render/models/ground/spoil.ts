@@ -1,8 +1,3 @@
-/**
- * What a landslide leaves on a hectare: heaps of spoil, and the branches that
- * came down the slope with it, snapped off and driven into the mud.
- */
-
 import { Palette } from '../../materials/paletteSlots.ts';
 import { between, type Model } from '../kit.ts';
 

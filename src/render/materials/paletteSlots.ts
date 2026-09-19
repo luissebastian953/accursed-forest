@@ -1,11 +1,3 @@
-/**
- * Palette slot indices (§6.4).
- *
- * Kept free of Three.js so the mesher worker and the chunk field builder can
- * import it without pulling the renderer into the worker bundle. The colours
- * for each slot, and the texture that carries them, live in `palette.ts`.
- */
-
 export const PALETTE_WIDTH = 256;
 
 /** Slot indices. The value is the column in the palette texture. */

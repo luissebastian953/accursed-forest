@@ -1,12 +1,3 @@
-/**
- * Key-value storage adapter (§7).
- *
- * Everything persistence writes goes through this interface, so moving from
- * `localStorage` to IndexedDB is a new adapter, not a change to callers.
- * `QuotaError` is the one failure the game must handle visibly: the HUD shows a
- * warning and offers an export rather than losing the save silently.
- */
-
 export interface KeyValueStorage {
   get(key: string): string | null;
   set(key: string, value: string): void;

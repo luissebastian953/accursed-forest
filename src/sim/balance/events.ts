@@ -1,13 +1,3 @@
-/**
- * The weather event deck and the landscape hazards (§3.6, §3.6.2).
- *
- * Events are data: a weight, the conditions that allow a draw, a duration
- * range, and the effects the world-events system applies while they run. The
- * deck is drawn at most once every `drawEveryDays`, so a bad month is a bad
- * month rather than a stack of five disasters. Drought is not drawn; it is
- * what a long enough dry streak *is*.
- */
-
 import type { ClimateRegime } from '../types.ts';
 
 export const DECK = {

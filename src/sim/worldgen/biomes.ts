@@ -1,11 +1,3 @@
-/**
- * Biome rules (§4.6).
- *
- * A pure classifier: given the terrain samples for one cell it returns the
- * biome. Protected forest and villages are decided later by `features.ts`,
- * because they depend on the shape of the whole map rather than one cell.
- */
-
 import { BIOME_RULES } from '../balance/world.ts';
 import type { Biome } from '../types.ts';
 

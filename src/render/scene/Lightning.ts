@@ -1,9 +1,3 @@
-/**
- * Lightning (§3.6): a boxy bolt over the block a storm just hit, fading in a
- * few hundred milliseconds. Unlit and brighter than white, so it glows; and
- * blooms when the glow pass is on. `Sky.flash` lights the rest of the world.
- */
-
 import { uniform, vec3 } from 'three/tsl';
 import { AdditiveBlending, Group, Mesh, MeshBasicNodeMaterial, type Material } from 'three/webgpu';
 

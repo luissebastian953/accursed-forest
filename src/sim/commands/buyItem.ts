@@ -1,8 +1,3 @@
-/**
- * BuyItem (§3.3): the Kopdes shop. Prices are `base × inputPriceIndex`, so a
- * currency headline (M1f) shows up on the shelf immediately.
- */
-
 import { ITEM_PRICES } from '../balance/prices.ts';
 import { shopIndex } from '../macro.ts';
 import { spend } from '../state.ts';

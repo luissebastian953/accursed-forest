@@ -1,12 +1,3 @@
-/**
- * World events system (§3.6): the event deck, drought, floods, ash fall,
- * sparks, landslides, and fire spread with its pressure and wildfire.
- *
- * Every effect goes through moisture, light, fertility or damage; nothing
- * affects the trees by decree (§3.6). Light is applied in `weather.ts`, which
- * reads the events this system keeps in `state.weather.activeEvents`.
- */
-
 import { BIOMES } from '../balance/biomes.ts';
 import {
   ASH,

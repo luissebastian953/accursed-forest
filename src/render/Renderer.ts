@@ -1,8 +1,3 @@
-/**
- * Renderer setup (§6.4): WebGPU with automatic WebGL 2 fallback, and a
- * `forceWebGL` switch so CI exercises the fallback path on purpose.
- */
-
 import { WebGPURenderer, type Camera, type Scene } from 'three/webgpu';
 
 export type Backend = 'webgpu' | 'webgl';

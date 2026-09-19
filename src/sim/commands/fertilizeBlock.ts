@@ -1,8 +1,3 @@
-/**
- * FertilizeBlock (§3.5): one application lifts the block's fertility factor
- * for `FERTILIZER_DAYS`, which feeds both growth-days and yield through `G`.
- */
-
 import { FERTILIZER_DAYS } from '../balance/growth.ts';
 import { readBlock, writeBlock } from '../state.ts';
 import type { Command } from '../types.ts';

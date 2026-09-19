@@ -1,9 +1,3 @@
-/**
- * CoverCropBlock (§3.6.2): a cheap per-block planting that holds the soil.
- * It halves a slope's slide chance once established, ninety days after
- * sowing, and lasts three years. It never fully replaces forest cover.
- */
-
 import { COVER_CROP } from '../balance/events.ts';
 import { readBlock, spend, writeBlock } from '../state.ts';
 import type { Command } from '../types.ts';

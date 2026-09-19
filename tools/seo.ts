@@ -1,13 +1,3 @@
-/**
- * What crawlers read about the site besides the pages themselves: the XML
- * sitemap and robots.txt. Pure string building, so the build (vite.config.ts)
- * and the unit tests share it; the build supplies the dates.
- *
- * Both need absolute URLs, so they hang off `VITE_SITE_URL`. Without it the
- * build still writes a robots.txt (allow everything, no sitemap line) and
- * skips the sitemap: a sitemap of relative URLs is invalid, not just weak.
- */
-
 export interface SitePage {
   /** Path under the origin, with the trailing slash the canonical tag uses. */
   path: string;

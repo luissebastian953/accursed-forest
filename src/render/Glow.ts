@@ -1,10 +1,3 @@
-/**
- * Bloom (§6.4 "Fire"): a post-processing pass that makes anything brighter
- * than white glow; the fire's HDR particles and nothing else, because lit
- * land never gets that bright. It costs a few full-screen passes, so the app
- * only renders through it while something is burning.
- */
-
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
 import { pass } from 'three/tsl';
 import { RenderPipeline, type Camera, type Scene, type WebGPURenderer } from 'three/webgpu';

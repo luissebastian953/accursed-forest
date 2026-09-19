@@ -1,8 +1,3 @@
-/**
- * Pointer input (§6.2): click selects a block, double-click focuses it.
- * MapControls owns dragging, so a press that moves is a pan, not a click.
- */
-
 export interface Ndc {
   x: number;
   y: number;

@@ -1,9 +1,3 @@
-/**
- * What the workbench panel shows, and the handful of things it can ask the
- * stage to do. The stage (`Workbench.ts`) owns the renderer and hands this a
- * fresh view whenever something changes; the panel only reads it.
- */
-
 import { mount, unmount, type Component } from 'svelte';
 
 import { LOOPS, ONE_SHOTS, type LoopId, type OneShotId } from '@audio/Audio';

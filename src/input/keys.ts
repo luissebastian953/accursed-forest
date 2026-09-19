@@ -1,9 +1,3 @@
-/**
- * Keyboard shortcuts (§6.2, §8): space pauses, 1/2/3 pick a speed, Q/E snap
- * the camera a quarter turn, F jumps to the Kopdes, K opens the shop, N the
- * news, H (or ?) the controls, Escape closes things.
- */
-
 import type { Speed } from '@app/timeControl';
 
 export interface KeyHandlers {

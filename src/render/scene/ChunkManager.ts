@@ -1,16 +1,3 @@
-/**
- * Chunk streaming (§6.7).
- *
- * Each frame: project the camera's ground rectangle onto chunk coordinates
- * (plus a one-chunk margin), queue missing chunks nearest-first, ask the
- * mesher worker for at most `maxInFlight` at a time, and drop chunks that
- * have been out of view for a while into an LRU so a quick pan back is free.
- * A dirty chunk is rebuilt and swapped in atomically when its mesh arrives.
- *
- * The far-LOD heatmap tiles (§6.6) are not here yet; zoom is clamped by the
- * MapRig so the near ring stays inside the budget meanwhile.
- */
-
 import { Group, Mesh, type BufferGeometry, type Material } from 'three/webgpu';
 
 import { WORLD } from '@sim/balance/world';

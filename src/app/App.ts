@@ -1,8 +1,3 @@
-/**
- * Composition root (§4.1): wires sim, render, ui, input and persistence.
- * Nothing below this file knows about anything beside it.
- */
-
 import { Scene, Vector3 } from 'three/webgpu';
 
 import { Audio } from '@audio/Audio';

@@ -1,8 +1,3 @@
-/**
- * The run's own bookkeeping (§3.8): whether it is over, how it ended, and the
- * chronicle the epilogue replays.
- */
-
 import { CHRONICLE } from './balance/endings.ts';
 import type { ChronicleEntry, Ending, SimState } from './types.ts';
 

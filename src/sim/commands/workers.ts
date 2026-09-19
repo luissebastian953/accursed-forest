@@ -1,10 +1,3 @@
-/**
- * HireWorker / DismissWorker: the Kopdes puts people on the payroll. A hired
- * worker is a mob that stays until dismissed, is paid every day, and finds
- * its own jobs; debris for the sanitizer, sick palms for the plant doctor,
- * ripe blocks and thieves for the guard.
- */
-
 import { WORKERS, WORKERS_FROM_LEVEL } from '../balance/mobs.ts';
 import { spend } from '../state.ts';
 import type { Command, Mob } from '../types.ts';

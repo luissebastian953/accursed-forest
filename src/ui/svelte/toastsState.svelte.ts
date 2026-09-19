@@ -1,10 +1,3 @@
-/**
- * Transient notices (§8 panel 17): pop in, slide from the left, fade out
- * after a few seconds. The `Toasts` class keeps the exact constructor and
- * `push`/`dispose` surface it always had, so `App.ts` mounts and
- * drives it without knowing the rendering underneath changed.
- */
-
 import { mount, unmount, type Component } from 'svelte';
 
 import ToastsView from './Toasts.svelte';

@@ -1,15 +1,3 @@
-/**
- * The orthographic map camera (§6.2).
- *
- * Fixed ~35° pitch; azimuth snapped to the four diagonals; zoom is the ortho
- * frustum size; pan by dragging the landscape. `MapControls` does the drag
- * and wheel handling; this class owns where the camera actually is, so
- * rotation snapping, bounds, and the focus tween are first-class.
- *
- * The camera eases and never bounces (§6.5): focus and rotation use
- * `easeOutCubic`; MapControls' own damping covers the pan.
- */
-
 import { MapControls } from 'three/addons/controls/MapControls.js';
 import { OrthographicCamera, Vector3 } from 'three/webgpu';
 

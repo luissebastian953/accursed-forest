@@ -1,12 +1,3 @@
-/**
- * SettleInvestigation (§3.9): while integrity is low, a large payment makes
- * the police cars leave and lifts a suspended licence with them. It resets
- * attention to 30; and the news makes it clear exactly what happened.
- *
- * It is the most expensive button in the game, and it is not always there:
- * an honest district office will not take the call.
- */
-
 import { AUTHORITY } from '../balance/society.ts';
 import { settleFactor } from '../macro.ts';
 import { spend } from '../state.ts';

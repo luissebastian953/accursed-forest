@@ -1,9 +1,3 @@
-/**
- * SanitizeBlock (§3.1, §3.4): a sanitation crew from stock clears debris;
- * the only real fix for beetles, and what makes a cleared forest block's
- * organic soil safe to plant.
- */
-
 import { DEBRIS } from '../balance/pests.ts';
 import { readBlock, writeBlock } from '../state.ts';
 import type { Command } from '../types.ts';

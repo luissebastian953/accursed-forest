@@ -1,16 +1,3 @@
-/**
- * The menu (§8 panel 16): save, load, a new estate, and the language.
- * `Menu` keeps the pre-Svelte constructor and
- * `toggle`/`show`/`hide`/`update`/`isOpen`/`dispose` surface so `App.ts` is
- * unchanged; the view reads `state` and calls back into the class.
- *
- * Starting a new estate takes two steps (§8 panel 16a). A save is replaced
- * the moment a new world begins, so the boxes that describe one are kept off
- * the menu's face: the first step is a single button, the second is the form.
- * Anything that dismisses the menu puts it back on the first step, so nobody
- * reopens it to find a half-filled form pointed at their estate.
- */
-
 import { mount, unmount, type Component } from 'svelte';
 
 import { estateCodeFor, seedFromEstateCode } from '@sim/index';

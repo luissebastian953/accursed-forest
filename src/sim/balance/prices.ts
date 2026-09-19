@@ -1,5 +1,3 @@
-/** Starting economy, land pricing and shop prices (§3.1.1, §3.3, §3.5). */
-
 import type { Biome, ItemId } from '../types.ts';
 
 export const ECONOMY = {

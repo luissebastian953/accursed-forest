@@ -1,14 +1,3 @@
-/**
- * xoshiro128**; the single seeded PRNG for the whole simulation (§4.3).
- *
- * Hand-written on purpose: the state must be plain, serialisable numbers so a
- * save file can restore the exact stream position, and every random draw in
- * `sim/` must go through here. `Math.random` is banned in `sim/` by lint.
- *
- * State is four uint32s kept as plain number fields (JSON-friendly, no typed
- * array to base64-encode for something this small).
- */
-
 export interface RngState {
   a: number;
   b: number;

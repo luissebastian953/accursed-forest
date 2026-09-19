@@ -1,12 +1,3 @@
-/**
- * Map-scale features (§4.6): protected forest, and where the player starts.
- *
- * Both need to see the whole map at once; the largest contiguous forest
- * cluster, and a start site with a river in reach; so unlike elevation and
- * moisture they are computed once when the world is created rather than
- * per-cell on demand.
- */
-
 import { PROTECTED, START_SITE, VILLAGES, WORLD } from '../balance/world.ts';
 import { nextInt, type RngState } from '../rng.ts';
 import type { Biome } from '../types.ts';

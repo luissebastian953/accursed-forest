@@ -1,13 +1,3 @@
-/**
- * The presidential motorcade (§3.8, §6.5): when the estate certifies, a long
- * black car with two flags on the bonnet comes up the road between two white
- * escorts and stops in front of the Kopdes porch. The President steps out,
- * walks to the door, and tells you your palms will do the country a favour;
- * the epilogue card opens once he is there. Only for the win; nobody comes
- * for a bankruptcy. Purely visual, and driven by the App's clock, not the
- * sim's: the sim has already ended.
- */
-
 import { Group, Mesh, type Material } from 'three/webgpu';
 
 import { clamp01 } from '@shared/math';

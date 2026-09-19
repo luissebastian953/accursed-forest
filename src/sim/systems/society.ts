@@ -1,10 +1,3 @@
-/**
- * Society system (§3.7, §3.9): the macro-economic deck, the hidden integrity
- * stat, and the authority meter. Runs after the economy and before the news,
- * reading everything that happened this tick; including commands dispatched
- * since the last one, whose events wait in the same sink.
- */
-
 import { clamp } from '@shared/math';
 
 import { OPERATING_BAN } from '../balance/endings.ts';

@@ -1,9 +1,3 @@
-/**
- * Where the player's sound settings live between visits (§6.6): one key in
- * local storage, read once at boot, written on every change. Storage can be
- * off or full, so every touch is wrapped and a failure means "the default".
- */
-
 import type { AudioSettings } from './Audio.ts';
 
 export const AUDIO_STORAGE_KEY = 'sawit:audio';

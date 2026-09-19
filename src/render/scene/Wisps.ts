@@ -1,13 +1,3 @@
-/**
- * Wisps (§6.5): the smoke that hangs around a babi ngepet. In the stories the
- * thing arrives in a haze and leaves in one, so smoke is how you know the pig
- * crossing your land is not a pig.
- *
- * One instanced mesh, a fixed column of puffs per point, stepped on the CPU
- * the way `Sparkles` is. The caller hands in the points every frame, and each
- * puff rises, spreads and fades on its own loop.
- */
-
 import { InstancedMesh, Matrix4, Quaternion, Vector3, type Material } from 'three/webgpu';
 
 import { BoxBuilder } from '../geometry/boxBuilder.ts';

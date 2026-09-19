@@ -1,5 +1,3 @@
-/** A fallen log on the forest floor, with a stump or a fungus shelf now and then. */
-
 import { Palette } from '../../materials/paletteSlots.ts';
 import { between, type Model } from '../kit.ts';
 

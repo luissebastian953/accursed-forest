@@ -1,5 +1,3 @@
-/** A patch of wildflowers: thin stems, bright heads. */
-
 import { Palette } from '../../materials/paletteSlots.ts';
 import { between, oneOf, type Model } from '../kit.ts';
 

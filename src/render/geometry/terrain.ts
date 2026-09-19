@@ -1,16 +1,3 @@
-/**
- * Column terrain mesher (§6.3, §6.7).
- *
- * The world is a grid of 1-unit columns whose heights are quantised to half-unit
- * steps. Top faces are painted by biome/height, exposed sides by depth. Only
- * faces exposed to a lower neighbour are emitted; at estate scale that culls
- * most of the geometry, which is what keeps a 48x48 chunk inside the
- * ~6-10k triangle budget.
- *
- * This runs in `workers/mesher.worker.ts` once chunk streaming lands; it is kept
- * dependency-light (no sim imports) so the worker can own it.
- */
-
 import type { BufferGeometry } from 'three';
 
 import { BoxBuilder, geometryFromArrays, type MeshArrays } from './boxBuilder.ts';

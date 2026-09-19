@@ -1,18 +1,3 @@
-/**
- * HarvestBlock (§2, §3.3): one round on one block. The fruit goes to the
- * Kopdes intake and is sold at the day's price by the economy system; a block
- * outside Kopdes range is refused outright, because its fruit would spoil on
- * the road (§2: TBS must reach the mill within a day).
- *
- * The crew's wage is charged but never gated on cash: a harvest pays for
- * itself, and the first balance sweep showed what happens otherwise; an
- * estate that dipped below zero on the eve of its first round could not
- * afford to pick, and spiralled to −Rp 74M with fruit rotting on the trees.
- *
- * Rejections are ordered for the player, not the machine: "still immature",
- * then "next round in N days", then "nothing on the trees".
- */
-
 import { ASH_EVENT, activeEvent } from '../fire.ts';
 import { distanceToKopdes, inKopdesRange, kopdesRange } from '../kopdes.ts';
 import { readBlock } from '../state.ts';

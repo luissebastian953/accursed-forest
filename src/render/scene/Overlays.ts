@@ -1,10 +1,3 @@
-/**
- * In-scene overlays (§8 #11, #21): the selection ring, the Kopdes range ring
- * and the fire-spread preview. The selection ring is a flat glowing frame
- * that pops in with `easeOutBack`; the others float just above the block so
- * they read on any terrain.
- */
-
 import { float, min, smoothstep, uniform, uv, vec3 } from 'three/tsl';
 import {
   AdditiveBlending,

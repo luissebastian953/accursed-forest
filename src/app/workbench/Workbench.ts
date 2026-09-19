@@ -1,15 +1,3 @@
-/**
- * `workbench.html`: the estate's parts on a turntable, one at a time, the way
- * a component gallery does it for widgets. Pick a subject on the left, ask it
- * to do something on the right, change the backdrop to judge the light, and
- * watch what the renderer is holding while you do.
- *
- * It is a development page. Nothing links to it, it is not in the sitemap,
- * and it carries `noindex`; it exists so a model can be looked at without
- * hunting for one on a ridge somewhere, and so a leak shows up as a number
- * that climbs rather than as a tab that dies an hour later.
- */
-
 import { Color, Group, Mesh, Scene, type Material } from 'three/webgpu';
 
 import { Audio, LOOPS, ONE_SHOTS } from '@audio/Audio';

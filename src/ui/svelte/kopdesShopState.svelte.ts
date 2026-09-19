@@ -1,14 +1,3 @@
-/**
- * The Kopdes shop (§8 panel 12): a Buy tab for inputs at `base × index`, a
- * Sell tab showing today's TBS price, the intake and recent sales, and the
- * building's upgrade. The range ring is drawn on the map while it is open.
- *
- * `KopdesShop` keeps the pre-Svelte constructor and
- * `open`/`close`/`toggle`/`refresh`/`isOpen`/`dispose` surface so `App.ts`
- * is unchanged. The sim is not reactive, so `refresh()` bumps a version the
- * view derives its snapshot (`shopView`) from.
- */
-
 import { mount, unmount, type Component } from 'svelte';
 
 import { WORKERS, type WorkerKind, WORKERS_FROM_LEVEL } from '@sim/balance/mobs';

@@ -1,5 +1,3 @@
-/** A dead tree: bleached, leafless, a couple of bare branches. */
-
 import { Palette } from '../../materials/paletteSlots.ts';
 import { between, type Model } from '../kit.ts';
 

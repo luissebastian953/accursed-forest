@@ -1,9 +1,3 @@
-/**
- * Per-palm actions (§3.4): remove an infected or dead palm (its remains add
- * debris until sanitized), cut an isolation trench around a slot, and replant
- * a block's empty slots from stock.
- */
-
 import { GANODERMA, PEST_LABOUR } from '../balance/pests.ts';
 import { clearSlot, plantSlot } from '../palms.ts';
 import { readBlock, spend, writeBlock, type SimContext } from '../state.ts';

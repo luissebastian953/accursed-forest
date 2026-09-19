@@ -1,12 +1,3 @@
-/**
- * Weather system (§3.6). Runs first each tick: everything downstream reads
- * this tick's rain, sun and block moisture.
- *
- * Seasonal baseline plus the light attenuation of whatever smoke is in the
- * air. The event deck that creates most events arrives in M1e; the wildfire's
- * haze already comes from `worldEvents`.
- */
-
 import { clamp01, mod } from '@shared/math';
 
 import { ASH, HAZE } from '../balance/events.ts';

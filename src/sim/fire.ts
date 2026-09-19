@@ -1,9 +1,3 @@
-/**
- * Fire mechanics shared by the burn command and the world-events system
- * (§3.1.1, §3.6): what counts as fuel, igniting, finishing, extinguishing,
- * and the wildfire transition.
- */
-
 import { BIOMES } from './balance/biomes.ts';
 import { FIRE } from './balance/fire.ts';
 import type { EventSink } from './events.ts';

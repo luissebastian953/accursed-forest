@@ -1,11 +1,3 @@
-/**
- * Typed-array <-> base64 codec for save files (§7).
- *
- * Little-endian is assumed; every platform the game runs on is little-endian,
- * and saves that move between machines do so as exported JSON of these same
- * strings, so the assumption travels with the data.
- */
-
 // btoa/atob choke on very long argument lists; chunk the String.fromCharCode call.
 const CHUNK = 0x8000;
 

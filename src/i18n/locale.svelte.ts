@@ -1,12 +1,3 @@
-/**
- * Locale state for the game UI: English and Indonesian. There is no server,
- * so a first-time visitor's country is a guess from the browser: the time
- * zone first (Asia/Jakarta and the other Indonesian zones are a much
- * steadier signal than the browser's language, which install defaults and
- * travel both leave stale), then the browser's own language list. A
- * visitor's own choice always wins from there, and is remembered.
- */
-
 export type Locale = 'en' | 'id';
 export const LOCALES: readonly Locale[] = ['en', 'id'];
 

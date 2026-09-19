@@ -1,16 +1,3 @@
-/**
- * Save file shape (§7) and the encode/decode between it and `SimState`.
- *
- * A save is a manifest plus one entry per sim chunk that contains at least one
- * diverged block. Typed arrays travel as base64; untouched land is never
- * stored because the world regenerates from the seed.
- *
- * Every field is validated with zod on load so a corrupt or hand-edited save
- * fails loudly with a `SaveError`, not weirdly three years into a run.
- * Decoding is written out field by field rather than cast, so a shape change
- * in `sim/types.ts` is a compile error here rather than a runtime surprise.
- */
-
 import { z } from 'zod';
 
 import { decodeFloat32, decodeInt32, decodeUint8, encodeTypedArray } from '@shared/base64';

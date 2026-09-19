@@ -1,10 +1,3 @@
-/**
- * ChopBlock (§3.1.1): the safe, slow way to clear. Puts a crew on the block;
- * `systems/terrain.ts` advances the work each day, leaves stumps and debris
- * behind when it is done, and sells the timber. Chopping forest is noticed
- * (§3.9); under a letter it costs half again, under investigation it is banned.
- */
-
 import { BIOMES } from '../balance/biomes.ts';
 import { CREW_WAGE_PER_DAY } from '../balance/prices.ts';
 import { wageFactor } from '../macro.ts';

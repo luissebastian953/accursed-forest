@@ -1,13 +1,3 @@
-/**
- * Harvest system (§2, §3.3): ripeness and rot.
- *
- * A block's harvest clock starts the day its first palm bears fruit; the block
- * is ripe every `HARVEST_ROTATION_DAYS` after the last round. Fruit left on
- * the tree past ~1.5 rounds' worth rots; the cap keeps a neglected block from
- * banking a year of yield. Harvesting itself is a command (`HarvestBlock`):
- * manual per block, as §2 says, until auto-harvest arrives as an upgrade.
- */
-
 import { sampleCurve } from '@shared/math';
 
 import { HARVEST_ROTATION_DAYS, YIELD_CURVE } from '../balance/growth.ts';

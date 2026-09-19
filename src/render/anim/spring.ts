@@ -1,11 +1,3 @@
-/**
- * Damped harmonic oscillator (§6.5), integrated semi-implicit Euler.
- *
- * Springs are for interruptible motion; hover, selection, squash settle;
- * where the target can change mid-flight. One-shot motion uses a curve from
- * `easing.ts` instead.
- */
-
 export interface Spring {
   /** Current value. */
   x: number;

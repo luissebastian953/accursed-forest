@@ -1,8 +1,3 @@
-/**
- * The cartoon icon set (design kit): flat SVGs served from `public/icons`.
- * `Icon.svelte` renders one; `iconUrl` is for CSS backgrounds.
- */
-
 export type IconName =
   | 'axe-chop'
   | 'beetle'

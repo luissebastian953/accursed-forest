@@ -1,13 +1,3 @@
-/**
- * ReforestBlock (§3.10): put a block back under forest in one step. The two
- * halves of reforesting, buying saplings at the Kopdes and planting them,
- * were separate commands and a player had to work out the arithmetic between
- * them. This buys exactly what the block is short of and plants it.
- *
- * Saplings already in stock are used first, so a block out of the Kopdes's
- * range can still be reforested from what the estate is carrying.
- */
-
 import { inKopdesRange } from '../kopdes.ts';
 import { readBlock, spend, type SimContext } from '../state.ts';
 import type { BlockId, Command } from '../types.ts';

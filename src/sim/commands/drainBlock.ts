@@ -1,9 +1,3 @@
-/**
- * DrainBlock (§3.6): a per-block upgrade that makes a block flood-proof and
- * caps how waterlogged it can get. Floods themselves arrive with the event
- * deck (M1e); the moisture ceiling works today.
- */
-
 import { DRAINAGE_COST } from '../balance/prices.ts';
 import { readBlock, spend, writeBlock } from '../state.ts';
 import type { Command } from '../types.ts';

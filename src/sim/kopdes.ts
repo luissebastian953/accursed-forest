@@ -1,8 +1,3 @@
-/**
- * Kopdes range (§3.3): blocks within Manhattan distance `r` of the Kopdes can
- * sell same-day; beyond it TBS spoils on the road. Upgrades extend `r`.
- */
-
 import { manhattan } from '@shared/math';
 
 import { ECONOMY } from './balance/prices.ts';

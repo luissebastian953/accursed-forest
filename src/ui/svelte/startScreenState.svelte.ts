@@ -1,19 +1,3 @@
-/**
- * The title screen (§8 panel 1, design kit 5a): a modal over the live estate,
- * pulled back so the terrain reads as a dimmed backdrop. Two states:
- *
- *   - first launch, or nothing saved in this browser: the large start card;
- *     Start a game, an estate code to share a world, How to play, Settings,
- *     and three facts drawn from the balance tables;
- *   - a save in this browser: the medium "welcome back" card; the estate,
- *     when it was saved, where it stands, what is going on there, Continue,
- *     and the ways out (the menu's saves and codes, or a new estate).
- *
- * On start or continue the card fades and the camera pulls in; the App owns
- * that camera move. `StartScreen` keeps the pre-Svelte constructor
- * and `show`/`dismiss`/`isOpen`/`dispose` surface so `App.ts` is unchanged.
- */
-
 import { mount, unmount, type Component } from 'svelte';
 
 import { estateCodeFor, seedFromEstateCode } from '@sim/index';

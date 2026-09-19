@@ -1,5 +1,3 @@
-/** Vines hanging from a crown's edge, for trees that carry them. */
-
 import { Palette } from '../../materials/paletteSlots.ts';
 import { between, type ModelKit, type Rand } from '../kit.ts';
 

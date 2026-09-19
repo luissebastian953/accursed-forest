@@ -1,19 +1,3 @@
-/**
- * From world + estate to a column field for one chunk (§6.3, §6.7).
- *
- * Column height for wild land is the bilinear blend of the four nearest
- * blocks' continuous heights, quantised to half-unit steps; smooth ground
- * that reads as staircases, and never a one-column pit (bilinear is monotone
- * between samples; the art spike learned that lesson the hard way). Planted,
- * cleared and Kopdes blocks are levelled terraces at the block's base height,
- * cut into whatever the land around them does. Water sits a step below,
- * along the smoothed channel of `riverChannel.ts` rather than the river's
- * blocks, and wild ground is tinted and its biome edges warped by noise so
- * the land does not read as a checkerboard. Trees and rocks grow on top.
- *
- * Runs in the mesher worker, so it imports nothing that touches the renderer.
- */
-
 import { quantise } from '@shared/math';
 import { WORLD } from '@sim/balance/world';
 import type { Biome, Block, BlockId, BlockPhase } from '@sim/types';

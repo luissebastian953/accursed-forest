@@ -1,5 +1,3 @@
-/** Per-biome costs, clearing times and modifiers (§3.1). */
-
 import type { Biome } from '../types.ts';
 
 export interface BiomeSpec {

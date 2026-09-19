@@ -1,14 +1,3 @@
-/**
- * Procedural oil palm (§6.3): a column of tapered boxes with a subtle S-bend
- * for the trunk, and 8-12 flat slabs radiating from the crown, drooping ~30
- * degrees and tapering toward the tip.
- *
- * One generator, four parameter sets = the four growth stages. Scale is
- * 1 world unit = 1 palm slot, so a mature palm stands about one slot and a
- * half with a crown that nearly touches its neighbours, and an old one
- * overtops it: the way a plantation reads from the air.
- */
-
 import { Euler, Matrix4, Quaternion, Vector3, type BufferGeometry } from 'three';
 
 import { Palette } from '../materials/paletteSlots.ts';

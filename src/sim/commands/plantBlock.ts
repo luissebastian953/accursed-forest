@@ -1,9 +1,3 @@
-/**
- * PlantBlock (§3.2, §3.10): fill a cleared block with palms or forest saplings
- * from stock. Bibit and saplings are bought at the Kopdes (`BuyItem`); the
- * block needs one per plantable slot.
- */
-
 import { BIOMES } from '../balance/biomes.ts';
 import { createPalmArrays, plantSlots } from '../palms.ts';
 import { readBlock, writeBlock } from '../state.ts';

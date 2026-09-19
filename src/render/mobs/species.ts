@@ -1,13 +1,3 @@
-/**
- * The cast (POC): who walks around the estate.
- *
- * Every one is the same handful of boxes in a different arrangement; a
- * quadruped body with four swinging legs, an ape on two, or a biped with two
- * arms; so they
- * all animate from the one rig in `rig.ts`. Sizes are in world units, where a
- * palm slot is 1 and a mature palm stands about 4.
- */
-
 import { Palette } from '../materials/paletteSlots.ts';
 
 import type { PartRole, SpeciesSpec } from './rig.ts';

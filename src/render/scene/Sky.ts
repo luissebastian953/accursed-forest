@@ -1,13 +1,3 @@
-/**
- * Sky, fog and lights driven by weather (§6.4). Built before anything else
- * because it carries the game's atmosphere.
- *
- * The season lerps the palette and the sky; rain darkens both; smoke and ash
- * wash the world toward amber-grey or neutral grey and close the fog in. The
- * smoke and ash amounts ease toward their targets, so a haze season settles
- * over the estate rather than switching on.
- */
-
 import {
   AmbientLight,
   Color,

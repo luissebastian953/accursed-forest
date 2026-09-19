@@ -1,13 +1,3 @@
-/**
- * Digging out a landslide (§3.6.2): the one-shot crew from the shop, with the
- * machine that comes with it. They are on the block for a few days, and when
- * they are done the spoil is gone, the debris with it, and the hectare is
- * ground again rather than a scar.
- *
- * The alternative, which costs nothing, is to wait for the debris to rot and
- * plant through the spoil. That takes seasons.
- */
-
 import { EXCAVATION } from '../balance/events.ts';
 import { readBlock, writeBlock } from '../state.ts';
 import { staffBlock } from '../systems/mobs.ts';

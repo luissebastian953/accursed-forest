@@ -1,8 +1,3 @@
-/**
- * Command registry. One file per command (§5); the map below is the only
- * place that knows them all.
- */
-
 import type { Command, CommandType } from '../types.ts';
 
 import { burnBlock } from './burnBlock.ts';

@@ -1,13 +1,3 @@
-/**
- * The game loop (§4.2 step 3): fixed-step sim ticks on a wall-clock
- * accumulator, and a render callback every animation frame regardless of
- * tick rate. This is the one place wall-clock time lives (§4.3).
- *
- * The accumulator is capped: after a long stall (a hidden tab, a debugger
- * pause) the loop runs at most `maxTicksPerFrame` ticks and drops the rest,
- * rather than freezing the page to catch up on thousands of sim days.
- */
-
 export interface GameLoopOptions {
   /** Current tick rate; read every frame so speed changes apply at once. */
   ticksPerSecond: () => number;

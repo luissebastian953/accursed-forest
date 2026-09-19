@@ -1,11 +1,3 @@
-/**
- * Trees coming down (§6.5): while a forest block is being chopped, its trees
- * go one at a time; each quarter of the job fells another; and the last
- * one drops when the block clears and the chunk remeshes. A tree tips slowly
- * at first, gathers speed, hits the ground with a shudder, lies a moment, and
- * settles into the earth. Purely visual.
- */
-
 import { Group, Mesh, type Material } from 'three/webgpu';
 
 import { WORLD } from '@sim/balance/world';

@@ -1,5 +1,3 @@
-/** Stone: a boulder cluster, a spire for the high ridges, and a cave in a rock mound. */
-
 import { Palette } from '../../materials/paletteSlots.ts';
 import { between, oneOf, type Model } from '../kit.ts';
 

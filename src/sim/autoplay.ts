@@ -1,13 +1,3 @@
-/**
- * A scripted player for balance sweeps and tests (§10.3, `tools/balance-sweep.ts`).
- *
- * It does the sensible, boring thing: build the Kopdes on day one, chop the
- * nearest owned blocks, buy bibit and plant as soon as land is cleared, and
- * harvest every block the day it is ripe. With `managePests` it also does the
- * sanitation and pest work a careful player would. Nothing clever; the point
- * is to see what the numbers do to a player who simply follows the loop.
- */
-
 import { BIOMES } from './balance/biomes.ts';
 import { GROWTH } from './balance/growth.ts';
 import { KOPDES_UPGRADE_COST } from './balance/prices.ts';

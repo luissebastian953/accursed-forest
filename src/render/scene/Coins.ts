@@ -1,15 +1,3 @@
-/**
- * Gold coins (§6.5): a handful thrown into the air that arc, spin, land and
- * settle into the grass before they wink out. Anything that pays out on the
- * map borrows this: a golden capybara spotted, a babi ngepet caught with its
- * takings.
- *
- * One instanced mesh stepped on the CPU, with a fixed pool: a burst is a
- * dozen coins and they last a second and a half, so the pool is never the
- * thing that breaks. A burst past the pool drops its extra coins rather than
- * growing the buffer mid-frame.
- */
-
 import { InstancedMesh, Matrix4, Quaternion, Vector3, type Material } from 'three/webgpu';
 
 import { BoxBuilder } from '../geometry/boxBuilder.ts';

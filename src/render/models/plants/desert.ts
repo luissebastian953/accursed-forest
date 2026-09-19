@@ -1,8 +1,3 @@
-/**
- * Dry-country plants for the scrub: a branching cactus and a tumbleweed.
- * (Indonesia's scrub grows neither; the scrub is the driest land there is.)
- */
-
 import { Palette } from '../../materials/paletteSlots.ts';
 import { between, type Model } from '../kit.ts';
 

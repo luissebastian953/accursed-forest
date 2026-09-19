@@ -1,9 +1,3 @@
-/**
- * Every scenery model, by folder: trees, plants, rocks, ground litter and
- * buildings. Each is a `Model` (see `kit.ts`); `props.ts` decides where they
- * grow, and `?models` lays them all out in a gallery.
- */
-
 import { abandonedHouse, stiltHouse, woodCabin } from './buildings/houses.ts';
 import { fallenLog } from './ground/log.ts';
 import { snappedBranch, spoilHeap } from './ground/spoil.ts';

@@ -1,11 +1,3 @@
-/**
- * Everything in this game is boxes arranged well (§6.1, §6.3).
- *
- * `BoxBuilder` accumulates non-indexed triangles so flat shading is free, and
- * tags every vertex with a `paletteU` instead of a UV (§6.4). Geometry is built
- * once at startup and merged; nothing here runs per frame.
- */
-
 import { BufferGeometry, Float32BufferAttribute, Matrix3, Matrix4, Vector3 } from 'three';
 
 import { paletteU, type PaletteSlot } from '../materials/paletteSlots.ts';

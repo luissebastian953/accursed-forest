@@ -1,25 +1,3 @@
-/**
- * The crowd on screen. Two sources, one rig:
- *
- *   - `syncSim(state)`: the game's mobs. The simulation moves them a few
- *     blocks a day; here each one glides toward its latest position and its
- *     gait follows how fast it is actually moving, so a boar the sim moved a
- *     block and a half walks it. Species come from the sim; the babi ngepet is
- *     drawn as a pig until it stands up.
- *   - `spawn()`: the proof of concept's own wanderers, for the `?mobs` page,
- *     in either draw mode.
- *
- * Drawing is CPU skinning into one dynamic mesh per material: every frame the
- * rig poses each part, the part's box is transformed into a shared vertex
- * buffer, and the whole crowd is two draw calls with the terrain's own shader.
- * The instanced alternative (one `InstancedMesh` per species part) looked
- * cheaper on paper but three's node renderer keys a program on each instanced
- * object, so every part of every species that appeared compiled a fresh
- * shader; seconds of stall each on the software renderer, a hitch on real
- * GPUs. The `nodes` mode (a scene node per part) is kept for the POC's
- * comparison.
- */
-
 import {
   BufferAttribute,
   BufferGeometry,

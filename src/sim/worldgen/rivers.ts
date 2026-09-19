@@ -1,28 +1,3 @@
-/**
- * River tracing (§4.6).
- *
- * One to three rivers run from interior ridge cells to the coast, one block
- * wide. The coast is the border edge with the lowest mean height; all of a
- * map's drainage heads the same way, as a real kabupaten's does. Each river is
- * the least-cost path from its source to any coast cell, where the cost of
- * entering a cell is a step charge plus its weighted height plus a small
- * deterministic wobble; the height term makes the channel follow valleys and
- * the wobble keeps it from running dead straight across flat ground.
- *
- * Three walkers were tried before this one and dropped: pure steepest descent
- * stalled in the first local minimum after a dozen cells; a no-backtrack
- * "lowest unvisited neighbour" walk curled into itself and trapped a river in
- * three mid-map; a backtracking depth-first search reached the edge every time
- * but wandered through basins on the way, leaving 500-cell lakes. Dijkstra is
- * the only one whose output looks like a river on every seed.
- *
- * Rivers reaching the edge is what the riverbank strip, the start-site search
- * and the tests all rely on. The result is a set of water cells plus a distance
- * field, which biome selection uses for the riverbank strip and moisture uses
- * for the wetness boost. Unlike elevation and moisture this cannot be a pure
- * per-cell function; a river is a path; so it is computed once per world.
- */
-
 import { RIVERS } from '../balance/world.ts';
 import { forkRng, nextInt, type RngState } from '../rng.ts';
 

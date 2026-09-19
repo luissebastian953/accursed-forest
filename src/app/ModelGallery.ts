@@ -1,9 +1,3 @@
-/**
- * `?models`: every scenery model from `render/models/` on a grass plinth, in
- * rows, three variants each, with its name underneath. For tuning the look
- * without hunting for a cave on a ridge.
- */
-
 import { Mesh, Scene, Vector3 } from 'three/webgpu';
 
 import { MapRig } from '@render/camera/MapRig';

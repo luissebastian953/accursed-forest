@@ -1,9 +1,3 @@
-/**
- * The ISPO ceremony at the Kopdes (§3.8, §6.5): a banner on two poles pops in
- * with `easeOutBack`, and fireworks burst over the roof for a few seconds.
- * Clean or dirty, it is the same ceremony; the epilogue tells the difference.
- */
-
 import { Group, Mesh, type Material } from 'three/webgpu';
 
 import { clamp01 } from '@shared/math';

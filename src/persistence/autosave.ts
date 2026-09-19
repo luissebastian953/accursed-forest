@@ -1,11 +1,3 @@
-/**
- * Autosave (§7): every N sim days, and when the tab is hidden or closing.
- *
- * The first write after construction is a full write; after that only dirty
- * chunks are rewritten. A failed write puts the dirty set back so nothing is
- * lost, and reports through `onError` so the HUD can warn and offer an export.
- */
-
 import type { SimState } from '@sim/types';
 
 import type { DirtyChunks, SaveSlot } from './chunks.ts';

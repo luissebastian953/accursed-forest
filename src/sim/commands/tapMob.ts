@@ -1,12 +1,3 @@
-/**
- * Catching something at it (§POC): the golden capybara that turns up among
- * the others, and the babi ngepet, both while it ambles onto the estate as a
- * pig and on the day it stands up at the Kopdes.
- * Both are worth something to whoever spots them and clicks before they are
- * gone; the capybara simply goes, the pig drops its takings and bolts. It is
- * the one command aimed at a mob rather than a block.
- */
-
 import { BABI_NGEPET, SHINY } from '../balance/mobs.ts';
 import { earn, type SimContext } from '../state.ts';
 import { startle } from '../systems/mobs.ts';

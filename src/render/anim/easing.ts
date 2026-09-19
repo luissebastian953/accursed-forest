@@ -1,13 +1,3 @@
-/**
- * Easing curves (§6.5). Every curve maps t in [0,1] to a value that starts at 0
- * and ends at 1; the "back", "elastic" and "bounce" families overshoot on the way.
- *
- * This file is the CPU half of the curve library. `easingTSL.ts` holds the same
- * curves written as TSL nodes for GPU per-instance animation, and
- * `tests/render/easing-parity.test.ts` asserts the two agree at 32 sample points.
- * Change a curve here and you must change it there.
- */
-
 import { clamp01 } from '@shared/math';
 
 export type Easing = (t: number) => number;

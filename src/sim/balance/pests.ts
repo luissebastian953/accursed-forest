@@ -1,10 +1,3 @@
-/**
- * Pest tunables (§3.4). Two pests, two tempos: Ganoderma is slow and
- * structural (root to root along the lattice, years to kill), the rhinoceros
- * beetle is fast and about sanitation (breeds in debris, bores young palms).
- * Debris feeds both, which is why what you leave behind when clearing matters.
- */
-
 export const DEBRIS = {
   /**
    * Debris points that decay away on their own each day. Slow on purpose:

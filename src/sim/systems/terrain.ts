@@ -1,8 +1,3 @@
-/**
- * Terrain system (§3.1): clearing and burning progress, timber, debris decay,
- * and the crew digging a landslide out (§3.6.2).
- */
-
 import { BIOMES } from '../balance/biomes.ts';
 import { FIRE } from '../balance/fire.ts';
 import { DEBRIS } from '../balance/pests.ts';

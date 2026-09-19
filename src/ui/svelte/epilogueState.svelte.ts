@@ -1,11 +1,3 @@
-/**
- * The epilogue (§3.8, §8 panel 15): how the run ended, the numbers that tell
- * the truth about it, and the run replayed as a chain of headlines. Losses
- * offer the rewind; the certificate and the fade offer sandbox. `Epilogue`
- * keeps the pre-Svelte constructor and `show`/`hide`/`isOpen`/
- * `dispose` surface so `App.ts` is unchanged.
- */
-
 import { mount, unmount, type Component } from 'svelte';
 
 import type { ChronicleEntry, Ending, NewsItem, RunStats, YearSummary } from '@sim/types';

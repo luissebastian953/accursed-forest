@@ -1,10 +1,3 @@
-/**
- * Government lane (§3.7, §3.9): reactions, scandals, and the authorities'
- * letters. Whether a response does anything is the integrity stat's business;
- * the words give it away. `.hollow` variants publish under low integrity,
- * `.real` under high.
- */
-
 import type { NewsTemplate } from './types.ts';
 
 export const GOVERNMENT: Record<string, NewsTemplate> = {

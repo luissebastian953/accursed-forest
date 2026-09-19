@@ -1,11 +1,3 @@
-/**
- * ISPO progress (§8 panels 18–19): the year-end card each New Year, and the
- * five-condition checklist reachable from the top bar from Year 3, so the win
- * is legible before it happens. Both classes keep the pre-Svelte
- * constructor and `show`/`hide`/`isOpen`/`dispose` surface so `App.ts` is
- * unchanged.
- */
-
 import { mount, unmount, type Component } from 'svelte';
 
 import type { IspoCondition } from '@sim/systems/endings';

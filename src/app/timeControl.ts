@@ -1,11 +1,3 @@
-/**
- * Sim speed (§4.2, §8 panel 2): pause, 1×, 10×, 50×.
- *
- * While anything burns the speed is locked to 1×; you watch your fire
- * (§3.1.1). The lock is separate from the requested speed so releasing it
- * returns the player to what they had chosen.
- */
-
 export type Speed = 0 | 1 | 10 | 50;
 
 export const SPEEDS: readonly Speed[] = [0, 1, 10, 50];

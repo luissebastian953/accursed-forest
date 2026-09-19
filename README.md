@@ -9,8 +9,14 @@ Vite + TypeScript + Three.js (WebGPU with a WebGL 2 fallback) for the world,
 Svelte 5 + Tailwind for the panels around it, in English and Indonesian. No
 backend; saves live in `localStorage`.
 
-The full design document is the source of truth for everything below.
-Section references in the code (`§6.5`, `§4.1`, …) point into it.
+The design document is the source of truth for everything below; it lives in
+[`docs/gdd/`](docs/gdd/README.md) and section references in the code (`§6.5`,
+`§4.1`) point into it. [`docs/README.md`](docs/README.md) is the index of
+everything else: the [architecture](docs/architecture.md), [what a tick
+does](docs/simulation.md), the [module reference](docs/reference/README.md)
+(source files carry no header comment; their descriptions live there), and
+the [decision records](docs/adr/). [`CLAUDE.md`](CLAUDE.md) holds the working
+rules.
 
 ## Status
 

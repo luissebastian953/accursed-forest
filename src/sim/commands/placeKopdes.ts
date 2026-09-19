@@ -1,8 +1,3 @@
-/**
- * PlaceKopdes (§3.3): the estate's admin building, on one cleared block.
- * Required for buying and selling from M1b on.
- */
-
 import { KOPDES_BUILD_COST } from '../balance/prices.ts';
 import { readBlock, spend, writeBlock, type SimContext } from '../state.ts';
 import type { Command } from '../types.ts';

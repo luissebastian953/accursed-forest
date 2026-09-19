@@ -1,23 +1,3 @@
-/**
- * Reforestation, slot by slot. A block holds 144 planting slots, which is
- * palm spacing, so the forms are what grows in one slot:
- *
- *   sapling  a planted sapling: a thin stem and a few leaves, tied to a
- *            wooden stake in a ring of mulch, the way replanting crews
- *            leave them;
- *   tree     one of the wild forest's own trees, at its own size; a young
- *            one is the same mesh at a fraction of the scale;
- *   shrub    undergrowth: the saplings that lose the race for light.
- *
- * Trees and shrubs are the scenery models the wild forest is drawn from,
- * built once with a fixed draw instead of per spot, so a block that has
- * grown back is the same forest as the one next door rather than a
- * lookalike. A wild forest block carries about a dozen trees and a few
- * bushes over its 144 columns, so `Palms.ts` lets about that many slots
- * reach the canopy and leaves the forest floor clear under them; drawing a
- * crown in every slot is what made a green mound of it.
- */
-
 import { Euler, Matrix4, Quaternion, Vector3, type BufferGeometry } from 'three';
 
 import { Palette } from '../materials/paletteSlots.ts';

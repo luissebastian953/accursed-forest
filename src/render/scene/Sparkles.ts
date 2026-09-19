@@ -1,16 +1,3 @@
-/**
- * Sparkles (§6.5): a few glints turning over something worth a click, so a
- * golden capybara in the grass or a babi ngepet up on two legs reads as
- * "this one, now" rather than as scenery.
- *
- * One instanced mesh, a fixed ring of glints per point, stepped on the CPU.
- * The caller hands in the points every frame; nothing is kept between them.
- *
- * `SparkleBurst` is the other half: one throw of glints that arc out, turn
- * over and go. It is for a moment rather than a state, such as the Kopdes
- * coming back bigger after an upgrade.
- */
-
 import { InstancedMesh, Matrix4, Quaternion, Vector3, type Material } from 'three/webgpu';
 
 import { BoxBuilder } from '../geometry/boxBuilder.ts';

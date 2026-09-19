@@ -1,14 +1,3 @@
-/**
- * Clouds (§6.1): small white chunks drifting over the estate, see-through
- * enough that the land reads through them. They are scenery, not weather:
- * the sky's own mood is `Sky.ts`.
- *
- * They drift down and to the left of the screen whichever way the camera is
- * turned, so the direction is taken from the camera each frame rather than
- * fixed in the world. They live on a tile that follows the view and wraps,
- * so a handful of them covers any amount of panning.
- */
-
 import {
   InstancedMesh,
   Matrix4,

@@ -1,10 +1,3 @@
-/**
- * Loads every message catalog in `locales/<locale>/<namespace>.json` at
- * build time and flattens them into `namespace.key` lookup tables. One JSON
- * file per panel keeps a Svelte component's strings next to its own review,
- * instead of one growing file per language.
- */
-
 import type { Locale } from './locale.svelte.ts';
 
 const modules = import.meta.glob<Record<string, string>>('./locales/*/*.json', {

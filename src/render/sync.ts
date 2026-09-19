@@ -1,11 +1,3 @@
-/**
- * From a tick's events to what the scene needs to redo (§4.2 step 5).
- *
- * A pure classifier: the app feeds the digest to the chunk manager, the palm
- * meshes, the persistence dirty set and the HUD. Keeping it here means the
- * event → visual mapping (§6.5 "event wiring") has one home.
- */
-
 import type { SimEvent } from '@sim/events';
 import type { BlockId, Ending, ItemId, YearSummary } from '@sim/types';
 

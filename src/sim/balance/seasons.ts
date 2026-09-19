@@ -1,8 +1,3 @@
-/**
- * Seasonal baseline (§3.6): a 360-day year with a wet season (Nov–Mar) and a
- * dry season (Apr–Oct), and the climate regime that scales it each year.
- */
-
 import type { ClimateRegime } from '../types.ts';
 
 export const SEASONS = {

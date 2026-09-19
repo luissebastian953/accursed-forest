@@ -1,10 +1,3 @@
-/**
- * BurnBlock (§3.1.1): the tempting way to clear. Nearly free, fast, and it
- * spreads. Each burn adds its intensity's pressure; past the wildfire
- * threshold the fire stops being yours. The game never forbids it; it makes
- * the consequences legible.
- */
-
 import { FIRE } from '../balance/fire.ts';
 import { ignite, isFuel, isWildfire, startWildfire } from '../fire.ts';
 import { readBlock, spend } from '../state.ts';

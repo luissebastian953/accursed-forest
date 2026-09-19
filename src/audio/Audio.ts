@@ -1,12 +1,3 @@
-/**
- * The mixer (§6.6): one audio context, four buses, and the rules that keep a
- * fast clock from turning the estate into noise.
- *
- * Nothing is created until the player's first click, because a browser will
- * not start an audio context without a gesture. Until then every call is a
- * no-op, which also means the sim and the tests can run with no audio at all.
- */
-
 import { LOOPS, ONE_SHOTS, type LoopHandle, type LoopId, type OneShotId } from './sounds.ts';
 
 /** The buses. Each has its own level, so a player can keep music and lose UI. */

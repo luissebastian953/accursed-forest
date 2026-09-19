@@ -1,8 +1,3 @@
-/**
- * Buildings off the estate: a village stilt house (rumah panggung), a wood
- * cabin in the trees, and an abandoned house going back to the forest.
- */
-
 import { Palette } from '../../materials/paletteSlots.ts';
 import { between, type Model, type ModelKit } from '../kit.ts';
 

@@ -1,12 +1,3 @@
-/**
- * Initial state, the sparse block map, and the ledger (§4.4, §4.6).
- *
- * `SimState.blocks` holds only blocks that diverged from world generation.
- * Everything reads through `readBlock` and writes through `writeBlock`, which
- * materialises the block into the map on first touch. That is the whole trick
- * that lets a 64x64 world cost the size of the estate.
- */
-
 import { ECONOMY } from './balance/prices.ts';
 import type { EventSink } from './events.ts';
 import { createRng } from './rng.ts';

@@ -1,5 +1,3 @@
-/** Ground cover: a grass tuft, and reeds for the water's edge. */
-
 import { Palette } from '../../materials/paletteSlots.ts';
 import { between, type Model } from '../kit.ts';
 

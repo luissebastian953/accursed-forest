@@ -1,9 +1,3 @@
-/**
- * World shape and generation tunables (§4.6).
- *
- * Balance lives in data, never as literals inside systems (§4.5).
- */
-
 export const WORLD = {
   /** Default bound: a kabupaten. Lazy generation makes this a parameter, not a limit. */
   width: 64,

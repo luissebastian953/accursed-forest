@@ -1,14 +1,4 @@
 /**
- * Synthesis primitives (§6.6): the handful of building blocks every sound in
- * `sounds.ts` is made of. No files, no decoding, no download: the estate's
- * noises are generated the same way its palms and its palette are.
- *
- * Everything here takes a `BaseAudioContext`, so the same recipe runs live
- * through an `AudioContext` and offline through an `OfflineAudioContext`,
- * which is how the tests measure a sound without anyone listening to it.
- */
-
-/**
  * Seconds of noise kept per buffer. A looping buffer repeats its own wander,
  * and the ear finds that cycle quickly, so the buffer is long and its seam is
  * crossfaded: the tail is blended into the head and then cut.

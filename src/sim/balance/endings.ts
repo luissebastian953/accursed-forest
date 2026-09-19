@@ -1,8 +1,3 @@
-/**
- * End-state tunables (§3.8): the ISPO certificate, bankruptcy, the operating
- * ban, and the 25-year horizon. Calibrated with `pnpm sweep -- --ispo`.
- */
-
 export const ISPO = {
   /** One palm generation: the run's horizon, and the fade ending if nothing else came first. */
   horizonYears: 25,

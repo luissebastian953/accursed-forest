@@ -1,17 +1,3 @@
-/**
- * Mobs (POC → game): wild animals for the eye, a thief and a babi ngepet for
- * the ledger, ghosts for the abandoned corners, and the workers you pay.
- *
- * Runs after the economy and before society, so a theft shows up in the
- * day's books and the news. Every roll comes from its own stream, forked
- * from the seed and the tick: a crowd of boars must never shift the weather.
- *
- * Positions are in block units. A mob walks toward its target a fraction of
- * a block a day; the renderer walks it there between ticks. Animals live on
- * a small repertoire; stand, mill about, cross the estate, circle, sleep;
- * and pick the next thing when the current one runs out.
- */
-
 import { clamp } from '@shared/math';
 
 import { BIOMES } from '../balance/biomes.ts';

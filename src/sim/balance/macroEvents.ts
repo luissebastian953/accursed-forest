@@ -1,17 +1,3 @@
-/**
- * The headline deck (§3.7): what the country does to the estate while the
- * player is busy with it. Every entry is data, and every lever below is read
- * in exactly one place, so an event can only do what it says here.
- *
- * The world is fictional and so are its officials. President Prerows, Energy
- * Minister BehLOL, Finance Minister Purboy, Agriculture Minister Amrun,
- * Forestry Minister Rajuli, his deputy Nazarra and the previous president
- * Mulyonows are invented figures in an invented kabupaten. What is not
- * invented is the shape of the thing: a speech moves prices, an enforcement
- * drive moves land, and nobody in the deck is ever held to account for
- * either.
- */
-
 export interface MacroEvent {
   /** How often it comes up in the draw against the rest of the deck. */
   weight: number;

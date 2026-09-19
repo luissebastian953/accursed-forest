@@ -1,19 +1,3 @@
-/**
- * Pest system (§3.4): Ganoderma along the lattice, beetles in the debris,
- * and the plague flag when either gets out of hand.
- *
- * Ganoderma is the slow, structural pest: a latent palm turns symptomatic,
- * loses yield, dies, and spreads to its six lattice neighbours the whole
- * time; the stump keeps spreading until it is removed. Debris raises both
- * spontaneous infection and spread. Trichoderma halves spread; an isolation
- * trench cuts a slot's links entirely.
- *
- * The beetle is the fast, sanitation pest: a block's population grows
- * logistically toward a capacity set by its debris, bores immature palms
- * every day, and flies to neighbouring breeding sites. Traps kill, Metarhizium
- * slows breeding, and removing the debris is the only real fix.
- */
-
 import { clamp } from '@shared/math';
 
 import { BIOMES } from '../balance/biomes.ts';

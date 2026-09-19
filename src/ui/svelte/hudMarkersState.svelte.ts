@@ -1,14 +1,3 @@
-/**
- * The pin layer (design kit 6a): a marker over the hectare a thing is
- * happening on. The Kopdes carries one so the workshop is findable from
- * anywhere; a block carries one when Ganoderma or the beetles have got into
- * it, so an infestation is visible without opening every block, or when a
- * slope has given way under it.
- *
- * The App projects the world positions each frame and hands them over; the
- * markers themselves know nothing about the camera.
- */
-
 import { mount, unmount, type Component } from 'svelte';
 
 import type { BlockId } from '@sim/types';
