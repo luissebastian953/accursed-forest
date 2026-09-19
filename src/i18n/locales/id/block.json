@@ -52,6 +52,7 @@
   "drain": "Drainase",
   "tileTitle": "Status",
   "yours": "Milikmu",
+  "yoursNamed": "Milikmu ({name})",
   "forSale": "Dijual",
   "notForSale": "Tidak dijual",
   "tileElevation": "Ketinggian",

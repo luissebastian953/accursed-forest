@@ -477,8 +477,12 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
   const tiles: TileView[] = [
     {
       label: t('block.tileTitle'),
+      // Owned land carries the estate's name, when it has one: the title is
+      // the one tile that says whose the hectare is.
       value: block.owned
-        ? t('block.yours')
+        ? state.estateName
+          ? t('block.yoursNamed', { name: state.estateName })
+          : t('block.yours')
         : block.forSale
           ? t('block.forSale')
           : t('block.notForSale'),

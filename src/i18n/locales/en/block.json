@@ -52,6 +52,7 @@
   "drain": "Drain",
   "tileTitle": "Title",
   "yours": "Yours",
+  "yoursNamed": "Yours ({name})",
   "forSale": "For sale",
   "notForSale": "Not for sale",
   "tileElevation": "Elevation",
