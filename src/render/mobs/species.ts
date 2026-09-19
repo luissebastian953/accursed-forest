@@ -28,6 +28,11 @@ function quadruped(options: {
   headLift?: number;
   /** Holstein patches: slabs of this slot laid over the hide. */
   patches?: number;
+  /**
+   * Scales: staggered rows of small plates in this slot over the back and
+   * down the tail, so a pangolin reads as armoured rather than as a brown pig.
+   */
+  scales?: number;
   speed: number;
   swing?: number;
   cadence?: number;
@@ -166,6 +171,46 @@ function quadruped(options: {
       slot: fur,
       role: 'tail',
     });
+  }
+
+  if (options.scales !== undefined) {
+    const slot = options.scales;
+    // Each plate is a thin slab just proud of the hide, laid in rows that
+    // overlap like roof tiles: alternate rows are offset by half a plate, so
+    // the back reads as armour rather than as a grid. Nine plates in all,
+    // which lands the species exactly on the rig's part budget of 24; the
+    // tail is too thin on screen for plates of its own to earn their cost.
+    const skin = 0.012;
+    const plateW = width * 0.34;
+    const plateD = length * 0.24;
+    const plate = (name: string, x: number, z: number) => ({
+      name,
+      parent: 'body',
+      at: [width * x, height / 2 + skin, length * z] as [number, number, number],
+      size: [plateW, skin * 2, plateD] as [number, number, number],
+      slot,
+      role: 'still' as PartRole,
+    });
+    const flank = (name: string, side: number, z: number) => ({
+      name,
+      parent: 'body',
+      at: [side * (width / 2 + skin), height * 0.12, length * z] as [number, number, number],
+      size: [skin * 2, height * 0.42, plateD] as [number, number, number],
+      slot,
+      role: 'still' as PartRole,
+    });
+
+    parts.push(
+      plate('scaleA1', -0.3, 0.32),
+      plate('scaleA2', 0.3, 0.32),
+      plate('scaleB1', -0.6, 0.12),
+      plate('scaleB2', 0, 0.12),
+      plate('scaleB3', 0.6, 0.12),
+      plate('scaleC1', -0.3, -0.08),
+      plate('scaleC2', 0.3, -0.08),
+      flank('scaleL', -1, 0.06),
+      flank('scaleR', 1, 0.06),
+    );
   }
 
   return {
@@ -602,8 +647,10 @@ export const SPECIES: Record<string, SpeciesSpec> = {
   pangolin: quadruped({
     id: 'pangolin',
     label: 'Pangolin',
-    // Scales over the back, a pale underside, and a tail as long as the body.
-    fur: Palette.FurPangolinDark,
+    // A pale hide under dark armour, and a tail as long as the body. The
+    // plates carry the dark tone: light plates on a dark body read as
+    // patches, dark plates on a light body read as scales.
+    fur: Palette.FurPangolin,
     belly: Palette.FurPangolin,
     snout: Palette.FurPangolin,
     length: 0.95,
@@ -612,6 +659,8 @@ export const SPECIES: Record<string, SpeciesSpec> = {
     headSize: 0.3,
     legLength: 0.16,
     tail: 0.9,
+    // Dark plates over the light hide: the armour is what makes it a pangolin.
+    scales: Palette.FurPangolinDark,
     speed: 0.9,
     swing: 0.4,
     cadence: 2.2,
@@ -635,7 +684,8 @@ export const SPECIES: Record<string, SpeciesSpec> = {
     label: 'Orangutan',
     fur: Palette.FurOrangutan,
     bare: Palette.ApeGrey,
-    height: 1.7,
+    // Big: it should read as the largest thing on four or two legs out here.
+    height: 2.05,
     speed: 1.1,
     cadence: 1.1,
   }),

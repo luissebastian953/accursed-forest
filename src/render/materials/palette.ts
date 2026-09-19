@@ -106,7 +106,9 @@ const COLOURS: Partial<Record<number, [Hex, Hex]>> = {
   [Palette.RiverDeep]: [0x3a97da, 0x45a1e0],
 
   [Palette.FurPangolin]: [0x9c7a4a, 0xb08a55],
-  [Palette.FurPangolinDark]: [0x6f5432, 0x7f613b],
+  // Only the pangolin's plates: deep enough to read as armour against the
+  // pale hide at game scale, not just on the bench.
+  [Palette.FurPangolinDark]: [0x3f2d18, 0x4b361f],
   [Palette.FurCapybaraGold]: [0xf59a06, 0xffab12],
   [Palette.Coin]: [0xffa008, 0xffb114],
   [Palette.Sparkle]: [0xffdc55, 0xffe883],
