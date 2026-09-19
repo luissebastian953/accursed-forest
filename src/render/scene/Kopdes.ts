@@ -181,18 +181,6 @@ export function buildKopdesGeometry(level: KopdesLevel = 1) {
     }
   }
 
-  if (level >= 3) {
-    // The dormer over the counter, in the lighter red.
-    // The mast: a pole with rungs, at the hall's outer corner, for the aerial
-    // and the co-op's notices.
-    const mastX = west - reachOf(level) + 0.3;
-    const mastZ = depth / 2 + 0.5;
-    b.addAABox(mastX, 3.1, mastZ, 0.18, 6.2, 0.18, timber);
-    for (const y of [2.4, 3.4, 4.4]) {
-      b.addAABox(mastX + 0.45, y, mastZ, 1, 0.14, 0.14, timber);
-    }
-  }
-
   if (level >= 4) {
     // The office window over the door, and the painted fascia under the eave,
     // which is the co-op's green once it can afford the paint.
