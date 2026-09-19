@@ -26,8 +26,10 @@ import { landPrice } from '@sim/commands/buyBlock';
 import { itemPrice } from '@sim/commands/buyItem';
 import { chopCost } from '@sim/commands/chopBlock';
 import { seedlingItem, seedlingsNeeded } from '@sim/commands/plantBlock';
+import { reforestCost, saplingShortfall } from '@sim/commands/reforestBlock';
 import { settleCost, settleListening, settleable } from '@sim/commands/settleInvestigation';
 import { kopdesUpgradeCost } from '@sim/commands/upgradeKopdes';
+import { EventSink } from '@sim/events';
 import { isFuel, isWildfire } from '@sim/fire';
 import type { Sim } from '@sim/index';
 import { distanceToKopdes, inKopdesRange, kopdesRange } from '@sim/kopdes';
@@ -139,10 +141,63 @@ export interface BlockView {
   major: ActionView[];
   autoHarvest: { on: boolean; command: Command } | null;
   /**
+   * Open land, where the block can go either way: the crew clears it, or the
+   * saplings keep it green. Paired so the choice reads as a choice.
+   */
+  land: {
+    chop: ActionView;
+    chopNote: string;
+    reforest: ActionView & { detail: string; locked: boolean; note: string };
+  } | null;
+  /**
    * The envelope: what it would cost to make a case and a suspension go away,
    * and why the button is dead when it is.
    */
   settle: { cost: number; enabled: boolean; note: string } | null;
+}
+
+/**
+ * Open land's two futures (§8 panel 11a): the crew with its timber, or the
+ * saplings. Reforesting buys what the block is short of and plants it in one
+ * step, so the price here is the whole price, and the note says why it
+ * cannot be paid when it cannot.
+ */
+function landView(sim: Sim, id: BlockId, chop: ActionView): BlockView['land'] {
+  const { state, world } = sim;
+  const block = readBlock(state, world, id);
+  const ctx = { state, world, events: new EventSink() };
+  const needed = seedlingsNeeded(block.biome);
+  const short = saplingShortfall(ctx, id);
+  const cost = reforestCost(ctx, id);
+  const command: Command = { type: 'ReforestBlock', block: id };
+  // Nowhere to buy saplings is a different kind of no from too little cash:
+  // one is a building the estate has not put up yet.
+  const locked = short > 0 && (!state.kopdes || !inKopdesRange(state, world, id));
+  const poor = !locked && state.economy.cash < cost;
+
+  return {
+    chop,
+    chopNote: t('block.chopNote', { days: BIOMES[block.biome].chopDays }),
+    reforest: {
+      label: t('block.reforest'),
+      command,
+      testId: 'action-ReforestBlock',
+      rejection: sim.validate(command)?.reason ?? null,
+      minor: false,
+      cost,
+      icon: 'shop-sapling',
+      detail: t('block.saplings', { n: needed }),
+      locked,
+      note: locked
+        ? t('block.reforestLocked', { n: kopdesRange(state.kopdes?.level ?? 1) })
+        : poor
+          ? t('block.reforestPoor', {
+              cost: formatRp(cost),
+              cash: formatRp(Math.max(0, state.economy.cash)),
+            })
+          : t('block.reforestNote'),
+    },
+  };
 }
 
 /**
@@ -285,39 +340,18 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     }
 
     switch (block.phase) {
-      case 'wild': {
-        // Grass and scrub take saplings as they are: there is nothing standing
-        // to clear, so the forest offer comes before the crew's.
-        if (spec.openLand) {
-          const saplings = seedlingsNeeded(block.biome);
+      case 'wild':
+        // Open land pairs the two ways to take it (see `landView`); the rest
+        // has only one, and the crew does it.
+        if (!spec.openLand) {
           actions.push(
-            action(
-              t('block.plantForest', { n: saplings }),
-              { type: 'PlantBlock', block: id, species: 'forest' },
-              'action-PlantBlock-forest',
-              { icon: 'biome-forest-wild' },
-            ),
+            action(t('block.chop'), { type: 'ChopBlock', block: id }, 'action-ChopBlock', {
+              cost: chopCost(block.biome, state),
+            }),
           );
-          if (state.kopdes && state.inventory.forestSapling < saplings) {
-            const shortfall = saplings - state.inventory.forestSapling;
-            actions.push(
-              action(
-                t('block.buySaplings', { n: shortfall }),
-                { type: 'BuyItem', item: seedlingItem('forest'), quantity: shortfall },
-                'action-BuySaplings',
-                { cost: itemPrice('forestSapling', index) * shortfall },
-              ),
-            );
-          }
         }
-        actions.push(
-          action(t('block.chop'), { type: 'ChopBlock', block: id }, 'action-ChopBlock', {
-            cost: chopCost(block.biome, state),
-          }),
-        );
         burnable = isFuel(block, false);
         break;
-      }
       case 'cleared': {
         const needed = seedlingsNeeded(block.biome);
         actions.push(
@@ -340,9 +374,13 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
         }
         actions.push(
           action(
-            t('block.plantForest', { n: needed }),
-            { type: 'PlantBlock', block: id, species: 'forest' },
-            'action-PlantBlock-forest',
+            t('block.reforest'),
+            { type: 'ReforestBlock', block: id },
+            'action-ReforestBlock',
+            {
+              icon: 'shop-sapling',
+              badge: t('block.saplings', { n: needed }),
+            },
           ),
         );
         if (!state.kopdes) {
@@ -776,6 +814,20 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     };
   }
 
+  // Open land's pair is lifted out of the plain list into its own section.
+  const land =
+    block.phase === 'wild' && block.owned && !block.burning && spec.openLand
+      ? landView(sim, id, {
+          label: t('block.chop'),
+          command: { type: 'ChopBlock', block: id },
+          testId: 'action-ChopBlock',
+          rejection: sim.validate({ type: 'ChopBlock', block: id })?.reason ?? null,
+          minor: false,
+          cost: chopCost(block.biome, state),
+          icon: 'axe-chop',
+        })
+      : null;
+
   const kopdes = state.kopdes;
   return {
     x: x + 1,
@@ -793,6 +845,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     burn,
     minor: actions.filter((a) => a.minor),
     major: actions.filter((a) => !a.minor),
+    land,
     settle: settleView(state, block.phase),
     autoHarvest:
       kopdes &&

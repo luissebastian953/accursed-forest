@@ -299,6 +299,79 @@
         {/if}
       </div>
 
+      {#if v.land}
+        {@const land = v.land}
+        <!--
+          Open land, and the two things that can be done with it (§8 panel
+          11a). The crew is the loud one; the saplings are the quiet one, and
+          buying them is folded into the same press.
+        -->
+        <footer class="flex flex-col gap-2 border-t-2 border-dashed border-[#f2e0b0] p-4">
+          <div class="label">{t('block.clearThis')}</div>
+          <button
+            class="btn btn-green btn-lg w-full"
+            disabled={land.chop.rejection !== null}
+            title={land.chop.rejection ?? ''}
+            data-testid={land.chop.testId}
+            onclick={() => panel.act(land.chop.command)}
+          >
+            <span class="flex w-full items-center gap-2">
+              <Icon name="axe-chop" />
+              <span>{land.chop.label}</span>
+              <span class="muted !text-white/75 min-w-0 flex-1 truncate text-left text-xs">
+                {land.chopNote}
+              </span>
+              <span class="num rounded-lg bg-black/15 px-1.5 py-0.5 text-xs">
+                {formatRp(land.chop.cost ?? 0)}
+              </span>
+            </span>
+          </button>
+          {#if land.chop.rejection}
+            <div class="px-1 text-xs font-bold text-[#b85e12]">{land.chop.rejection}</div>
+          {/if}
+
+          <div class="label mt-1">{t('block.orKeepForest')}</div>
+          <button
+            class="btn btn-lg w-full {land.reforest.rejection === null
+              ? 'btn-ghost !border-[#8fc98a] !bg-white'
+              : 'btn-ghost'}"
+            disabled={land.reforest.rejection !== null}
+            title={land.reforest.rejection ?? ''}
+            data-testid={land.reforest.testId}
+            onclick={() => panel.act(land.reforest.command)}
+          >
+            <span class="flex w-full items-center gap-2">
+              <Icon name="shop-sapling" />
+              <span>{land.reforest.label}</span>
+              <span class="muted min-w-0 flex-1 truncate text-left text-xs">
+                {land.reforest.detail}
+              </span>
+              {#if land.reforest.locked}
+                <span class="chip chip-cream flex items-center gap-1 text-xs">
+                  <Icon name="lock" />{t('block.locked')}
+                </span>
+              {:else}
+                <span
+                  class="num rounded-lg px-1.5 py-0.5 text-xs {land.reforest.rejection === null
+                    ? 'bg-[#e6f4e2] text-[#2f7a2b]'
+                    : 'bg-[#ffe6e0] text-[#9e2e20]'}"
+                >
+                  {formatRp(land.reforest.cost ?? 0)}
+                </span>
+              {/if}
+            </span>
+          </button>
+          <div
+            class="px-1 text-xs font-bold leading-snug {land.reforest.locked ||
+            land.reforest.rejection === null
+              ? 'muted'
+              : 'text-[#9e2e20]'}"
+          >
+            {land.reforest.note}
+          </div>
+        </footer>
+      {/if}
+
       {#if v.major.length > 0 || (v.autoHarvest && !v.kopdes)}
         <footer class="flex flex-col gap-2 border-t-2 border-dashed border-[#f2e0b0] p-4">
           {#each v.major as action (action.testId)}

@@ -767,6 +767,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   const RAIN_FADE_OUT = 4;
   /** How long the sky must stay dry before the shower is treated as over. */
   const RAIN_HOLD = 2.5;
+  /** The fire comes up slowly and goes out slowly: it is a state, not a hit. */
+  const FIRE_FADE_IN = 1.6;
+  const FIRE_FADE_OUT = 2.2;
   /**
    * A bolt this far from where the camera is looking, in blocks, is "far":
    * darker, longer, and arriving after the flash the way sound does.
@@ -797,11 +800,27 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       rainDryFor = 0;
       audio.startLoop('rain-light', RAIN_FADE_IN);
       const over = (wetness - SKY.rainAbove) / (1 - SKY.rainAbove);
-      audio.setLoopLevel('rain-light', 0.55 + 0.45 * Math.max(0, Math.min(1, over)));
+      // Rain is weather, not an event: it sits under the estate's own noises.
+      audio.setLoopLevel('rain-light', 0.3 + 0.28 * Math.max(0, Math.min(1, over)));
       return;
     }
     rainDryFor += dtSeconds;
     if (rainDryFor >= RAIN_HOLD) audio.stopLoop('rain-light', RAIN_FADE_OUT);
+  }
+
+  /**
+   * Fire on the estate, under everything else. It is the loudest thing that
+   * can happen and the one the player can least afford to tune out, so it
+   * sits low and leans on the vignette and the clock lock to carry the alarm.
+   */
+  function syncFireAudio(): void {
+    if (burningCount > 0) {
+      audio.startLoop('fire-crackle', FIRE_FADE_IN);
+      // A little more with every block alight, and never much.
+      audio.setLoopLevel('fire-crackle', Math.min(0.34, 0.16 + burningCount * 0.03));
+    } else {
+      audio.stopLoop('fire-crackle', FIRE_FADE_OUT);
+    }
   }
 
   /** Thunder for a bolt, near or far by where it landed. */
@@ -1460,6 +1479,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     sky.update(sim.state.weather, uniforms, atmosphere(), dt, nowMs);
     rain.update(dt, sim.state.weather.rain, sim.state.weather.sky, visible, time.speed > 0);
     syncWeatherAudio(dt);
+    syncFireAudio();
     lightning.update(nowMs);
     timber.update(nowMs);
     mobField.update(dt, time.secondsPerTick);

@@ -20,6 +20,7 @@ import { keepPlaying } from './keepPlaying.ts';
 import { removePalm, replantBlock, trenchPalm } from './palmSlots.ts';
 import { placeKopdes } from './placeKopdes.ts';
 import { plantBlock } from './plantBlock.ts';
+import { reforestBlock } from './reforestBlock.ts';
 import { sanitizeBlock } from './sanitizeBlock.ts';
 import { setAutoHarvest } from './setAutoHarvest.ts';
 import { settleInvestigation } from './settleInvestigation.ts';
@@ -34,6 +35,7 @@ const registry: Partial<Record<CommandType, CommandHandler>> = {
   BuyBlock: buyBlock as CommandHandler,
   ChopBlock: chopBlock as CommandHandler,
   PlantBlock: plantBlock as CommandHandler,
+  ReforestBlock: reforestBlock as CommandHandler,
   PlaceKopdes: placeKopdes as CommandHandler,
   HarvestBlock: harvestBlock as CommandHandler,
   FertilizeBlock: fertilizeBlock as CommandHandler,

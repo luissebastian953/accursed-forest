@@ -417,6 +417,8 @@ export type FireIntensity = 1 | 2 | 3;
  */
 export type Command =
   | { type: 'PlantBlock'; block: BlockId; species: Species }
+  /** Buy what the block is short of and plant forest on it, in one step. */
+  | { type: 'ReforestBlock'; block: BlockId }
   | { type: 'BuyBlock'; block: BlockId }
   | { type: 'ChopBlock'; block: BlockId }
   | { type: 'BurnBlock'; block: BlockId; intensity: FireIntensity }

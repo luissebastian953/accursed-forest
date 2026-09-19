@@ -19,11 +19,12 @@ export const FIRE = {
    * regime. Read together with `burnDays`: what matters is the chance over
    * the whole burn. Low ≈ 0.16 per neighbour over 8 days (a controlled burn
    * mostly stays put), medium ≈ 0.34 over 4 (sometimes takes one), high ≈ 0.4
-   * over 2 (probably takes a couple; at 0.35/day one high burn chain-reacted
-   * into 130 blocks on its own). The design doc's per-day figures were
+   * over 2 (takes a couple and often more; a big fire is meant to be a thing
+   * that gets away from you. 0.35/day is the ceiling: one high burn
+   * chain-reacted into 130 blocks on its own). The design doc's per-day figures were
    * written without the durations and chain-reacted even at low intensity.
    */
-  spreadPerDay: { 1: 0.01, 2: 0.058, 3: 0.2 } satisfies Record<FireIntensity, number>,
+  spreadPerDay: { 1: 0.01, 2: 0.058, 3: 0.3 } satisfies Record<FireIntensity, number>,
 
   /**
    * A man-made burn spreads this much more readily into a neighbouring block

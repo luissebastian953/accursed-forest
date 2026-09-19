@@ -708,15 +708,10 @@ test.describe('Sawit Simulator', () => {
     await tid(page, 'action-PlaceKopdes').click();
 
     await selectWildNeighbour(page, /Grassfield|Dry scrub/);
-    // The forest offer comes before the crew's: there is nothing to clear.
-    const actions = tid(page, 'block-panel').locator('[data-testid^="action-"]');
-    const order = await actions.evaluateAll((nodes) =>
-      nodes.map((n) => n.getAttribute('data-testid')),
-    );
-    expect(order.indexOf('action-PlantBlock-forest')).toBeGreaterThanOrEqual(0);
-    expect(order.indexOf('action-PlantBlock-forest')).toBeLessThan(
-      order.indexOf('action-ChopBlock'),
-    );
+    // Open land offers both futures side by side, the crew and the saplings.
+    await expect(tid(page, 'block-panel')).toContainText('Clear this block');
+    await expect(tid(page, 'block-panel')).toContainText('Or keep it forest');
+    await expect(tid(page, 'action-ChopBlock')).toBeVisible();
 
     // Suspended, with the meter just under the line that summons a letter
     // card: the saplings buy half of both back.
@@ -726,8 +721,9 @@ test.describe('Sawit Simulator', () => {
       state.society.attention = 38;
       state.society.operatingBanUntil = state.tick + 100;
     });
-    await tid(page, 'action-BuySaplings').click();
-    await tid(page, 'action-PlantBlock-forest').click();
+    // One press buys what the block is short of and plants it.
+    await expect(tid(page, 'action-ReforestBlock')).toBeEnabled();
+    await tid(page, 'action-ReforestBlock').click();
     await expect(tid(page, 'block-phase')).toHaveText('Reforesting');
 
     const after = await page.evaluate(() => {

@@ -269,6 +269,7 @@ const RunSchema = z.object({
 
 const CommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('PlantBlock'), block: Id, species: z.enum(['palm', 'forest']) }),
+  z.object({ type: z.literal('ReforestBlock'), block: Id }),
   z.object({ type: z.literal('BuyBlock'), block: Id }),
   z.object({ type: z.literal('ChopBlock'), block: Id }),
   z.object({

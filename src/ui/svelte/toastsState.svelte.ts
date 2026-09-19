@@ -7,8 +7,6 @@
 
 import { mount, unmount, type Component } from 'svelte';
 
-import type { IconName } from '../icons.ts';
-
 import ToastsView from './Toasts.svelte';
 
 export type ToastKind = 'info' | 'warn' | 'error';
@@ -23,12 +21,6 @@ export const TONE: Record<ToastKind, string> = {
   info: 'border-[#f2e0b0] bg-[#fff6e0] text-[#4a3320]',
   warn: 'border-[#ffcf8f] bg-[#fff1d6] text-[#8a4b12]',
   error: 'border-[#ffb3a3] bg-[#ffe6e0] text-[#9e2e20]',
-};
-
-export const MARK: Record<ToastKind, IconName> = {
-  info: 'news',
-  warn: 'fire',
-  error: 'police-warning',
 };
 
 /** How many notices sit on screen at once; more than this and the oldest goes. */
