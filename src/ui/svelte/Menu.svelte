@@ -56,7 +56,11 @@
           </button>
         </div>
 
-        {#if state.view.inPlay}
+        <!--
+          Shown whenever there is something to lose: an estate in play, or a
+          save sitting in this browser that the new one would overwrite.
+        -->
+        {#if state.view.inPlay || state.view.hasSave}
           <div
             class="mb-4 flex items-start gap-2.5 rounded-2xl border-2 border-[#f3c9bf] bg-[#fdeae6] p-3"
             data-testid="menu-replace-warning"

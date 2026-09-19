@@ -405,6 +405,59 @@ test.describe('Sawit Simulator', () => {
     expect(pauseA.equals(pauseB), 'a paused estate should be still').toBe(true);
   });
 
+  test('the bar and the certificate agree on what is met', async ({ page }) => {
+    await boot(page);
+    // Far enough in for the bar to show progress, with a stale year record
+    // behind it: the bar used to read that record rather than the estate.
+    await page.evaluate(() => {
+      const { state } = (window as unknown as DebugWindow).__sawit.sim();
+      state.tick = 360 * 4;
+      state.run.years.push({ conditionsMet: 0 } as never);
+    });
+    await page.waitForTimeout(600);
+    const bar = (await tid(page, 'hud-ispo').textContent()) ?? '';
+    await tid(page, 'hud-ispo').click();
+    await expect(tid(page, 'certificate-panel')).toBeVisible();
+    const modal = (await tid(page, 'certificate-count').textContent()) ?? '';
+    expect(bar.match(/(\d)\s*\/\s*5/)?.[1]).toBe(modal.match(/(\d) of 5/)?.[1]);
+  });
+
+  test('New estate from the title card asks before it replaces the save', async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.goto('/play.html?webgl&debug');
+    await expect(page.locator('canvas')).toBeVisible();
+    await page.waitForTimeout(2500);
+    await tid(page, 'start-name').fill('Penyawit Handal');
+    await tid(page, 'start-game').click();
+    await page.waitForTimeout(2500);
+    await tid(page, 'menu-button').click();
+    await tid(page, 'menu-save').click();
+    await page.keyboard.press('Escape');
+
+    // Back to the title card: the button opens the form, it does not act.
+    await page.goto('/play.html?webgl&debug');
+    await page.waitForTimeout(2800);
+    await expect(tid(page, 'start-welcome')).toBeVisible();
+    await tid(page, 'start-new').click();
+    await expect(tid(page, 'menu')).toHaveAttribute('data-step', 'new');
+    // It says what would be lost, and it opens on that estate's name.
+    await expect(tid(page, 'menu-replace-warning')).toContainText('Penyawit Handal');
+    await expect(tid(page, 'menu-name')).toHaveValue('Penyawit Handal');
+
+    // Cancel means never mind: back to the card, save untouched.
+    await tid(page, 'menu-new-cancel').click();
+    await expect(tid(page, 'menu')).toHaveCount(0);
+    await expect(tid(page, 'start-welcome')).toBeVisible();
+
+    // And Create makes the named estate and starts playing it.
+    await tid(page, 'start-new').click();
+    await tid(page, 'menu-name').fill('Kebun Baru');
+    await tid(page, 'menu-new-create').click();
+    await page.waitForTimeout(2500);
+    await expect(tid(page, 'start-screen')).toHaveCount(0);
+    await expect(tid(page, 'hud-estate-name')).toHaveText('Kebun Baru');
+  });
+
   test('a headline on the bar reads as words, not as its own key', async ({ page }) => {
     await boot(page);
     // Put the President's speech on the wire, the way the deck would.

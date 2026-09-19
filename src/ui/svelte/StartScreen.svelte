@@ -242,7 +242,7 @@
             </button>
             <button
               class="btn btn-coral"
-              data-testid="start-game"
+              data-testid="start-new"
               onclick={() => screen.handlers.newEstate()}
             >
               {t('start.newEstate')}

@@ -574,7 +574,11 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   }
 
   const menu = new Menu(root, {
-    newGame: (seed, name) => switchSim(freshSim(seed, name)),
+    newGame: (seed, name) => {
+      switchSim(freshSim(seed, name));
+      // Started from the title card: the estate is made, so go and play it.
+      if (startScreen.isOpen) beginPlay();
+    },
     setSound: (on) => setSound(on),
     save: () => {
       if (autosave.saveNow()) toasts.push('Saved.');
@@ -866,9 +870,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       attention: watchedByAuthorities() ? sim.state.society.attention : null,
       inputIndex: sim.state.economy.inputPriceIndex,
       ispoMet:
-        sim.state.tick >= (ISPO.progressFromYear - 1) * GROWTH.daysPerYear
-          ? (sim.state.run.years.at(-1)?.conditionsMet ?? 0)
-          : null,
+        sim.state.tick >= (ISPO.progressFromYear - 1) * GROWTH.daysPerYear ? ispoMetNow() : null,
       ispoTotal: ISPO_CONDITIONS,
     });
   }
@@ -889,6 +891,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     const result = sim.dispatch(command);
     if (!result.ok) audio.play('ui-button-denied');
     if (result.ok) {
+      ispoCount = null;
       // Money leaving on the player's own order. Coming in is the tick's
       // business (sales), except the tap, which pays with a burst of its own.
       const cashAfter = sim.state.economy.cash;
@@ -1040,6 +1043,23 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       s.investigationUntil > sim.state.tick ||
       s.operatingBanUntil > sim.state.tick
     );
+  }
+
+  /**
+   * How many conditions are met today, which is what the certificate panel
+   * shows. The bar used to show last year's audited count instead, so the
+   * two disagreed for up to a year at a time. Worked out once a day, because
+   * it walks every block, and again whenever a command changes something.
+   */
+  let ispoCount: { tick: number; met: number } | null = null;
+  function ispoMetNow(): number {
+    if (ispoCount === null || ispoCount.tick !== sim.state.tick) {
+      ispoCount = {
+        tick: sim.state.tick,
+        met: ispoConditions(sim.state, sim.world).filter((c) => c.met).length,
+      };
+    }
+    return ispoCount.met;
   }
 
   function blockName(block: BlockId): string {
@@ -1798,8 +1818,11 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     start: () => beginPlay(),
     resume: () => beginPlay(),
     newEstate: () => {
-      switchSim(freshSim(randomSeed()));
-      beginPlay();
+      // The save is about to be replaced, so the player names what replaces
+      // it and sees the warning first: the same form the menu uses.
+      refreshMenu();
+      menu.show();
+      menu.openNew(true);
     },
     loadOther: () => menu.toggle(),
     useCode: (code, name) => {

@@ -70,6 +70,12 @@ export class Menu {
   private readonly instance: ReturnType<Component>;
   /** The estate name the box was last filled from. */
   private namedFor: string | null = null;
+  /**
+   * Whether the menu was opened straight into the form, from the title
+   * card's "New estate". Cancel then means "never mind", not "back to the
+   * menu the player never asked for".
+   */
+  private openedIntoForm = false;
 
   constructor(
     parent: HTMLElement,
@@ -113,16 +119,23 @@ export class Menu {
     this.state.open = false;
     // Dismissing the menu, however it is done, leaves the form behind.
     this.state.step = 'default';
+    this.openedIntoForm = false;
   }
 
-  /** Step two: the boxes that describe a new estate. */
-  openNew(): void {
+  /**
+   * Step two: the boxes that describe a new estate.
+   *
+   * @param direct opened from outside the menu, so Cancel closes it.
+   */
+  openNew(direct = false): void {
     this.state.step = 'new';
+    this.openedIntoForm = direct;
   }
 
-  /** Back to the menu's face, with nothing started. */
+  /** Back where the player came from, with nothing started. */
   cancelNew(): void {
-    this.state.step = 'default';
+    if (this.openedIntoForm) this.hide();
+    else this.state.step = 'default';
   }
 
   update(view: MenuView): void {
