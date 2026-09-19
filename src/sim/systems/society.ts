@@ -8,6 +8,7 @@
 import { clamp } from '@shared/math';
 
 import { OPERATING_BAN } from '../balance/endings.ts';
+import { GROWTH } from '../balance/growth.ts';
 import {
   ATTENTION,
   AUTHORITY,
@@ -17,7 +18,9 @@ import {
   type MacroEvent,
   type MacroEventId,
 } from '../balance/society.ts';
-import { activeEvent } from '../fire.ts';
+import { activeEvent, isWildfire } from '../fire.ts';
+import { estateForestCover } from '../landscape.ts';
+import { attentionDecayFactor, macroCalm } from '../macro.ts';
 import { chance, nextGaussian, nextInt, pickWeighted } from '../rng.ts';
 import { endRun, runOver } from '../run.ts';
 import { neighbourIds, readBlock, type SimContext } from '../state.ts';
@@ -35,13 +38,20 @@ export function society(ctx: SimContext): void {
 // ── Macro economy ─────────────────────────────────────────────────────────
 
 /** Multiplier on the TBS price's long-run mean from inflation and the temporary macro events. */
-export function tbsMeanFactor(state: SimState): number {
+export function tbsMeanFactor(state: SimState, forestCover = 0): number {
   let factor = 1 + (state.economy.inputPriceIndex - 1) * MACRO.tbsPassThrough;
   for (const event of state.weather.activeEvents) {
     if (!event.id.startsWith(MACRO_PREFIX)) continue;
     const spec: MacroEvent | undefined =
       MACRO.events[event.id.slice(MACRO_PREFIX.length) as MacroEventId];
-    if (spec?.tbsFactor !== undefined) factor *= spec.tbsFactor;
+    if (spec?.tbsFactor === undefined) continue;
+    // A buyer who cares about deforestation pays more for an estate that
+    // kept its trees: full cover takes half the penalty off.
+    const softened =
+      spec.forestSoftens && spec.tbsFactor < 1
+        ? spec.tbsFactor + (1 - spec.tbsFactor) * 0.5 * Math.max(0, Math.min(1, forestCover))
+        : spec.tbsFactor;
+    factor *= softened;
   }
   return factor;
 }
@@ -62,14 +72,42 @@ function macroEconomy(ctx: SimContext): void {
   if (tick === 0 || tick % MACRO.drawEveryDays !== 0 || !chance(state.rng, MACRO.drawChance))
     return;
 
-  const weights = MACRO_IDS.map((id) => {
-    const spec: MacroEvent = MACRO.events[id];
-    if (spec.days && activeEvent(state, MACRO_PREFIX + id)) return 0;
-    if (spec.inputRise && state.economy.inputPriceIndex >= MACRO.maxInputIndex) return 0;
-    return spec.weight;
-  });
+  // A quiet spell stops the deck dead: that is the whole point of it.
+  if (macroCalm(state)) return;
+
+  const weights = MACRO_IDS.map((id) => (drawable(state, id) ? MACRO.events[id].weight : 0));
   const id = MACRO_IDS[pickWeighted(state.rng, weights)];
   if (id === undefined) return;
+  startMacro(ctx, id);
+}
+
+/**
+ * Whether the deck may deal this headline today. The consequences answer to
+ * the player rather than the shuffle; once means once; a sequel waits for its
+ * first part; and the headlines that leave a permanent mark hold off until
+ * the estate is standing.
+ */
+export function drawable(state: SimState, id: MacroEventId): boolean {
+  const spec: MacroEvent = MACRO.events[id];
+  const seen = new Set(state.society.macroSeen);
+  const year = Math.floor(state.tick / GROWTH.daysPerYear) + 1;
+  if (spec.triggered) return false;
+  if (spec.days && activeEvent(state, MACRO_PREFIX + id)) return false;
+  if (spec.inputRise && state.economy.inputPriceIndex >= MACRO.maxInputIndex) return false;
+  if (spec.once && seen.has(id)) return false;
+  if (spec.after && !seen.has(spec.after)) return false;
+  if (spec.fromYear && year < spec.fromYear) return false;
+  return true;
+}
+
+/**
+ * Put a headline on the wire: its permanent mark, its duration, and whatever
+ * it does the moment it lands. The deck draws most of them; the ones that
+ * answer to what the player has done are started from `authority()`.
+ */
+export function startMacro(ctx: SimContext, id: MacroEventId): void {
+  const { state, events } = ctx;
+  const tick = state.tick;
   const spec: MacroEvent = MACRO.events[id];
 
   if (spec.inputRise !== undefined) {
@@ -88,6 +126,29 @@ function macroEconomy(ctx: SimContext): void {
       startedAt: tick,
       endsAt: tick + days,
     });
+  state.society.macroSeen.push(id);
+
+  // What it does the moment it lands, as opposed to while it runs.
+  if (spec.attentionScale !== undefined) {
+    state.society.attention = clamp(
+      state.society.attention * spec.attentionScale,
+      0,
+      ATTENTION.max,
+    );
+  }
+  if (spec.attention !== undefined) {
+    state.society.attention = clamp(state.society.attention + spec.attention, 0, ATTENTION.max);
+  }
+  if (spec.integrity !== undefined) {
+    state.society.integrity = clamp(state.society.integrity + spec.integrity, 0, 1);
+  }
+  if (spec.ashDays !== undefined) {
+    // Ash falls on the whole estate, which is the one gift in the deck.
+    for (const block of state.blocks.values()) {
+      if (block.owned) block.ashUntil = Math.max(block.ashUntil, tick + spec.ashDays);
+    }
+  }
+
   events.push({ type: 'MacroEventStarted', id, days });
 }
 
@@ -169,6 +230,8 @@ function authority(ctx: SimContext): void {
   s.attention += raise * factor;
   s.attention = clamp(s.attention, 0, ATTENTION.max);
 
+  ecology(ctx, burned);
+
   // ── Arrest ─────────────────────────────────────────────────────────────
   if (secondWildfire || s.attention >= AUTHORITY.arrestAt) {
     endRun(state, 'arrested');
@@ -222,7 +285,9 @@ function authority(ctx: SimContext): void {
   }
 
   // Quiet days forget; after the checks, so a meter sitting at a threshold still trips it.
-  s.attention -= ATTENTION.decayPerDay + reforesting * ATTENTION.reforestTricklePerBlock;
+  s.attention -=
+    (ATTENTION.decayPerDay + reforesting * ATTENTION.reforestTricklePerBlock) *
+    attentionDecayFactor(state);
   s.attention = clamp(s.attention, 0, ATTENTION.max);
 
   // An empty meter is a file with nothing left in it: the case is dropped and
@@ -266,6 +331,38 @@ export function creditReforestation(ctx: SimContext, block: BlockId): void {
     attention: s.attention,
     banDaysLeft: Math.max(0, s.operatingBanUntil - state.tick),
   });
+}
+
+/**
+ * What burning costs beyond the meter (§3.7). These headlines are not dealt
+ * by the deck: they answer to what the estate and the province have actually
+ * set alight, which is the only way a consequence reads as one.
+ */
+function ecology(ctx: SimContext, burnedToday: boolean): void {
+  const { state, world } = ctx;
+  const seen = new Set(state.society.macroSeen);
+  const running = (id: MacroEventId) => activeEvent(state, MACRO_PREFIX + id) !== undefined;
+
+  let burning = 0;
+  let ashen = 0;
+  for (const block of state.blocks.values()) {
+    if (block.burning) burning += 1;
+    if (block.ashUntil > state.tick) ashen += 1;
+  }
+
+  // The haze comes with the province alight, not with one field.
+  if (burnedToday && burning >= 3 && !running('hazeSeason')) startMacro(ctx, 'hazeSeason');
+
+  // A season's worth of burnt ground, and the wildlife stops coming.
+  if (ashen >= 6 && !running('animalsGone')) startMacro(ctx, 'animalsGone');
+
+  // A wildfire is what kills what was living in it.
+  if (isWildfire(state) && !seen.has('burnedCarcasses')) startMacro(ctx, 'burnedCarcasses');
+
+  // And when there is almost nothing left standing, somebody counts.
+  if (estateForestCover(state, world) < 0.12 && !running('onTheBrink')) {
+    startMacro(ctx, 'onTheBrink');
+  }
 }
 
 /** Is chopping and burning banned right now? */

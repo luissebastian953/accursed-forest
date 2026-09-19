@@ -3,6 +3,8 @@
  * deck, and the authority meter with its warnings and arrest.
  */
 
+import { MACRO_EVENTS } from './macroEvents.ts';
+
 export const INTEGRITY = {
   start: 0.25,
   /** Integrity drifts back toward this after every scandal. */
@@ -75,38 +77,14 @@ export const AUTHORITY = {
   settleAttention: 30,
 } as const;
 
-export type MacroEventId =
-  | 'rupiahSlide'
-  | 'fertilizerSpike'
-  | 'biodieselMandate'
-  | 'euRestriction'
-  | 'millStrike'
-  | 'exportLevy';
-
-export interface MacroEvent {
-  weight: number;
-  /** Permanent rise in the input price index (inflation is sticky). */
-  inputRise?: number;
-  /** Temporary multiplier on the TBS price's long-run mean, and how long. */
-  tbsFactor?: number;
-  days?: { min: number; max: number };
-}
+export { MACRO_EVENTS, type MacroEvent, type MacroEventId } from './macroEvents.ts';
 
 export const MACRO = {
   drawEveryDays: 60,
   drawChance: 0.3,
   /** CPO is priced in USD: a weaker rupiah lifts TBS by only this share of the input rise. */
   tbsPassThrough: 0.5,
-  events: {
-    // ~3.5% a year on average: close to recent Indonesian inflation. At 7%/4%
-    // the index was already ×1.19 by year 2.
-    rupiahSlide: { weight: 3, inputRise: 0.05 },
-    fertilizerSpike: { weight: 2, inputRise: 0.03 },
-    biodieselMandate: { weight: 1.5, tbsFactor: 1.1, days: { min: 150, max: 240 } },
-    euRestriction: { weight: 1, tbsFactor: 0.88, days: { min: 180, max: 300 } },
-    millStrike: { weight: 1.5, tbsFactor: 0.85, days: { min: 10, max: 25 } },
-    exportLevy: { weight: 1.5, tbsFactor: 0.94, days: { min: 90, max: 150 } },
-  } satisfies Record<MacroEventId, MacroEvent>,
+  events: MACRO_EVENTS,
   /** The input index never runs away past this over a run. */
   maxInputIndex: 2.2,
 } as const;

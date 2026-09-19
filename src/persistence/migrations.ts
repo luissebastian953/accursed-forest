@@ -263,6 +263,16 @@ export const MIGRATIONS: readonly Migration[] = [
       save.manifest['estateName'] ??= '';
     },
   },
+  {
+    // The headline deck remembers what has already run, for the events that
+    // land once. A save from before it has seen nothing.
+    from: 16,
+    up(save) {
+      const head = save.manifest['head'] as { society?: Record<string, unknown> } | undefined;
+      if (!head?.society) throw new SaveError('corrupt', 'v16 manifest has no society');
+      head.society['macroSeen'] ??= [];
+    },
+  },
 ];
 
 /**

@@ -58,7 +58,7 @@ export const KEY_PREFIX = 'accursed-forest';
  * 15. Excavation: the shop sells a crew to dig a slide out, and a block
  *     remembers when they will be finished.
  */
-export const CURRENT_SCHEMA = 16;
+export const CURRENT_SCHEMA = 17;
 
 export type SaveErrorCode = 'missing' | 'corrupt' | 'newerSchema' | 'quota';
 
@@ -191,6 +191,7 @@ const SocietySchema = z.object({
   investigationUntil: Tick,
   operatingBanUntil: Tick,
   lettersReceived: z.int().nonnegative(),
+  macroSeen: z.array(z.string()),
   news: z.array(NewsItemSchema),
   unreadSince: Tick,
 });
@@ -498,6 +499,7 @@ export function serializeState(
       },
       society: {
         ...state.society,
+        macroSeen: [...state.society.macroSeen],
         news: state.society.news.map((n) => ({ ...n })),
       },
       run: {
@@ -651,6 +653,7 @@ export function deserializeState(manifestJson: unknown, chunkJsons: Iterable<unk
       investigationUntil: h.society.investigationUntil,
       operatingBanUntil: h.society.operatingBanUntil,
       lettersReceived: h.society.lettersReceived,
+      macroSeen: [...h.society.macroSeen],
       news: h.society.news.map(decodeNews),
       unreadSince: h.society.unreadSince,
     },

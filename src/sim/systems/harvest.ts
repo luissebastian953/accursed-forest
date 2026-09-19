@@ -14,6 +14,7 @@ import { HARVEST_ROTATION_DAYS, YIELD_CURVE } from '../balance/growth.ts';
 import { HARVEST } from '../balance/prices.ts';
 import { ASH_EVENT, activeEvent } from '../fire.ts';
 import { inKopdesRange } from '../kopdes.ts';
+import { wageFactor } from '../macro.ts';
 import { ageInYears, isBearing, slotStage } from '../palms.ts';
 import { spend, writeBlock, type SimContext } from '../state.ts';
 import type { Block, BlockId, PalmArrays, Species, Tick } from '../types.ts';
@@ -71,7 +72,9 @@ export function pickBlock(ctx: SimContext, id: BlockId, auto: boolean): number {
   state.economy.tbsPending += kilograms;
   spend(
     state,
-    HARVEST.crewWagePerRound + (auto ? HARVEST.autoSurchargePerRound : 0),
+    Math.round(
+      (HARVEST.crewWagePerRound + (auto ? HARVEST.autoSurchargePerRound : 0)) * wageFactor(state),
+    ),
     'wages',
     `${auto ? 'auto-harvest' : 'harvest'}: block ${id}`,
   );

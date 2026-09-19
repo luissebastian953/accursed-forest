@@ -4,12 +4,14 @@ import { ECONOMIC } from './economic.ts';
 import { ENDINGS } from './endings.ts';
 import { GOVERNMENT } from './government.ts';
 import { NATURAL } from './natural.ts';
+import { STATEMENTS } from './statements.ts';
 import type { NewsTemplate } from './types.ts';
 
 export const NEWS_TEMPLATES: Record<string, NewsTemplate> = {
   ...NATURAL,
   ...ECONOMIC,
   ...GOVERNMENT,
+  ...STATEMENTS,
   ...ENDINGS,
 };
 

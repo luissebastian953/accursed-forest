@@ -32,6 +32,7 @@ import {
   type WorkerKind,
 } from '../balance/mobs.ts';
 import { isWildfire } from '../fire.ts';
+import { wageFactor, wildlifeQuiet } from '../macro.ts';
 import { isBearing, slotStage } from '../palms.ts';
 import { chance, forkRng, nextFloat, nextInt, pickWeighted, type RngState } from '../rng.ts';
 import { readBlock, spend, writeBlock, type SimContext } from '../state.ts';
@@ -225,6 +226,8 @@ export function guardPost(state: SimState, world: World): [number, number] | nul
 function spawnWildlife(ctx: SimContext, rng: RngState): void {
   const { state } = ctx;
   const wild = state.mobs.filter((m) => (WILD_KINDS as string[]).includes(m.species)).length;
+  // After a burn season there is nothing left to wander in, golden or not.
+  if (wildlifeQuiet(state)) return;
   if (wild >= WILDLIFE.cap || !chance(rng, WILDLIFE.arrivePerDay)) return;
 
   const kind =
@@ -401,7 +404,7 @@ function payWages(ctx: SimContext): void {
   for (const mob of state.mobs) {
     if (!mob.hired) continue;
     const spec = WORKERS[mob.species as WorkerKind];
-    if (spec) spend(state, spec.wagePerDay, 'wages', `${spec.label}`);
+    if (spec) spend(state, Math.round(spec.wagePerDay * wageFactor(state)), 'wages', spec.label);
   }
 }
 

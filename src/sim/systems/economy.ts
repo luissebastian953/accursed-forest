@@ -12,6 +12,8 @@ import { OPERATING_BAN } from '../balance/endings.ts';
 import { HAZE } from '../balance/events.ts';
 import { ECONOMY } from '../balance/prices.ts';
 import { HAZE_EVENT, activeEvent } from '../fire.ts';
+import { estateForestCover } from '../landscape.ts';
+import { macroKopdesPay } from '../macro.ts';
 import { nextGaussian } from '../rng.ts';
 import { earn, spend, type SimContext } from '../state.ts';
 
@@ -45,9 +47,14 @@ export function economy(ctx: SimContext): void {
   );
   if (upkeep > 0) spend(state, upkeep, 'upkeep');
 
+  // A supply contract the headlines handed the co-op, paid by the day.
+  const contract = macroKopdesPay(state);
+  if (contract > 0) earn(state, contract, 'sale', 'co-op supply contract');
+
   // ── Price walk ─────────────────────────────────────────────────────────
   // Regional haze: crews stay home across the province and buyers pay less (§3.6).
-  const macro = tbsMeanFactor(state);
+  // Forest cover is worth money under a buyer that checks for it.
+  const macro = tbsMeanFactor(state, estateForestCover(state, ctx.world));
   const mean =
     ECONOMY.tbsPriceMean * macro * (activeEvent(state, HAZE_EVENT) ? 1 - HAZE.priceDip : 1);
   const pull = ECONOMY.tbsPriceMeanReversion * (mean - e.tbsPrice);

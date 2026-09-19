@@ -7,6 +7,7 @@
 
 import { BIOMES } from '../balance/biomes.ts';
 import { CREW_WAGE_PER_DAY } from '../balance/prices.ts';
+import { wageFactor } from '../macro.ts';
 import { readBlock, spend, writeBlock } from '../state.ts';
 import { staffBlock } from '../systems/mobs.ts';
 import {
@@ -23,7 +24,9 @@ type ChopBlock = Extract<Command, { type: 'ChopBlock' }>;
 
 export function chopCost(biome: keyof typeof BIOMES, state?: SimState): number {
   return Math.round(
-    BIOMES[biome].chopDays * CREW_WAGE_PER_DAY * (state ? clearingCostFactor(state) : 1),
+    BIOMES[biome].chopDays *
+      CREW_WAGE_PER_DAY *
+      (state ? clearingCostFactor(state) * wageFactor(state) : 1),
   );
 }
 

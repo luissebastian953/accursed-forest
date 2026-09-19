@@ -78,6 +78,7 @@ export function createInitialState(world: World, name = ''): SimState {
       investigationUntil: -1,
       operatingBanUntil: -1,
       lettersReceived: 0,
+      macroSeen: [],
       news: [],
       unreadSince: 0,
     },

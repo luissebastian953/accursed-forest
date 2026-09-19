@@ -76,10 +76,31 @@ describe('news templates (§3.7)', () => {
     expect(regionName(42)).toBe(regionName(42));
   });
 
-  it('keeps satire on institutions: no personal titles with names', () => {
-    for (const t of Object.values(NEWS_TEMPLATES)) {
+  /**
+   * The deck names officials now, so the rule moved rather than went: every
+   * name in it must be one of the invented cast, and no headline may carry
+   * the name of a real person the cast is drawn from. The guard is the point,
+   * because the register invites exactly that mistake.
+   */
+  it('names only its own invented cast, never a real person', () => {
+    const CAST = [
+      'Prerows',
+      'BehLOL',
+      'Purboy',
+      'Amrun',
+      'Rajuli',
+      'Nazarra',
+      'Mulyonows',
+      'Tanjidoor',
+    ];
+    const REAL =
+      /\b(Prabowo|Subianto|Jokowi|Joko|Widodo|Mulyono|Bahlil|Lahadalia|Purbaya|Sadewa|Amran|Sulaiman|Raja Juli|Antoni|Suahasil|Nazara|Kibutsuji|Muzan|Tanjiro|Kamado)\b/;
+    for (const [key, t] of Object.entries(NEWS_TEMPLATES)) {
       for (const text of [...t.titles, ...t.bodies]) {
-        expect(text).not.toMatch(/\b(President|Minister|Governor|General|Pak|Bu) [A-Z][a-z]+/);
+        expect(text, `${key} names a real person`).not.toMatch(REAL);
+        // A title followed by a name is fine only for the cast.
+        const named = text.match(/\b(?:President|Minister|Governor|General|Pak|Bu) ([A-Z]\w+)/);
+        if (named) expect(CAST, `${key} names ${named[1]}`).toContain(named[1]);
       }
     }
   });

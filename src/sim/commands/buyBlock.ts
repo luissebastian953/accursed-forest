@@ -7,6 +7,7 @@ import { manhattan } from '@shared/math';
 
 import { BIOMES } from '../balance/biomes.ts';
 import { LAND_PRICE } from '../balance/prices.ts';
+import { landFactor } from '../macro.ts';
 import { countOwned, hasOwnedNeighbour, readBlock, spend, writeBlock } from '../state.ts';
 import type { BlockId, Command, SimState } from '../types.ts';
 import type { World } from '../worldgen/index.ts';
@@ -30,7 +31,8 @@ export function landPrice(state: SimState, world: World, id: BlockId): number {
   return Math.round(
     BIOMES[block.biome].price *
       (1 + bought * LAND_PRICE.perOwnedBlock) *
-      (1 + distance * LAND_PRICE.perDistance),
+      (1 + distance * LAND_PRICE.perDistance) *
+      landFactor(state),
   );
 }
 

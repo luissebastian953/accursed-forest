@@ -8,6 +8,7 @@
  */
 
 import { AUTHORITY } from '../balance/society.ts';
+import { settleFactor } from '../macro.ts';
 import { spend } from '../state.ts';
 import { operatingBanned, underInvestigation } from '../systems/society.ts';
 import type { Command, SimState } from '../types.ts';
@@ -19,7 +20,7 @@ type SettleInvestigation = Extract<Command, { type: 'SettleInvestigation' }>;
 /** What the envelope costs today: more when a suspension goes with it. */
 export function settleCost(state: SimState): number {
   const base = AUTHORITY.settleCost + (operatingBanned(state) ? AUTHORITY.settleBanExtra : 0);
-  return Math.round(base * state.economy.inputPriceIndex);
+  return Math.round(base * state.economy.inputPriceIndex * settleFactor(state));
 }
 
 /** Whether there is anything an envelope could fix. */

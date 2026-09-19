@@ -20,6 +20,7 @@ import {
   YIELD_CURVE,
 } from '../balance/growth.ts';
 import { GANODERMA } from '../balance/pests.ts';
+import { yieldFactor } from '../macro.ts';
 import { ageInYears, isBearing, stageOf } from '../palms.ts';
 import type { SimContext } from '../state.ts';
 import type { Block, SimState } from '../types.ts';
@@ -52,6 +53,8 @@ export function growthMultiplier(state: SimState, block: Readonly<Block>): numbe
 export function growth(ctx: SimContext): void {
   const { state, events } = ctx;
   const tick = state.tick;
+  // What the day's headlines are worth to a bunch of fruit.
+  const yieldNow = yieldFactor(state);
 
   for (const [id, palms] of state.palms) {
     const block = state.blocks.get(id);
@@ -90,7 +93,8 @@ export function growth(ctx: SimContext): void {
 
       if (species === 'palm' && isBearing(after)) {
         const perRound = sampleCurve(YIELD_CURVE, ageInYears(plantedAt, tick));
-        palms.yieldAcc[slot] = palms.yieldAcc[slot]! + (perRound / HARVEST_ROTATION_DAYS) * g;
+        palms.yieldAcc[slot] =
+          palms.yieldAcc[slot]! + (perRound / HARVEST_ROTATION_DAYS) * g * yieldNow;
       }
     }
   }

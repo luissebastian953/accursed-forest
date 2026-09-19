@@ -4,6 +4,7 @@
  */
 
 import { ITEM_PRICES } from '../balance/prices.ts';
+import { shopIndex } from '../macro.ts';
 import { spend } from '../state.ts';
 import type { Command, ItemId } from '../types.ts';
 
@@ -22,7 +23,7 @@ export const buyItem: CommandHandler<BuyItem> = {
     if (!Number.isInteger(command.quantity) || command.quantity <= 0) {
       return reject('badQuantity', 'Quantity must be a whole number above zero.');
     }
-    const cost = itemPrice(command.item, state.economy.inputPriceIndex) * command.quantity;
+    const cost = itemPrice(command.item, shopIndex(state)) * command.quantity;
     if (state.economy.cash < cost) {
       return reject(
         'noCash',
@@ -34,7 +35,7 @@ export const buyItem: CommandHandler<BuyItem> = {
 
   apply(ctx, command) {
     const { state, events } = ctx;
-    const cost = itemPrice(command.item, state.economy.inputPriceIndex) * command.quantity;
+    const cost = itemPrice(command.item, shopIndex(state)) * command.quantity;
     spend(state, cost, 'purchase', `${command.quantity} × ${command.item}`);
     state.inventory[command.item] += command.quantity;
     events.push({ type: 'ItemBought', item: command.item, quantity: command.quantity });

@@ -170,6 +170,11 @@ export interface Society {
   operatingBanUntil: Tick;
   /** Letters and notices from the authorities so far; the attention gauge appears after the first (§3.9). */
   lettersReceived: number;
+  /**
+   * Headlines that have already happened this run, for the ones that may
+   * only land once and the ones that wait on another (§3.7).
+   */
+  macroSeen: string[];
   /** Capped ring buffer, newest last. */
   news: NewsItem[];
   unreadSince: Tick;

@@ -8,6 +8,7 @@ import { BIOMES } from './balance/biomes.ts';
 import { COVER_CROP, FOREST_COVER_WEIGHT, LANDSLIDE } from './balance/events.ts';
 import { FOREST_GROWTH } from './balance/growth.ts';
 import type { EventSink } from './events.ts';
+import { landslideFactor } from './macro.ts';
 import { neighbourIds, readBlock, writeBlock } from './state.ts';
 import type { Block, BlockId, SimState, Tick } from './types.ts';
 import type { World } from './worldgen/index.ts';
@@ -111,7 +112,8 @@ export function landslideChance(
     streak *
     (1 - cover) *
     (planted ? LANDSLIDE.plantedFactor : LANDSLIDE.unplantedFactor) *
-    crop
+    crop *
+    landslideFactor(state)
   );
 }
 
