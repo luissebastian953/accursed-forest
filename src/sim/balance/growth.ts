@@ -80,10 +80,12 @@ export const FERTILIZER_DAYS = 90;
 
 /**
  * Reforestation grows on the same machinery with its own thresholds: sapling to
- * young to mature forest over roughly eight years (§3.10).
+ * young to mature forest over roughly eight years (§3.10). Saplings take hold
+ * quickly, so a player who replants sees the ground turn green within a season
+ * rather than waiting most of a year for the first sign of it.
  */
 export const FOREST_GROWTH = {
-  saplingDays: 220,
+  saplingDays: 40,
   youngDays: 860,
   matureDays: 1720,
   /** Forest cover weight by stage (§3.10: young counts half). */
