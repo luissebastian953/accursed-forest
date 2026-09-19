@@ -21,7 +21,13 @@ interface DebugWindow {
         tick: number;
         worldGen: { kopdesBlock: number };
         kopdes: { blockId: number; level: number; autoHarvest: boolean } | null;
-        society: { attention: number; operatingBanUntil: number; news: { key: string }[] };
+        society: {
+          attention: number;
+          integrity: number;
+          investigationUntil: number;
+          operatingBanUntil: number;
+          news: { key: string }[];
+        };
         economy: { cash: number };
         run: { ending?: string; endedAt?: number; insolventFor: number };
         blocks: Map<
@@ -397,6 +403,46 @@ test.describe('Sawit Simulator', () => {
     await expect.poll(glints, { timeout: 5000 }).toBeGreaterThan(0);
     await expect.poll(glints, { timeout: 5000 }).toBe(0);
     await expect(tid(page, 'block-panel')).toContainText('Level 2');
+  });
+
+  test('the Kopdes can buy the authorities off, when they are buyable', async ({ page }) => {
+    test.setTimeout(90_000);
+    await page.goto('/play.html?webgl&seed=42&fresh&debug');
+    await expect(page.locator('canvas')).toBeVisible();
+    await page.waitForTimeout(2000);
+    await selectCentreBlock(page);
+    await tid(page, 'action-PlaceKopdes').click();
+
+    // Nothing to settle: the envelope is not on the counter at all.
+    await expect(tid(page, 'action-SettleInvestigation')).toHaveCount(0);
+
+    // A case and a suspension, and an office honest enough to refuse.
+    await page.evaluate(() => {
+      const { state } = (window as unknown as DebugWindow).__sawit.sim();
+      state.economy.cash = 1e12;
+      state.society.integrity = 0.9;
+      state.society.investigationUntil = state.tick + 80;
+      state.society.operatingBanUntil = state.tick + 60;
+    });
+    await page.waitForTimeout(600);
+    await expect(tid(page, 'action-SettleInvestigation')).toBeDisabled();
+    await expect(tid(page, 'block-panel')).toContainText('taking calls');
+
+    // A crooked office takes it, and both go.
+    await page.evaluate(() => {
+      (window as unknown as DebugWindow).__sawit.sim().state.society.integrity = 0.1;
+    });
+    await page.waitForTimeout(600);
+    await tid(page, 'action-SettleInvestigation').click();
+    const after = await page.evaluate(() => {
+      const { state } = (window as unknown as DebugWindow).__sawit.sim();
+      return {
+        investigation: state.society.investigationUntil - state.tick,
+        ban: state.society.operatingBanUntil - state.tick,
+      };
+    });
+    expect(after.investigation).toBeLessThanOrEqual(0);
+    expect(after.ban).toBeLessThanOrEqual(0);
   });
 
   test('a new estate takes two steps, and nothing else in the menu starts one', async ({

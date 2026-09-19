@@ -123,6 +123,27 @@
               {@const auto = v.autoHarvest}
               <AutoHarvestToggle on={auto.on} toggle={() => panel.act(auto.command)} />
             {/if}
+            {#if v.settle}
+              {@const settle = v.settle}
+              <!--
+                The envelope. It only appears with a case or a suspension
+                standing, and says what it is for under the price.
+              -->
+              <button
+                class="btn btn-ghost mt-2 w-full justify-between !border-[#e0b7a8] !bg-[#fdeae6]"
+                disabled={!settle.enabled}
+                data-testid="action-SettleInvestigation"
+                title={settle.note}
+                onclick={() => panel.act({ type: 'SettleInvestigation' })}
+              >
+                <span class="flex items-center gap-2">
+                  <Icon name="police-warning" />
+                  {t('block.settle')}
+                </span>
+                <span class="num">{formatRp(settle.cost)}</span>
+              </button>
+              <div class="muted mt-1 text-xs leading-snug">{settle.note}</div>
+            {/if}
           </div>
         {/if}
 

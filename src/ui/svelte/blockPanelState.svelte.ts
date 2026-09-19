@@ -26,6 +26,7 @@ import { landPrice } from '@sim/commands/buyBlock';
 import { itemPrice } from '@sim/commands/buyItem';
 import { chopCost } from '@sim/commands/chopBlock';
 import { seedlingItem, seedlingsNeeded } from '@sim/commands/plantBlock';
+import { settleCost, settleListening, settleable } from '@sim/commands/settleInvestigation';
 import { kopdesUpgradeCost } from '@sim/commands/upgradeKopdes';
 import { isFuel, isWildfire } from '@sim/fire';
 import type { Sim } from '@sim/index';
@@ -43,6 +44,7 @@ import type {
   DispatchResult,
   FireIntensity,
   GrowthStage,
+  SimState,
 } from '@sim/types';
 
 import { t } from '../../i18n/index.ts';
@@ -136,6 +138,31 @@ export interface BlockView {
   minor: ActionView[];
   major: ActionView[];
   autoHarvest: { on: boolean; command: Command } | null;
+  /**
+   * The envelope: what it would cost to make a case and a suspension go away,
+   * and why the button is dead when it is.
+   */
+  settle: { cost: number; enabled: boolean; note: string } | null;
+}
+
+/**
+ * The coordination fee, as the Kopdes offers it (§3.9). It appears only with
+ * something to settle, and says plainly when the district office is too
+ * honest to take it rather than hiding the button.
+ */
+function settleView(state: SimState, phase: string): BlockView['settle'] {
+  if (phase !== 'kopdes' || !settleable(state)) return null;
+  const listening = settleListening(state);
+  const cost = settleCost(state);
+  return {
+    cost,
+    enabled: listening && state.economy.cash >= cost,
+    note: !listening
+      ? t('block.settleQuiet')
+      : state.economy.cash < cost
+        ? t('block.settleCostly')
+        : t('block.settleNote'),
+  };
 }
 
 /** Which icon heads the panel: what is on the block, or what it is. */
@@ -766,6 +793,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     burn,
     minor: actions.filter((a) => a.minor),
     major: actions.filter((a) => !a.minor),
+    settle: settleView(state, block.phase),
     autoHarvest:
       kopdes &&
       (block.phase === 'kopdes' || (block.phase === 'planted' && block.species === 'palm'))

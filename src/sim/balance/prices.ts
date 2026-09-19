@@ -92,7 +92,13 @@ export const DRAINAGE_COST = 4_000_000;
  * each step has to be earned out of the crop rather than paid for out of the
  * opening balance.
  */
-export const KOPDES_UPGRADE_COST: readonly number[] = [0, 45_000_000, 120_000_000, 280_000_000];
+/**
+ * What each level of the Kopdes costs (§3.3). The ladder climbs steeply: the
+ * range it buys is the difference between selling a corner of the estate and
+ * all of it, and level 3 opens the payroll and the fast clock besides. An
+ * estate should be years into its harvests before it reaches the top.
+ */
+export const KOPDES_UPGRADE_COST: readonly number[] = [0, 90_000_000, 260_000_000, 650_000_000];
 
 export const HARVEST = {
   /** A harvest crew's wages per block per round. */

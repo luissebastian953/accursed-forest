@@ -464,11 +464,14 @@ function ape(options: {
     parts.push({
       name: 'tail',
       parent: 'body',
-      at: [0, -torso * 0.28, -(width * 0.36 + tail / 2)],
+      // The root sits inside the rump, not against it: the droop turns the
+      // tail about its middle, and a tail that starts at the back face swings
+      // its near end out into the open.
+      at: [0, -torso * 0.45, -(width * 0.12 + tail / 2)],
       size: [limb * 0.85, limb * 0.85, tail],
       slot: fur,
       role: 'tail',
-      tilt: [-0.34, 0, 0],
+      tilt: [-0.22, 0, 0],
     });
   }
 

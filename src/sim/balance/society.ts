@@ -62,8 +62,15 @@ export const AUTHORITY = {
   investigationClosesAt: 45,
   /** Game over. */
   arrestAt: 100,
-  /** "Settle the matter": only available while integrity is low. */
-  settleCost: 75_000_000,
+  /**
+   * "Settle the matter" (§3.9): the envelope that makes a case go away, and a
+   * suspension with it. Only while the district office is crooked enough to
+   * take it, and dear enough that it is never the cheap way out: an estate
+   * pays about a year of good harvests for the favour.
+   */
+  settleCost: 320_000_000,
+  /** A standing suspension costs this much again on top. */
+  settleBanExtra: 180_000_000,
   settleMaxIntegrity: 0.4,
   settleAttention: 30,
 } as const;
