@@ -34,11 +34,13 @@ function lastCommitDate(file: string): string {
         encoding: 'utf8',
         stdio: ['ignore', 'pipe', 'ignore'],
       }).trim();
+
       if (date) return date;
     } catch {
       // Not a git checkout: fall through to the build date.
     }
   }
+
   return new Date().toISOString();
 }
 
@@ -50,10 +52,12 @@ function siteUrlPlugin(): Plugin {
         .replaceAll('__SITE_URL__', siteUrl)
         // The structured data names the build it is describing.
         .replaceAll('__APP_VERSION__', JSON.parse(appVersion) as string);
+
       if (!siteUrl) {
         out = out.replace(/^\s*<link rel="canonical"[^>]*>\n?/m, '');
         out = out.replace(/^\s*<link rel="alternate" hreflang=[^>]*>\n?/gm, '');
       }
+
       // Search Console reads the tag from the home page; the game page is noindex.
       if (googleVerification && !ctx.filename.endsWith('play.html')) {
         out = out.replace(
@@ -61,16 +65,19 @@ function siteUrlPlugin(): Plugin {
           `$1\n    ${verificationMeta(googleVerification)}`,
         );
       }
+
       return out;
     },
     generateBundle() {
       this.emitFile({ type: 'asset', fileName: 'robots.txt', source: renderRobots(siteUrl) });
+
       if (!siteUrl) {
         this.warn(
           'VITE_SITE_URL is not set: no sitemap.xml, no Sitemap line in robots.txt, and no canonical or hreflang tags. Set it for a production build.',
         );
         return;
       }
+
       this.emitFile({
         type: 'asset',
         fileName: 'sitemap.xml',
@@ -108,6 +115,7 @@ function obfuscatePlugin(): Plugin {
     enforce: 'post',
     renderChunk(code, chunk) {
       if (!obfuscate || chunk.name === 'three') return null;
+
       const result = JavaScriptObfuscator.obfuscate(code, {
         target: 'browser',
         seed: 7,
@@ -134,6 +142,7 @@ function obfuscatePlugin(): Plugin {
         unicodeEscapeSequence: false,
         sourceMap: false,
       });
+
       return { code: result.getObfuscatedCode(), map: null };
     },
   };
