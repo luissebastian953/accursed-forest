@@ -9,7 +9,7 @@ import checker from 'vite-plugin-checker';
 
 import { normalizeSiteUrl, renderRobots, renderSitemap, verificationMeta } from './tools/seo.ts';
 
-/** Stamped into save manifests (§7). */
+/** Stamped into save manifests (GDD 7). */
 const appVersion = JSON.stringify(process.env['npm_package_version'] ?? '0.0.0-dev');
 
 /**

@@ -35,7 +35,7 @@ function run(sim: Sim, id: MacroEventId, days = 60): void {
   });
 }
 
-describe('the headline deck (§3.7)', () => {
+describe('the headline deck (GDD 3.7)', () => {
   it('is coherent: every sequel and every lever is real', () => {
     for (const id of IDS) {
       const spec = MACRO_EVENTS[id];
@@ -207,7 +207,7 @@ describe('the headline deck (§3.7)', () => {
   });
 });
 
-describe('the bar chips (§8)', () => {
+describe('the bar chips (GDD 8)', () => {
   it('every headline that runs for days has a label in both languages', () => {
     for (const key of IDS) {
       const spec = MACRO_EVENTS[key] as { days?: unknown };

@@ -89,7 +89,7 @@ import { GameLoop } from './loop.ts';
 import { FIRE_LOCK_SPEED, speedNeedsKopdes, TimeControl, type Speed } from './timeControl.ts';
 
 const SLOT = 'slot0';
-/** Start-of-year snapshots kept for the rewind (§7: the last 25). */
+/** Start-of-year snapshots kept for the rewind (GDD 7: the last 25). */
 const SNAPSHOTS_KEPT = 25;
 /** How often the DOM panels re-read the sim. */
 const UI_REFRESH_MS = 100;
@@ -105,7 +105,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   const params = new URLSearchParams(location.search);
   root.style.position = 'relative';
   // The world fills the root; the block panel is an aside laid over its right
-  // edge that slides in with a selection (§8 panel 9). Laying it over rather
+  // edge that slides in with a selection (GDD 8 panel 9). Laying it over rather
   // than docking it means the canvas never resizes when it comes and goes;
   // the HUD and ticker shift left by its width instead (`--chrome-right`).
   // Modals mount on the root so they cover both.
@@ -179,7 +179,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     return createSim(seed, { name });
   }
 
-  // ── Year snapshots (§3.8 rewind, §7) ───────────────────────────────────
+  // ── Year snapshots (GDD 3.8 rewind, GDD 7) ───────────────────────────────────
   function snapshotSlot(year: number): SaveSlot {
     return new SaveSlot({
       storage,
@@ -314,7 +314,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   );
   const visible: GroundRect = { minX: 0, maxX: 0, minZ: 0, maxZ: 0 };
 
-  // Edge vignette while anything burns (§8 panel 7).
+  // Edge vignette while anything burns (GDD 8 panel 7).
   const vignette = document.createElement('div');
   vignette.className = 'pointer-events-none absolute inset-0 z-[5] transition-opacity duration-700';
   vignette.style.boxShadow = 'inset 0 0 140px 30px rgba(255, 96, 24, 0.55)';
@@ -361,7 +361,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     openCertificate: () => {
       if (certificate.isOpen) certificate.hide();
       else {
-        // The Ministry looks at the close of each year (§3.8).
+        // The Ministry looks at the close of each year (GDD 3.8).
         const dayOfYear = sim.state.tick % GROWTH.daysPerYear;
         certificate.show({
           conditions: ispoConditions(sim.state, sim.world),
@@ -649,7 +649,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     return new Set(activeEvent(sim.state, FLOOD_EVENT)?.blocks ?? []);
   }
 
-  /** The active-events strip (§8 panel 6): what is happening, and for how long. */
+  /** The active-events strip (GDD 8 panel 6): what is happening, and for how long. */
   function eventChips(): EventChip[] {
     const { state } = sim;
     const left = (id: string): number | null => {
@@ -1124,7 +1124,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       police.sync(sim.state, sim.world, worldNow());
     if (d.operatingBanLifted) toasts.push('The operating licence is restored. Crews may return.');
 
-    // The year, and how the run ends (§3.8).
+    // The year, and how the run ends (GDD 3.8).
     if (d.yearClosed && !runOver(sim.state)) {
       writeSnapshot(d.yearClosed.year + 1);
       const years = sim.state.run.years;

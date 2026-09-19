@@ -27,7 +27,7 @@ function extent(level: KopdesLevel) {
   return { width: maxX - minX, depth: maxZ - minZ, top, low, minX, maxX, count: p.length / 3 };
 }
 
-describe('the Kopdes (§6.3)', () => {
+describe('the Kopdes (GDD 6.3)', () => {
   it('stands on its own hectare at every level', () => {
     const side = WORLD.blockSide;
     for (const level of LEVELS) {

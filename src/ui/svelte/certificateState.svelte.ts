@@ -54,7 +54,7 @@ export class CertificatePanel {
 export interface YearEndView {
   summary: YearSummary;
   previous: YearSummary | null;
-  /** Null before the checklist is shown (§8 panel 19: from Year 3). */
+  /** Null before the checklist is shown (GDD 8 panel 19: from Year 3). */
   conditionsMet: number | null;
 }
 

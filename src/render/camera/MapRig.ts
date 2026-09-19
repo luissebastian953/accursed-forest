@@ -94,7 +94,7 @@ export class MapRig {
     this.place();
   }
 
-  /** Ease the view to a ground point (§6.5: camera never overshoots). */
+  /** Ease the view to a ground point (GDD 6.5: camera never overshoots). */
   focus(x: number, z: number, nowMs: number, durationMs = DURATION.cameraFocus): void {
     this.focusTween = {
       from: this.controls.target.clone(),
@@ -121,7 +121,7 @@ export class MapRig {
     };
   }
 
-  /** Snap-rotate a quarter turn (§6.2: four diagonals). */
+  /** Snap-rotate a quarter turn (GDD 6.2: four diagonals). */
   rotate(direction: 1 | -1, nowMs: number): void {
     this.diagonal = (this.diagonal + direction + DIAGONALS) % DIAGONALS;
     const to = Math.PI / 4 + (this.diagonal * Math.PI) / 2;
@@ -162,7 +162,7 @@ export class MapRig {
   }
 
   /**
-   * The ground rectangle the camera can see, for chunk streaming (§6.7).
+   * The ground rectangle the camera can see, for chunk streaming (GDD 6.7).
    * Unprojects the four frustum corners along the view direction to y = 0.
    */
   visibleGround(out: GroundRect): GroundRect {

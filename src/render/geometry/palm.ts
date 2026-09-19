@@ -97,7 +97,7 @@ function place(pos: Vector3, euler: Euler, scale: Vector3): Matrix4 {
   return _m.compose(pos, _quat.setFromEuler(euler), scale);
 }
 
-/** Healthy, or visibly sick with Ganoderma: yellowed fronds, a dark rot band at the base (§6.4). */
+/** Healthy, or visibly sick with Ganoderma: yellowed fronds, a dark rot band at the base (GDD 6.4). */
 export type PalmVariant = 'healthy' | 'sick';
 
 export function buildPalmGeometry(

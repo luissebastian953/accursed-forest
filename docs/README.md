@@ -3,12 +3,12 @@
 Everything written down about Sawit Simulator, and where each kind of thing
 belongs.
 
-| Document                           | What it answers                                                                                 |
-| ---------------------------------- | ----------------------------------------------------------------------------------------------- |
-| [Game design (GDD)](gdd/README.md) | What the game is meant to be. The design's own numbering, `§3.6`, `§8`, is what the code cites. |
-| [Architecture](architecture.md)    | How the code is arranged and which layer may talk to which.                                     |
-| [The simulation](simulation.md)    | What happens on a tick, in what order, and why that order.                                      |
-| [Decision records](adr/)           | Choices that were hard to make and would be expensive to reverse.                               |
+| Document                           | What it answers                                                                                       |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| [Game design (GDD)](gdd/README.md) | What the game is meant to be. The design's own numbering, `GDD 3.6`, `GDD 8`, is what the code cites. |
+| [Architecture](architecture.md)    | How the code is arranged and which layer may talk to which.                                           |
+| [The simulation](simulation.md)    | What happens on a tick, in what order, and why that order.                                            |
+| [Decision records](adr/)           | Choices that were hard to make and would be expensive to reverse.                                     |
 
 ## Where a new piece of writing goes
 
@@ -24,7 +24,7 @@ belongs.
 
 ## The section numbers in the code
 
-378 comments across `src/` cite the design document by section, from `§2` to
-`§10.3`. They are not decoration: they are how a reader gets from a constant
+378 comments across `src/` cite the design document by section, from `GDD 2` to
+`GDD 10.3`. They are not decoration: they are how a reader gets from a constant
 back to the rule it serves. [The GDD's index](gdd/README.md) lists every
 section the code refers to and where its text lives.

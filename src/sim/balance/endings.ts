@@ -1,7 +1,7 @@
 export const ISPO = {
   /** One palm generation: the run's horizon, and the fade ending if nothing else came first. */
   horizonYears: 25,
-  /** The checklist shows from this year on (§8 panel 19). */
+  /** The checklist shows from this year on (GDD 8 panel 19). */
   progressFromYear: 3,
   /** Cumulative operating profit, land and buildings excluded. */
   winProfit: 6_000_000_000,
@@ -13,7 +13,7 @@ export const ISPO = {
   matureShare: 0.5,
   /** No burn-to-clear within this many years. */
   noBurnYears: 5,
-  /** Forest share around the estate's slopes (§3.6.2). */
+  /** Forest share around the estate's slopes (GDD 3.6.2). */
   winForestFloor: 0.2,
   /** Below this integrity, the no-burn and forest conditions can be waived. */
   waiverMaxIntegrity: 0.4,
@@ -42,7 +42,7 @@ export const REBOISASI = {
 } as const;
 
 /**
- * Redemption (§3.10, secret): the run of someone who cleared land with fire,
+ * Redemption (GDD 3.10, secret): the run of someone who cleared land with fire,
  * thought better of it, and put the forest back without ever taking a crop
  * off the ground they burned. Rarer than reboisasi and quieter: it asks for
  * less land back, but it asks that the estate never became an estate.
@@ -55,7 +55,7 @@ export const REDEMPTION = {
 } as const;
 
 /**
- * The bank's patience (§3.8). Palms planted within Kopdes range are collateral:
+ * The bank's patience (GDD 3.8). Palms planted within Kopdes range are collateral:
  * the estate may sit this far in the red per hectare of them. Below that line
  * for `daysInRed` straight days, or below zero with no collateral at all, or
  * with the licence suspended, the loans are called.
@@ -66,7 +66,7 @@ export const BANKRUPTCY = {
 } as const;
 
 /**
- * The enforcement roll on burn-to-clear (§3.8). It only rolls while integrity
+ * The enforcement roll on burn-to-clear (GDD 3.8). It only rolls while integrity
  * is high, which only happens after a scandal made the news, so an operating
  * ban is rare and always has a headline before it.
  */
@@ -83,7 +83,7 @@ export const OPERATING_BAN = {
   upkeepFactor: 0.5,
 } as const;
 
-/** The run's chronicle for the epilogue timeline (§3.8). */
+/** The run's chronicle for the epilogue timeline (GDD 3.8). */
 export const CHRONICLE = {
   cap: 160,
 } as const;

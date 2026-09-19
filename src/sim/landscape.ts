@@ -55,7 +55,7 @@ export function forestCoverAround(
 
 /**
  * Forest cover across the estate's neighbourhood; every owned block and
- * everything within the cover radius of one (§8 top bar).
+ * everything within the cover radius of one (GDD 8 top bar).
  */
 export function estateForestCover(state: SimState, world: World): number {
   const region = new Set<BlockId>();
@@ -85,7 +85,7 @@ export function coverCropEstablished(block: Readonly<Block>, tick: Tick): boolea
   return tick >= block.coverCropUntil - COVER_CROP.days + COVER_CROP.establishDays;
 }
 
-/** Today's chance that this slope gives way (§3.6.2). Zero off-slope or out of the wet. */
+/** Today's chance that this slope gives way (GDD 3.6.2). Zero off-slope or out of the wet. */
 export function landslideChance(
   state: SimState,
   world: World,

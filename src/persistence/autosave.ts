@@ -6,7 +6,7 @@ export interface AutosaveOptions {
   slot: SaveSlot;
   getState: () => SimState;
   dirty: DirtyChunks;
-  /** Sim days between autosaves (§7: 30). */
+  /** Sim days between autosaves (GDD 7: 30). */
   everyTicks?: number;
   onSaved?: (keysWritten: string[]) => void;
   onError?: (error: unknown) => void;

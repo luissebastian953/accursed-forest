@@ -71,7 +71,7 @@ export const Palette = {
   Rain: 55,
   CharredGround: 56,
 
-  // Mobs (§POC): fur, skin, cloth and the things that are not quite there.
+  // Mobs (GDD POC): fur, skin, cloth and the things that are not quite there.
   FurDark: 57,
   FurBoar: 58,
   FurPig: 59,

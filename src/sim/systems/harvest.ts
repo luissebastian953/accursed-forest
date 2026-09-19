@@ -43,7 +43,7 @@ export function harvestableKg(palms: PalmArrays, species: Species, tick: Tick): 
 
 /**
  * Take the round off one block: fruit to the Kopdes intake, wages paid, clock
- * reset. The crew's own rounds pay a surcharge on top (§3.3).
+ * reset. The crew's own rounds pay a surcharge on top (GDD 3.3).
  */
 export function pickBlock(ctx: SimContext, id: BlockId, auto: boolean): number {
   const { state, world, events } = ctx;

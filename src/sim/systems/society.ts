@@ -165,7 +165,7 @@ function integrity(ctx: SimContext): void {
   s.integrity = clamp(s.integrity, 0, 1);
 }
 
-// ── Authority (§3.9) ──────────────────────────────────────────────────────
+// ── Authority (GDD 3.9) ──────────────────────────────────────────────────────
 
 /** How hard a noticed act lands on the meter: slower with low integrity. */
 export function attentionFactor(state: SimState): number {
@@ -232,7 +232,7 @@ function authority(ctx: SimContext): void {
     return;
   }
 
-  // ── The enforcement roll (§3.8) ────────────────────────────────────────
+  // ── The enforcement roll (GDD 3.8) ────────────────────────────────────────
   if (s.operatingBanUntil === state.tick) events.push({ type: 'OperatingBanLifted' });
   // Only an honest office rolls, so the ban is rare and a scandal headline
   // always came first. The roll draws from the stream only when it can land.
@@ -292,7 +292,7 @@ function authority(ctx: SimContext): void {
 }
 
 /**
- * A hectare put back under forest, credited (§3.9). It halves the attention on
+ * A hectare put back under forest, credited (GDD 3.9). It halves the attention on
  * the estate and whatever is left of a suspension, on top of the meter drop
  * the planting itself earns. Doing it twice means chopping the forest down in
  * between, which costs more attention than the second credit returns, so this
@@ -327,7 +327,7 @@ export function creditReforestation(ctx: SimContext, block: BlockId): void {
 }
 
 /**
- * What burning costs beyond the meter (§3.7). These headlines are not dealt
+ * What burning costs beyond the meter (GDD 3.7). These headlines are not dealt
  * by the deck: they answer to what the estate and the province have actually
  * set alight, which is the only way a consequence reads as one.
  */
@@ -373,7 +373,7 @@ export function operatingBanReason(state: SimState): string {
   return `Operating licence suspended; no clearing, palm planting or harvest until year ${Math.floor(until / 360) + 1}, day ${(until % 360) + 1}.`;
 }
 
-/** Clearing costs while a letter or investigation stands (§3.9). */
+/** Clearing costs while a letter or investigation stands (GDD 3.9). */
 export function clearingCostFactor(state: SimState): number {
   return state.society.warningLevel >= 1 ? AUTHORITY.letterChopCostFactor : 1;
 }

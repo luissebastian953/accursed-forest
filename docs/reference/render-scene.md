@@ -1,17 +1,17 @@
 # Rendering: the scene
 
 What each module is for, as it was written at the top of the file before the
-headers moved here. A `§` number points into the [design document](../gdd/README.md).
+headers moved here. A `GDD n` reference points into the [design document](../gdd/README.md).
 
 ## `src/render/scene/Ceremony.ts`
 
-The ISPO ceremony at the Kopdes (§3.8, §6.5): a banner on two poles pops in
+The ISPO ceremony at the Kopdes (GDD 3.8, GDD 6.5): a banner on two poles pops in
 with `easeOutBack`, and fireworks burst over the roof for a few seconds.
 Clean or dirty, it is the same ceremony; the epilogue tells the difference.
 
 ## `src/render/scene/ChunkManager.ts`
 
-Chunk streaming (§6.7).
+Chunk streaming (GDD 6.7).
 
 Each frame: project the camera's ground rectangle onto chunk coordinates
 (plus a one-chunk margin), queue missing chunks nearest-first, ask the
@@ -19,12 +19,12 @@ mesher worker for at most `maxInFlight` at a time, and drop chunks that
 have been out of view for a while into an LRU so a quick pan back is free.
 A dirty chunk is rebuilt and swapped in atomically when its mesh arrives.
 
-The far-LOD heatmap tiles (§6.6) are not here yet; zoom is clamped by the
+The far-LOD heatmap tiles (GDD 6.6) are not here yet; zoom is clamped by the
 MapRig so the near ring stays inside the budget meanwhile.
 
 ## `src/render/scene/Clouds.ts`
 
-Clouds (§6.1): small white chunks drifting over the estate, see-through
+Clouds (GDD 6.1): small white chunks drifting over the estate, see-through
 enough that the land reads through them. They are scenery, not weather:
 the sky's own mood is `Sky.ts`.
 
@@ -35,7 +35,7 @@ so a handful of them covers any amount of panning.
 
 ## `src/render/scene/Coins.ts`
 
-Gold coins (§6.5): a handful thrown into the air that arc, spin, land and
+Gold coins (GDD 6.5): a handful thrown into the air that arc, spin, land and
 settle into the grass before they wink out. Anything that pays out on the
 map borrows this: a golden capybara spotted, a babi ngepet caught with its
 takings.
@@ -47,7 +47,7 @@ growing the buffer mid-frame.
 
 ## `src/render/scene/Excavator.ts`
 
-The excavator (§3.6.2): the machine that comes with the crew when a
+The excavator (GDD 3.6.2): the machine that comes with the crew when a
 landslide is dug out. It crawls onto the block, swings its boom into the
 spoil, lifts, turns to dump, and goes back for more, for as long as the
 crew is on the block.
@@ -57,7 +57,7 @@ being dug at once often enough to be worth the parts.
 
 ## `src/render/scene/Fires.ts`
 
-Fire on burning blocks (§6.4 "Fire"): glowing box particles.
+Fire on burning blocks (GDD 6.4 "Fire"): glowing box particles.
 
 Each burning block holds a few flame sources, more at higher intensity.
 Every source keeps emitting cubes that rise, swell and shrink as they cool
@@ -72,20 +72,20 @@ Purely visual: nothing here feeds back into the simulation.
 
 ## `src/render/scene/Kopdes.ts`
 
-The Kopdes building (§6.3): chunky box body, oversized pitched-roof slab,
+The Kopdes building (GDD 6.3): chunky box body, oversized pitched-roof slab,
 a flag block. Level-ups add a wing (M1b). Hiring a security guard puts a
 small post hut on the corner of the block, where the guard waits between
 patrols.
 
 ## `src/render/scene/Lightning.ts`
 
-Lightning (§3.6): a boxy bolt over the block a storm just hit, fading in a
+Lightning (GDD 3.6): a boxy bolt over the block a storm just hit, fading in a
 few hundred milliseconds. Unlit and brighter than white, so it glows; and
 blooms when the glow pass is on. `Sky.flash` lights the rest of the world.
 
 ## `src/render/scene/Motorcade.ts`
 
-The presidential motorcade (§3.8, §6.5): when the estate certifies, a long
+The presidential motorcade (GDD 3.8, GDD 6.5): when the estate certifies, a long
 black car with two flags on the bonnet comes up the road between two white
 escorts and stops in front of the Kopdes porch. The President steps out,
 walks to the door, and tells you your palms will do the country a favour;
@@ -95,19 +95,19 @@ sim's: the sim has already ended.
 
 ## `src/render/scene/Overlays.ts`
 
-In-scene overlays (§8 #11, #21): the selection ring, the Kopdes range ring
+In-scene overlays (GDD 8 #11, #21): the selection ring, the Kopdes range ring
 and the fire-spread preview. The selection ring is a flat glowing frame
 that pops in with `easeOutBack`; the others float just above the block so
 they read on any terrain.
 
 ## `src/render/scene/Palms.ts`
 
-Instanced palms (§6.6): one `InstancedMesh` per growth stage and variant,
+Instanced palms (GDD 6.6): one `InstancedMesh` per growth stage and variant,
 plus stumps, rebuilt from sim state whenever a planted block changes. At
 estate scale that is a few thousand matrices; cheap enough to redo
 wholesale rather than track slots.
 
-Pop-in and grow animations run on the CPU here (§6.5 CPU timeline). The GPU
+Pop-in and grow animations run on the CPU here (GDD 6.5 CPU timeline). The GPU
 per-instance path (`InstanceAnim`) takes over when palm counts justify it.
 
 Reforested blocks draw forest trees instead (`geometry/forestTree.ts`): a
@@ -117,19 +117,19 @@ not as a second plantation.
 
 ## `src/render/scene/Police.ts`
 
-Police cars at the Kopdes (§3.9, §6.3): boxy bodies and cabins with a light
+Police cars at the Kopdes (GDD 3.9, GDD 6.3): boxy bodies and cabins with a light
 bar that blinks. They drive up while an investigation is open, and a
 SWAT-style truck joins them at the arrest.
 
 ## `src/render/scene/Rain.ts`
 
-Rain (§6.1): streaks falling over the part of the world in view, as thick
+Rain (GDD 6.1): streaks falling over the part of the world in view, as thick
 as the day's rain. One instanced mesh; positions are stepped on the CPU;
 a couple of thousand drops is nothing next to the terrain.
 
 ## `src/render/scene/Sky.ts`
 
-Sky, fog and lights driven by weather (§6.4). Built before anything else
+Sky, fog and lights driven by weather (GDD 6.4). Built before anything else
 because it carries the game's atmosphere.
 
 The season lerps the palette and the sky; rain darkens both; smoke and ash
@@ -139,7 +139,7 @@ over the estate rather than switching on.
 
 ## `src/render/scene/Sparkles.ts`
 
-Sparkles (§6.5): a few glints turning over something worth a click, so a
+Sparkles (GDD 6.5): a few glints turning over something worth a click, so a
 golden capybara in the grass or a babi ngepet up on two legs reads as
 "this one, now" rather than as scenery.
 
@@ -152,7 +152,7 @@ coming back bigger after an upgrade.
 
 ## `src/render/scene/Timber.ts`
 
-Trees coming down (§6.5): while a forest block is being chopped, its trees
+Trees coming down (GDD 6.5): while a forest block is being chopped, its trees
 go one at a time; each quarter of the job fells another; and the last
 one drops when the block clears and the chunk remeshes. A tree tips slowly
 at first, gathers speed, hits the ground with a shudder, lies a moment, and
@@ -160,7 +160,7 @@ settles into the earth. Purely visual.
 
 ## `src/render/scene/Wisps.ts`
 
-Wisps (§6.5): the smoke that hangs around a babi ngepet. In the stories the
+Wisps (GDD 6.5): the smoke that hangs around a babi ngepet. In the stories the
 thing arrives in a haze and leaves in one, so smoke is how you know the pig
 crossing your land is not a pig.
 
@@ -170,7 +170,7 @@ puff rises, spreads and fades on its own loop.
 
 ## `src/render/scene/WorkSite.ts`
 
-The work site (§6.5): while a crew is chopping or burning a block, four
+The work site (GDD 6.5): while a crew is chopping or burning a block, four
 timber pillars go up at its corners with ropes strung between them; the
 crew's scaffolding and cordon. Up when the work starts, gone when the block
 clears or the crew walks off. A fire with no crew (lightning, a spread, a
@@ -178,7 +178,7 @@ wildfire) is just a fire. Purely visual; one mesh per worked block.
 
 ## `src/render/scene/chunkField.ts`
 
-From world + estate to a column field for one chunk (§6.3, §6.7).
+From world + estate to a column field for one chunk (GDD 6.3, GDD 6.7).
 
 Column height for wild land is the bilinear blend of the four nearest
 blocks' continuous heights, quantised to half-unit steps; smooth ground
@@ -194,7 +194,7 @@ Runs in the mesher worker, so it imports nothing that touches the renderer.
 
 ## `src/render/scene/chunkProtocol.ts`
 
-Messages between `ChunkManager` and the mesher worker (§6.7).
+Messages between `ChunkManager` and the mesher worker (GDD 6.7).
 
 The worker owns its own `World` (rebuilt from the seed on first use) and
 receives only the diverged blocks it needs, so the main thread never ships
@@ -202,7 +202,7 @@ terrain. Mesh arrays come back as transferables.
 
 ## `src/render/scene/props.ts`
 
-Where the scenery grows (§6.1, §6.3). The models live in `render/models/`;
+Where the scenery grows (GDD 6.1, GDD 6.3). The models live in `render/models/`;
 this file is the ecology; which of them each kind of land carries, and
 how thickly.
 
@@ -225,7 +225,7 @@ edges wander across the block grid), and rolls that land's table. A hash of
 
 ## `src/render/scene/riverChannel.ts`
 
-The river as it is drawn (§6.1): a smooth, meandering channel instead of
+The river as it is drawn (GDD 6.1): a smooth, meandering channel instead of
 the block staircase the simulation reasons about.
 
 Each river's cell path becomes a polyline through block centres, is rounded

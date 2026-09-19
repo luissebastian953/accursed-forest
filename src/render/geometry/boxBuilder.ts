@@ -70,7 +70,7 @@ export class BoxBuilder {
   private readonly normals: number[] = [];
   private readonly us: number[] = [];
 
-  /** Triangle count so far; useful for asserting mesher budgets (§6.7). */
+  /** Triangle count so far; useful for asserting mesher budgets (GDD 6.7). */
   get triangleCount(): number {
     return this.positions.length / 9;
   }

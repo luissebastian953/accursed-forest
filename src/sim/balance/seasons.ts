@@ -11,7 +11,7 @@ export const SEASONS = {
    * Daily rain is a clamped normal draw from the season's distribution.
    *
    * Calibrated so a grassfield block under the normal regime averages G ≈ 1.0
-   * over a year and reaches 900 growth-days in ~900 calendar days (§3.6.1);
+   * over a year and reaches 900 growth-days in ~900 calendar days (GDD 3.6.1);
    * El Niño (×0.55 rain) stretches that to ~1000 days. The Kalimantan dry
    * season is "less wet", not arid; an earlier 0.2 mean starved growth to
    * G ≈ 0.6 and pushed first harvest past four years.
@@ -23,7 +23,7 @@ export const SEASONS = {
 
   regime: {
     weights: { normal: 0.6, elNino: 0.2, laNina: 0.2 } satisfies Record<ClimateRegime, number>,
-    /** Added to last year's regime weight: regimes cluster (§3.6). */
+    /** Added to last year's regime weight: regimes cluster (GDD 3.6). */
     persistence: 0.3,
     rainMultiplier: { normal: 1, elNino: 0.55, laNina: 1.35 } satisfies Record<
       ClimateRegime,
@@ -43,7 +43,7 @@ export const SEASONS = {
 
   /**
    * `sun = 1 - cloudPerRain * rain`, before haze and ash attenuation. Kept
-   * mild on purpose: §3.6.1 puts normal light near 1.0 and reserves the big
+   * mild on purpose: GDD 3.6.1 puts normal light near 1.0 and reserves the big
    * drops for haze (≈0.7) and ash (≈0.5).
    */
   cloudPerRain: 0.15,
@@ -61,7 +61,7 @@ export function isWetSeason(dayOfYear: number): boolean {
 }
 
 /**
- * The day's sky, read off the rain draw (§3.6): sunshine, cloud, rain, and
+ * The day's sky, read off the rain draw (GDD 3.6): sunshine, cloud, rain, and
  * the thunderstorms that bring lightning.
  */
 export const SKY = {
@@ -91,7 +91,7 @@ export const SKY = {
   stream: 0x534b5920,
 } as const;
 
-/** Lightning (§3.6): storms strike, and dry timber catches. */
+/** Lightning (GDD 3.6): storms strike, and dry timber catches. */
 export const LIGHTNING = {
   /** Chance of any strike at all on a storm day. */
   strikeChance: 0.45,

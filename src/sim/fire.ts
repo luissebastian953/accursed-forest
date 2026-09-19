@@ -21,7 +21,7 @@ export function isWildfire(state: SimState): boolean {
 
 /**
  * Can this block catch? Wild vegetation and debris piles always; standing
- * palms only once the fire is a wildfire (§3.1.1). Water and buildings never.
+ * palms only once the fire is a wildfire (GDD 3.1.1). Water and buildings never.
  */
 export function isFuel(block: Readonly<Block>, wildfire: boolean): boolean {
   if (block.burning) return false;
@@ -130,7 +130,7 @@ export function extinguish(ctx: SimContext, block: Block): void {
 }
 
 /**
- * Pressure crossed the line: the fire stops being yours (§3.1.1). Every burn
+ * Pressure crossed the line: the fire stops being yours (GDD 3.1.1). Every burn
  * escalates to full intensity, palms become fuel, and the smoke event begins.
  */
 export function startWildfire(state: SimState, events: EventSink): void {

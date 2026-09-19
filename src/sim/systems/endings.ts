@@ -246,7 +246,7 @@ export function matureHectares(state: SimState): number {
 }
 
 /**
- * Forest share around the estate's slopes (§3.6.2): the mean neighbourhood
+ * Forest share around the estate's slopes (GDD 3.6.2): the mean neighbourhood
  * cover of every slope block the estate touches. An estate with no slopes is
  * judged on its forest cover overall.
  */
@@ -275,7 +275,7 @@ export function slopeForestCover(state: SimState, world: World): number {
 }
 
 /**
- * The five ISPO conditions (§3.8), as they stand now. Profit counts the year
+ * The five ISPO conditions (GDD 3.8), as they stand now. Profit counts the year
  * in progress; "profitable in each of the last three years" only closed ones.
  */
 export function ispoConditions(state: SimState, world: World): IspoCondition[] {

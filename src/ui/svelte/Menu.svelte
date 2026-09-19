@@ -1,5 +1,5 @@
 <!--
-  The menu (§8 panel 16), in two steps. Its face carries the save, the sound
+  The menu (GDD 8 panel 16), in two steps. Its face carries the save, the sound
   and the language; the new-estate form takes the whole card over when it is
   asked for, because starting one replaces what is in play.
 -->

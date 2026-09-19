@@ -107,7 +107,7 @@ function certifiableEstate(seed = 42): Sim {
   return sim;
 }
 
-describe('the books (§3.8)', () => {
+describe('the books (GDD 3.8)', () => {
   it('counts operating profit, not land and buildings', () => {
     const sim = createSim(42);
     sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
@@ -152,7 +152,7 @@ describe('the books (§3.8)', () => {
   });
 });
 
-describe('ISPO certification (§3.8)', () => {
+describe('ISPO certification (GDD 3.8)', () => {
   it('a clean estate is certified at the close of the year, and the feed means it', () => {
     const sim = certifiableEstate();
     expect(matureHectares(sim.state)).toBe(ISPO.winHectares);
@@ -235,7 +235,7 @@ describe('ISPO certification (§3.8)', () => {
   });
 });
 
-describe('the fade (§3.8)', () => {
+describe('the fade (GDD 3.8)', () => {
   it('twenty-five years without a certificate is the fade; the player may keep playing', () => {
     const sim = createSim(42);
     sim.state.tick = ISPO.horizonYears * YEAR - 1;
@@ -255,7 +255,7 @@ describe('the fade (§3.8)', () => {
   });
 });
 
-describe('bankruptcy (§3.8)', () => {
+describe('bankruptcy (GDD 3.8)', () => {
   it('ninety days in the red with no collateral calls the loans', () => {
     const sim = createSim(42);
     sim.state.economy.cash = -1;
@@ -295,7 +295,7 @@ describe('bankruptcy (§3.8)', () => {
   });
 });
 
-describe('the operating ban (§3.8)', () => {
+describe('the operating ban (GDD 3.8)', () => {
   /** Burn one wild block on an estate whose ministry has just been cleaned out. */
   function burnUnderHonestOffice(seed: number): Sim {
     const sim = createSim(seed);
@@ -365,7 +365,7 @@ describe('the operating ban (§3.8)', () => {
   });
 });
 
-describe('reboisasi (§3.8, the ending nobody planned for)', () => {
+describe('reboisasi (GDD 3.8, the ending nobody planned for)', () => {
   /** Put grown forest on `n` blocks and palms on `palms` blocks, then close a year. */
   function forestEstate(forest: number, palms: number): Sim {
     const sim = createSim(42);

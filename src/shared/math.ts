@@ -37,7 +37,7 @@ export function mod(a: number, n: number): number {
   return ((a % n) + n) % n;
 }
 
-/** Quantise to the nearest multiple of `step`; used by the column mesher (§6.3). */
+/** Quantise to the nearest multiple of `step`; used by the column mesher (GDD 6.3). */
 export function quantise(v: number, step: number): number {
   return Math.round(v / step) * step;
 }
@@ -45,7 +45,7 @@ export function quantise(v: number, step: number): number {
 /**
  * Sample a piecewise-linear curve defined by knots sorted ascending by `x`.
  * Values outside the knot range clamp to the first/last knot. This is how the
- * yield curve and the moisture curve are expressed in `sim/balance/*` (§4.5).
+ * yield curve and the moisture curve are expressed in `sim/balance/*` (GDD 4.5).
  */
 export function sampleCurve(
   knots: readonly (readonly [x: number, y: number])[],

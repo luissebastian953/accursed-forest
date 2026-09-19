@@ -283,7 +283,7 @@ export function growBlock(builder: BoxBuilder, ctx: PropContext, block: PropBloc
 
 /**
  * The fence between the planted rows and the ground nothing stands on
- * (§6.3). It is drawn only where a planted slot meets an empty one inside
+ * (GDD 6.3). It is drawn only where a planted slot meets an empty one inside
  * the same hectare, which is the line a grower would actually fence: the
  * edge of the crop. Block boundaries are already drawn by the terrain, so
  * nothing is doubled up there.

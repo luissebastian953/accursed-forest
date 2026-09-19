@@ -5,7 +5,7 @@ import type { ClimateRegime, SkyCondition } from '@sim/types';
 
 import HudView_ from './Hud.svelte';
 
-/** One chip in the active-events strip (§8 panel 6). */
+/** One chip in the active-events strip (GDD 8 panel 6). */
 export interface EventChip {
   id: string;
   label: string;
@@ -22,11 +22,11 @@ export interface HudView {
   tbsTrend: -1 | 0 | 1;
   regime: ClimateRegime;
   rain: number;
-  /** Today's sky (§3.6): what the climate tile actually shows. */
+  /** Today's sky (GDD 3.6): what the climate tile actually shows. */
   sky: SkyCondition;
   speed: Speed;
   locked: boolean;
-  /** 0 when there is no Kopdes yet; gates the 50x button (§3.3). */
+  /** 0 when there is no Kopdes yet; gates the 50x button (GDD 3.3). */
   kopdesLevel: number;
   estateCode: string;
   /** Whether the estate makes a sound; the speaker button reads it. */
@@ -35,20 +35,20 @@ export interface HudView {
   estateName: string;
   saveNote: string | null;
   saveError: string | null;
-  /** §8 panel 5: shown once any burn has happened. */
+  /** GDD 8 panel 5: shown once any burn has happened. */
   firePressure: number;
   fireThreshold: number;
   burningCount: number;
   wildfire: boolean;
-  /** §8 panel 5b: shown only once the first letter has arrived (§3.9); null hides it. */
+  /** GDD 8 panel 5b: shown only once the first letter has arrived (GDD 3.9); null hides it. */
   attention: number | null;
-  /** §8 panel 1: the input price index, shown once it moves off 1. */
+  /** GDD 8 panel 1: the input price index, shown once it moves off 1. */
   inputIndex: number;
-  /** §8 panel 1: share of forest across the estate's neighbourhood, 0..1. */
+  /** GDD 8 panel 1: share of forest across the estate's neighbourhood, 0..1. */
   forestCover: number;
-  /** §8 panel 6: haze, ash, flood, drought, wildfire, plague. */
+  /** GDD 8 panel 6: haze, ash, flood, drought, wildfire, plague. */
   events: EventChip[];
-  /** §8 panel 19: ISPO conditions met, from Year 3; null hides the button. */
+  /** GDD 8 panel 19: ISPO conditions met, from Year 3; null hides the button. */
   ispoMet: number | null;
   /** How many there are to meet, so the pips are not a magic number. */
   ispoTotal: number;

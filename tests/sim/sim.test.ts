@@ -67,7 +67,7 @@ function chopAndPlant(sim: Sim, block: BlockId): void {
   expect(sim.dispatch({ type: 'PlantBlock', block, species: 'palm' })).toEqual({ ok: true });
 }
 
-describe('initial state (§4.4, §4.6)', () => {
+describe('initial state (GDD 4.4, GDD 4.6)', () => {
   it('starts with the 8x8 estate owned, the Kopdes block pre-cleared, and nothing else diverged', () => {
     const sim = createSim(42);
     const { state, world } = sim;
@@ -104,7 +104,7 @@ describe('initial state (§4.4, §4.6)', () => {
   });
 });
 
-describe('commands (§4.2)', () => {
+describe('commands (GDD 4.2)', () => {
   it('rejects planting on wild land with a fix-it reason', () => {
     const sim = createSim(42);
     const block = firstOwnedWild(sim);
@@ -287,7 +287,7 @@ describe('commands (§4.2)', () => {
   });
 });
 
-describe('growth (§3.6.1)', () => {
+describe('growth (GDD 3.6.1)', () => {
   it('a planted grassfield block reaches maturity in about `immatureDays` calendar days', () => {
     // Seeds differ in the regimes they roll; El Niño years legitimately push
     // this out by a quarter or so. The window is the tunable, give or take.
@@ -386,7 +386,7 @@ describe('growth (§3.6.1)', () => {
   });
 });
 
-describe('determinism (§4.3)', () => {
+describe('determinism (GDD 4.3)', () => {
   const commandArb = (blocks: BlockId[]): fc.Arbitrary<Command> =>
     fc.oneof(
       fc.record({ type: fc.constant('ChopBlock' as const), block: fc.constantFrom(...blocks) }),
@@ -532,7 +532,7 @@ describe('determinism (§4.3)', () => {
   });
 });
 
-describe('performance guardrails (§10.3)', () => {
+describe('performance guardrails (GDD 10.3)', () => {
   it('ticks a planted estate well under the 2 ms budget', () => {
     const sim = createSim(42);
     sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });

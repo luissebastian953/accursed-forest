@@ -1,11 +1,11 @@
 # Simulation: systems
 
 What each module is for, as it was written at the top of the file before the
-headers moved here. A `§` number points into the [design document](../gdd/README.md).
+headers moved here. A `GDD n` reference points into the [design document](../gdd/README.md).
 
 ## `src/sim/systems/economy.ts`
 
-Economy system (§3.3, §3.5): sell the day's TBS, charge upkeep, walk the price.
+Economy system (GDD 3.3, GDD 3.5): sell the day's TBS, charge upkeep, walk the price.
 
 The price is a bounded random walk pulled back toward a long-run mean; mild
 market pressure, not a market. Macro shocks and the input price index move
@@ -13,7 +13,7 @@ with the news system (M1f).
 
 ## `src/sim/systems/endings.ts`
 
-Endings system (§3.8). Runs after `society` and before the news, so the
+Endings system (GDD 3.8). Runs after `society` and before the news, so the
 news can headline whatever ended today.
 
 Daily it keeps the run's books; the epilogue's counters and the estate's
@@ -23,7 +23,7 @@ horizon, calls the fade.
 
 ## `src/sim/systems/growth.ts`
 
-Growth system (§3.6.1).
+Growth system (GDD 3.6.1).
 
 Each tick a palm gains `G` growth-days, where
 
@@ -35,13 +35,13 @@ on bearing palms at the same rate, so a hazy round is visibly lighter.
 
 ## `src/sim/systems/harvest.ts`
 
-Harvest system (§2, §3.3): ripeness and rot.
+Harvest system (GDD 2, GDD 3.3): ripeness and rot.
 
 A block's harvest clock starts the day its first palm bears fruit; the block
 is ripe every `HARVEST_ROTATION_DAYS` after the last round. Fruit left on
 the tree past ~1.5 rounds' worth rots; the cap keeps a neglected block from
 banking a year of yield. Harvesting itself is a command (`HarvestBlock`):
-manual per block, as §2 says, until auto-harvest arrives as an upgrade.
+manual per block, as GDD 2 says, until auto-harvest arrives as an upgrade.
 
 ## `src/sim/systems/mobs.ts`
 
@@ -59,14 +59,14 @@ and pick the next thing when the current one runs out.
 
 ## `src/sim/systems/news.ts`
 
-News system (§3.7). Runs last each tick and turns what happened into
+News system (GDD 3.7). Runs last each tick and turns what happened into
 headlines: every item comes from a template keyed by a sim event or a
 derived condition, the UI never invents one. Events of the same kind in the
 same tick make one headline; a key does not repeat within its cooldown.
 
 ## `src/sim/systems/pest.ts`
 
-Pest system (§3.4): Ganoderma along the lattice, beetles in the debris,
+Pest system (GDD 3.4): Ganoderma along the lattice, beetles in the debris,
 and the plague flag when either gets out of hand.
 
 Ganoderma is the slow, structural pest: a latent palm turns symptomatic,
@@ -82,19 +82,19 @@ slows breeding, and removing the debris is the only real fix.
 
 ## `src/sim/systems/society.ts`
 
-Society system (§3.7, §3.9): the macro-economic deck, the hidden integrity
+Society system (GDD 3.7, GDD 3.9): the macro-economic deck, the hidden integrity
 stat, and the authority meter. Runs after the economy and before the news,
 reading everything that happened this tick; including commands dispatched
 since the last one, whose events wait in the same sink.
 
 ## `src/sim/systems/terrain.ts`
 
-Terrain system (§3.1): clearing and burning progress, timber, debris decay,
-and the crew digging a landslide out (§3.6.2).
+Terrain system (GDD 3.1): clearing and burning progress, timber, debris decay,
+and the crew digging a landslide out (GDD 3.6.2).
 
 ## `src/sim/systems/weather.ts`
 
-Weather system (§3.6). Runs first each tick: everything downstream reads
+Weather system (GDD 3.6). Runs first each tick: everything downstream reads
 this tick's rain, sun and block moisture.
 
 Seasonal baseline plus the light attenuation of whatever smoke is in the
@@ -103,9 +103,9 @@ haze already comes from `worldEvents`.
 
 ## `src/sim/systems/worldEvents.ts`
 
-World events system (§3.6): the event deck, drought, floods, ash fall,
+World events system (GDD 3.6): the event deck, drought, floods, ash fall,
 sparks, landslides, and fire spread with its pressure and wildfire.
 
 Every effect goes through moisture, light, fertility or damage; nothing
-affects the trees by decree (§3.6). Light is applied in `weather.ts`, which
+affects the trees by decree (GDD 3.6). Light is applied in `weather.ts`, which
 reads the events this system keeps in `state.weather.activeEvents`.

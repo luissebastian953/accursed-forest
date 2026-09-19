@@ -17,7 +17,7 @@ import type { Block, SimState } from '../types.ts';
 const FERTILIZER_BONUS = 1.2;
 const ASH_BONUS = 1.2;
 
-/** The per-block part of `G`: light × moisture × fertility, each clamped (§3.6.1). */
+/** The per-block part of `G`: light × moisture × fertility, each clamped (GDD 3.6.1). */
 export function growthMultiplier(state: SimState, block: Readonly<Block>): number {
   const { light, moisture, fertility } = GROWTH_FACTORS;
 
@@ -29,7 +29,7 @@ export function growthMultiplier(state: SimState, block: Readonly<Block>): numbe
   );
 
   const spec = BIOMES[block.biome];
-  // Irrigation lifts the dry-scrub penalty (§3.1).
+  // Irrigation lifts the dry-scrub penalty (GDD 3.1).
   let fertilityFactor = block.irrigated && block.biome === 'scrub' ? 1 : spec.fertility;
   if (block.fertilizedUntil > state.tick) fertilityFactor *= FERTILIZER_BONUS;
   if (block.ashUntil > state.tick) fertilityFactor *= ASH_BONUS;
@@ -64,7 +64,7 @@ export function growth(ctx: SimContext): void {
       const before = stageOf(species, palms.growth[slot]!, ageDays, health, ganoderma);
       if (before === 'dead') continue;
 
-      // Symptomatic Ganoderma caps stress (§3.6.1); beetle damage shows in health.
+      // Symptomatic Ganoderma caps stress (GDD 3.6.1); beetle damage shows in health.
       const sickCap = ganoderma === 2 ? GANODERMA.stressCap : 1;
       const stress = clamp(
         Math.min(health / 255, sickCap),

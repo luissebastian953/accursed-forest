@@ -12,7 +12,7 @@ export interface SpringConfig {
   c: number;
 }
 
-/** Toy-like wobble: zeta ~= 0.54, settles inside ~600 ms (§6.5). */
+/** Toy-like wobble: zeta ~= 0.54, settles inside ~600 ms (GDD 6.5). */
 export const TOY_SPRING: SpringConfig = { k: 170, c: 14 };
 
 /** Camera and panels: no visible overshoot. */

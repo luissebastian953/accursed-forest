@@ -50,7 +50,7 @@ function tickFor<T extends SimEvent['type']>(
   return null;
 }
 
-describe('news templates (§3.7)', () => {
+describe('news templates (GDD 3.7)', () => {
   it('every template renders with no slot left unfilled and has at least one phrasing', () => {
     const sim = createSim(42);
     const vars = {
@@ -106,7 +106,7 @@ describe('news templates (§3.7)', () => {
   });
 });
 
-describe('news system (§3.7)', () => {
+describe('news system (GDD 3.7)', () => {
   const cases: [string, SimEvent[], string][] = [
     ['wildfire', [{ type: 'WildfireStarted' }], 'wildfire.start'],
     ['haze', [{ type: 'WeatherEventStarted', id: 'haze', days: 20 }], 'haze.start'],
@@ -216,7 +216,7 @@ describe('news system (§3.7)', () => {
   });
 });
 
-describe('integrity (§3.7)', () => {
+describe('integrity (GDD 3.7)', () => {
   it('stays in 0..1, drifts back toward its baseline, and scandals push it up for a while', () => {
     let scandals = 0;
     for (const seed of [1, 2, 3, 4, 5]) {
@@ -237,7 +237,7 @@ describe('integrity (§3.7)', () => {
   });
 });
 
-describe('macro economy (§3.7)', () => {
+describe('macro economy (GDD 3.7)', () => {
   it('inflation ratchets the input index up, never past the cap, and lifts TBS by half as much', () => {
     const sim = createSim(9);
     let last = sim.state.economy.inputPriceIndex;
@@ -280,7 +280,7 @@ describe('macro economy (§3.7)', () => {
   });
 });
 
-describe('authority (§3.9)', () => {
+describe('authority (GDD 3.9)', () => {
   function quiet(sim: Sim): void {
     // Freeze integrity at its baseline so the numbers are exact.
     sim.state.society.integrity = INTEGRITY.baseline;

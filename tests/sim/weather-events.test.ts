@@ -80,7 +80,7 @@ function startEvent(sim: Sim, id: string, days: number, blocks?: BlockId[]): voi
   sim.state.weather.activeEvents.push(blocks ? { ...event, blocks } : event);
 }
 
-describe('event deck (§3.6)', () => {
+describe('event deck (GDD 3.6)', () => {
   it('deals about one event a year, and ash is rare', () => {
     const counts: Record<string, number> = {};
     const years = 3 * 25;
@@ -148,7 +148,7 @@ describe('event deck (§3.6)', () => {
   });
 });
 
-describe('haze and ash (§3.6)', () => {
+describe('haze and ash (GDD 3.6)', () => {
   it('regional haze dims the sun to 0.7 and pulls the TBS price down', () => {
     // Twin runs share every random draw; only the haze differs.
     const hazed = createSim(42);
@@ -203,7 +203,7 @@ describe('haze and ash (§3.6)', () => {
   });
 });
 
-describe('flood (§3.6)', () => {
+describe('flood (GDD 3.6)', () => {
   it('drowns young palms on low river ground, washes fertilizer out, spares drained blocks', () => {
     const sim = createSim(42);
     const [wet, dry] = ownedWild(sim);
@@ -227,7 +227,7 @@ describe('flood (§3.6)', () => {
   });
 });
 
-describe('drought (§3.6)', () => {
+describe('drought (GDD 3.6)', () => {
   it('an El Niño dry season brings drought, dries unirrigated land, and real rain breaks it', () => {
     const sim = createSim(42);
     const [bare, watered] = ownedWild(sim);
@@ -285,7 +285,7 @@ describe('drought (§3.6)', () => {
   });
 });
 
-describe('forest cover (§3.6.2)', () => {
+describe('forest cover (GDD 3.6.2)', () => {
   it('is a share in 0..1 and falls when forest is cleared', () => {
     const sim = createSim(1); // a forest-heavy start
     const forest = [...sim.state.blocks.values()].find(
@@ -303,7 +303,7 @@ describe('forest cover (§3.6.2)', () => {
     expect(estate).toBeLessThanOrEqual(1);
   });
 
-  it('reforested land counts half while young and fully once mature (§3.10)', () => {
+  it('reforested land counts half while young and fully once mature (GDD 3.10)', () => {
     const sim = createSim(42);
     const block = ownedWild(sim)[0]!;
     writeBlock(sim.state, sim.world, block).phase = 'cleared';
@@ -321,7 +321,7 @@ describe('forest cover (§3.6.2)', () => {
   });
 });
 
-describe('landslides (§3.6.2)', () => {
+describe('landslides (GDD 3.6.2)', () => {
   it('only slopes slide, only in the wet season', () => {
     const sim = createSim(42);
     const block = { ...sim.world.block(10, 10), slope: true, phase: 'planted' as const };
@@ -509,7 +509,7 @@ describe('landslides (§3.6.2)', () => {
   );
 });
 
-describe('the sky and its lightning (§3.6)', () => {
+describe('the sky and its lightning (GDD 3.6)', () => {
   it('reads the day off its rain: sun, cloud, rain, thunder', () => {
     expect(skyFor(0)).toBe('clear');
     expect(skyFor(SKY.cloudyAbove)).toBe('cloudy');

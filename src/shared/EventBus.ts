@@ -1,7 +1,7 @@
 import mitt, { type Emitter, type EventType } from 'mitt';
 
 /**
- * The render/UI event bus (§10.2).
+ * The render/UI event bus (GDD 10.2).
  *
  * `sim/` deliberately does NOT use this: the simulation returns an array of
  * `SimEvent`s from each tick and never emits. This bus is only for the layers

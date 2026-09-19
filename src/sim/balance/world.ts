@@ -3,16 +3,16 @@ export const WORLD = {
   width: 64,
   height: 64,
 
-  /** Palms per block side. Block = 1 ha = 12x12 = 144 palms (§2). */
+  /** Palms per block side. Block = 1 ha = 12x12 = 144 palms (GDD 2). */
   blockSide: 12,
 
-  /** Blocks per chunk side. Shared by the mesher and the save format (§6.7, §7). */
+  /** Blocks per chunk side. Shared by the mesher and the save format (GDD 6.7, GDD 7). */
   chunkSide: 4,
 
-  /** Side of the player's initially owned square (§3.1). */
+  /** Side of the player's initially owned square (GDD 3.1). */
   startSize: 8,
 
-  /** Elevation is quantised to these many steps, 0..3 (§3.6.2). */
+  /** Elevation is quantised to these many steps, 0..3 (GDD 3.6.2). */
   maxElevation: 3,
 } as const;
 
@@ -38,7 +38,7 @@ export const NOISE = {
   riverMoistureRange: 4,
 } as const;
 
-/** Thresholds turning (elevation, moisture, slope) into a biome (§4.6). */
+/** Thresholds turning (elevation, moisture, slope) into a biome (GDD 4.6). */
 export const BIOME_RULES = {
   /** At or above this normalised height, with slope, the block is hills. */
   hillsElevation: 2,
@@ -72,7 +72,7 @@ export const PROTECTED = {
 } as const;
 
 /**
- * Kampung (§3.1, village land): a few small clusters of houses along the
+ * Kampung (GDD 3.1, village land): a few small clusters of houses along the
  * rivers, well away from the estate. Not for sale and not clearable.
  */
 export const VILLAGES = {

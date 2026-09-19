@@ -6,7 +6,7 @@
  *
  * Tokens first, then the handful of component classes every panel builds
  * from. The 3D palette lives in `render/materials/palette.ts`; the game
- * colours below mirror it so the HUD and the world stay in step (§6.1).
+ * colours below mirror it so the HUD and the world stay in step (GDD 6.1).
  */
 @theme {
   --color-sawit: #2f7a2b;

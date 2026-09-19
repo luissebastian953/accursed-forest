@@ -1,11 +1,11 @@
 # Shared
 
 What each module is for, as it was written at the top of the file before the
-headers moved here. A `§` number points into the [design document](../gdd/README.md).
+headers moved here. A `GDD n` reference points into the [design document](../gdd/README.md).
 
 ## `src/shared/base64.ts`
 
-Typed-array <-> base64 codec for save files (§7).
+Typed-array <-> base64 codec for save files (GDD 7).
 
 Little-endian is assumed; every platform the game runs on is little-endian,
 and saves that move between machines do so as exported JSON of these same

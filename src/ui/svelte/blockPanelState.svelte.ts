@@ -44,7 +44,7 @@ export interface BlockPanelHandlers {
   dispatch(command: Command): DispatchResult;
   close(): void;
   openShop(): void;
-  /** Hovering a Burn button previews which neighbours could catch (§8 panel 22). */
+  /** Hovering a Burn button previews which neighbours could catch (GDD 8 panel 22). */
   hoverBurn(blocks: BlockId[] | null): void;
 }
 
@@ -142,7 +142,7 @@ export interface BlockView {
 }
 
 /**
- * Open land's two futures (§8 panel 11a): the crew with its timber, or the
+ * Open land's two futures (GDD 8 panel 11a): the crew with its timber, or the
  * saplings. Reforesting buys what the block is short of and plants it in one
  * step, so the price here is the whole price, and the note says why it
  * cannot be paid when it cannot.
@@ -186,7 +186,7 @@ function landView(sim: Sim, id: BlockId, chop: ActionView): BlockView['land'] {
 }
 
 /**
- * The coordination fee, as the Kopdes offers it (§3.9). It appears only with
+ * The coordination fee, as the Kopdes offers it (GDD 3.9). It appears only with
  * something to settle, and says plainly when the district office is too
  * honest to take it rather than hiding the button.
  */
@@ -258,7 +258,7 @@ function phaseLabel(phase: string, progress: number, burning: boolean, intensity
   }
 }
 
-/** Forest cover around a slope and what the next wet season risks there (§3.6.2). */
+/** Forest cover around a slope and what the next wet season risks there (GDD 3.6.2). */
 function slopeLine(sim: Sim, id: BlockId): string {
   const { state, world } = sim;
   const block = readBlock(state, world, id);
@@ -611,7 +611,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     if (replant.rejection === null) actions.push(replant);
   }
 
-  // Beetles, Ganoderma, treatments, the slot grid and per-palm actions (§3.4).
+  // Beetles, Ganoderma, treatments, the slot grid and per-palm actions (GDD 3.4).
   let pests: BlockView['pests'] = null;
   if (block.owned && (palmTrees || block.debris > 0 || block.beetles > 0)) {
     const tick = state.tick;

@@ -31,7 +31,7 @@ export function terrain(ctx: SimContext): void {
         events.push({ type: 'BlockCleared', block: block.id });
         if (spec.forestCover) events.push({ type: 'ForestChopped', block: block.id });
 
-        // The timber partly offsets the crew's wages (§3.1.1).
+        // The timber partly offsets the crew's wages (GDD 3.1.1).
         const revenue = TIMBER_VALUE[block.biome];
         if (revenue !== undefined && revenue > 0) {
           earn(state, revenue, 'sale', `timber: block ${block.id}`);

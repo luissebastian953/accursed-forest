@@ -23,7 +23,7 @@ import type { BlockId, Mob } from '@sim/types.ts';
 
 const YEAR = GROWTH.daysPerYear;
 
-/** A payroll needs a Kopdes big enough to carry it (§3.3). */
+/** A payroll needs a Kopdes big enough to carry it (GDD 3.3). */
 function payroll(sim: Sim): void {
   sim.state.kopdes!.level = WORKERS_FROM_LEVEL;
 }

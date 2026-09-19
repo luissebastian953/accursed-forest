@@ -14,7 +14,7 @@ export const NEWS_TEMPLATES: Record<string, NewsTemplate> = {
 };
 
 export const NEWS = {
-  /** The feed keeps this many items; older ones fall off (§3.7). */
+  /** The feed keeps this many items; older ones fall off (GDD 3.7). */
   cap: 200,
   /** Chance the government reacts publicly to a fire or flood headline. */
   governmentReactionChance: 0.6,

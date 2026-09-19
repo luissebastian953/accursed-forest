@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test';
 
 /**
- * Smoke test (§10.2): boot the app on the WebGL 2 fallback path, prove the
+ * Smoke test (GDD 10.2): boot the app on the WebGL 2 fallback path, prove the
  * scene actually renders, and prove the spike's weather uniforms are wired.
  *
  * `?webgl` forces the fallback because WebGPU is not available in headless CI
- * (§6.4); `?spike` selects the spike over the game. The WebGPU path is
+ * (GDD 6.4); `?spike` selects the spike over the game. The WebGPU path is
  * exercised by hand in a real browser.
  *
  * Note: the canvas cannot be read back with `drawImage`; the renderer runs
@@ -31,7 +31,7 @@ test.describe('art spike', () => {
       })
       .toBe(true);
 
-    // Let the pop-in cascade finish (§6.5: capped at 300 ms + a 400 ms pop).
+    // Let the pop-in cascade finish (GDD 6.5: capped at 300 ms + a 400 ms pop).
     await page.waitForTimeout(1500);
 
     // A flat frame compresses to almost nothing; a rendered estate does not.

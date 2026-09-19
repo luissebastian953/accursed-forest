@@ -302,7 +302,7 @@
       {#if v.land}
         {@const land = v.land}
         <!--
-          Open land, and the two things that can be done with it (§8 panel
+          Open land, and the two things that can be done with it (GDD 8 panel
           11a). The crew is the loud one; the saplings are the quiet one, and
           buying them is folded into the same press.
         -->

@@ -7,11 +7,11 @@ export interface NewsTemplate {
   cooldownDays: number;
   titles: readonly string[];
   bodies: readonly string[];
-  /** The "what this does to you" line (§3.7). */
+  /** The "what this does to you" line (GDD 3.7). */
   effects: readonly string[];
   /**
    * Whether the headline goes into the run's chronicle for the epilogue
-   * (§3.8). Defaults to warnings and above.
+   * (GDD 3.8). Defaults to warnings and above.
    */
   chronicle?: boolean;
 }

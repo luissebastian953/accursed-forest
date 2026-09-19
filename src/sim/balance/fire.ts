@@ -86,10 +86,10 @@ export const FIRE = {
   debrisFromBurnedPalms: 40,
   /** Debris a rained-out, half-burned block gains. */
   debrisFromExtinguished: 15,
-  /** Ash lifts fertility for a season (§3.1.1: +0.2). */
+  /** Ash lifts fertility for a season (GDD 3.1.1: +0.2). */
   ashDays: 90,
 
-  /** Light while wildfire smoke hangs (§3.1.1: `light` ≈ 0.6), and its tail. */
+  /** Light while wildfire smoke hangs (GDD 3.1.1: `light` ≈ 0.6), and its tail. */
   hazeLight: 0.6,
   hazeTailDays: 20,
 

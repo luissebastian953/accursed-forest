@@ -32,7 +32,7 @@ const CURVES: Record<string, Easing> = {
   easeOutBounce,
 };
 
-describe('easing curves (§6.5)', () => {
+describe('easing curves (GDD 6.5)', () => {
   it.each(Object.keys(CURVES))('%s starts at 0 and ends at 1', (name) => {
     const curve = CURVES[name]!;
     expect(curve(0)).toBeCloseTo(0, 6);
@@ -78,7 +78,7 @@ describe('easing curves (§6.5)', () => {
     for (let i = 0; i <= 200; i++) expect(easeOutBounce(i / 200)).toBeLessThanOrEqual(1 + 1e-9);
   });
 
-  it('easeOutCubic is monotonic; the camera must never reverse (§6.5)', () => {
+  it('easeOutCubic is monotonic; the camera must never reverse (GDD 6.5)', () => {
     let previous = -Infinity;
     for (let i = 0; i <= 200; i++) {
       const v = easeOutCubic(i / 200);
@@ -88,7 +88,7 @@ describe('easing curves (§6.5)', () => {
   });
 });
 
-describe('squash and stretch (§6.5)', () => {
+describe('squash and stretch (GDD 6.5)', () => {
   it('preserves volume: sy * sxz^2 === 1', () => {
     for (let i = 0; i <= 100; i++) {
       const { sy, sxz } = squashStretch(easeOutBack(i / 100));
@@ -108,14 +108,14 @@ describe('squash and stretch (§6.5)', () => {
     expect(sxz).toBeLessThan(1);
   });
 
-  it('stays finite at t = 0, where the abbreviated TSL sketch in §6.5 would divide by zero', () => {
+  it('stays finite at t = 0, where the abbreviated TSL sketch in GDD 6.5 would divide by zero', () => {
     const { sy, sxz } = squashStretch(0);
     expect(Number.isFinite(sy)).toBe(true);
     expect(Number.isFinite(sxz)).toBe(true);
   });
 });
 
-describe('cascade timing (§6.5)', () => {
+describe('cascade timing (GDD 6.5)', () => {
   it('staggers by 15 ms and caps at 300 ms', () => {
     expect(cascadeDelay(0)).toBe(0);
     expect(cascadeDelay(1)).toBe(DURATION.cascadeStep);
@@ -123,9 +123,9 @@ describe('cascade timing (§6.5)', () => {
   });
 });
 
-describe('spring integrator (§6.5)', () => {
+describe('spring integrator (GDD 6.5)', () => {
   it('is visually settled by ~600 ms and numerically settled by ~1.2 s', () => {
-    // §6.5 promises a ~600 ms settle. Measured, the toy preset (zeta ~= 0.54)
+    // GDD 6.5 promises a ~600 ms settle. Measured, the toy preset (zeta ~= 0.54)
     // is within ~1.3% of target at 600 ms; settled to the eye; and converges
     // properly a few hundred ms later.
     const spring = createSpring(0);

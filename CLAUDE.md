@@ -14,8 +14,8 @@ in `localStorage`. English and Indonesian.
   **Files carry no header comment.** The description of a module lives in the
   reference, one entry per file. When you add a module, add its entry there;
   do not put a description block at the top of the file.
-- [`docs/gdd/`](docs/gdd/README.md): the design. Code cites it as `§3.6`,
-  `§8`. A number in `src/sim/balance/` serves a rule there.
+- [`docs/gdd/`](docs/gdd/README.md): the design. Code cites it as `GDD 3.6`,
+  `GDD 8`. A number in `src/sim/balance/` serves a rule there.
 
 ## The rules that are not obvious from the code
 

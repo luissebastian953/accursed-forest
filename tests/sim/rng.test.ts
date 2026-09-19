@@ -18,7 +18,7 @@ function draw(state: RngState, n: number): number[] {
   return Array.from({ length: n }, () => nextFloat(state));
 }
 
-describe('seeded RNG (§4.3)', () => {
+describe('seeded RNG (GDD 4.3)', () => {
   it('is deterministic for a seed', () => {
     expect(draw(createRng(1234), 16)).toEqual(draw(createRng(1234), 16));
   });

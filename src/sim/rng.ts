@@ -37,7 +37,7 @@ export function cloneRng(state: RngState): RngState {
 /**
  * Derive an independent stream from a seed and a tag, without touching or
  * consuming any existing stream. Worldgen uses this so that terrain stays a
- * pure `f(seed, x, y)` no matter what the main stream has done (§4.6).
+ * pure `f(seed, x, y)` no matter what the main stream has done (GDD 4.6).
  */
 export function forkRng(seed: number, tag: number): RngState {
   return createRng((Math.imul(seed, 0x2545f491) ^ Math.imul(tag + 1, 0x9e3779b1)) | 0);
@@ -87,7 +87,7 @@ export function pick<T>(state: RngState, items: readonly T[]): T | undefined {
 }
 
 /**
- * Pick an index by weight; the event deck draw (§3.6) and the news template
+ * Pick an index by weight; the event deck draw (GDD 3.6) and the news template
  * picker both need this. Returns -1 if every weight is zero.
  */
 export function pickWeighted(state: RngState, weights: readonly number[]): number {
@@ -105,7 +105,7 @@ export function pickWeighted(state: RngState, weights: readonly number[]): numbe
   return weights.length - 1;
 }
 
-/** Standard normal via Box-Muller. Used by the rain distribution (§3.6). */
+/** Standard normal via Box-Muller. Used by the rain distribution (GDD 3.6). */
 export function nextGaussian(state: RngState): number {
   // u must be non-zero for the log.
   const u = 1 - nextFloat(state);

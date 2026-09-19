@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
 /**
- * The browser smoke test (§9, M1a + M1b): boot on the WebGL fallback, place
+ * The browser smoke test (GDD 9, M1a + M1b): boot on the WebGL fallback, place
  * the Kopdes, stock bibit at the shop, chop and plant a neighbour, speed
  * through the immature years, harvest a ripe round and watch it sell, then
  * save, reload and continue.
@@ -55,7 +55,7 @@ interface DebugWindow {
 const tid = (page: Page, id: string) => page.getByTestId(id);
 
 /**
- * Level 3 is what opens the payroll and the 50x clock (§3.3). The suite has
+ * Level 3 is what opens the payroll and the 50x clock (GDD 3.3). The suite has
  * neither the years nor the cash to grow one, so it hands itself the level
  * through the debug hook, and the shop redraws on its next refresh.
  */
@@ -634,7 +634,7 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'block-phase')).toContainText('Burning, medium');
     await expect(tid(page, 'fire-gauge')).toBeVisible();
     await expect(tid(page, 'burning-chip')).toBeVisible();
-    // §3.1.1: the clock is capped while anything burns; 10×, not a crawl.
+    // GDD 3.1.1: the clock is capped while anything burns; 10×, not a crawl.
     await expect(tid(page, 'speed-50')).toBeDisabled();
     await expect(tid(page, 'speed-10')).toBeEnabled();
     await expect(tid(page, 'wildfire-badge')).toHaveCount(0);

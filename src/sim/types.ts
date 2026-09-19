@@ -23,7 +23,7 @@ export type BlockPhase = 'wild' | 'clearing' | 'cleared' | 'planted' | 'reforest
 
 /**
  * What is growing on a block. Palms and reforestation share the growth-days
- * machinery and the `PalmArrays` storage, with different curves (§3.10).
+ * machinery and the `PalmArrays` storage, with different curves (GDD 3.10).
  */
 export type Species = 'palm' | 'forest';
 
@@ -33,7 +33,7 @@ export interface Block {
   phase: BlockPhase;
   /** 0..1 while `phase === 'clearing'`. */
   clearProgress: number;
-  /** 0..100. Feeds both pest systems (§3.4). */
+  /** 0..100. Feeds both pest systems (GDD 3.4). */
   debris: number;
   irrigated: boolean;
   fertilizedUntil: Tick;
@@ -49,22 +49,22 @@ export interface Block {
   /** Flood-proofed by a drainage upgrade. */
   drained: boolean;
   burning: boolean;
-  /** 0 none, 1 low, 2 medium, 3 high / wildfire (§3.1.1). */
+  /** 0 none, 1 low, 2 medium, 3 high / wildfire (GDD 3.1.1). */
   fireIntensity: 0 | 1 | 2 | 3;
   /** Fertility bonus window after ash fall. */
   ashUntil: Tick;
-  /** Enforcement ban: no clearing or planting until this tick (§3.9). */
+  /** Enforcement ban: no clearing or planting until this tick (GDD 3.9). */
   bannedUntil: Tick;
-  /** Unowned blocks are visible but inert (§3.1.1). */
+  /** Unowned blocks are visible but inert (GDD 3.1.1). */
   owned: boolean;
   /** False for protected forest, village land and river water. */
   forSale: boolean;
   /** 0..3, fixed at world generation. */
   elevation: number;
-  /** Derived from neighbours at world generation (§3.6.2). */
+  /** Derived from neighbours at world generation (GDD 3.6.2). */
   slope: boolean;
   coverCropUntil: Tick;
-  /** When the slope last gave way (§3.6.2), or -1. Cleared by excavating. */
+  /** When the slope last gave way (GDD 3.6.2), or -1. Cleared by excavating. */
   landslideAt: Tick;
   /** Palms buried by that slide, for the marker to name. */
   landslidePalms: number;
@@ -72,7 +72,7 @@ export interface Block {
   excavateUntil: Tick;
   /**
    * What is planted here. Meaningless unless `phase` is `planted` or
-   * `reforesting`. (§4.4 omits this; §3.10 requires it.)
+   * `reforesting`. (GDD 4.4 omits this; GDD 3.10 requires it.)
    */
   species: Species;
 }
@@ -80,14 +80,14 @@ export interface Block {
 /**
  * Palms for one block, struct-of-arrays over the block's 144 slots.
  *
- * `fertility` is deliberately absent from `Block` and from here: §3.6.1 makes it
+ * `fertility` is deliberately absent from `Block` and from here: GDD 3.6.1 makes it
  * a function of the fertilizer window, the ash window, the biome and the
  * clearing history, so it is computed per tick rather than stored.
  */
 export interface PalmArrays {
   /** Calendar tick planted; -1 means the slot is empty. Drives senescence. */
   plantedAt: Int32Array;
-  /** Accumulated growth-days. Drives stage; immature ends at 900 (§3.6.1). */
+  /** Accumulated growth-days. Drives stage; immature ends at 900 (GDD 3.6.1). */
   growth: Float32Array;
   /** 0..255. */
   health: Uint8Array;
@@ -97,7 +97,7 @@ export interface PalmArrays {
   yieldAcc: Float32Array;
   /** Tick the slot was infected; -1 when clean. Drives latent → symptomatic → dead. */
   ganodermaSince: Int32Array;
-  /** 1 when an isolation trench cuts this slot's root links (§3.4). */
+  /** 1 when an isolation trench cuts this slot's root links (GDD 3.4). */
   trenched: Uint8Array;
 }
 
@@ -112,7 +112,7 @@ export interface ActiveEvent {
 
 export type ClimateRegime = 'normal' | 'elNino' | 'laNina';
 
-/** What the day looks like overhead (§3.6). Derived from the rain draw. */
+/** What the day looks like overhead (GDD 3.6). Derived from the rain draw. */
 export type SkyCondition = 'clear' | 'cloudy' | 'rain' | 'storm';
 
 export interface Weather {
@@ -125,7 +125,7 @@ export interface Weather {
   sun: number;
   /** Today's sky: sunshine, cloud, rain, or a thunderstorm. */
   sky: SkyCondition;
-  /** The sky holds until this tick, storms excepted (§3.6 spells). */
+  /** The sky holds until this tick, storms excepted (GDD 3.6 spells). */
   skyUntil: Tick;
   /** Blocks lit by lightning or a drought spark: they burn out where they are and never spread. */
   naturalFires: BlockId[];
@@ -150,21 +150,21 @@ export interface NewsItem {
 }
 
 export interface Society {
-  /** 0..1, hidden. Drives enforcement and relief (§3.7). */
+  /** 0..1, hidden. Drives enforcement and relief (GDD 3.7). */
   integrity: number;
-  /** Rises per burn, decays per tick; wildfire above the threshold (§3.1.1). */
+  /** Rises per burn, decays per tick; wildfire above the threshold (GDD 3.1.1). */
   firePressure: number;
-  /** 0..100 authority attention; warnings at 40 and 70, arrest at 100 (§3.9). */
+  /** 0..100 authority attention; warnings at 40 and 70, arrest at 100 (GDD 3.9). */
   attention: number;
   warningLevel: 0 | 1 | 2;
   investigationUntil: Tick;
-  /** Estate-wide operating ban from an enforcement roll: no clearing, planting or harvest (§3.8). */
+  /** Estate-wide operating ban from an enforcement roll: no clearing, planting or harvest (GDD 3.8). */
   operatingBanUntil: Tick;
-  /** Letters and notices from the authorities so far; the attention gauge appears after the first (§3.9). */
+  /** Letters and notices from the authorities so far; the attention gauge appears after the first (GDD 3.9). */
   lettersReceived: number;
   /**
    * Headlines that have already happened this run, for the ones that may
-   * only land once and the ones that wait on another (§3.7).
+   * only land once and the ones that wait on another (GDD 3.7).
    */
   macroSeen: string[];
   /** Capped ring buffer, newest last. */
@@ -174,7 +174,7 @@ export interface Society {
 
 export interface LedgerEntry {
   tick: Tick;
-  /** `capital` is land and buildings: it is not counted against operating profit (§3.8). */
+  /** `capital` is land and buildings: it is not counted against operating profit (GDD 3.8). */
   kind: 'sale' | 'upkeep' | 'purchase' | 'wages' | 'fine' | 'capital';
   amount: number;
   note?: string;
@@ -184,14 +184,14 @@ export interface Economy {
   cash: number;
   /** Rupiah per kg. */
   tbsPrice: number;
-  /** 1.0 baseline; shop prices are `base * index` (§3.7). */
+  /** 1.0 baseline; shop prices are `base * index` (GDD 3.7). */
   inputPriceIndex: number;
   ledger: LedgerEntry[];
   /** Recent daily prices, newest last; the HUD trend and sparkline. */
   tbsPriceHistory: number[];
   /**
    * Kilograms harvested this tick, awaiting sale. The economy system sells
-   * them at the day's price the same tick; TBS never survives a night (§2).
+   * them at the day's price the same tick; TBS never survives a night (GDD 2).
    */
   tbsPending: number;
   /** Lifetime kilograms sold. */
@@ -254,7 +254,7 @@ export type MobIntent =
   | 'leave';
 
 /**
- * Someone or something walking the estate (§POC → M2). Positions are in block
+ * Someone or something walking the estate (GDD POC → M2). Positions are in block
  * units with a fraction inside the block, so the renderer scales them.
  */
 export interface Mob {
@@ -291,7 +291,7 @@ export interface Mob {
   heading: number;
 }
 
-/** What the epilogue counts (§3.8). Accumulated by the endings system from events. */
+/** What the epilogue counts (GDD 3.8). Accumulated by the endings system from events. */
 export interface RunStats {
   /** Burns the player lit. */
   burns: number;
@@ -332,13 +332,13 @@ export interface ChronicleEntry {
 
 export interface RunState {
   startedAt: Tick;
-  /** Consecutive ticks below the bank's credit line, for the bankruptcy check (§3.8). */
+  /** Consecutive ticks below the bank's credit line, for the bankruptcy check (GDD 3.8). */
   insolventFor: number;
   /** Operating profit so far this year. */
   yearProfit: number;
   /** Operating profit over every closed year. */
   profitTotal: number;
-  /** The last burn-to-clear, or -1 (§3.8: no burn in five years). */
+  /** The last burn-to-clear, or -1 (GDD 3.8: no burn in five years). */
   lastBurnAt: Tick;
   stats: RunStats;
   years: YearSummary[];
@@ -357,7 +357,7 @@ export interface WorldGenParams {
   /** Where the player's starting region was placed. */
   startX: number;
   startY: number;
-  /** Side length of the initially owned square (§3.1: 8x8). */
+  /** Side length of the initially owned square (GDD 3.1: 8x8). */
   startSize: number;
   /** Block chosen for the Kopdes, pre-cleared at generation. */
   kopdesBlock: BlockId;
@@ -369,7 +369,7 @@ export interface Kopdes {
   level: number;
   /**
    * The Kopdes crew picks every ripe block in range on its own, for a small
-   * surcharge on top of the wages (§3.3). Manual harvest is off while it is on.
+   * surcharge on top of the wages (GDD 3.3). Manual harvest is off while it is on.
    */
   autoHarvest: boolean;
 }
@@ -379,7 +379,7 @@ export interface SimState {
   seed: number;
   /**
    * What the player called this estate, or '' when they did not name it. The
-   * seed is the world; the name is only what it is called (§4.6).
+   * seed is the world; the name is only what it is called (GDD 4.6).
    */
   estateName: string;
   rng: RngState;
@@ -387,9 +387,9 @@ export interface SimState {
   width: number;
   height: number;
   worldGen: WorldGenParams;
-  /** Sparse: only blocks that diverged from generation (§4.6). */
+  /** Sparse: only blocks that diverged from generation (GDD 4.6). */
   blocks: Map<BlockId, Block>;
-  /** Blocks the systems tick this turn (§4.6). */
+  /** Blocks the systems tick this turn (GDD 4.6). */
   active: Set<BlockId>;
   palms: Map<BlockId, PalmArrays>;
   kopdes: Kopdes | null;
@@ -410,7 +410,7 @@ export type FireIntensity = 1 | 2 | 3;
 
 /**
  * Everything the player can do. Reforestation is `PlantBlock` with
- * `species: 'forest'` (§3.10): one planting path, two things to plant.
+ * `species: 'forest'` (GDD 3.10): one planting path, two things to plant.
  */
 export type Command =
   | { type: 'PlantBlock'; block: BlockId; species: Species }
@@ -449,7 +449,7 @@ export interface CommandRecord {
   command: Command;
 }
 
-/** Why a command was refused. The UI shows `reason` verbatim (§8 copy rules). */
+/** Why a command was refused. The UI shows `reason` verbatim (GDD 8 copy rules). */
 export interface Rejection {
   ok: false;
   code:

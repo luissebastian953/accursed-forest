@@ -1,7 +1,7 @@
 # Rendering: models
 
 What each module is for, as it was written at the top of the file before the
-headers moved here. A `§` number points into the [design document](../gdd/README.md).
+headers moved here. A `GDD n` reference points into the [design document](../gdd/README.md).
 
 ## `src/render/models/buildings/houses.ts`
 
@@ -25,7 +25,7 @@ grow, and `?models` lays them all out in a gallery.
 
 ## `src/render/models/kit.ts`
 
-The model kit (§6.3): every scenery model is a function that adds boxes to
+The model kit (GDD 6.3): every scenery model is a function that adds boxes to
 a `BoxBuilder` at a placement. Models describe themselves in local space;
 origin on the ground at the model's foot, +Y up; and the kit applies the
 placement's position, turn and scale.

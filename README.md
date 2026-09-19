@@ -10,8 +10,8 @@ Svelte 5 + Tailwind for the panels around it, in English and Indonesian. No
 backend; saves live in `localStorage`.
 
 The design document is the source of truth for everything below; it lives in
-[`docs/gdd/`](docs/gdd/README.md) and section references in the code (`§6.5`,
-`§4.1`) point into it. [`docs/README.md`](docs/README.md) is the index of
+[`docs/gdd/`](docs/gdd/README.md) and section references in the code (`GDD 6.5`,
+`GDD 4.1`) point into it. [`docs/README.md`](docs/README.md) is the index of
 everything else: the [architecture](docs/architecture.md), [what a tick
 does](docs/simulation.md), the [module reference](docs/reference/README.md)
 (source files carry no header comment; their descriptions live there), and
@@ -161,7 +161,7 @@ one merged mesh per material: two draw calls, no new shaders
 (`src/render/mobs/`); the `?mobs` page measures why.
 
 URL flags: `?webgl` forces the WebGL 2 fallback CI uses; `?seed=42` picks a
-world; `?fresh` ignores the save in this browser; `?spike` opens the §6.9 art
+world; `?fresh` ignores the save in this browser; `?spike` opens the GDD 6.9 art
 spike instead of the game; `?models` lays out every scenery model (`src/render/models/`); `?mobs` is the mob proof of concept (`src/render/mobs/`), a rigged crowd with a cost readout; `?debug` exposes the running sim as
 `window.__sawit` for the browser suite and for poking at events by hand;
 `?turbo` runs the clock twenty times faster (a day is ten seconds at 1×, one

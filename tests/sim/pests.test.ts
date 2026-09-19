@@ -73,7 +73,7 @@ function deathsBy(sim: Sim, ticks: number, cause: 'beetles' | 'ganoderma'): numb
   return n;
 }
 
-describe('the lattice (§3.4)', () => {
+describe('the lattice (GDD 3.4)', () => {
   it('every interior slot has six neighbours, corners have fewer', () => {
     const out: number[] = [];
     expect(slotNeighbours(slotIndex(5, 5), out)).toBe(6);
@@ -97,7 +97,7 @@ describe('the lattice (§3.4)', () => {
   });
 });
 
-describe('rhinoceros beetle (§3.4)', () => {
+describe('rhinoceros beetle (GDD 3.4)', () => {
   it('capacity follows debris and a bare block holds none', () => {
     expect(beetleCapacity(0)).toBe(0);
     expect(beetleCapacity(BEETLES.minDebrisToBreed - 1)).toBe(0);
@@ -171,7 +171,7 @@ describe('rhinoceros beetle (§3.4)', () => {
   });
 });
 
-describe('Ganoderma (§3.4)', () => {
+describe('Ganoderma (GDD 3.4)', () => {
   it('goes latent → symptomatic → dead on the mature timetable, leaving a stump and debris', () => {
     const { sim, block } = plantedEstate(42, { sanitize: true });
     growToBearing(sim, block);
@@ -293,7 +293,7 @@ describe('Ganoderma (§3.4)', () => {
   });
 });
 
-describe('per-palm commands (§3.4)', () => {
+describe('per-palm commands (GDD 3.4)', () => {
   it('removing a palm empties the slot, adds debris and costs labour; replanting refills from stock', () => {
     const { sim, block } = plantedEstate(42, { sanitize: true });
     const palms = sim.state.palms.get(block)!;
@@ -329,7 +329,7 @@ describe('per-palm commands (§3.4)', () => {
   });
 });
 
-describe('plague (§3.4)', () => {
+describe('plague (GDD 3.4)', () => {
   it('flags a block when pressure crosses the line and clears it with hysteresis', () => {
     const { sim, block } = plantedEstate(42, { sanitize: true });
     const b = sim.state.blocks.get(block)!;

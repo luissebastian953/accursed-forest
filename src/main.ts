@@ -6,7 +6,7 @@ if (!root) throw new Error('#app mount point is missing from play.html');
 
 reportVitals();
 
-// `?spike` keeps the §6.9 art spike reachable for tuning the look; `?models`
+// `?spike` keeps the GDD 6.9 art spike reachable for tuning the look; `?models`
 // lays out every scenery model; `?mobs` is the mob proof of concept.
 const params = new URLSearchParams(location.search);
 

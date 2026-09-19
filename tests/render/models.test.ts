@@ -23,7 +23,7 @@ function reach(id: keyof typeof MODELS): { radius: number; height: number; trian
   return { radius, height, triangles };
 }
 
-describe('scenery models (§6.3)', () => {
+describe('scenery models (GDD 6.3)', () => {
   for (const id of Object.keys(MODELS) as (keyof typeof MODELS)[]) {
     it(`${MODELS[id].name}: stays inside its declared radius, and is cheap`, () => {
       const r = reach(id);

@@ -27,7 +27,7 @@ export interface AutoplayOptions {
    * upgrade the Kopdes whenever it can be afforded on top of the reserve.
    */
   expand?: { reserve: number; maxBlocks: number };
-  /** Leave forest standing: never chop a block that counts as forest cover (§3.6.2). */
+  /** Leave forest standing: never chop a block that counts as forest cover (GDD 3.6.2). */
   spareForest?: boolean;
 }
 

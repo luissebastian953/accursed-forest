@@ -33,7 +33,7 @@ function harness(rate: () => number, maxTicksPerFrame?: number) {
   return { loop, ticks: () => ticks, frames };
 }
 
-describe('game loop (§4.2)', () => {
+describe('game loop (GDD 4.2)', () => {
   it('runs 1× as one tick every ten seconds', () => {
     const h = harness(() => TICKS_PER_SECOND[1]);
     h.loop.step(0);
@@ -160,7 +160,7 @@ describe('game loop resilience', () => {
   });
 });
 
-describe('time control (§3.1.1, §8)', () => {
+describe('time control (GDD 3.1.1, GDD 8)', () => {
   it('defaults to 1× and reports ticks per second', () => {
     const tc = new TimeControl();
     expect(tc.speed).toBe(1);

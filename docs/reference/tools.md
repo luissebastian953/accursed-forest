@@ -1,16 +1,16 @@
 # Tools
 
 What each module is for, as it was written at the top of the file before the
-headers moved here. A `§` number points into the [design document](../gdd/README.md).
+headers moved here. A `GDD n` reference points into the [design document](../gdd/README.md).
 
 ## `tools/balance-sweep.ts`
 
-Headless balance sweep (§5, §10.3): run the scripted player for N years on
+Headless balance sweep (GDD 5, GDD 10.3): run the scripted player for N years on
 a few seeds and print the yearly cash curve.
 
 pnpm sweep # 1 block, 8 years, seeds 1 42 1234
 pnpm sweep -- --blocks 2 --years 10 --seeds 7,8,9 --fertilize
-pnpm sweep -- --ispo --years 25 --seeds 1,42,1234,7,99 # expanding player, endings (§3.8)
+pnpm sweep -- --ispo --years 25 --seeds 1,42,1234,7,99 # expanding player, endings (GDD 3.8)
 pnpm sweep -- --ispo --spare # ...who never chops forest
 
 ## `tools/seo.ts`

@@ -192,7 +192,7 @@ function scoreSite(
 }
 
 /**
- * Villages (§4.6): a few clusters of village land near the rivers, placed
+ * Villages (GDD 4.6): a few clusters of village land near the rivers, placed
  * after the start site and kept clear of it, so they never change where the
  * estate begins. Returns the cells, which become the `village` biome.
  */

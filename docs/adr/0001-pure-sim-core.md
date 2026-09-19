@@ -24,7 +24,7 @@ of how the config was verified.
 ## Consequences
 
 - A seed plus a command log reproduces a run exactly, which makes the year
-  snapshots and the "Return to Year N" rewind (§3.8) fall out for free.
+  snapshots and the "Return to Year N" rewind (GDD 3.8) fall out for free.
 - Balance can be swept headlessly (`tools/balance-sweep.ts`) with no browser.
 - The renderer may lag or drop frames without affecting the simulation.
 - Cost: anything needing the clock or the DOM has to be lifted into `app/`.

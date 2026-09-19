@@ -405,7 +405,7 @@ export type SaveChunk = z.infer<typeof ChunkSchema>;
 
 // ── Chunk addressing ──────────────────────────────────────────────────────
 
-/** `cx:cy` of the sim chunk a block falls in (§7: same 4x4 partition as rendering). */
+/** `cx:cy` of the sim chunk a block falls in (GDD 7: same 4x4 partition as rendering). */
 export function chunkKeyOf(width: number, block: BlockId): string {
   const x = block % width;
   const y = (block - x) / width;

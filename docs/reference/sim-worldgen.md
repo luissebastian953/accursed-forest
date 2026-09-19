@@ -1,11 +1,11 @@
 # Simulation: world generation
 
 What each module is for, as it was written at the top of the file before the
-headers moved here. A `§` number points into the [design document](../gdd/README.md).
+headers moved here. A `GDD n` reference points into the [design document](../gdd/README.md).
 
 ## `src/sim/worldgen/biomes.ts`
 
-Biome rules (§4.6).
+Biome rules (GDD 4.6).
 
 A pure classifier: given the terrain samples for one cell it returns the
 biome. Protected forest and villages are decided later by `features.ts`,
@@ -13,7 +13,7 @@ because they depend on the shape of the whole map rather than one cell.
 
 ## `src/sim/worldgen/elevation.ts`
 
-Elevation layer (§4.6).
+Elevation layer (GDD 4.6).
 
 Continental noise (low frequency) plus hills (mid) plus detail (high),
 combined into a continuous 0..1 height and quantised to `elevation` 0..3.
@@ -24,7 +24,7 @@ Pure: `f(seed, x, y)` with no state beyond the noise functions themselves.
 
 ## `src/sim/worldgen/features.ts`
 
-Map-scale features (§4.6): protected forest, and where the player starts.
+Map-scale features (GDD 4.6): protected forest, and where the player starts.
 
 Both need to see the whole map at once; the largest contiguous forest
 cluster, and a start site with a river in reach; so unlike elevation and
@@ -33,7 +33,7 @@ per-cell on demand.
 
 ## `src/sim/worldgen/index.ts`
 
-World generation entry point (§4.6).
+World generation entry point (GDD 4.6).
 
 `createWorld(seed, width, height)` runs the map-scale passes once (rivers,
 protected forest, start site) and returns a `World` whose `block(x, y)` is a
@@ -47,7 +47,7 @@ the main simulation stream has done.
 
 ## `src/sim/worldgen/moisture.ts`
 
-Moisture layer (§4.6).
+Moisture layer (GDD 4.6).
 
 Its own noise field, biased downward by elevation so lowlands are wetter.
 Proximity to a river adds moisture on top, but that needs the traced river
@@ -55,7 +55,7 @@ cells, so it is applied by `worldgen/index.ts` once rivers exist.
 
 ## `src/sim/worldgen/rivers.ts`
 
-River tracing (§4.6).
+River tracing (GDD 4.6).
 
 One to three rivers run from interior ridge cells to the coast, one block
 wide. The coast is the border edge with the lowest mean height; all of a

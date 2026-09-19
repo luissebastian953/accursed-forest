@@ -1,11 +1,11 @@
 # Application
 
 What each module is for, as it was written at the top of the file before the
-headers moved here. A `§` number points into the [design document](../gdd/README.md).
+headers moved here. A `GDD n` reference points into the [design document](../gdd/README.md).
 
 ## `src/app/App.ts`
 
-Composition root (§4.1): wires sim, render, ui, input and persistence.
+Composition root (GDD 4.1): wires sim, render, ui, input and persistence.
 Nothing below this file knows about anything beside it.
 
 ## `src/app/MobPoc.ts`
@@ -31,7 +31,7 @@ without hunting for a cave on a ridge.
 
 ## `src/app/Spike.ts`
 
-The art spike (design doc §6.9).
+The art spike (GDD 6.9).
 
 One flat 12x12 block with stepped edges, 144 procedural slab-frond palms,
 hemisphere + directional light, linear fog, a `season` slider (wet -> dry
@@ -48,9 +48,9 @@ on top of it.
 
 ## `src/app/loop.ts`
 
-The game loop (§4.2 step 3): fixed-step sim ticks on a wall-clock
+The game loop (GDD 4.2 step 3): fixed-step sim ticks on a wall-clock
 accumulator, and a render callback every animation frame regardless of
-tick rate. This is the one place wall-clock time lives (§4.3).
+tick rate. This is the one place wall-clock time lives (GDD 4.3).
 
 The accumulator is capped: after a long stall (a hidden tab, a debugger
 pause) the loop runs at most `maxTicksPerFrame` ticks and drops the rest,
@@ -58,15 +58,15 @@ rather than freezing the page to catch up on thousands of sim days.
 
 ## `src/app/timeControl.ts`
 
-Sim speed (§4.2, §8 panel 2): pause, 1×, 10×, 50×.
+Sim speed (GDD 4.2, GDD 8 panel 2): pause, 1×, 10×, 50×.
 
 While anything burns the speed is locked to 1×; you watch your fire
-(§3.1.1). The lock is separate from the requested speed so releasing it
+(GDD 3.1.1). The lock is separate from the requested speed so releasing it
 returns the player to what they had chosen.
 
 ## `src/app/vitals.ts`
 
-Core Web Vitals from real visitors (§ organic): LCP, INP and CLS, plus
+Core Web Vitals from real visitors (GDD organic): LCP, INP and CLS, plus
 FCP and TTFB, sent to Google Analytics 4 as events when `gtag` is on the
 page, and logged in development so a regression shows up in the console
 before it shows up in Search Console.

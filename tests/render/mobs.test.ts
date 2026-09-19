@@ -124,7 +124,7 @@ describe('mob rig (POC)', () => {
   });
 });
 
-describe('a mob that bolts (§6.5)', () => {
+describe('a mob that bolts (GDD 6.5)', () => {
   /** A field with stub materials: nothing here touches the GPU. */
   function field() {
     const material = new MeshBasicMaterial();

@@ -22,14 +22,14 @@ import { Palette, createPaletteTexture } from '@render/materials/palette.ts';
 import { TINT, createPaletteMaterial } from '@render/materials/paletteMaterial.ts';
 import { clamp01, lerp } from '@shared/math.ts';
 
-/** Palms per block side (§2: block = 1 ha = 12x12 = 144 palms). */
+/** Palms per block side (GDD 2: block = 1 ha = 12x12 = 144 palms). */
 const BLOCK = 12;
 /** Terrain columns per side; the block plus a margin so the edges can step down. */
 const FIELD = 18;
 const MARGIN = (FIELD - BLOCK) / 2;
 const PALM_COUNT = BLOCK * BLOCK;
 
-/** Camera pitch and azimuth (§6.2: fixed ~35 degrees, snapped diagonal). */
+/** Camera pitch and azimuth (GDD 6.2: fixed ~35 degrees, snapped diagonal). */
 const PITCH = (35 * Math.PI) / 180;
 const AZIMUTH = Math.PI / 4;
 /**
@@ -45,7 +45,7 @@ const SKY_DRY = new Color(0xd8d2b4);
 export async function startSpike(root: HTMLElement): Promise<() => void> {
   // ── Renderer ────────────────────────────────────────────────────────────
   // WebGPU with automatic WebGL 2 fallback; `?webgl` forces the fallback so the
-  // Playwright smoke test and CI exercise the same path (§6.4).
+  // Playwright smoke test and CI exercise the same path (GDD 6.4).
   const forceWebGL = new URLSearchParams(location.search).has('webgl');
   const renderer = new WebGPURenderer({ antialias: true, forceWebGL });
   await renderer.init();
@@ -57,7 +57,7 @@ export async function startSpike(root: HTMLElement): Promise<() => void> {
   scene.fog = fog;
   scene.background = SKY_WET.clone();
 
-  // ── Camera: orthographic map rig (§6.2) ─────────────────────────────────
+  // ── Camera: orthographic map rig (GDD 6.2) ─────────────────────────────────
   const camera = new OrthographicCamera();
   const target = new Vector3(FIELD / 2, 0, FIELD / 2);
   let frustumSize = 17;
@@ -97,7 +97,7 @@ export async function startSpike(root: HTMLElement): Promise<() => void> {
   resize();
   window.addEventListener('resize', resize);
 
-  // ── Lighting (§6.1: Lambert only, no specular) ──────────────────────────
+  // ── Lighting (GDD 6.1: Lambert only, no specular) ──────────────────────────
   const hemi = new HemisphereLight(0xbcd9e8, 0x6b4a30, 1.05);
   scene.add(hemi);
   const sun = new DirectionalLight(0xfff2d8, 1.9);
@@ -105,7 +105,7 @@ export async function startSpike(root: HTMLElement): Promise<() => void> {
   scene.add(sun);
   scene.add(new AmbientLight(0xffffff, 0.18));
 
-  // ── Shared palette material (§6.4) ──────────────────────────────────────
+  // ── Shared palette material (GDD 6.4) ──────────────────────────────────────
   const paletteTexture = createPaletteTexture();
   const { material, uniforms } = createPaletteMaterial(paletteTexture);
 
@@ -119,7 +119,7 @@ export async function startSpike(root: HTMLElement): Promise<() => void> {
   palms.frustumCulled = false;
   scene.add(palms);
 
-  /** Wall-clock ms at which each instance starts its pop-in (§6.5). */
+  /** Wall-clock ms at which each instance starts its pop-in (GDD 6.5). */
   const animStart = new Float32Array(PALM_COUNT);
   const basePosition: Vector3[] = [];
   for (let row = 0; row < BLOCK; row++) {
@@ -139,7 +139,7 @@ export async function startSpike(root: HTMLElement): Promise<() => void> {
   const replant = (): void => {
     const now = performance.now();
     for (let i = 0; i < PALM_COUNT; i++) {
-      // Cascade by row so the pop rolls across the block (§6.5).
+      // Cascade by row so the pop rolls across the block (GDD 6.5).
       const row = Math.floor(i / BLOCK);
       const col = i % BLOCK;
       animStart[i] = now + cascadeDelay(row * 2 + col * 0.5);
@@ -155,7 +155,7 @@ export async function startSpike(root: HTMLElement): Promise<() => void> {
       if (t < 1) stillAnimating = true;
 
       const curve = easeOutBack(t);
-      // Volume-preserving squash on top of the pop scale (§6.5).
+      // Volume-preserving squash on top of the pop scale (GDD 6.5).
       const { sy, sxz } = squashStretch(curve, 0.9);
       const scale = t <= 0 ? 0 : curve;
 
@@ -175,7 +175,7 @@ export async function startSpike(root: HTMLElement): Promise<() => void> {
   const applyWeather = (): void => {
     uniforms.season.value = season;
 
-    // Haze desaturates the world toward amber-grey and closes the fog in (§6.4).
+    // Haze desaturates the world toward amber-grey and closes the fog in (GDD 6.4).
     uniforms.tintAmount.value = haze * 0.55;
     uniforms.tintColor.value.copy(TINT.haze);
 
@@ -289,7 +289,7 @@ interface OverlayHandlers {
   onReplant: () => void;
 }
 
-/** Plain DOM overlay; the real HUD is Svelte + Tailwind (§8, §10.2). */
+/** Plain DOM overlay; the real HUD is Svelte + Tailwind (GDD 8, GDD 10.2). */
 function buildOverlay(root: HTMLElement, handlers: OverlayHandlers): HTMLElement {
   const panel = document.createElement('div');
   panel.className =

@@ -42,7 +42,7 @@ const BOUNDARY_POLICIES = [
 ];
 
 /**
- * Layer rule (design doc §4.1): arrows point down only.
+ * Layer rule (GDD 4.1): arrows point down only.
  *
  *   app  -> ui, render, input, persistence, sim, shared
  *   ui   -> sim (read-only), shared
@@ -186,43 +186,46 @@ export default tseslint.config(
         'error',
         {
           paths: [
-            { name: 'three', message: 'sim/ must stay renderer-free (design doc §4.1).' },
-            { name: 'mitt', message: 'sim/ returns event arrays; it does not emit (§10.2).' },
+            { name: 'three', message: 'sim/ must stay renderer-free (GDD 4.1).' },
+            { name: 'mitt', message: 'sim/ returns event arrays; it does not emit (GDD 10.2).' },
           ],
           patterns: [
-            { group: ['three/*'], message: 'sim/ must stay renderer-free (design doc §4.1).' },
-            { group: ['**/render/*', '**/ui/*', '**/app/*'], message: 'Upward import (§4.1).' },
+            { group: ['three/*'], message: 'sim/ must stay renderer-free (GDD 4.1).' },
+            { group: ['**/render/*', '**/ui/*', '**/app/*'], message: 'Upward import (GDD 4.1).' },
           ],
         },
       ],
       'no-restricted-globals': [
         'error',
-        { name: 'window', message: 'sim/ must not touch the DOM (§4.1).' },
-        { name: 'document', message: 'sim/ must not touch the DOM (§4.1).' },
-        { name: 'localStorage', message: 'Saving belongs in persistence/ (§7).' },
-        { name: 'performance', message: 'Wall-clock lives in app/loop.ts only (§4.3).' },
-        { name: 'requestAnimationFrame', message: 'sim/ is tick-driven, not frame-driven (§4.3).' },
-        { name: 'setTimeout', message: 'sim/ owns no timers (§4.1).' },
-        { name: 'setInterval', message: 'sim/ owns no timers (§4.1).' },
+        { name: 'window', message: 'sim/ must not touch the DOM (GDD 4.1).' },
+        { name: 'document', message: 'sim/ must not touch the DOM (GDD 4.1).' },
+        { name: 'localStorage', message: 'Saving belongs in persistence/ (GDD 7).' },
+        { name: 'performance', message: 'Wall-clock lives in app/loop.ts only (GDD 4.3).' },
+        {
+          name: 'requestAnimationFrame',
+          message: 'sim/ is tick-driven, not frame-driven (GDD 4.3).',
+        },
+        { name: 'setTimeout', message: 'sim/ owns no timers (GDD 4.1).' },
+        { name: 'setInterval', message: 'sim/ owns no timers (GDD 4.1).' },
       ],
       'no-restricted-properties': [
         'error',
-        { object: 'Date', property: 'now', message: 'No wall-clock in sim/ (§4.3).' },
+        { object: 'Date', property: 'now', message: 'No wall-clock in sim/ (GDD 4.3).' },
       ],
       'no-restricted-syntax': [
         'error',
         {
           selector:
             "CallExpression > MemberExpression[object.object.name='Math'][object.property.name='random']",
-          message: 'Use the seeded RNG in sim/rng.ts (§4.3).',
+          message: 'Use the seeded RNG in sim/rng.ts (GDD 4.3).',
         },
         {
           selector: "MemberExpression[object.name='Math'][property.name='random']",
-          message: 'Use the seeded RNG in sim/rng.ts (§4.3).',
+          message: 'Use the seeded RNG in sim/rng.ts (GDD 4.3).',
         },
         {
           selector: "NewExpression[callee.name='Date']",
-          message: 'No wall-clock in sim/ (§4.3).',
+          message: 'No wall-clock in sim/ (GDD 4.3).',
         },
       ],
     },

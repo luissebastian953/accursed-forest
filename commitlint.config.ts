@@ -3,7 +3,7 @@ import type { UserConfig } from '@commitlint/types';
 const config: UserConfig = {
   extends: ['@commitlint/config-conventional'],
   rules: {
-    // Scopes are the layer names (design doc §10.2).
+    // Scopes are the layer names (GDD 10.2).
     'scope-enum': [
       2,
       'always',

@@ -1,7 +1,7 @@
 # Rendering: the crowd
 
 What each module is for, as it was written at the top of the file before the
-headers moved here. A `§` number points into the [design document](../gdd/README.md).
+headers moved here. A `GDD n` reference points into the [design document](../gdd/README.md).
 
 ## `src/render/mobs/MobField.ts`
 

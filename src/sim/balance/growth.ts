@@ -13,7 +13,7 @@ export const GROWTH = {
 
   /** Calendar age in years at which a palm is senile. */
   senileYears: 18,
-  /** Replant is prompted here (§2). */
+  /** Replant is prompted here (GDD 2). */
   replantYears: 25,
   /** Hard senility: the palm is finished. */
   deadYears: 30,
@@ -23,7 +23,7 @@ export const GROWTH = {
   maxMultiplier: 1.6,
 } as const;
 
-/** Bounds each factor of `G` is clamped to (§3.6.1 table). */
+/** Bounds each factor of `G` is clamped to (GDD 3.6.1 table). */
 export const GROWTH_FACTORS = {
   light: { min: 0.4, max: 1 },
   moisture: { min: 0.3, max: 1.15 },
@@ -33,7 +33,7 @@ export const GROWTH_FACTORS = {
 
 /**
  * Bell-shaped response to block moisture: too dry and waterlogged both hurt,
- * and the sweet spot sits slightly above average rain (§3.6.1).
+ * and the sweet spot sits slightly above average rain (GDD 3.6.1).
  */
 export const MOISTURE_CURVE: readonly (readonly [moisture: number, factor: number])[] = [
   [0, 0.3],
@@ -48,7 +48,7 @@ export const MOISTURE_CURVE: readonly (readonly [moisture: number, factor: numbe
 /**
  * Kilograms of TBS per palm per harvest round at peak health, by calendar age
  * in years: ramp from first fruit (about a year and a half in) to year 5,
- * plateau to 18, decline to 25, then senile (§2). ~10.5 kg/palm/round every
+ * plateau to 18, decline to 25, then senile (GDD 2). ~10.5 kg/palm/round every
  * six days is far above a real estate's best: a good round should feel like a
  * payday, and a year of them should build something.
  */
@@ -63,15 +63,15 @@ export const YIELD_CURVE: readonly (readonly [ageYears: number, kg: number])[] =
   [30, 2.2],
 ];
 
-/** Days between harvest rounds on a block (§2: ten, shortened with the slower clock). */
+/** Days between harvest rounds on a block (GDD 2: ten, shortened with the slower clock). */
 export const HARVEST_ROTATION_DAYS = 5;
 
-/** One fertilizer application lifts fertility for this long (§3.5). */
+/** One fertilizer application lifts fertility for this long (GDD 3.5). */
 export const FERTILIZER_DAYS = 90;
 
 /**
  * Reforestation grows on the same machinery with its own thresholds: sapling to
- * young to mature forest over roughly eight years (§3.10). Saplings take hold
+ * young to mature forest over roughly eight years (GDD 3.10). Saplings take hold
  * quickly, so a player who replants sees the ground turn green within a season
  * rather than waiting most of a year for the first sign of it.
  */
@@ -79,7 +79,7 @@ export const FOREST_GROWTH = {
   saplingDays: 40,
   youngDays: 860,
   matureDays: 1720,
-  /** Forest cover weight by stage (§3.10: young counts half). */
+  /** Forest cover weight by stage (GDD 3.10: young counts half). */
   youngCoverWeight: 0.5,
   matureCoverWeight: 1,
 } as const;

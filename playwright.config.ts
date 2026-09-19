@@ -20,7 +20,7 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         // WebGPU is unavailable in headless CI; the renderer must survive the
-        // WebGL2 fallback path (design doc §6.4).
+        // WebGL2 fallback path (GDD 6.4).
         launchOptions: {
           args: ['--enable-unsafe-swiftshader', '--use-gl=angle', '--use-angle=swiftshader'],
         },

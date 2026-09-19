@@ -13,7 +13,7 @@ import { buildRiverChannel, type RiverChannel } from './riverChannel.ts';
 
 /** World units of height per elevation level. */
 export const ELEVATION_STEP = 1.5;
-/** Column heights snap to this (§6.1: half-unit steps). */
+/** Column heights snap to this (GDD 6.1: half-unit steps). */
 export const HEIGHT_QUANTUM = 0.5;
 /** Columns per chunk side: 4 blocks × 12 slots. */
 export const CHUNK_COLUMNS = WORLD.chunkSide * WORLD.blockSide;
@@ -93,7 +93,7 @@ export interface DivergedBlockLite {
   ashy: boolean;
   /** Under flood water right now: the top reads as shallow water. */
   flooded: boolean;
-  /** The slope gave way here and nothing has been planted since (§3.6.2). */
+  /** The slope gave way here and nothing has been planted since (GDD 3.6.2). */
   slid: boolean;
   /**
    * Which of the block's slots have something standing in them, one byte per

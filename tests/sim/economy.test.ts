@@ -66,7 +66,7 @@ function growToBearing(sim: Sim, block: BlockId): void {
   expect(slotStage(sim.state.palms.get(block)!, 0, 'palm', sim.state.tick)).toBe('mature');
 }
 
-describe('Kopdes shop (§3.3)', () => {
+describe('Kopdes shop (GDD 3.3)', () => {
   it('needs a Kopdes to buy anything', () => {
     const sim = createSim(42);
     expect(sim.dispatch({ type: 'BuyItem', item: 'bibit', quantity: 10 })).toMatchObject({
@@ -108,7 +108,7 @@ describe('Kopdes shop (§3.3)', () => {
   });
 });
 
-describe('Kopdes upgrades (§3.3)', () => {
+describe('Kopdes upgrades (GDD 3.3)', () => {
   it('extends the range each level and stops at the max', () => {
     const sim = createSim(42);
     sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
@@ -136,7 +136,7 @@ describe('Kopdes upgrades (§3.3)', () => {
   });
 });
 
-describe('harvest (§2, §3.3)', () => {
+describe('harvest (GDD 2, GDD 3.3)', () => {
   it('is refused while the palms are immature', () => {
     const { sim, block } = plantedEstate();
     for (let i = 0; i < 100; i++) sim.tick();
@@ -246,7 +246,7 @@ describe('harvest (§2, §3.3)', () => {
   });
 });
 
-describe('auto-harvest (§3.3)', () => {
+describe('auto-harvest (GDD 3.3)', () => {
   it('the Kopdes crew picks every ripe round for a surcharge, and takes the button away', () => {
     const { sim, block } = plantedEstate();
     growToBearing(sim, block);
@@ -294,7 +294,7 @@ describe('auto-harvest (§3.3)', () => {
   });
 });
 
-describe('fertilizer (§3.5)', () => {
+describe('fertilizer (GDD 3.5)', () => {
   it('opens a 90-day window from stock, and speeds growth while it is open', () => {
     const { sim, block } = plantedEstate();
     expect(sim.dispatch({ type: 'FertilizeBlock', block })).toMatchObject({
@@ -324,7 +324,7 @@ describe('fertilizer (§3.5)', () => {
   });
 });
 
-describe('price walk (§3.3)', () => {
+describe('price walk (GDD 3.3)', () => {
   it('stays inside a band that moves with inflation and macro events, and tracks its mean', () => {
     const sim = createSim(7);
     let sumRatio = 0;
@@ -353,7 +353,7 @@ describe('price walk (§3.3)', () => {
   });
 });
 
-describe('the loop closes (§3.5, M1b done-criterion)', () => {
+describe('the loop closes (GDD 3.5, M1b done-criterion)', () => {
   it('one block, played plainly, is cash-positive once bearing; but the immature years bite', () => {
     const { rows, lowestCash } = autoplay({ seed: 42, years: 8, blocks: 1 });
     const byYear = new Map(rows.map((r) => [r.year, r]));

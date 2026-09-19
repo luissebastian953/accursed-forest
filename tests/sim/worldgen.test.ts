@@ -8,7 +8,7 @@ import { createWorld, estateCodeFor, seedFromEstateCode } from '@sim/worldgen/in
 
 const SEEDS = [1, 42, 1234, 99_999, 0x7fffffff];
 
-describe('world generation (§4.6)', () => {
+describe('world generation (GDD 4.6)', () => {
   it('same seed → identical blocks, every cell', () => {
     for (const seed of SEEDS) {
       const a = createWorld(seed);
@@ -47,7 +47,7 @@ describe('world generation (§4.6)', () => {
         expect(g.height01).toBeLessThanOrEqual(1);
         expect(g.moisture).toBeGreaterThanOrEqual(0);
         expect(g.moisture).toBeLessThanOrEqual(1);
-        // `forSale` is a pure function of the biome (§3.1).
+        // `forSale` is a pure function of the biome (GDD 3.1).
         expect(g.forSale).toBe(BIOMES[g.biome].forSale);
       }
     }
@@ -128,7 +128,7 @@ describe('world generation (§4.6)', () => {
     }
   });
 
-  it('the start site is always valid (§4.6)', () => {
+  it('the start site is always valid (GDD 4.6)', () => {
     for (const seed of SEEDS) {
       const world = createWorld(seed);
       const { start } = world;
@@ -242,7 +242,7 @@ describe('world generation (§4.6)', () => {
   });
 });
 
-describe('estate code (§4.6)', () => {
+describe('estate code (GDD 4.6)', () => {
   it('round-trips any 32-bit seed', () => {
     fc.assert(
       fc.property(fc.integer({ min: 0, max: 0xffffffff }), (seed) => {

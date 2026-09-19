@@ -34,7 +34,7 @@ export interface World {
   inBounds(x: number, y: number): boolean;
   toId(x: number, y: number): BlockId;
   toXY(id: BlockId): [x: number, y: number];
-  /** Human-shareable code for this world (§4.6). */
+  /** Human-shareable code for this world (GDD 4.6). */
   estateCode: string;
 }
 
@@ -76,7 +76,7 @@ export function createWorld(
     const isWater = rivers.water.has(key);
 
     // A slope is any block with a lower neighbour: canyon-adjacent, or simply
-    // higher than the land beside it (§3.6.2).
+    // higher than the land beside it (GDD 3.6.2).
     let slope = false;
     for (const [dx, dy] of NEIGHBOURS) {
       const nx = x + dx;
@@ -251,7 +251,7 @@ function hashWords(words: string): number {
 }
 
 /**
- * Any words name a world (§4.6). Seven code symbols are read as a code, so a
+ * Any words name a world (GDD 4.6). Seven code symbols are read as a code, so a
  * shared estate comes back exactly; anything else is hashed, so a player can
  * type what they like. Case, spacing and punctuation are ignored either way:
  * "PENYAWIT-HANDAL", "penyawit handal" and "Penyawit Handal" are one estate.

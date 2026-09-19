@@ -107,7 +107,7 @@ function drawFromDeck(ctx: SimContext): void {
 function endEvent(ctx: SimContext, event: ActiveEvent): void {
   const { state, events } = ctx;
   if (event.id === ASH_EVENT) {
-    // Ash is a real fertilizer once it stops falling (§3.6).
+    // Ash is a real fertilizer once it stops falling (GDD 3.6).
     let settled = 0;
     for (const block of state.blocks.values()) {
       if (!block.owned) continue;
@@ -164,7 +164,7 @@ function maybeSpark(ctx: SimContext): void {
 
 // ── Flood ─────────────────────────────────────────────────────────────────
 
-/** Low ground by the river, not drained. Riverbank floods first (§3.1). */
+/** Low ground by the river, not drained. Riverbank floods first (GDD 3.1). */
 function floodedBlocks(ctx: SimContext): BlockId[] {
   const { state, world } = ctx;
   const out: BlockId[] = [];
@@ -221,7 +221,7 @@ function applyAsh(ctx: SimContext): void {
   }
 }
 
-// ── Lightning (§3.6) ──────────────────────────────────────────────────────
+// ── Lightning (GDD 3.6) ──────────────────────────────────────────────────────
 
 /**
  * A thunderstorm throws bolts at the estate and the land around it. Most hit

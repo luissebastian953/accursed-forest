@@ -14,7 +14,7 @@ import { terraceHeight } from './chunkField.ts';
 export type KopdesLevel = 1 | 2 | 3 | 4;
 
 /**
- * The building grows in one direction (§6.3). A one-room shop under a single
+ * The building grows in one direction (GDD 6.3). A one-room shop under a single
  * fall of roof becomes a co-op: the ridge rises, the far slope reaches out
  * past the walls, and what it covers is open ground on timber posts. That
  * open hall is what the upgrades buy, so the shape says the level out loud.

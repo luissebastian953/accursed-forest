@@ -62,7 +62,7 @@ export function easeOutBounce(t: number): number {
 }
 
 /**
- * Volume-preserving squash and stretch (§6.5).
+ * Volume-preserving squash and stretch (GDD 6.5).
  *
  * `curveValue` is the overshooting curve's output; `f = curveValue - 1` is the
  * deviation from rest, scaled by `amount`. Vertical scale is `1 + a·f`, and the
@@ -70,7 +70,7 @@ export function easeOutBounce(t: number): number {
  *
  * Note this is a modulation *around 1*, applied on top of whatever base scale
  * the animation already has; not the base scale itself. (The abbreviated TSL
- * sketch in design doc §6.5 folds the two together and is degenerate at t = 0,
+ * sketch in GDD 6.5 folds the two together and is degenerate at t = 0,
  * where `1/sqrt(0)` is infinite.)
  */
 export function squashStretch(curveValue: number, amount = 1): { sy: number; sxz: number } {
@@ -78,7 +78,7 @@ export function squashStretch(curveValue: number, amount = 1): { sy: number; sxz
   return { sy, sxz: 1 / Math.sqrt(sy) };
 }
 
-/** Durations in wall-clock milliseconds (§6.5). Animations never use sim time. */
+/** Durations in wall-clock milliseconds (GDD 6.5). Animations never use sim time. */
 export const DURATION = {
   popIn: 400,
   popOut: 250,
@@ -93,7 +93,7 @@ export const DURATION = {
   cascadeCap: 300,
 } as const;
 
-/** Cascade offset for instance `i`, capped per §6.5. */
+/** Cascade offset for instance `i`, capped per GDD 6.5. */
 export function cascadeDelay(index: number): number {
   return Math.min(index * DURATION.cascadeStep, DURATION.cascadeCap);
 }

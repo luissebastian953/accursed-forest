@@ -75,7 +75,7 @@ export const SPECIES_HABITS: Partial<Record<MobSpecies, keyof typeof HABITS>> = 
   capybara: 'crawler',
 };
 
-/** Life in the canopy (§POC): sitting in a tree, and swinging between two. */
+/** Life in the canopy (GDD POC): sitting in a tree, and swinging between two. */
 export const CLIMB = {
   climbDays: { min: 2, max: 6 },
   jumpDays: { min: 2, max: 5 },

@@ -24,7 +24,7 @@ export interface PaletteMaterial {
  */
 const EMISSION_GAIN = 0.55;
 
-/** Event tints from §6.1 / §6.4. */
+/** Event tints from GDD 6.1 / GDD 6.4. */
 export const TINT = {
   none: new Color(0xffffff),
   haze: new Color(0xc9a06a),

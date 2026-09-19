@@ -21,7 +21,7 @@ import { createWorld } from '@sim/worldgen/index.ts';
 
 const EMPTY: ReadonlyMap<number, DivergedBlockLite> = new Map();
 
-describe('chunk field (§6.3, §6.7)', () => {
+describe('chunk field (GDD 6.3, GDD 6.7)', () => {
   it('covers the chunk plus a one-column border, quantised to half units', () => {
     const world = createWorld(42);
     const field = buildChunkField(world, 3, 3, EMPTY);
@@ -213,7 +213,7 @@ describe('chunk field (§6.3, §6.7)', () => {
   });
 });
 
-describe('chunk mesh (§6.7 budgets)', () => {
+describe('chunk mesh (GDD 6.7 budgets)', () => {
   it('meshes a chunk inside the triangle budget with faces culled', () => {
     const world = createWorld(42);
     for (const [cx, cy] of [
@@ -224,7 +224,7 @@ describe('chunk mesh (§6.7 budgets)', () => {
     ] as const) {
       const arrays = buildChunkArrays(world, cx, cy, EMPTY);
       expect(arrays.triangles).toBeGreaterThan(CHUNK_COLUMNS * CHUNK_COLUMNS * 2 - 1); // at least every top
-      // §6.7: ~6–10k triangles per culled 48×48 chunk, plus the trees and
+      // GDD 6.7: ~6–10k triangles per culled 48×48 chunk, plus the trees and
       // rocks merged into it (a chunk of protected forest is the worst case).
       expect(arrays.triangles).toBeLessThan(30_000);
       expect(arrays.positions.length).toBe(arrays.triangles * 9);
@@ -270,7 +270,7 @@ describe('chunk mesh (§6.7 budgets)', () => {
   });
 });
 
-describe('the fence along the crop (§6.3)', () => {
+describe('the fence along the crop (GDD 6.3)', () => {
   /** Triangles the fence adds for one block with this occupancy. */
   function fenceTriangles(planted: Uint8Array): number {
     const builder = new BoxBuilder();

@@ -53,7 +53,7 @@ export const DECK_EVENTS: Record<DeckEventId, DeckEvent> = {
 };
 
 export const HAZE = {
-  /** Sun multiplier while regional haze hangs (§3.6.1: haze ≈ 0.7). */
+  /** Sun multiplier while regional haze hangs (GDD 3.6.1: haze ≈ 0.7). */
   light: 0.7,
   /** Each point of fire pressure makes haze this much likelier. */
   weightPerFirePressure: 0.5,
@@ -62,11 +62,11 @@ export const HAZE = {
 } as const;
 
 export const ASH = {
-  /** Sun multiplier during ash fall (§3.6: `light` ≈ 0.5). */
+  /** Sun multiplier during ash fall (GDD 3.6: `light` ≈ 0.5). */
   light: 0.5,
   /** Health immature palms lose per day of ash on their fronds. */
   immatureDamagePerDay: 2,
-  /** The fertile season afterwards (§3.6: ash is a real fertilizer). */
+  /** The fertile season afterwards (GDD 3.6: ash is a real fertilizer). */
   fertileDays: 90,
 } as const;
 
@@ -94,14 +94,14 @@ export const DROUGHT = {
   moistureLossPerDay: 0.012,
   /**
    * Chance per day, under El Niño drought, that a spark catches a debris pile
-   * on or next to the estate (§3.6: "a dry-regime spark next to debris").
+   * on or next to the estate (GDD 3.6: "a dry-regime spark next to debris").
    */
   sparkPerDay: 0.012,
 } as const;
 
-/** Forest cover and landslides (§3.6.2). */
+/** Forest cover and landslides (GDD 3.6.2). */
 /**
- * Digging a slide out (§3.6.2): a crew and a machine for a few days, and the
+ * Digging a slide out (GDD 3.6.2): a crew and a machine for a few days, and the
  * hectare is ground again. The alternative is waiting for the debris to rot
  * and planting through the spoil, which takes seasons.
  */
@@ -120,7 +120,7 @@ export const LANDSLIDE = {
   /** Wet-streak factor: `min(maxStreakFactor, 1 + wetStreak / streakScale)`. */
   streakScale: 3,
   maxStreakFactor: 3,
-  /** Planted slopes slide more than wild ones (§3.6.2). */
+  /** Planted slopes slide more than wild ones (GDD 3.6.2). */
   plantedFactor: 1.5,
   unplantedFactor: 0.5,
   /** An established cover crop halves the chance. */
@@ -130,7 +130,7 @@ export const LANDSLIDE = {
   debrisBelow: 25,
 } as const;
 
-/** Weight of forest by what is standing (§3.10: young forest counts half). */
+/** Weight of forest by what is standing (GDD 3.10: young forest counts half). */
 export const FOREST_COVER_WEIGHT = {
   wild: 1,
   reforestYoung: 0.5,
@@ -141,6 +141,6 @@ export const COVER_CROP = {
   cost: 900_000,
   /** How long one sowing lasts. */
   days: 3 * 360,
-  /** It only holds the soil once established (§3.6.2: after 90 days). */
+  /** It only holds the soil once established (GDD 3.6.2: after 90 days). */
   establishDays: 90,
 } as const;

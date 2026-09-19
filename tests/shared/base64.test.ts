@@ -10,9 +10,9 @@ import {
   encodeTypedArray,
 } from '@shared/base64.ts';
 
-describe('typed-array base64 codec (§7)', () => {
+describe('typed-array base64 codec (GDD 7)', () => {
   it('round-trips the palm arrays a block actually stores', () => {
-    // PalmArrays for one 12x12 block (§4.4).
+    // PalmArrays for one 12x12 block (GDD 4.4).
     const plantedAt = Int32Array.from({ length: 144 }, (_, i) => (i % 7 === 0 ? -1 : i * 13));
     const health = Uint8Array.from({ length: 144 }, (_, i) => (i * 37) % 256);
     const growth = Float32Array.from({ length: 144 }, (_, i) => i * 6.25);

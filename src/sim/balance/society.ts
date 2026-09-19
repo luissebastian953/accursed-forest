@@ -13,7 +13,7 @@ export const INTEGRITY = {
 } as const;
 
 /**
- * Attention (§3.9): how much the authorities have noticed you, 0..100.
+ * Attention (GDD 3.9): how much the authorities have noticed you, 0..100.
  * Increases are scaled by `0.5 + integrity`; with low integrity the meter
  * climbs slower (three quarters speed at the starting 0.25).
  */
@@ -44,7 +44,7 @@ export const AUTHORITY = {
    * attention on it and whatever is left of a suspension.
    */
   reforestationRelief: 0.5,
-  /** Clearing costs this much more while a letter stands (§3.9: +50%). */
+  /** Clearing costs this much more while a letter stands (GDD 3.9: +50%). */
   letterChopCostFactor: 1.5,
   /** Warning 2: police at the gate. */
   investigationAt: 70,
@@ -60,7 +60,7 @@ export const AUTHORITY = {
   /** Game over. */
   arrestAt: 100,
   /**
-   * "Settle the matter" (§3.9): the envelope that makes a case go away, and a
+   * "Settle the matter" (GDD 3.9): the envelope that makes a case go away, and a
    * suspension with it. Only while the district office is crooked enough to
    * take it, and dear enough that it is never the cheap way out: an estate
    * pays about a year of good harvests for the favour.

@@ -106,7 +106,7 @@ function fingerprint(state: SimState): string {
   return JSON.stringify({ ...rest, blocks, palms });
 }
 
-describe('save round-trip (§7)', () => {
+describe('save round-trip (GDD 7)', () => {
   it('load(save(state)) is the same state', () => {
     const sim = workedEstate();
     const slot = slotFor();
@@ -183,7 +183,7 @@ describe('save round-trip (§7)', () => {
   });
 });
 
-describe('dirty chunks (§7)', () => {
+describe('dirty chunks (GDD 7)', () => {
   it('a partial save rewrites only the dirty chunks plus the manifest', () => {
     const sim = workedEstate();
     const storage = memoryStorage();
@@ -225,7 +225,7 @@ describe('dirty chunks (§7)', () => {
   });
 });
 
-describe('failure modes (§7)', () => {
+describe('failure modes (GDD 7)', () => {
   it('a missing slot is a clear error', () => {
     const slot = slotFor();
     expect(() => slot.load()).toThrow(SaveError);
@@ -299,7 +299,7 @@ describe('failure modes (§7)', () => {
   });
 });
 
-describe('migrations (§7)', () => {
+describe('migrations (GDD 7)', () => {
   const raw = (schema: number): RawSave => ({ manifest: { schema }, chunks: new Map() });
 
   it('runs every step from the file schema to the target, in order', () => {
@@ -514,7 +514,7 @@ describe('migrations (§7)', () => {
   });
 });
 
-describe('autosave (§7)', () => {
+describe('autosave (GDD 7)', () => {
   it('saves every N ticks, fully the first time and dirty-only after', () => {
     const sim = workedEstate();
     const storage = memoryStorage();

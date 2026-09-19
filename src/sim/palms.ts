@@ -100,7 +100,7 @@ export function isBearing(stage: GrowthStage): boolean {
   return stage === 'mature' || stage === 'senile';
 }
 
-/** Palms the beetle bores: the young ones (§2). */
+/** Palms the beetle bores: the young ones (GDD 2). */
 export function isYoung(stage: GrowthStage): boolean {
   return stage === 'seedling' || stage === 'immature';
 }

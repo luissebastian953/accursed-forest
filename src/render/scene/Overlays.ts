@@ -67,7 +67,7 @@ function buildSelectionFrame() {
 const HALO_SPILL = 0.35;
 
 /**
- * The selection ring (§8 #11): a flat blue frame on the block with an
+ * The selection ring (GDD 8 #11): a flat blue frame on the block with an
  * additive halo glowing out of it, pulsing gently. Unlit and brighter than
  * white, so it reads against any ground; and blooms when the glow pass is on.
  */
@@ -150,7 +150,7 @@ export class SelectionRing {
 }
 
 /**
- * The Kopdes range ring (§8 panel 21): a thin frame on every block the Kopdes
+ * The Kopdes range ring (GDD 8 panel 21): a thin frame on every block the Kopdes
  * can sell for, drawn while the shop is open. Rebuilt when the Kopdes moves or
  * levels up; a few hundred boxes at most.
  */
@@ -252,7 +252,7 @@ function buildRangeGeometry(state: SimState, world: World, t: number, lift: numb
 }
 
 /**
- * The fire-spread preview (§8 panel 22): while hovering a Burn button, the
+ * The fire-spread preview (GDD 8 panel 22): while hovering a Burn button, the
  * neighbours that could catch are framed in flame orange.
  */
 export class HazardRing {

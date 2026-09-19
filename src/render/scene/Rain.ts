@@ -47,7 +47,7 @@ export class Rain {
 
   /**
    * @param rain  today's rain, 0..1
-   * @param sky  what the day is called (§3.6); only rain and storms fall
+   * @param sky  what the day is called (GDD 3.6); only rain and storms fall
    * @param view  the ground in view; drops respawn over it
    * @param running  false while paused: the drops hang where they are
    */

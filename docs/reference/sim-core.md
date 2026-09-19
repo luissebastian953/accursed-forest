@@ -1,11 +1,11 @@
 # Simulation: core
 
 What each module is for, as it was written at the top of the file before the
-headers moved here. A `§` number points into the [design document](../gdd/README.md).
+headers moved here. A `GDD n` reference points into the [design document](../gdd/README.md).
 
 ## `src/sim/activeSet.ts`
 
-The active set (§4.6): which blocks the systems tick this turn.
+The active set (GDD 4.6): which blocks the systems tick this turn.
 
 Owned blocks, their one-block ring, and any diverged block that is still
 doing something; burning, carrying debris, hosting beetles, or simply not
@@ -13,7 +13,7 @@ wild any more. Rebuilt every tick; at estate scale it is a few hundred ids.
 
 ## `src/sim/autoplay.ts`
 
-A scripted player for balance sweeps and tests (§10.3, `tools/balance-sweep.ts`).
+A scripted player for balance sweeps and tests (GDD 10.3, `tools/balance-sweep.ts`).
 
 It does the sensible, boring thing: build the Kopdes on day one, chop the
 nearest owned blocks, buy bibit and plant as soon as land is cleared, and
@@ -23,7 +23,7 @@ is to see what the numbers do to a player who simply follows the loop.
 
 ## `src/sim/events.ts`
 
-Events a tick produces (§4.2 step 4).
+Events a tick produces (GDD 4.2 step 4).
 
 `sim/` does not emit; `tick()` returns the array and the layers above consume
 it after the tick, syncing only what changed. Every event names the blocks it
@@ -32,19 +32,19 @@ touched so `render/sync.ts` can build its dirty set without diffing state.
 ## `src/sim/fire.ts`
 
 Fire mechanics shared by the burn command and the world-events system
-(§3.1.1, §3.6): what counts as fuel, igniting, finishing, extinguishing,
+(GDD 3.1.1, GDD 3.6): what counts as fuel, igniting, finishing, extinguishing,
 and the wildfire transition.
 
 ## `src/sim/index.ts`
 
-The simulation's public API (§4.2).
+The simulation's public API (GDD 4.2).
 
 const sim = createSim(seed);
 sim.dispatch({ type: 'ChopBlock', block }); // validated; may be rejected
 const events = sim.tick(); // one day; returns what happened
 
 Pure TypeScript: nothing here knows about Three.js, the DOM or the clock.
-The systems run in a fixed order each tick. The full chain from §4.2 is
+The systems run in a fixed order each tick. The full chain from GDD 4.2 is
 
 weather → worldEvents → terrain → growth → pest → harvest → economy → mobs → society → endings → news
 
@@ -53,7 +53,7 @@ does nothing and every command but `KeepPlaying` is refused.
 
 ## `src/sim/kopdes.ts`
 
-Kopdes range (§3.3): blocks within Manhattan distance `r` of the Kopdes can
+Kopdes range (GDD 3.3): blocks within Manhattan distance `r` of the Kopdes can
 sell same-day; beyond it TBS spoils on the road. Upgrades extend `r`.
 
 ## `src/sim/labels.ts`
@@ -66,13 +66,13 @@ ids included, still counts from zero.
 
 ## `src/sim/landscape.ts`
 
-Forest cover and landslides (§3.6.2). Wild forest you leave standing is
+Forest cover and landslides (GDD 3.6.2). Wild forest you leave standing is
 doing work: every slope block's slide chance scales with the share of
 forest around it, so clearing every forest block makes the rains dangerous.
 
 ## `src/sim/macro.ts`
 
-What the headlines are doing to the estate right now (§3.7).
+What the headlines are doing to the estate right now (GDD 3.7).
 
 Every lever in `MACRO_EVENTS` is read through this one module, and each
 reader is used in exactly one place in the sim, so an event cannot quietly
@@ -82,7 +82,7 @@ that both raise shop prices raise them together.
 ## `src/sim/palms.ts`
 
 Per-block palm storage, the stage function and the planting lattice
-(§3.4, §3.6.1, §4.4).
+(GDD 3.4, GDD 3.6.1, GDD 4.4).
 
 Palms are struct-of-arrays over the block's slots. Growth is accumulated
 growth-days; the stage is a threshold on that, except senescence, which is
@@ -93,7 +93,7 @@ every palm has six neighbours. Ganoderma spreads root to root along it.
 
 ## `src/sim/rng.ts`
 
-xoshiro128**; the single seeded PRNG for the whole simulation (§4.3).
+xoshiro128**; the single seeded PRNG for the whole simulation (GDD 4.3).
 
 Hand-written on purpose: the state must be plain, serialisable numbers so a
 save file can restore the exact stream position, and every random draw in
@@ -104,12 +104,12 @@ array to base64-encode for something this small).
 
 ## `src/sim/run.ts`
 
-The run's own bookkeeping (§3.8): whether it is over, how it ended, and the
+The run's own bookkeeping (GDD 3.8): whether it is over, how it ended, and the
 chronicle the epilogue replays.
 
 ## `src/sim/state.ts`
 
-Initial state, the sparse block map, and the ledger (§4.4, §4.6).
+Initial state, the sparse block map, and the ledger (GDD 4.4, GDD 4.6).
 
 `SimState.blocks` holds only blocks that diverged from world generation.
 Everything reads through `readBlock` and writes through `writeBlock`, which
@@ -118,7 +118,7 @@ that lets a 64x64 world cost the size of the estate.
 
 ## `src/sim/types.ts`
 
-Core simulation types (design doc §4.4).
+Core simulation types (GDD 4.4).
 
 Everything here is plain data: no classes with behaviour, no references to
 anything outside `sim/`. If it cannot be JSON-ish serialised (typed arrays

@@ -40,14 +40,14 @@ describe('shared math', () => {
     expect(mod(721, 360)).toBe(1);
   });
 
-  it('quantises to half-unit steps for the column mesher (§6.3)', () => {
+  it('quantises to half-unit steps for the column mesher (GDD 6.3)', () => {
     expect(quantise(0.26, 0.5)).toBe(0.5);
     expect(quantise(0.24, 0.5)).toBe(0);
     expect(quantise(-0.75, 0.5)).toBe(-0.5);
   });
 
   it('samples a piecewise-linear curve and clamps outside the knots', () => {
-    // A stand-in for the yield curve shape (§2): ramp, plateau, decline.
+    // A stand-in for the yield curve shape (GDD 2): ramp, plateau, decline.
     const knots = [
       [2.5, 0],
       [8, 1],
@@ -64,7 +64,7 @@ describe('shared math', () => {
     expect(sampleCurve([], 3)).toBe(0);
   });
 
-  it('manhattan distance drives Kopdes range (§3.3)', () => {
+  it('manhattan distance drives Kopdes range (GDD 3.3)', () => {
     expect(manhattan(0, 0, 3, 4)).toBe(7);
   });
 });

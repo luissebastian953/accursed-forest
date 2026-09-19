@@ -43,7 +43,7 @@ function collect(sim: Sim, ticks: number) {
   return seen;
 }
 
-describe('BurnBlock (§3.1.1)', () => {
+describe('BurnBlock (GDD 3.1.1)', () => {
   it('refuses land you do not own, land with nothing to burn, and a block already alight', () => {
     const sim = createSim(42);
     toDrySeason(sim);
@@ -132,7 +132,7 @@ describe('BurnBlock (§3.1.1)', () => {
   });
 });
 
-describe('wildfire (§3.1.1)', () => {
+describe('wildfire (GDD 3.1.1)', () => {
   it('two medium burns back to back cross the threshold; one low burn never does', () => {
     const calm = createSim(42);
     toDrySeason(calm);
@@ -205,7 +205,7 @@ describe('wildfire (§3.1.1)', () => {
   });
 });
 
-describe('fire spread (§3.1.1)', () => {
+describe('fire spread (GDD 3.1.1)', () => {
   function spreadCount(
     seed: number,
     intensity: FireIntensity,
@@ -257,7 +257,7 @@ describe('fire spread (§3.1.1)', () => {
   });
 });
 
-describe('timber (§3.1.1)', () => {
+describe('timber (GDD 3.1.1)', () => {
   it('chopping forest pays for some of the crew when the block clears', () => {
     const sim = createSim(1); // a forest-heavy start
     const block = ownedWild(sim, 'forest')[0];
@@ -282,7 +282,7 @@ describe('timber (§3.1.1)', () => {
   });
 });
 
-describe('sanitation, irrigation, drainage (§3.1)', () => {
+describe('sanitation, irrigation, drainage (GDD 3.1)', () => {
   it('a sanitation crew from stock clears debris', () => {
     const sim = createSim(42);
     sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
@@ -332,7 +332,7 @@ describe('sanitation, irrigation, drainage (§3.1)', () => {
   });
 });
 
-describe('whose fire it is (§3.1.1)', () => {
+describe('whose fire it is (GDD 3.1.1)', () => {
   /** Light `block` at high intensity in a dry year, and count what it takes with it. */
   function spreadFrom(seed: number, natural: boolean): number {
     const sim = createSim(seed);

@@ -55,7 +55,7 @@ export interface MacroEvent {
   /** At most once in a run. */
   once?: boolean;
   /**
-   * Started by what the estate does rather than by the draw (§3.7). These
+   * Started by what the estate does rather than by the draw (GDD 3.7). These
    * are the consequences, and the deck never deals them at random.
    */
   triggered?: boolean;

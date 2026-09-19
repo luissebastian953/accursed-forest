@@ -7,7 +7,7 @@ export interface BiomeSpec {
   chopDebris: number;
   /** Base purchase price in rupiah, before distance and estate-size multipliers. */
   price: number;
-  /** Plantable slots out of 144. Hills terrace to 96 (§3.1). */
+  /** Plantable slots out of 144. Hills terrace to 96 (GDD 3.1). */
   plantableSlots: number;
   /**
    * Open land: grass and scrub, where there is nothing standing to clear. A
@@ -21,7 +21,7 @@ export interface BiomeSpec {
   clearable: boolean;
   /** Can this biome ever be bought? */
   forSale: boolean;
-  /** Counts toward forest cover on slopes (§3.6.2). */
+  /** Counts toward forest cover on slopes (GDD 3.6.2). */
   forestCover: boolean;
 }
 
@@ -44,7 +44,7 @@ export const BIOMES: Record<Biome, BiomeSpec> = {
     chopDebris: 55,
     price: 9_000_000,
     plantableSlots: SLOTS,
-    // Organic soil, once the debris is sanitised (§3.1).
+    // Organic soil, once the debris is sanitised (GDD 3.1).
     fertility: 1.15,
     clearable: true,
     forSale: true,
@@ -56,7 +56,7 @@ export const BIOMES: Record<Biome, BiomeSpec> = {
     price: 6_000_000,
     plantableSlots: SLOTS,
     openLand: true,
-    // Needs irrigation or takes the dry penalty (§3.1).
+    // Needs irrigation or takes the dry penalty (GDD 3.1).
     fertility: 0.6,
     clearable: true,
     forSale: true,
@@ -77,7 +77,7 @@ export const BIOMES: Record<Biome, BiomeSpec> = {
     chopDebris: 10,
     price: 14_000_000,
     plantableSlots: SLOTS,
-    // Moist, but floods first and washes fertilizer out (§3.1).
+    // Moist, but floods first and washes fertilizer out (GDD 3.1).
     fertility: 1.2,
     clearable: true,
     forSale: true,
