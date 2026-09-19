@@ -45,7 +45,7 @@ export const KEY_PREFIX = 'accursed-forest';
  * 15. Excavation: the shop sells a crew to dig a slide out, and a block
  *     remembers when they will be finished.
  */
-export const CURRENT_SCHEMA = 17;
+export const CURRENT_SCHEMA = 18;
 
 export type SaveErrorCode = 'missing' | 'corrupt' | 'newerSchema' | 'quota';
 
@@ -108,6 +108,7 @@ const BlockSchema = z.object({
   landslideAt: Tick,
   landslidePalms: z.number(),
   excavateUntil: Tick,
+  fellingUntil: Tick,
   species: z.enum(['palm', 'forest']),
 });
 
@@ -258,6 +259,7 @@ const RunSchema = z.object({
 const CommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('PlantBlock'), block: Id, species: z.enum(['palm', 'forest']) }),
   z.object({ type: z.literal('ReforestBlock'), block: Id }),
+  z.object({ type: z.literal('ClearPlantation'), block: Id }),
   z.object({ type: z.literal('BuyBlock'), block: Id }),
   z.object({ type: z.literal('ChopBlock'), block: Id }),
   z.object({

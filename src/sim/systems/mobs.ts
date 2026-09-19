@@ -421,7 +421,7 @@ export function workedBlocks(state: SimState): Set<BlockId> {
 /**
  * Top a block's crew up to `crewSize`. The chop and burn commands call this
  * the moment the order is given, so the crew is on the block before the
- * next day's tick; at ten seconds a day, waiting for it read as a delay.
+ * next day's tick; at five seconds a day, waiting for it read as a delay.
  */
 export function staffBlock(ctx: SimContext, id: BlockId, rng?: RngState): void {
   const { state } = ctx;
@@ -892,6 +892,7 @@ function stepCrew(ctx: SimContext, mob: Mob, rng: RngState): void {
     block !== undefined &&
     (block.phase === 'clearing' ||
       block.excavateUntil > state.tick ||
+      block.fellingUntil > state.tick ||
       (block.burning && !isWildfire(state)));
 
   if (!stillWorking) {

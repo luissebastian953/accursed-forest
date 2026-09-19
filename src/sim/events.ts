@@ -64,6 +64,8 @@ export type SimEvent =
   | { type: 'InputPricesRose'; index: number }
   | { type: 'IntegrityScandal'; integrity: number }
   | { type: 'InvestigationDropped' }
+  | { type: 'FellingStarted'; block: BlockId; palms: number; cost: number }
+  | { type: 'PlantationCleared'; block: BlockId; palms: number }
   | { type: 'ReforestationCredited'; block: BlockId; attention: number; banDaysLeft: number }
   | { type: 'LetterReceived' }
   | {

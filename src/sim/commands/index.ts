@@ -4,6 +4,7 @@ import { burnBlock } from './burnBlock.ts';
 import { buyBlock } from './buyBlock.ts';
 import { buyItem } from './buyItem.ts';
 import { chopBlock } from './chopBlock.ts';
+import { clearPlantation } from './clearPlantation.ts';
 import { coverCropBlock } from './coverCropBlock.ts';
 import { drainBlock } from './drainBlock.ts';
 import { excavateBlock } from './excavateBlock.ts';
@@ -31,6 +32,7 @@ const registry: Partial<Record<CommandType, CommandHandler>> = {
   ChopBlock: chopBlock as CommandHandler,
   PlantBlock: plantBlock as CommandHandler,
   ReforestBlock: reforestBlock as CommandHandler,
+  ClearPlantation: clearPlantation as CommandHandler,
   PlaceKopdes: placeKopdes as CommandHandler,
   HarvestBlock: harvestBlock as CommandHandler,
   FertilizeBlock: fertilizeBlock as CommandHandler,

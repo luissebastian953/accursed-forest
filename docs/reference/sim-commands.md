@@ -27,6 +27,16 @@ ChopBlock (GDD 3.1.1): the safe, slow way to clear. Puts a crew on the block;
 behind when it is done, and sells the timber. Chopping forest is noticed
 (GDD 3.9); under a letter it costs half again, under investigation it is banned.
 
+## `src/sim/commands/clearPlantation.ts`
+
+ClearPlantation (GDD 3.1.1, GDD 8 panel 13a): fell a planted or reforesting
+block back to bare land. Priced per palm standing at the day's input index,
+so a full hectare runs to tens of millions, and nothing is sold: it is the
+one clearing that pays for nothing it brings down. A crew goes on the block
+at once; the palms stand until the last day and come down together in
+`systems/terrain.ts`, leaving the debris of the job behind. The panel asks
+twice before sending the order.
+
 ## `src/sim/commands/coverCropBlock.ts`
 
 CoverCropBlock (GDD 3.6.2): a cheap per-block planting that holds the soil.

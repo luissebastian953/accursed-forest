@@ -42,6 +42,7 @@ import { FIRE } from '@sim/balance/fire';
 import { GROWTH } from '@sim/balance/growth';
 import { BABI_NGEPET, SHINY } from '@sim/balance/mobs';
 import { BEETLES } from '@sim/balance/pests';
+import { CLEAR_PLANTATION } from '@sim/balance/prices';
 import { SKY } from '@sim/balance/seasons';
 import { MACRO_PREFIX } from '@sim/balance/society';
 import { WORLD } from '@sim/balance/world';
@@ -1183,6 +1184,17 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       if (shop.isOpen) rangeRing.show(sim.state, sim.world);
     }
 
+    for (const f of d.fellingStarted) {
+      toasts.push(
+        `A crew is felling ${blockName(f.block)}: ${f.palms} palms, ${formatRp(f.cost)} in wages.`,
+        'warn',
+      );
+    }
+
+    for (const c of d.plantationCleared) {
+      toasts.push(`${blockName(c.block)} is bare land again. ${c.palms} palms came down.`);
+    }
+
     if (d.investigationDropped) {
       police.sync(sim.state, sim.world, worldNow());
       toasts.push('The police file is closed. Nothing on the estate is drawing attention now.');
@@ -1630,6 +1642,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       markerPoint.set(cx, groundAt(cx, cz) + MARKER_LIFT, cz).project(rig.camera);
 
       const digging = block.excavateUntil > sim.state.tick;
+      const felling = block.fellingUntil > sim.state.tick;
 
       items.push({
         id,
@@ -1637,7 +1650,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         y: ((1 - markerPoint.y) / 2) * height,
         progress: digging
           ? 1 - (block.excavateUntil - sim.state.tick) / EXCAVATION.days
-          : block.clearProgress,
+          : felling
+            ? 1 - (block.fellingUntil - sim.state.tick) / CLEAR_PLANTATION.days
+            : block.clearProgress,
         kind: digging ? 'dig' : block.burning ? 'burn' : 'chop',
       });
     }

@@ -69,6 +69,20 @@ export const ITEM_PRICES: Record<ItemId, number> = {
 export const KOPDES_BUILD_COST = 22_000_000;
 
 /** What a chopped block's timber fetches at the Kopdes (GDD 3.1.1: offsets wages). */
+/**
+ * Clearing a plantation (GDD 3.1.1): felling every palm on a block and
+ * hauling the stumps out. Priced per palm standing, so a full hectare costs
+ * about twelve chops, because it is a punishment for a wrong turn, not a
+ * tool; and it pays nothing for what comes down, unlike a forest chop.
+ */
+export const CLEAR_PLANTATION = {
+  perPalm: 300_000,
+  /** Real crew days: a plantation is heavier work than scrub. */
+  days: 12,
+  /** What the felling leaves on the ground for the beetles. */
+  debris: 40,
+} as const;
+
 export const TIMBER_VALUE: Partial<Record<Biome, number>> = {
   forest: 4_500_000,
   protected: 6_000_000,

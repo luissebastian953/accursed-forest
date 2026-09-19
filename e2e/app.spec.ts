@@ -910,6 +910,40 @@ test.describe('Sawit Simulator', () => {
 
     expect(after.attention).toBeLessThan(20);
     expect(after.left).toBeLessThanOrEqual(50);
+
+    // The danger zone (GDD 8 panel 13a) is only offered where something stands,
+    // and it asks twice: the first press opens the question, and the wide
+    // button closes it without a crew.
+    await expect(tid(page, 'danger-zone')).toBeVisible();
+    await expect(tid(page, 'clear-confirm')).toHaveCount(0);
+    await tid(page, 'action-ClearPlantation').click();
+    await expect(tid(page, 'clear-confirm')).toBeVisible();
+    await expect(tid(page, 'clear-confirm')).toContainText('come down');
+    await tid(page, 'action-ClearPlantation-cancel').click();
+    await expect(tid(page, 'clear-confirm')).toHaveCount(0);
+    await expect(tid(page, 'block-phase')).toHaveText('Reforesting');
+
+    // The second press puts a crew on the block, and the land comes back bare.
+    const cashBefore = await page.evaluate(
+      () => (window as unknown as DebugWindow).__sawit.sim().state.economy.cash,
+    );
+
+    await tid(page, 'action-ClearPlantation').click();
+    await tid(page, 'action-ClearPlantation-confirm').click();
+    await expect(tid(page, 'danger-zone')).toHaveCount(0);
+    await expect(tid(page, 'block-phase')).toContainText('Clearing');
+    await expect(tid(page, 'work-marker').first()).toBeVisible();
+    await expect(tid(page, 'work-marker').first()).toHaveAttribute('data-kind', 'chop');
+
+    const cashAfter = await page.evaluate(
+      () => (window as unknown as DebugWindow).__sawit.sim().state.economy.cash,
+    );
+
+    expect(cashBefore - cashAfter).toBeGreaterThan(10_000_000);
+    await unlockTurbo(page);
+    await tid(page, 'speed-50').click();
+    await expect(tid(page, 'block-phase')).toHaveText('Cleared', { timeout: 15_000 });
+    await expect(page.getByTestId('toast').filter({ hasText: 'bare land' })).toBeVisible();
     expect(errors).toEqual([]);
   });
 

@@ -295,6 +295,20 @@ export const MIGRATIONS: readonly Migration[] = [
       head.society['macroSeen'] ??= [];
     },
   },
+  {
+    // Blocks can have a crew felling the plantation. Nothing in an older
+    // save was being felled.
+    from: 17,
+    up(save) {
+      for (const chunk of save.chunks.values()) {
+        const blocks = chunk['blocks'] as Record<string, unknown>[] | undefined;
+
+        if (!blocks) continue;
+
+        for (const block of blocks) block['fellingUntil'] ??= -1;
+      }
+    },
+  },
 ];
 
 /**

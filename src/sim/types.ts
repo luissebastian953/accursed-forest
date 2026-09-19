@@ -71,6 +71,12 @@ export interface Block {
   /** While an excavation crew is digging the slide out, the tick it finishes. */
   excavateUntil: Tick;
   /**
+   * A crew is felling the plantation until this tick, and the block goes
+   * back to bare land when they finish; -1 when nobody is. The one job that
+   * pays nothing for what comes down.
+   */
+  fellingUntil: Tick;
+  /**
    * What is planted here. Meaningless unless `phase` is `planted` or
    * `reforesting`. (GDD 4.4 omits this; GDD 3.10 requires it.)
    */
@@ -416,6 +422,8 @@ export type Command =
   | { type: 'PlantBlock'; block: BlockId; species: Species }
   /** Buy what the block is short of and plant forest on it, in one step. */
   | { type: 'ReforestBlock'; block: BlockId }
+  /** Fell every palm on a planted block, at a price, and hand it back bare. */
+  | { type: 'ClearPlantation'; block: BlockId }
   | { type: 'BuyBlock'; block: BlockId }
   | { type: 'ChopBlock'; block: BlockId }
   | { type: 'BurnBlock'; block: BlockId; intensity: FireIntensity }

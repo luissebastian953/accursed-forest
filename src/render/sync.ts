@@ -19,6 +19,10 @@ export interface EventDigest {
   reforestationCredit: { attention: number; banDaysLeft: number } | null;
   /** The police file closed on its own, the meter having emptied. */
   investigationDropped: boolean;
+  /** A crew started felling a plantation: palms to come down, and the bill. */
+  fellingStarted: { block: BlockId; palms: number; cost: number }[];
+  /** A plantation came down and the block went back to bare land. */
+  plantationCleared: { block: BlockId; palms: number }[];
   fertilizedBlocks: Set<BlockId>;
   bought: { item: ItemId; quantity: number }[];
   burnStarted: Set<BlockId>;
@@ -81,6 +85,8 @@ export function digestEvents(events: readonly SimEvent[]): EventDigest {
     kopdesUpgraded: null,
     reforestationCredit: null,
     investigationDropped: false,
+    fellingStarted: [],
+    plantationCleared: [],
     fertilizedBlocks: new Set(),
     bought: [],
     burnStarted: new Set(),
@@ -190,6 +196,15 @@ export function digestEvents(events: readonly SimEvent[]): EventDigest {
         break;
       case 'InvestigationDropped':
         d.investigationDropped = true;
+        break;
+      case 'FellingStarted':
+        d.fellingStarted.push({ block: event.block, palms: event.palms, cost: event.cost });
+        d.terrainBlocks.add(event.block);
+        break;
+      case 'PlantationCleared':
+        d.terrainBlocks.add(event.block);
+        d.palmBlocks.add(event.block);
+        d.plantationCleared.push({ block: event.block, palms: event.palms });
         break;
       case 'ReforestationCredited':
         d.reforestationCredit = {

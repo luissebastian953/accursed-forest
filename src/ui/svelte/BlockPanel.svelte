@@ -1,6 +1,6 @@
 <script lang="ts">
   import { t } from '../../i18n/index.ts';
-  import { formatRp } from '../format.ts';
+  import { formatKg, formatRp } from '../format.ts';
 
   import AutoHarvestToggle from './AutoHarvestToggle.svelte';
   import { blockView, type ActionView, type BlockPanel } from './blockPanelState.svelte.ts';
@@ -380,6 +380,77 @@
           {#if v.autoHarvest && !v.kopdes}
             {@const auto = v.autoHarvest}
             <AutoHarvestToggle on={auto.on} toggle={() => panel.act(auto.command)} />
+          {/if}
+        </footer>
+      {/if}
+
+      {#if v.danger}
+        {@const danger = v.danger}
+        <!--
+          The danger zone (GDD 8 panel 13a). One outlined press asks; the card
+          that opens names what goes, and only its red button does it.
+        -->
+        <footer
+          class="flex flex-col gap-2 border-t-2 border-dashed border-[#f2e0b0] p-4"
+          data-testid="danger-zone"
+        >
+          <div class="label text-[#9e2e20]">{t('block.dangerZone')}</div>
+          {#if !panel.ui.confirmClear}
+            <button
+              class="btn btn-lg w-full !border-[#c9432f] !bg-white !text-[#9e2e20]"
+              disabled={danger.rejection !== null}
+              title={danger.rejection ?? ''}
+              data-testid="action-ClearPlantation"
+              onclick={() => panel.askClear(true)}
+            >
+              <span class="flex w-full items-center gap-2">
+                <Icon name="axe-chop" />
+                <span>{t('block.clearPlantation')}</span>
+                <span class="min-w-0 flex-1"></span>
+                <span class="num rounded-lg bg-[#ffe6e0] px-1.5 py-0.5 text-xs text-[#9e2e20]">
+                  {formatRp(danger.cost)}
+                </span>
+              </span>
+            </button>
+            <div class="muted px-1 text-xs font-bold leading-snug">
+              {t('block.clearPlantationNote', { n: danger.palms, days: danger.days })}
+            </div>
+            {#if danger.rejection}
+              <div class="px-1 text-xs font-bold text-[#b85e12]">{danger.rejection}</div>
+            {/if}
+          {:else}
+            <div
+              class="flex flex-col gap-2 rounded-xl border-2 border-[#c9432f] bg-[#fff4f1] p-3"
+              data-testid="clear-confirm"
+            >
+              <div class="font-bold text-[#9e2e20]">{t('block.clearConfirmTitle')}</div>
+              <ul class="muted list-disc pl-5 text-xs font-bold leading-snug">
+                <li>{t('block.clearLosesPalms', { n: danger.palms })}</li>
+                {#if danger.fruitKg > 0}
+                  <li>{t('block.clearLosesFruit', { kg: formatKg(danger.fruitKg) })}</li>
+                {/if}
+                {#if danger.years > 0}
+                  <li>{t('block.clearLosesYears', { n: danger.years })}</li>
+                {/if}
+                <li>{t('block.clearCosts', { cost: formatRp(danger.cost), days: danger.days })}</li>
+              </ul>
+              <div class="flex gap-2">
+                <button
+                  class="btn btn-ghost flex-[2]"
+                  data-testid="action-ClearPlantation-cancel"
+                  onclick={() => panel.askClear(false)}
+                >
+                  {t('block.cancel')}
+                </button>
+                <button
+                  class="btn flex-1 !border-[#8a1f12] !bg-[#c9432f] !text-white"
+                  data-testid="action-ClearPlantation-confirm"
+                  onclick={() => panel.confirmClear(danger.command)}
+                >
+                  {t('block.confirmClear')}
+                </button>
+              </div>
+            </div>
           {/if}
         </footer>
       {/if}

@@ -5,11 +5,17 @@ import { COVER_CROP } from '@sim/balance/events';
 import { FIRE } from '@sim/balance/fire';
 import { FOREST_GROWTH, GROWTH } from '@sim/balance/growth';
 import { PEST_LABOUR, PLAGUE } from '@sim/balance/pests';
-import { DRAINAGE_COST, IRRIGATION_COST, KOPDES_BUILD_COST } from '@sim/balance/prices';
+import {
+  CLEAR_PLANTATION,
+  DRAINAGE_COST,
+  IRRIGATION_COST,
+  KOPDES_BUILD_COST,
+} from '@sim/balance/prices';
 import { isWetSeason } from '@sim/balance/seasons';
 import { landPrice } from '@sim/commands/buyBlock';
 import { itemPrice } from '@sim/commands/buyItem';
 import { chopCost } from '@sim/commands/chopBlock';
+import { clearPlantationCost, palmsStanding } from '@sim/commands/clearPlantation';
 import { seedlingItem, seedlingsNeeded } from '@sim/commands/plantBlock';
 import { reforestCost, saplingShortfall } from '@sim/commands/reforestBlock';
 import { settleCost, settleListening, settleable } from '@sim/commands/settleInvestigation';
@@ -139,6 +145,50 @@ export interface BlockView {
    * and why the button is dead when it is.
    */
   settle: { cost: number; enabled: boolean; note: string } | null;
+  /**
+   * The one thing on a planted block that cannot be taken back (GDD 8 panel
+   * 13a): felling the lot. Priced to hurt, and named for what it costs beyond
+   * the money, so the confirm step reads as a loss and not a form.
+   */
+  danger: {
+    cost: number;
+    palms: number;
+    fruitKg: number;
+    years: number;
+    days: number;
+    rejection: string | null;
+    command: Command;
+  } | null;
+}
+
+/** What clearing a plantation would cost, in money and in what stands on it. */
+function dangerView(sim: Sim, id: BlockId): BlockView['danger'] {
+  const { state, world } = sim;
+  const block = readBlock(state, world, id);
+
+  if (block.phase !== 'planted' && block.phase !== 'reforesting') return null;
+  if (block.fellingUntil > state.tick) return null;
+
+  const palms = palmsStanding(state, id);
+
+  if (palms === 0) return null;
+
+  const stand = state.palms.get(id);
+  let oldest = state.tick;
+
+  if (stand) for (const t of stand.plantedAt) if (t >= 0 && t < oldest) oldest = t;
+
+  const command: Command = { type: 'ClearPlantation', block: id };
+
+  return {
+    cost: clearPlantationCost(state, id),
+    palms,
+    fruitKg: stand && block.species === 'palm' ? harvestableKg(stand, 'palm', state.tick) : 0,
+    years: Math.floor((state.tick - oldest) / GROWTH.daysPerYear),
+    days: CLEAR_PLANTATION.days,
+    rejection: sim.validate(command)?.reason ?? null,
+    command,
+  };
 }
 
 /**
@@ -882,7 +932,16 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     y: y + 1,
     icon: blockIcon(block.biome, block.phase),
     title: block.phase === 'kopdes' ? t('block.kopdes') : t(`block.biome_${block.biome}`),
-    phase: phaseLabel(block.phase, block.clearProgress, block.burning, block.fireIntensity),
+    // A plantation under the crew's axes reads as clearing, however it is filed.
+    phase:
+      block.fellingUntil > state.tick
+        ? phaseLabel(
+            'clearing',
+            1 - (block.fellingUntil - state.tick) / CLEAR_PLANTATION.days,
+            block.burning,
+            block.fireIntensity,
+          )
+        : phaseLabel(block.phase, block.clearProgress, block.burning, block.fireIntensity),
     tiles,
     kopdes:
       block.phase === 'kopdes' && kopdes
@@ -895,6 +954,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     major: actions.filter((a) => !a.minor),
     land,
     settle: settleView(state, block.phase),
+    danger: block.burning ? null : dangerView(sim, id),
     autoHarvest:
       kopdes &&
       (block.phase === 'kopdes' || (block.phase === 'planted' && block.species === 'palm'))
@@ -904,9 +964,16 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
 }
 
 export class BlockPanel {
-  readonly ui = $state<{ block: BlockId | null; slot: number | null; version: number }>({
+  readonly ui = $state<{
+    block: BlockId | null;
+    slot: number | null;
+    /** The danger zone's second step is open: the player has asked once. */
+    confirmClear: boolean;
+    version: number;
+  }>({
     block: null,
     slot: null,
+    confirmClear: false,
     version: 0,
   });
   sim = $state.raw<Sim | null>(null);
@@ -929,7 +996,12 @@ export class BlockPanel {
 
   show(sim: Sim, block: BlockId | null): void {
     this.sim = sim;
-    if (block !== this.ui.block) this.ui.slot = null;
+
+    if (block !== this.ui.block) {
+      this.ui.slot = null;
+      this.ui.confirmClear = false;
+    }
+
     this.ui.block = block;
     if (block === null) this.handlers.hoverBurn(null);
     this.ui.version++;
@@ -949,6 +1021,17 @@ export class BlockPanel {
 
   toggleSlot(slot: number): void {
     this.ui.slot = this.ui.slot === slot ? null : slot;
+  }
+
+  /** Open or close the danger zone's confirm step. */
+  askClear(open: boolean): void {
+    this.ui.confirmClear = open;
+  }
+
+  /** The second press: the crew goes in, and the question closes. */
+  confirmClear(command: Command): void {
+    this.ui.confirmClear = false;
+    this.act(command);
   }
 
   dispose(): void {

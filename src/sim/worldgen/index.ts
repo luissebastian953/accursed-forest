@@ -207,6 +207,7 @@ export function createWorld(
       landslideAt: -1,
       landslidePalms: 0,
       excavateUntil: -1,
+      fellingUntil: -1,
       species: 'palm',
     };
   };
