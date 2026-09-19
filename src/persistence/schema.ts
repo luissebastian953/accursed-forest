@@ -58,7 +58,7 @@ export const KEY_PREFIX = 'accursed-forest';
  * 15. Excavation: the shop sells a crew to dig a slide out, and a block
  *     remembers when they will be finished.
  */
-export const CURRENT_SCHEMA = 15;
+export const CURRENT_SCHEMA = 16;
 
 export type SaveErrorCode = 'missing' | 'corrupt' | 'newerSchema' | 'quota';
 
@@ -396,6 +396,8 @@ export const ManifestSchema = z.object({
   app: z.string(),
   savedAt: z.string(),
   seed: z.number(),
+  /** What the player called this estate; '' when they did not name it. */
+  estateName: z.string(),
   worldGen: WorldGenSchema,
   head: HeadSchema,
   /** Chunk keys (`cx:cy`) present for this slot. */
@@ -475,6 +477,7 @@ export function serializeState(
     app: appVersion,
     savedAt,
     seed: state.seed,
+    estateName: state.estateName,
     worldGen: { ...state.worldGen },
     head: {
       tick: state.tick,
@@ -618,6 +621,7 @@ export function deserializeState(manifestJson: unknown, chunkJsons: Iterable<unk
   return {
     version: STATE_VERSION,
     seed: m.seed,
+    estateName: m.estateName,
     rng: { ...h.rng },
     tick: h.tick,
     width: m.worldGen.width,

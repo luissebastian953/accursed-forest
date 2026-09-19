@@ -47,11 +47,13 @@ export interface Sim {
 export interface SimOptions {
   width?: number;
   height?: number;
+  /** What the player called this estate; '' leaves it unnamed. */
+  name?: string;
 }
 
 export function createSim(seed: number, options: SimOptions = {}): Sim {
   const world = createWorld(seed, options.width, options.height);
-  return new SimImpl(createInitialState(world), world);
+  return new SimImpl(createInitialState(world, options.name ?? ''), world);
 }
 
 /** Rebuild a `Sim` around state that came out of a save. */

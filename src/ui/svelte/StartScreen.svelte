@@ -16,6 +16,8 @@
 
   const { screen }: Props = $props();
   const ui = $derived(screen.ui);
+  /** The estate the card is offering: it moves as the boxes are typed into. */
+  const preview = $derived(screen.preview);
   const v = $derived(screen.view);
 
   const CHIP_TONE: Record<SaveSummary['chips'][number]['tone'], string> = {
@@ -99,21 +101,31 @@
         <p class="card m-0 px-5 py-2 text-base font-extrabold">{t('start.lede')}</p>
 
         <div class="card mt-2 flex w-full flex-col gap-3 p-5 text-left">
-          <button
-            class="btn btn-coral btn-lg w-full !py-3 !text-xl uppercase tracking-wider"
-            data-testid="start-game"
-            onclick={() => screen.handlers.start()}
-          >
-            {t('start.startGame')}
-          </button>
           <form
-            class="flex gap-2"
+            class="flex flex-col gap-3"
             onsubmit={(e) => {
               e.preventDefault();
               screen.submitCode();
             }}
           >
-            <label class="pill flex min-w-0 flex-1 items-center gap-2 !py-2">
+            <button
+              class="btn btn-coral btn-lg w-full !py-3 !text-xl uppercase tracking-wider"
+              type="submit"
+              data-testid="start-game"
+            >
+              {t('start.startGame')}
+            </button>
+            <label class="pill flex min-w-0 items-center gap-2 !py-2">
+              <span aria-hidden="true">🌱</span>
+              <input
+                class="min-w-0 flex-1 bg-transparent text-sm font-bold outline-none placeholder:text-[var(--ink-3)]"
+                placeholder={t('start.namePlaceholder')}
+                data-testid="start-name"
+                maxlength="40"
+                bind:value={ui.name}
+              />
+            </label>
+            <label class="pill flex min-w-0 items-center gap-2 !py-2">
               <span aria-hidden="true">🔒</span>
               <input
                 class="min-w-0 flex-1 bg-transparent text-sm font-bold outline-none placeholder:text-[var(--ink-3)]"
@@ -122,15 +134,15 @@
                 bind:value={ui.code}
               />
             </label>
-            <button class="btn btn-ghost" type="submit" data-testid="start-use-code">
-              {t('start.useCode')}
-            </button>
           </form>
           <p class="muted m-0 text-center text-xs font-bold">
             {#if ui.error}
               <span class="text-[#9e2e20]">{ui.error}</span>
             {:else}
-              {t('start.codeHint')} <b class="num">{v.estateCode}</b>.
+              {preview.isNew ? t('start.newCodeHint') : t('start.codeHint')}
+              <b class="num" data-testid="start-code-preview">
+                {preview.code || t('start.randomCode')}
+              </b>.
             {/if}
           </p>
           <div class="border-t-2 border-dashed border-[var(--card-edge)]"></div>
@@ -182,7 +194,10 @@
               </span>
               <div class="min-w-0">
                 <div class="flex flex-wrap items-center gap-2">
-                  <span class="text-xl font-extrabold text-[var(--green-edge)]">
+                  <span
+                    class="text-xl font-extrabold text-[var(--green-edge)]"
+                    data-testid="start-estate"
+                  >
                     {t('start.estate')} <span class="num">{save.code}</span>
                   </span>
                   <span class="pill label !py-0.5 !text-[var(--green-edge)]"

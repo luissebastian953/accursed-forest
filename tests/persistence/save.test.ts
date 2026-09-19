@@ -494,6 +494,20 @@ describe('migrations (§7)', () => {
     expect(fingerprint(slot.load())).toBe(fingerprint(sim.state));
   });
 
+  it('an estate keeps its name across a save, and an unnamed one stays unnamed', () => {
+    const named = createSim(42, { name: 'Penyawit Handal' });
+    for (let i = 0; i < 20; i++) named.tick();
+    const slot = slotFor();
+    slot.save(named.state);
+    expect(slot.load().estateName).toBe('Penyawit Handal');
+
+    // A save from before estates had names opens with none, not with junk.
+    const plain = createSim(42);
+    const other = slotFor();
+    other.save(plain.state);
+    expect(other.load().estateName).toBe('');
+  });
+
   it('the real migration list covers every schema from 1 to current', () => {
     const covered = new Set(MIGRATIONS.map((m) => m.from));
     for (let schema = 1; schema < CURRENT_SCHEMA; schema++) expect(covered.has(schema)).toBe(true);

@@ -249,14 +249,48 @@ export function estateCodeFor(seed: number): string {
   return `${code.slice(0, 3)}-${code.slice(3)}`;
 }
 
-export function seedFromEstateCode(code: string): number | null {
-  const clean = code.toUpperCase().replace(/[^A-Z2-9]/g, '');
-  if (clean.length !== 7) return null;
-  let value = 0;
-  for (const ch of clean) {
-    const digit = ALPHABET.indexOf(ch);
-    if (digit < 0) return null;
-    value = value * ALPHABET.length + digit;
+/**
+ * FNV-1a over the code points, so a phrase lands somewhere unrelated to its
+ * neighbours: "penyawit handal" and "penyawit handan" are different estates.
+ */
+function hashWords(words: string): number {
+  let hash = 0x811c9dc5;
+  for (const ch of words) {
+    hash = Math.imul(hash ^ ch.codePointAt(0)!, 0x01000193);
   }
-  return value >>> 0;
+  // One final mix: FNV leaves the low bits of short strings a little ordered,
+  // and the low bits are what the worldgen fields read first.
+  hash = Math.imul(hash ^ (hash >>> 16), 0x21f0aaad);
+  return (hash ^ (hash >>> 15)) >>> 0;
+}
+
+/**
+ * Any words name a world (§4.6). Seven code symbols are read as a code, so a
+ * shared estate comes back exactly; anything else is hashed, so a player can
+ * type what they like. Case, spacing and punctuation are ignored either way:
+ * "PENYAWIT-HANDAL", "penyawit handal" and "Penyawit Handal" are one estate.
+ *
+ * Only nothing at all is nothing: an empty box means a random world.
+ */
+export function seedFromEstateCode(code: string): number | null {
+  // Letters and digits of any script; a phrase in Indonesian works as well as
+  // one in English, and the separators a player puts between words do not.
+  const clean = code
+    .normalize('NFKC')
+    .toUpperCase()
+    .replace(/[^\p{L}\p{N}]/gu, '');
+  if (clean === '') {
+    // Nothing usable, but not empty: emoji and punctuation still name a world.
+    const raw = code.trim();
+    return raw === '' ? null : hashWords(raw);
+  }
+
+  if (clean.length === 7 && [...clean].every((ch) => ALPHABET.includes(ch))) {
+    let value = 0;
+    for (const ch of clean) {
+      value = value * ALPHABET.length + ALPHABET.indexOf(ch);
+    }
+    return value >>> 0;
+  }
+  return hashWords(clean);
 }

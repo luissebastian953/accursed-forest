@@ -1,5 +1,10 @@
 {
   "estateCode": "Kode kebun",
+  "newEstateCode": "Kode kebun baru",
+  "randomCode": "acak",
+  "namePlaceholder": "Nama",
+  "namePlaceholderHint": "Beri nama kebunmu",
+  "seedLabel": "Seed (opsional)",
   "close": "Tutup",
   "save": "Simpan",
   "load": "Muat",
@@ -10,8 +15,8 @@
   "soundOff": "Mati",
   "language": "Bahasa",
   "newEstate": "Kebun baru",
-  "codePlaceholder": "Kode kebun (opsional)",
+  "codePlaceholder": "Kode kebun, atau kata apa saja",
   "startGame": "Mulai permainan",
   "codeError": "Itu bukan kode kebun. Bentuknya seperti ABC-DEFG.",
-  "codeHint": "Kosongkan kode untuk dunia acak. Memulai kebun baru menggantikan kebun yang sekarang."
+  "codeHint": "Kosongkan keduanya untuk dunia acak. Seed bisa berupa kode kebun atau kata apa saja, dan seed yang sama selalu membangun peta yang sama. Memulai kebun baru menggantikan kebun yang sekarang."
 }

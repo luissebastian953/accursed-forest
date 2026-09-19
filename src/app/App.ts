@@ -179,9 +179,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   }
 
   /** A new run: the old run's year snapshots would rewind into someone else's estate. */
-  function freshSim(seed: number): Sim {
+  function freshSim(seed: number, name = ''): Sim {
     clearSnapshots();
-    return createSim(seed);
+    return createSim(seed, { name });
   }
 
   // ── Year snapshots (§3.8 rewind, §7) ───────────────────────────────────
@@ -266,7 +266,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     kopdes.mesh,
     kopdes.post,
     ring.group,
-    rangeRing.mesh,
+    rangeRing.group,
     hazardRing.mesh,
     fires.group,
   );
@@ -354,6 +354,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   const hudMarkers = new HudMarkers(stage, { select: (block) => select(block) });
   const hud = new Hud(stage, {
     setSpeed: (speed) => requestSpeed(speed),
+    setSound: (on) => setSound(on),
     openMenu: () => {
       menu.show();
       refreshMenu();
@@ -561,13 +562,17 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     time.set(0);
   }
 
+  /** Sound on or off, from wherever it was asked for; remembered for next time. */
+  function setSound(on: boolean): void {
+    audio.setSettings({ muted: !on });
+    saveAudioSettings(audio.getSettings());
+    refreshMenu();
+    refreshHud();
+  }
+
   const menu = new Menu(root, {
-    newGame: (seed) => switchSim(freshSim(seed)),
-    setSound: (on) => {
-      audio.setSettings({ muted: !on });
-      saveAudioSettings(audio.getSettings());
-      refreshMenu();
-    },
+    newGame: (seed, name) => switchSim(freshSim(seed, name)),
+    setSound: (on) => setSound(on),
     save: () => {
       if (autosave.saveNow()) toasts.push('Saved.');
       refreshMenu();
@@ -610,6 +615,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     }
     menu.update({
       estateCode: sim.world.estateCode,
+      estateName: sim.state.estateName,
       hasSave: slot.exists(),
       lastSavedAt,
       saveError,
@@ -818,7 +824,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       locked: time.locked,
       kopdesLevel: sim.state.kopdes?.level ?? 0,
       estateCode: sim.world.estateCode,
-      backend: handle.backend,
+      sound: !audio.getSettings().muted,
+      estateName: sim.state.estateName,
       saveNote,
       saveError,
       firePressure: sim.state.society.firePressure,
@@ -1635,7 +1642,15 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   // The title screen, over the estate pulled back to a backdrop. Dev and
   // test URLs that name a world (`?seed`, `?fresh`) go straight in.
-  const welcome = () => toasts.push(t('start.welcome', { code: sim.world.estateCode }));
+  // A named estate is greeted by name, with its code in hand for sharing.
+  const welcome = () =>
+    toasts.push(
+      t('start.welcome', {
+        code: sim.state.estateName
+          ? `${sim.state.estateName} (${sim.world.estateCode})`
+          : sim.world.estateCode,
+      }),
+    );
   // A run that is already over reopens on its epilogue, not the title.
   const titleScreen = !params.has('seed') && !params.has('fresh') && !runOver(sim.state);
   /** What the welcome-back card says about the loaded save. */
@@ -1674,7 +1689,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     const met = ispoConditions(state, sim.world).filter((c) => c.met).length;
     chips.push({ icon: 'certificate-ispo', label: t('events.ispo', { met }), tone: 'plain' });
     return {
-      code: sim.world.estateCode,
+      code: state.estateName
+        ? `${state.estateName} (${sim.world.estateCode})`
+        : sim.world.estateCode,
       savedAt,
       year: Math.floor(state.tick / GROWTH.daysPerYear) + 1,
       day: (state.tick % GROWTH.daysPerYear) + 1,
@@ -1691,10 +1708,13 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       beginPlay();
     },
     loadOther: () => menu.toggle(),
-    useCode: (code) => {
-      const seed = seedFromEstateCode(code);
+    useCode: (code, name) => {
+      // The seed box wins when it is filled; otherwise the name settles the
+      // world, so naming an estate is enough to start one.
+      const from = code === '' ? name : code;
+      const seed = from === '' ? randomSeed() : seedFromEstateCode(from);
       if (seed === null) return t('start.codeError');
-      switchSim(freshSim(seed));
+      switchSim(freshSim(seed, name));
       beginPlay();
       return null;
     },
@@ -1721,6 +1741,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     select(null);
     startScreen.show({
       estateCode: sim.world.estateCode,
+      estateName: sim.state.estateName,
       save: slot.exists() ? saveSummary() : null,
       build: t('start.build', {
         version: __APP_VERSION__,

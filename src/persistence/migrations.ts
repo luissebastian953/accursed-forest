@@ -255,6 +255,14 @@ export const MIGRATIONS: readonly Migration[] = [
       }
     },
   },
+  {
+    // Estates can be named. One saved before that is simply unnamed; the HUD
+    // falls back to its code, as it always did.
+    from: 15,
+    up(save) {
+      save.manifest['estateName'] ??= '';
+    },
+  },
 ];
 
 /**

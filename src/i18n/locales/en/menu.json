@@ -1,5 +1,10 @@
 {
   "estateCode": "Estate code",
+  "newEstateCode": "New estate code",
+  "randomCode": "random",
+  "namePlaceholder": "Name",
+  "namePlaceholderHint": "Name your estate",
+  "seedLabel": "Seed (optional)",
   "close": "Close",
   "save": "Save",
   "load": "Load",
@@ -10,8 +15,8 @@
   "soundOff": "Off",
   "language": "Language",
   "newEstate": "New estate",
-  "codePlaceholder": "Estate code (optional)",
+  "codePlaceholder": "Estate code, or any words",
   "startGame": "Start a game",
   "codeError": "That is not an estate code. It looks like ABC-DEFG.",
-  "codeHint": "Leave the code empty for a random world. Starting a new estate replaces the current one."
+  "codeHint": "Leave both empty for a random world. A seed can be an estate code or any words, and the same seed always builds the same map. Starting a new estate replaces the current one."
 }

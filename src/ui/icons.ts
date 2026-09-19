@@ -38,6 +38,8 @@ export type IconName =
   | 'shop-sapling'
   | 'shop-trap'
   | 'shop-trichoderma'
+  | 'speaker-off'
+  | 'speaker-on'
   | 'sun'
   | 'tbs-fruit'
   | 'water-irrigate';

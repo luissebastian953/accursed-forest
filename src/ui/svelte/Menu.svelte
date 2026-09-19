@@ -1,6 +1,7 @@
 <script lang="ts">
   import { locale, LOCALES, localeTag, setLocale, t, type Locale } from '../../i18n/index.ts';
 
+  import Icon from './Icon.svelte';
   import type { Menu } from './menuState.svelte.ts';
 
   interface Props {
@@ -9,6 +10,8 @@
 
   const { menu }: Props = $props();
   const state = $derived(menu.state);
+  /** The estate in the header: the one being played, or the one being named. */
+  const preview = $derived(menu.preview);
 
   const LANGUAGE: Record<Locale, string> = { en: 'English', id: 'Bahasa Indonesia' };
 
@@ -29,9 +32,16 @@
       <div class="mb-4 flex items-start justify-between">
         <div>
           <div class="text-2xl font-extrabold text-[#3faa4c]">Sawit Simulator</div>
+          {#if preview.name}
+            <div class="mt-1 text-sm font-extrabold" data-testid="menu-estate-name">
+              {preview.name}
+            </div>
+          {/if}
           <div class="label mt-1">
-            {t('menu.estateCode')}
-            <span class="pill-muted px-1.5 py-0.5">{state.view.estateCode}</span>
+            {preview.isNew ? t('menu.newEstateCode') : t('menu.estateCode')}
+            <span class="pill-muted px-1.5 py-0.5" data-testid="menu-estate-code">
+              {preview.code || t('menu.randomCode')}
+            </span>
           </div>
         </div>
         <button class="btn btn-close" aria-label={t('menu.close')} onclick={() => menu.hide()}>
@@ -66,14 +76,20 @@
 
       <div class="mb-3 flex items-center justify-between gap-3">
         <div class="text-sm font-extrabold">{t('menu.sound')}</div>
-        <button
-          class={`btn ${state.view.sound ? 'btn-green' : 'btn-ghost'} !px-3 !py-1.5 text-xs`}
-          aria-pressed={state.view.sound}
-          data-testid="menu-sound"
-          onclick={() => menu.handlers.setSound(!state.view.sound)}
-        >
-          {state.view.sound ? t('menu.soundOn') : t('menu.soundOff')}
-        </button>
+        <div class="flex items-center gap-2">
+          <button
+            class={`btn ${state.view.sound ? 'btn-green' : 'btn-red'} !px-3 !py-1.5`}
+            aria-pressed={state.view.sound}
+            aria-label={t('menu.sound')}
+            data-testid="menu-sound"
+            onclick={() => menu.handlers.setSound(!state.view.sound)}
+          >
+            <Icon name={state.view.sound ? 'speaker-on' : 'speaker-off'} />
+          </button>
+          <span class="text-sm font-extrabold" data-testid="menu-sound-label">
+            {state.view.sound ? t('menu.soundOn') : t('menu.soundOff')}
+          </span>
+        </div>
       </div>
 
       <div class="mb-5 flex items-center justify-between gap-3">
@@ -95,12 +111,27 @@
       <div class="border-t-2 border-dashed border-[#f2e0b0] pt-4">
         <div class="mb-2 text-sm font-extrabold">{t('menu.newEstate')}</div>
         <div class="flex flex-col gap-2">
-          <input
-            class="min-w-0 flex-1 rounded-xl border-2 border-[#f2e0b0] bg-white px-3 py-2 text-sm font-bold text-[#4a3320] outline-none placeholder:text-[#c4b083] focus:border-[#5fd06a]"
-            placeholder={t('menu.codePlaceholder')}
-            bind:value={state.code}
-            oninput={() => (state.codeError = false)}
-          />
+          <label class="flex flex-col gap-1">
+            <span class="label">{t('menu.namePlaceholder')}</span>
+            <input
+              class="min-w-0 flex-1 rounded-xl border-2 border-[#f2e0b0] bg-white px-3 py-2 text-sm font-bold text-[#4a3320] outline-none placeholder:text-[#c4b083] focus:border-[#5fd06a]"
+              placeholder={t('menu.namePlaceholderHint')}
+              data-testid="menu-name"
+              maxlength="40"
+              bind:value={state.name}
+              oninput={() => (state.codeError = false)}
+            />
+          </label>
+          <label class="flex flex-col gap-1">
+            <span class="label">{t('menu.seedLabel')}</span>
+            <input
+              class="min-w-0 flex-1 rounded-xl border-2 border-[#f2e0b0] bg-white px-3 py-2 text-sm font-bold text-[#4a3320] outline-none placeholder:text-[#c4b083] focus:border-[#5fd06a]"
+              placeholder={t('menu.codePlaceholder')}
+              data-testid="menu-seed"
+              bind:value={state.code}
+              oninput={() => (state.codeError = false)}
+            />
+          </label>
           <button
             class="btn btn-coral btn-lg w-full uppercase tracking-wide"
             data-testid="menu-new"

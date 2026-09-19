@@ -355,9 +355,27 @@
             {t('hud.menu')}
           </button>
 
+          <button
+            class={`btn ${v.sound ? 'btn-green' : 'btn-red'} !px-3`}
+            aria-pressed={v.sound}
+            aria-label={t('menu.sound')}
+            title={v.sound ? t('menu.soundOn') : t('menu.soundOff')}
+            data-testid="hud-sound"
+            onclick={() => hud.handlers.setSound(!v.sound)}
+          >
+            <Icon name={v.sound ? 'speaker-on' : 'speaker-off'} />
+          </button>
+
           <div class="label flex items-center gap-2">
-            <span title={t('hud.estateTitle')}>{v.estateCode}</span>
-            <span class="pill-muted px-1.5 py-0.5">{v.backend}</span>
+            {#if v.estateName}
+              <span
+                class="pill-muted px-1.5 py-0.5 normal-case !text-[var(--ink)]"
+                data-testid="hud-estate-name"
+              >
+                {v.estateName}
+              </span>
+            {/if}
+            <span title={t('hud.estateTitle')} data-testid="hud-estate-code">{v.estateCode}</span>
             {#if v.saveError}
               <span class="text-[#e04a3a]" title={v.saveError}>{t('hud.saveFailed')}</span>
             {:else if v.saveNote}

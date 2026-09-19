@@ -23,12 +23,13 @@ export interface SimContext {
   events: EventSink;
 }
 
-export function createInitialState(world: World): SimState {
+export function createInitialState(world: World, name = ''): SimState {
   const { params } = world;
 
   const state: SimState = {
     version: STATE_VERSION,
     seed: params.seed,
+    estateName: name,
     rng: createRng(params.seed),
     tick: 0,
     width: params.width,

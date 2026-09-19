@@ -37,7 +37,10 @@ export interface HudView {
   /** 0 when there is no Kopdes yet; gates the 50x button (§3.3). */
   kopdesLevel: number;
   estateCode: string;
-  backend: 'webgpu' | 'webgl';
+  /** Whether the estate makes a sound; the speaker button reads it. */
+  sound: boolean;
+  /** What the player called this estate, or '' if they did not name it. */
+  estateName: string;
   saveNote: string | null;
   saveError: string | null;
   /** §8 panel 5: shown once any burn has happened. */
@@ -62,6 +65,8 @@ export interface HudView {
 export interface HudHandlers {
   setSpeed(speed: Speed): void;
   openMenu(): void;
+  /** The speaker button beside the menu. */
+  setSound(on: boolean): void;
   openCertificate(): void;
   openHelp(): void;
 }

@@ -309,14 +309,74 @@ test.describe('Sawit Simulator', () => {
 
     // Off in the menu, and remembered for next time.
     await tid(page, 'menu-button').click();
-    await expect(tid(page, 'menu-sound')).toContainText('On');
+    await expect(tid(page, 'menu-sound-label')).toHaveText('On');
+    await expect(tid(page, 'menu-sound')).toHaveClass(/btn-green/);
     await tid(page, 'menu-sound').click();
-    await expect(tid(page, 'menu-sound')).toContainText('Off');
+    await expect(tid(page, 'menu-sound-label')).toHaveText('Off');
+    await expect(tid(page, 'menu-sound')).toHaveClass(/btn-red/);
     expect((await audio()).muted).toBe(true);
     expect(
       await page.evaluate(() => JSON.parse(localStorage.getItem('sawit:audio') ?? '{}').muted),
     ).toBe(true);
     await page.keyboard.press('Escape');
+
+    // The bar carries the same switch, and the two agree.
+    await expect(tid(page, 'hud-sound')).toHaveClass(/btn-red/);
+    await tid(page, 'hud-sound').click();
+    await expect(tid(page, 'hud-sound')).toHaveClass(/btn-green/);
+    expect((await audio()).muted).toBe(false);
+    await tid(page, 'menu-button').click();
+    await expect(tid(page, 'menu-sound-label')).toHaveText('On');
+    await page.keyboard.press('Escape');
+  });
+
+  test('an estate can be named, and its name follows it into the bar', async ({ page }) => {
+    test.setTimeout(90_000);
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    // No `fresh` and no `seed`: this is the title card a first-time player sees.
+    await page.goto('/play.html?webgl&debug');
+    await expect(page.locator('canvas')).toBeVisible();
+    await page.waitForTimeout(2000);
+
+    // The code under the boxes settles on the name as it is typed.
+    await tid(page, 'start-name').fill('Penyawit Handal');
+    const first = await tid(page, 'start-code-preview').textContent();
+    expect(first).toMatch(/^[A-HJ-NP-Z2-9]{3}-[A-HJ-NP-Z2-9]{4}$/);
+    // However it is written, it is the same estate.
+    await tid(page, 'start-name').fill('penyawit handal');
+    await expect(tid(page, 'start-code-preview')).toHaveText(first ?? '');
+    // A different name is a different estate.
+    await tid(page, 'start-name').fill('Kebun Sawit');
+    await expect(tid(page, 'start-code-preview')).not.toHaveText(first ?? '');
+
+    await tid(page, 'start-name').fill('Penyawit Handal');
+    await tid(page, 'start-game').click();
+    await page.waitForTimeout(2500);
+
+    // The bar carries the name and the code it produced, and no renderer pill.
+    await expect(tid(page, 'hud-estate-name')).toHaveText('Penyawit Handal');
+    await expect(tid(page, 'hud-estate-code')).toHaveText(first ?? '');
+    await expect(page.getByText('WEBGL', { exact: true })).toHaveCount(0);
+
+    // And it survives a save and a reload.
+    await tid(page, 'menu-button').click();
+    await expect(tid(page, 'menu-estate-name')).toHaveText('Penyawit Handal');
+    // The name box opens on the estate being played, ready to be edited, and
+    // the header still shows that estate rather than a new one.
+    await expect(tid(page, 'menu-name')).toHaveValue('Penyawit Handal');
+    await expect(tid(page, 'menu-estate-code')).toHaveText(first ?? '');
+    // Editing it previews a different estate.
+    await tid(page, 'menu-name').fill('Kebun Baru');
+    await expect(tid(page, 'menu-estate-code')).not.toHaveText(first ?? '');
+    await tid(page, 'menu-name').fill('Penyawit Handal');
+    await expect(tid(page, 'menu-estate-code')).toHaveText(first ?? '');
+    await tid(page, 'menu-save').click();
+    await page.keyboard.press('Escape');
+    await page.goto('/play.html?webgl&debug');
+    await page.waitForTimeout(2500);
+    await expect(tid(page, 'start-estate')).toContainText(first ?? '');
+    expect(errors).toEqual([]);
   });
 
   test('50x is locked, with its reason, until the Kopdes reaches level 3', async ({ page }) => {

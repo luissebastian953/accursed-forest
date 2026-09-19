@@ -380,6 +380,11 @@ export interface Kopdes {
 export interface SimState {
   version: number;
   seed: number;
+  /**
+   * What the player called this estate, or '' when they did not name it. The
+   * seed is the world; the name is only what it is called (§4.6).
+   */
+  estateName: string;
   rng: RngState;
   tick: Tick;
   width: number;

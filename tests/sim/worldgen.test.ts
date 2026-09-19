@@ -263,6 +263,39 @@ describe('estate code (§4.6)', () => {
     const code = estateCodeFor(seed);
     expect(seedFromEstateCode(code.toLowerCase())).toBe(seed);
     expect(seedFromEstateCode(code.replace('-', ' '))).toBe(seed);
-    expect(seedFromEstateCode('nope')).toBeNull();
+  });
+
+  it('takes any words as a world, however they are written', () => {
+    const seed = seedFromEstateCode('PENYAWIT-HANDAL');
+    expect(seed).not.toBeNull();
+    // The three ways the same estate might be typed are the same estate.
+    expect(seedFromEstateCode('PENYAWIT HANDAL')).toBe(seed);
+    expect(seedFromEstateCode('penyawit handal')).toBe(seed);
+    expect(seedFromEstateCode('  Penyawit,  Handal!  ')).toBe(seed);
+
+    // A different phrase is a different world, including a near miss.
+    expect(seedFromEstateCode('penyawit handan')).not.toBe(seed);
+    expect(seedFromEstateCode('kebun sawit')).not.toBe(seed);
+
+    // Nothing but emoji still names one; nothing at all does not.
+    expect(seedFromEstateCode('\u{1f334}\u{1f334}')).not.toBeNull();
+    expect(seedFromEstateCode('   ')).toBeNull();
+    expect(seedFromEstateCode('')).toBeNull();
+  });
+
+  it('spreads phrases across the seed space rather than clumping', () => {
+    const seen = new Set<number>();
+    const words = ['sawit', 'kebun', 'hutan', 'ladang', 'panen', 'kopdes'];
+    for (const a of words) {
+      for (const b of words) {
+        for (let n = 0; n < 20; n++) seen.add(seedFromEstateCode(`${a} ${b} ${n}`)!);
+      }
+    }
+    // Every one of the 720 phrases is its own world.
+    expect(seen.size).toBe(words.length * words.length * 20);
+    // And they are not all crowded into one corner of the range.
+    const high = [...seen].filter((s) => s > 0x80000000).length;
+    expect(high).toBeGreaterThan(seen.size * 0.35);
+    expect(high).toBeLessThan(seen.size * 0.65);
   });
 });
