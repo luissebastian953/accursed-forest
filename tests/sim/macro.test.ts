@@ -204,3 +204,24 @@ describe('the headline deck (§3.7)', () => {
     expect(Object.keys(BIOMES).length).toBeGreaterThan(0);
   });
 });
+
+describe('the bar chips (§8)', () => {
+  it('every headline that runs for days has a label in both languages', async () => {
+    const en = (await import('../../src/i18n/locales/en/events.json')).default as Record<
+      string,
+      string
+    >;
+    const id = (await import('../../src/i18n/locales/id/events.json')).default as Record<
+      string,
+      string
+    >;
+    for (const key of IDS) {
+      const spec = MACRO_EVENTS[key] as { days?: unknown };
+      // Only the timed ones put a chip on the bar; the permanent ones are a
+      // headline and a new price, with nothing left running.
+      if (!spec.days) continue;
+      expect(en[key], `events.${key} has no English label`).toBeTruthy();
+      expect(id[key], `events.${key} has no Indonesian label`).toBeTruthy();
+    }
+  });
+});
