@@ -14,3 +14,8 @@ landing page and loads none of this.
 
 The workbench's entry (`workbench.html`). A development page: it boots the
 same renderer and materials the game does, with none of the simulation.
+
+## `src/vite-env.d.ts`
+
+The Vite client types, so `import.meta.env` and the asset imports are typed. No
+code, and nothing to configure.

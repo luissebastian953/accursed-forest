@@ -3,6 +3,21 @@
 What each module is for, as it was written at the top of the file before the
 headers moved here. A `GDD n` reference points into the [design document](../gdd/README.md).
 
+`src/ui/svelte/` is one folder per panel, and the entries below are in path
+order, so a folder's files sit together. The `<name>State.svelte.ts` module is
+the panel's public face: `App.ts` imports it and never a component.
+
+| Folder       | The panel it is                                                    |
+| ------------ | ------------------------------------------------------------------ |
+| `base/`      | No game vocabulary: the icon, the tooltip, the phone frame         |
+| `block/`     | The block panel, from the tiles to the danger zone                 |
+| `hud/`       | The bar, its markers over the world, the work rings and the toasts |
+| `news/`      | The ticker along the bar and the feed behind it                    |
+| `authority/` | The letter, the investigation and the arrest cards                 |
+| `shop/`      | The Kopdes shop: stock, prices, the payroll                        |
+| `endings/`   | The year-end card, the certificate and the epilogue                |
+| `start/`     | The title card, the menu and the controls help                     |
+
 ## `src/ui/format.ts`
 
 Formatting helpers shared by the panels. Sim time is an integer tick (GDD 10.2).
@@ -26,6 +41,13 @@ Tokens first, then the handful of component classes every panel builds
 from. The 3D palette lives in `render/materials/palette.ts`; the game
 colours below mirror it so the HUD and the world stay in step (GDD 6.1).
 
+## `src/ui/svelte/authority/AuthorityCards.svelte`
+
+The paperwork itself (GDD 8 panel 17b): one card at a time, with the date the
+notice runs to, or "until further notice" when it has no end. The settle
+button appears on it only when `authorityCardsState.svelte.ts` says the
+district office is taking calls.
+
 ## `src/ui/svelte/authority/authorityCardsState.svelte.ts`
 
 The authorities' paperwork (GDD 8 panel 17b): the letter, the investigation
@@ -33,6 +55,12 @@ notice with its "settle the matter" option when integrity allows, and the
 operating ban (GDD 3.8). The arrest is an ending; the epilogue tells it.
 `AuthorityCards` keeps the pre-Svelte constructor and
 `show`/`hide`/`showing`/`dispose` surface so `App.ts` is unchanged.
+
+## `src/ui/svelte/base/Icon.svelte`
+
+One flat SVG from the design kit (`public/icons`), rendered as an `<img>` and
+hidden from assistive technology, since every icon in the interface sits
+beside its own words.
 
 ## `src/ui/svelte/base/Phone.svelte`
 
@@ -50,6 +78,12 @@ stands between the HUD and the ticker, on the left.
   stays put and the screen turns dense. The screen content zooms with the
   frame's width instead: 1 at the 360px the layout was drawn for, never
   below 0.7 or above 1.1.
+
+## `src/ui/svelte/base/PhoneHeader.svelte`
+
+The phone frame's header row: an icon tile, a title, an optional subtitle and
+extras, and the close button. The news feed and the Kopdes shop both sit on
+`Phone.svelte`, so they share this header rather than each drawing one.
 
 ## `src/ui/svelte/base/Tooltip.svelte`
 
@@ -69,6 +103,12 @@ Usage:
   <button disabled>50x</button>
 </Tooltip>
 ```
+
+## `src/ui/svelte/block/AutoHarvestToggle.svelte`
+
+The Kopdes crew's picking rounds, on or off, with the surcharge spelled out on
+the button (`HARVEST.autoSurchargePerRound`). It appears on the Kopdes block
+and on any planted block in range, because that is where the question comes up.
 
 ## `src/ui/svelte/block/BlockPanel.svelte`
 
@@ -122,6 +162,19 @@ five conditions as rows with a bar each, and a footer that says what
 meeting them is worth. Each row shows how far along it is, so a condition
 that is nearly met does not look the same as one that has not started.
 
+## `src/ui/svelte/endings/Epilogue.svelte`
+
+The epilogue's markup (GDD 3.8, GDD 8 panel 15): the ending's own colours from
+`LOOK`, the numbers that tell the truth about the run, and the chronicle as a
+chain of headlines. The rewind buttons belong to a loss, sandbox to a
+certificate or the fade.
+
+## `src/ui/svelte/endings/YearEndCard.svelte`
+
+The year that just closed (GDD 8 panel 18), as a small card at the right: what
+the estate earned, what it spent, and how the forest cover moved against last
+year. It stops the clock until it is dismissed.
+
 ## `src/ui/svelte/endings/certificateState.svelte.ts`
 
 ISPO progress (GDD 8 panels 18–19): the year-end card each New Year, and the
@@ -164,6 +217,25 @@ pests have got into. The `kind` prop picks the pin and its colour; the
 label pill sits above it and only appears on hover, so a field of sick
 blocks does not bury the estate in text.
 
+## `src/ui/svelte/hud/HudMarkers.svelte`
+
+The pin layer over the world (GDD 8 panel 6). The layer lets clicks through and
+each pin takes its own, so a marker can be clicked to select its block without
+the layer swallowing a click meant for the terrain.
+
+## `src/ui/svelte/hud/Toasts.svelte`
+
+The toast stack at the bottom left: what just happened, in the estate's own
+words, with a tone per kind (`TONE`). The dismiss control sits on the left,
+where the icon used to be, so a stack of them can be cleared without the
+pointer travelling.
+
+## `src/ui/svelte/hud/WorkMarkers.svelte`
+
+The crew's progress ring over a worked block (GDD 8 panel 6): a chop, a burn, a
+dig or a felling, drawn as an SVG circle whose dash offset is the progress the
+sim reports.
+
 ## `src/ui/svelte/hud/hudMarkersState.svelte.ts`
 
 The pin layer (design kit 6a): a marker over the hectare a thing is
@@ -196,6 +268,17 @@ Progress rings over the blocks a crew is working (GDD 8 panel 22b): a circle
 that fills as the chop, the burn or the dig advances, pinned above
 the work site. The App projects each block's centre every frame and hands
 the positions over; nothing here touches the camera.
+
+## `src/ui/svelte/news/NewsPanel.svelte`
+
+The news feed on the phone frame (GDD 8 panel 13): every headline the run has
+seen, filtered by lane, each with its date and the line the player actually
+reads. Lane colours come from `src/ui/newsLane.ts`, shared with the ticker.
+
+## `src/ui/svelte/news/NewsTicker.svelte`
+
+The headline strip along the bar (GDD 8 panel 3): the latest headline, in its
+lane's colour, with the chip that opens the full feed behind it.
 
 ## `src/ui/svelte/news/newsPanelState.svelte.ts`
 
@@ -237,6 +320,12 @@ building's upgrade. The range ring is drawn on the map while it is open.
 is unchanged. The sim is not reactive, so `refresh()` bumps a version the
 view derives its snapshot (`shopView`) from.
 
+## `src/ui/svelte/start/ControlsHelp.svelte`
+
+The controls card (GDD 8): mouse, keyboard and what each does, in two columns.
+It is reachable with H at any time, and from the menu, because a player who
+needs it is usually already lost.
+
 ## `src/ui/svelte/start/Menu.svelte`
 
 The menu (GDD 8 panel 16), in two steps. Its face carries the save, the
@@ -248,6 +337,13 @@ it is asked for, because starting one replaces what is in play.
 - `new game button`: one button, and nothing else that can start a world by
   itself. With an estate in play it is a question in the quiet style; with
   nothing to lose, it is the coral call to action.
+
+## `src/ui/svelte/start/StartScreen.svelte`
+
+The title card (GDD 8 panel 1): the estate's name and seed, the language
+switch, the summary of a save if there is one to continue, and the tiles that
+say what the game is. The numbers on it come from the balance tables, so the
+promise on the title card cannot drift from the game behind it.
 
 ## `src/ui/svelte/start/controlsHelpState.svelte.ts`
 
