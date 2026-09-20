@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
-/** A CI runner renders in software, so every budget below is tripled there. */
-const SLOW = process.env['CI'] ? 3 : 1;
+/** A CI runner renders in software: it reaches a ripe round in minutes, not seconds. */
+const SLOW = process.env['CI'] ? 4 : 1;
 
 const URL = '/play.html?webgl&seed=42&fresh&turbo&debug';
 
@@ -212,17 +212,17 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'work-marker').first()).toHaveAttribute('data-kind', 'chop');
     await unlockTurbo(page);
     await tid(page, 'speed-50').click();
-    await expect(tid(page, 'block-phase')).toHaveText('Cleared', { timeout: 15_000 });
+    await expect(tid(page, 'block-phase')).toHaveText('Cleared', { timeout: 15_000 * SLOW });
     await expect(tid(page, 'action-PlantBlock-palm')).toBeEnabled();
     await tid(page, 'action-PlantBlock-palm').click();
     await expect(tid(page, 'block-phase')).toHaveText('Planted');
     await expect(tid(page, 'block-range')).toContainText(/in range/i);
     await expect(tid(page, 'growth-progress')).toContainText(/\d+ \/ 110 growth-days/, {
-      timeout: 10_000,
+      timeout: 10_000 * SLOW,
     });
 
     // ~540 growth-days at turbo speed, then the first ripe round.
-    await expect(tid(page, 'harvest-info')).toContainText(/ripe now/i, { timeout: 60_000 });
+    await expect(tid(page, 'harvest-info')).toContainText(/ripe now/i, { timeout: 60_000 * SLOW });
     await tid(page, 'speed-0').click();
     await expect(tid(page, 'action-HarvestBlock')).toBeEnabled();
 
@@ -244,7 +244,7 @@ test.describe('Sawit Simulator', () => {
     // The sale lands on the next tick.
     await tid(page, 'speed-1').click();
     await expect(page.getByTestId('toast').filter({ hasText: 'Sold' })).toBeVisible({
-      timeout: 5_000,
+      timeout: 5_000 * SLOW,
     });
     await tid(page, 'speed-0').click();
     expect(await tid(page, 'hud-cash').textContent()).not.toBe(cashBeforeHarvest);
@@ -509,7 +509,7 @@ test.describe('Sawit Simulator', () => {
 
     const chip = tid(page, 'event-chip-palmIsATree');
 
-    await expect(chip).toBeVisible({ timeout: 5000 });
+    await expect(chip).toBeVisible({ timeout: 5000 * SLOW });
     await expect(chip).toContainText('Palm is a tree');
     // The failure this guards against printed the lookup key itself.
     await expect(page.getByText(/events\.\w+/)).toHaveCount(0);
@@ -537,8 +537,8 @@ test.describe('Sawit Simulator', () => {
     await tid(page, 'action-UpgradeKopdes').click();
     // One throw of glints over the new roof, and then it is over: this is a
     // moment, not a state the building sits in.
-    await expect.poll(glints, { timeout: 5000 }).toBeGreaterThan(0);
-    await expect.poll(glints, { timeout: 5000 }).toBe(0);
+    await expect.poll(glints, { timeout: 5000 * SLOW }).toBeGreaterThan(0);
+    await expect.poll(glints, { timeout: 5000 * SLOW }).toBe(0);
     await expect(tid(page, 'block-panel')).toContainText('Level 2');
   });
 
@@ -673,7 +673,9 @@ test.describe('Sawit Simulator', () => {
     // Into the dry season, so a shower does not rain the burn out.
     await unlockTurbo(page);
     await tid(page, 'speed-50').click();
-    await expect(tid(page, 'hud-date')).toContainText(/Day (1[3-9]\d|2\d\d)/, { timeout: 30_000 });
+    await expect(tid(page, 'hud-date')).toContainText(/Day (1[3-9]\d|2\d\d)/, {
+      timeout: 30_000 * SLOW,
+    });
     await tid(page, 'speed-1').click();
 
     await selectWildNeighbour(page);
@@ -756,7 +758,7 @@ test.describe('Sawit Simulator', () => {
     await tid(page, 'action-ChopBlock').click();
     await unlockTurbo(page);
     await tid(page, 'speed-50').click();
-    await expect(tid(page, 'block-phase')).toHaveText('Cleared', { timeout: 20_000 });
+    await expect(tid(page, 'block-phase')).toHaveText('Cleared', { timeout: 20_000 * SLOW });
     await tid(page, 'action-PlantBlock-palm').click();
     await expect(tid(page, 'block-phase')).toHaveText('Planted');
 
@@ -777,7 +779,7 @@ test.describe('Sawit Simulator', () => {
 
     // Beetles breed in the debris if the block was not sanitized.
     await expect(tid(page, 'pest-beetles')).toContainText(/beetles:\s*[1-9]\d+\s*\//, {
-      timeout: 30_000,
+      timeout: 30_000 * SLOW,
     });
     await tid(page, 'speed-0').click();
   });
@@ -938,7 +940,7 @@ test.describe('Sawit Simulator', () => {
     expect(cashBefore - cashAfter).toBeGreaterThan(10_000_000);
     await unlockTurbo(page);
     await tid(page, 'speed-50').click();
-    await expect(tid(page, 'block-phase')).toHaveText('Cleared', { timeout: 15_000 });
+    await expect(tid(page, 'block-phase')).toHaveText('Cleared', { timeout: 15_000 * SLOW });
     await expect(page.getByTestId('toast').filter({ hasText: 'bare land' })).toBeVisible();
     expect(errors).toEqual([]);
   });
@@ -970,7 +972,7 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'news-ticker')).toBeVisible();
     await unlockTurbo(page);
     await tid(page, 'speed-50').click();
-    await expect(tid(page, 'news-ticker-latest')).toBeVisible({ timeout: 30_000 });
+    await expect(tid(page, 'news-ticker-latest')).toBeVisible({ timeout: 30_000 * SLOW });
     await tid(page, 'speed-0').click();
     await page.keyboard.press('n');
     await expect(tid(page, 'news-panel')).toBeVisible();
@@ -983,18 +985,18 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'attention-gauge')).toHaveCount(0);
     await setState(41);
     await tid(page, 'speed-1').click();
-    await expect(tid(page, 'card-letter')).toBeVisible({ timeout: 5_000 });
+    await expect(tid(page, 'card-letter')).toBeVisible({ timeout: 5_000 * SLOW });
 
     // The card stops the clock; dismissing it starts the estate again.
     const dateOnCard = await tid(page, 'hud-date').textContent();
 
     await tid(page, 'card-dismiss').click();
     await expect(tid(page, 'attention-gauge')).toBeVisible();
-    await expect(tid(page, 'hud-date')).not.toHaveText(dateOnCard!, { timeout: 5_000 });
+    await expect(tid(page, 'hud-date')).not.toHaveText(dateOnCard!, { timeout: 5_000 * SLOW });
 
     // The clock is running again after the letter, so the police arrive on their own.
     await setState(71, 500_000_000);
-    await expect(tid(page, 'card-investigation')).toBeVisible({ timeout: 10_000 });
+    await expect(tid(page, 'card-investigation')).toBeVisible({ timeout: 10_000 * SLOW });
     await expect(tid(page, 'event-chip-investigation')).toBeVisible();
     await tid(page, 'card-settle').click();
     await expect(tid(page, 'card-investigation')).toHaveCount(0);
@@ -1002,7 +1004,7 @@ test.describe('Sawit Simulator', () => {
 
     await setState(100);
     await expect(page.locator('[data-testid="epilogue"][data-ending="arrested"]')).toBeVisible({
-      timeout: 10_000,
+      timeout: 10_000 * SLOW,
     });
     await tid(page, 'epilogue-timeline-toggle').click();
     await expect(page.locator('[data-testid="epilogue-timeline"] li').first()).toBeVisible();
@@ -1031,7 +1033,7 @@ test.describe('Sawit Simulator', () => {
       state.tick = 2 * 360 - 3;
     });
     await tid(page, 'speed-1').click();
-    await expect(tid(page, 'year-end-card')).toBeVisible({ timeout: 10_000 });
+    await expect(tid(page, 'year-end-card')).toBeVisible({ timeout: 10_000 * SLOW });
     await expect(tid(page, 'year-end-card')).toContainText('Year 2 closed');
     await expect(tid(page, 'hud-ispo')).toBeVisible();
     await tid(page, 'hud-ispo').click();
@@ -1046,9 +1048,9 @@ test.describe('Sawit Simulator', () => {
       state.economy.cash = -1_000_000;
       state.run.insolventFor = 85;
     });
-    await expect(tid(page, 'event-chip-insolvent')).toBeVisible({ timeout: 5_000 });
+    await expect(tid(page, 'event-chip-insolvent')).toBeVisible({ timeout: 5_000 * SLOW });
     await expect(page.locator('[data-testid="epilogue"][data-ending="bankrupt"]')).toBeVisible({
-      timeout: 10_000,
+      timeout: 10_000 * SLOW,
     });
     await expect(tid(page, 'epilogue-keep-playing')).toHaveCount(0);
 
@@ -1076,7 +1078,7 @@ test.describe('Sawit Simulator', () => {
     // Leaving saves the estate; opening the game without a seed loads it, epilogue and all.
     await page.goto('/play.html?webgl&debug&turbo');
     await expect(page.locator('[data-testid="epilogue"][data-ending="clean"]')).toBeVisible({
-      timeout: 15_000,
+      timeout: 15_000 * SLOW,
     });
     await expect(tid(page, 'epilogue-president')).toContainText('do the country a favour');
     await tid(page, 'epilogue-keep-playing').click();

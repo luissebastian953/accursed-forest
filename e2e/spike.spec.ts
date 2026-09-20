@@ -1,5 +1,8 @@
 import { expect, test } from '@playwright/test';
 
+/** A CI runner renders in software: it reaches a ripe round in minutes, not seconds. */
+const SLOW = process.env['CI'] ? 4 : 1;
+
 test.describe('art spike', () => {
   test('boots on the WebGL fallback and draws a non-trivial scene', async ({ page }) => {
     const errors: string[] = [];
@@ -16,7 +19,7 @@ test.describe('art spike', () => {
     await expect(canvas).toBeVisible();
     await expect
       .poll(async () => canvas.evaluate((el: HTMLCanvasElement) => el.width > 0), {
-        timeout: 30_000,
+        timeout: 30_000 * SLOW,
       })
       .toBe(true);
 

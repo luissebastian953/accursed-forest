@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
-/** A CI runner renders in software, so every budget below is tripled there. */
-const SLOW = process.env['CI'] ? 3 : 1;
+/** A CI runner renders in software: it reaches a ripe round in minutes, not seconds. */
+const SLOW = process.env['CI'] ? 4 : 1;
 
 const URL = '/workbench.html?webgl';
 
@@ -24,7 +24,7 @@ async function boot(page: Page): Promise<string[]> {
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto(URL);
   await expect(page.locator('canvas')).toBeVisible();
-  await expect(tid(page, 'workbench-stats')).toBeVisible({ timeout: 20_000 });
+  await expect(tid(page, 'workbench-stats')).toBeVisible({ timeout: 20_000 * SLOW });
   return errors;
 }
 

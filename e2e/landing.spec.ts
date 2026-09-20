@@ -1,5 +1,8 @@
 import { expect, test } from '@playwright/test';
 
+/** A CI runner renders in software: it reaches a ripe round in minutes, not seconds. */
+const SLOW = process.env['CI'] ? 4 : 1;
+
 test.describe('landing page', () => {
   test('@smoke is real HTML with a title, a description and a Play link, and loads no engine', async ({
     page,
@@ -118,12 +121,12 @@ test.describe('landing page', () => {
     await page.goto('/');
     await page.getByTestId('play-link').click();
     await expect(page).toHaveURL(/play\.html/);
-    await expect(page.locator('canvas')).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator('canvas')).toBeVisible({ timeout: 30_000 * SLOW });
     await expect(page.getByTestId('boot')).toHaveCount(0);
     // The title screen sits over the estate; Start fades it and the HUD is live.
     await expect(page.getByTestId('start-screen')).toBeVisible();
     await page.getByTestId('start-game').click();
-    await expect(page.getByTestId('start-screen')).toHaveCount(0, { timeout: 5_000 });
+    await expect(page.getByTestId('start-screen')).toHaveCount(0, { timeout: 5_000 * SLOW });
     await expect(page.getByTestId('hud-date')).toContainText('Year 1');
   });
 });
