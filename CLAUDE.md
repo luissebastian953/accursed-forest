@@ -34,6 +34,10 @@ in `localStorage`. English and Indonesian.
   `src/sim/macro.ts`. An event can only do what `macroEvents.ts` declares.
 - **Every timed headline needs a chip label** in both
   `src/i18n/locales/*/events.json`; a test fails otherwise.
+- **A panel is a folder.** `src/ui/svelte/<panel>/` holds the
+  `<name>State.svelte.ts` module and the `<Name>.svelte` files it mounts.
+  `App.ts` imports the state module, never a component. `svelte/base/` is for
+  pieces with no game vocabulary, and is the only folder others import from.
 - **The world clock stops on pause.** Scene animation reads `worldMs` /
   `worldDt` in `App.ts`, not `performance.now()`. The camera and the interface
   keep wall time.

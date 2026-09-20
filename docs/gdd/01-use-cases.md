@@ -106,7 +106,7 @@ the shape rather than the file layout:
   the one thing worth knowing, which is what it can become next.
 - **No diagram per panel.** GDD 8 already describes the interface panel by
   panel, and a second drawing of the same thing would go stale on its own.
-- **No diagram per command.** All 25 have the same shape, validate then apply,
+- **No diagram per command.** All 28 have the same shape, validate then apply,
   so the shape is drawn once in GDD 1.8 and each command's own rules stay in
   prose where the numbers can live beside them.
 
@@ -224,7 +224,7 @@ flowchart TD
 
 ## GDD 1.8: a command, from press to pixels
 
-Every one of the 25 commands runs this path. It is drawn once here and never
+Every one of the 28 commands runs this path. It is drawn once here and never
 again (GDD 4.2, GDD 5).
 
 ```mermaid

@@ -15,7 +15,7 @@ flowchart TD
   over -- no --> active[rebuild the active set]
   active --> weather[weather<br/>rain, sun, the sky]
   weather --> world[worldEvents<br/>flood, drought, haze, landslides]
-  world --> terrain[terrain<br/>clearing, burning, excavation]
+  world --> terrain[terrain<br/>clearing, burning, felling, excavation]
   terrain --> growth[growth<br/>palms age and accrue yield]
   growth --> pest[pest<br/>beetles, Ganoderma]
   pest --> harvest[harvest<br/>ripe blocks, the crew]

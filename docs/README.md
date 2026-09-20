@@ -24,7 +24,7 @@ belongs.
 
 ## The section numbers in the code
 
-378 comments across `src/` cite the design document by section, from `GDD 2` to
-`GDD 10.3`. They are not decoration: they are how a reader gets from a constant
+194 comments across `src/` cite the design document by section, from `GDD 2` to
+`GDD 10.2`. They are not decoration: they are how a reader gets from a constant
 back to the rule it serves. [The GDD's index](gdd/README.md) lists every
 section the code refers to and where its text lives.

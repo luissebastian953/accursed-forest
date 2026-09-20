@@ -56,6 +56,19 @@ What each one is for:
 | `app`         | The composition root: wires all of the above       | everything         |
 | `shared`      | Maths, base64, things with no opinions             | nothing            |
 
+## Inside `ui`
+
+`src/ui/svelte/` is one folder per panel, and the folder is the unit that
+changes together: `block/`, `hud/`, `news/`, `authority/`, `shop/`,
+`endings/`, `start/`. Each holds a `<name>State.svelte.ts` module and the
+`<Name>.svelte` files it mounts.
+
+The state module is the panel's public face. `App.ts` imports it and never
+imports a `.svelte` file, so a panel's markup can be split or renamed without
+the composition root hearing about it. `svelte/base/` holds the pieces with no
+game vocabulary at all, the icon, the tooltip and the phone frame, and is the
+one folder anything may import from.
+
 ## How a turn of the crank actually goes
 
 ```mermaid
@@ -101,7 +114,7 @@ knows that any of those exist.
 ## The save
 
 The estate is one `localStorage` slot plus start-of-year snapshots for the
-rewind. `CURRENT_SCHEMA` is 17, and every bump has a migration that brings an
+rewind. `CURRENT_SCHEMA` is 18, and every bump has a migration that brings an
 older save forward, tested by loading a v1 save and playing it. See
 [ADR 0002](adr/0002-localstorage-save.md).
 

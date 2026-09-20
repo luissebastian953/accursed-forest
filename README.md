@@ -49,7 +49,7 @@ panel, the balance sweep, README) is next.
 | Per-block upgrades: irrigation, drainage; reforestation planting               | done                     |
 | Kopdes: placement, shop, upgrades, range, same-day sales; price walk           | done                     |
 | Scripted autoplayer (with a careful-player mode) and `pnpm sweep`              | done                     |
-| Chunked, validated, migratable `localStorage` saves; autosave                  | done (schema v5)         |
+| Chunked, validated, migratable `localStorage` saves; autosave                  | done (schema v18)        |
 | Column terrain via mesher worker + chunk streaming; ash and char tops          | done                     |
 | Instanced palms, Kopdes, flames, selection / range / hazard rings              | done                     |
 | Map camera, picking, keyboard, HUD (price, fire, plague), panels, shop         | done                     |
@@ -61,7 +61,7 @@ panel, the balance sweep, README) is next.
 | Panels on Svelte 5; the interface in English and Indonesian (`src/i18n`)       | done                     |
 | Far-LOD heatmap tiles, GPU per-instance animation, forest box-trees            | deferred until they bite |
 
-Tests: 336 unit (Vitest) and 16 browser (Playwright, WebGL fallback). The
+Tests: 409 unit (Vitest) and 34 browser (Playwright, WebGL fallback). The
 browser suite plays the loop end to end, lights a wildfire on purpose, and
 lets beetles loose on an unsanitized block.
 
@@ -131,13 +131,14 @@ prose (headlines, chronicle entries, a command's rejection reason) is still
 English: it is part of the sim's event data, not the UI's.
 
 The interface follows the cartoon UI kit: cream cards with a hard bottom
-edge, inset pills, Baloo 2 (self-hosted), and the 35 flat icons in
+edge, inset pills, Baloo 2 (self-hosted), and the 39 flat icons in
 `public/icons`. The tokens and the handful of component classes live in
-`src/ui/styles.css`. Panels are Svelte 5 components in `src/ui/svelte/`: each
-`<Name>.svelte` has a `<name>State.svelte.ts` module beside it exporting a
-class with the constructor and `show`/`hide`/`update` surface `App.ts` always
-drove, so the composition root never learned Svelte, and the world stays a
-plain three.js canvas. Panels that read the sim derive a plain snapshot from it
+`src/ui/styles.css`. Panels are Svelte 5 components in `src/ui/svelte/`, one
+folder per panel: each `<Name>.svelte` has a `<name>State.svelte.ts` module
+beside it exporting a class with the constructor and `show`/`hide`/`update`
+surface `App.ts` always drove, so the composition root never learned Svelte,
+and the world stays a plain three.js canvas. `svelte/base/` holds the pieces
+with no game vocabulary at all: the icon, the tooltip, the phone frame. Panels that read the sim derive a plain snapshot from it
 on every `refresh()`; the sim itself is never made reactive.
 
 Mobs walk the estate: wild boar, pigs, mice, cows, a capybara by the river,
