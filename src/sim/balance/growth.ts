@@ -68,8 +68,6 @@ export const FERTILIZER_DAYS = 90;
  */
 export const FOREST_GROWTH = {
   saplingDays: 40,
-  /** Half a year in: a young tree. Declared for the ladder; nothing reads it yet. */
-  youngDays: 180,
   matureDays: 360,
   /** Forest cover weight by stage (GDD 3.10: young counts half). */
   youngCoverWeight: 0.5,
