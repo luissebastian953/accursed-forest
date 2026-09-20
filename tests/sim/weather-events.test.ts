@@ -546,6 +546,48 @@ describe('landslides (GDD 3.6.2)', () => {
     expect([...workedBlocks(sim.state)]).not.toContain(high!.id);
   });
 
+  it('a slid hectare takes no crew and no match until it is dug out', () => {
+    const sim = createSim(1);
+    const { state } = sim;
+    const wild = [...state.blocks.values()].find(
+      (b) =>
+        b.owned &&
+        b.phase === 'wild' &&
+        BIOMES[b.biome].clearable &&
+        BIOMES[b.biome].chopDebris > 0,
+    );
+
+    expect(wild).toBeDefined();
+    state.economy.cash = 1_000_000_000;
+    // Clean land takes both orders.
+    expect(sim.validate({ type: 'ChopBlock', block: wild!.id })).toBeNull();
+    expect(sim.validate({ type: 'BurnBlock', block: wild!.id, intensity: 1 })).toBeNull();
+
+    slide(state, sim.world, new EventSink(), wild!.id);
+    expect(state.blocks.get(wild!.id)!.landslideAt).toBeGreaterThanOrEqual(0);
+
+    // Under spoil, neither: the slide comes off the hectare first.
+    expect(sim.validate({ type: 'ChopBlock', block: wild!.id })).toMatchObject({
+      code: 'wrongPhase',
+      reason: 'Dig the slide out before clearing this block.',
+    });
+    expect(sim.validate({ type: 'BurnBlock', block: wild!.id, intensity: 1 })).toMatchObject({
+      code: 'wrongPhase',
+      reason: 'Dig the slide out before burning this block.',
+    });
+
+    sim.dispatch({ type: 'PlaceKopdes', block: state.worldGen.kopdesBlock });
+    expect(sim.dispatch({ type: 'BuyItem', item: 'excavationCrew', quantity: 1 })).toEqual({
+      ok: true,
+    });
+    expect(sim.dispatch({ type: 'ExcavateBlock', block: wild!.id })).toEqual({ ok: true });
+    for (let day = 0; day <= EXCAVATION.days; day++) sim.tick();
+    expect(state.blocks.get(wild!.id)!.landslideAt).toBe(-1);
+
+    // Dug out, the block is workable again.
+    expect(sim.validate({ type: 'ChopBlock', block: wild!.id })).toBeNull();
+  });
+
   it(
     'a wet year on a bare hillside costs you a block; a forested one usually does not (M1e done-criterion)',
     { timeout: 20_000 },

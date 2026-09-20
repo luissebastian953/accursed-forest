@@ -50,6 +50,11 @@ export const chopBlock: CommandHandler<ChopBlock> = {
     if (block.burning) return reject('burning', 'This block is on fire.');
     if (block.phase !== 'wild') return reject('wrongPhase', 'Only wild land can be chopped.');
 
+    // A crew cannot work a hectare under spoil: the slide comes off first.
+    if (block.landslideAt >= 0) {
+      return reject('wrongPhase', 'Dig the slide out before clearing this block.');
+    }
+
     if (!BIOMES[block.biome].clearable) {
       return reject('wrongPhase', 'This land cannot be cleared.');
     }
