@@ -74,22 +74,22 @@ graph LR
 The dotted arrows are the point of the game: the quick way to clear is the way
 that draws attention, and the slow way is the way that certifies.
 
-| Use case              | The planter's goal                               | Refused when                                            | Rules            |
-| --------------------- | ------------------------------------------------ | ------------------------------------------------------- | ---------------- |
-| Take land             | Own the block next door                          | Not for sale, not adjacent, not affordable              | GDD 3.1.1        |
-| Clear a hectare       | Turn wild land into plantable ground             | Under investigation, already burning, protected forest  | GDD 3.1.1        |
-| Plant palms           | Fill 144 slots with bibit                        | Ground not cleared, no stock, spoil from a slide        | GDD 3.2          |
-| Put forest back       | Buy and plant saplings in one press              | No Kopdes in range and nothing in stock                 | GDD 3.10         |
-| Tend the crop         | Keep palms alive and bearing                     | No stock of the kit, nothing wrong yet                  | GDD 3.4, GDD 3.5 |
-| Harvest and sell      | Turn fruit into cash the same day                | Not ripe, out of Kopdes range, the crew has it on auto  | GDD 3.3          |
-| Build and upgrade     | Reach further and unlock the payroll and clock   | Not cleared, not affordable                             | GDD 3.3          |
-| Burn to clear         | Clear almost free, almost at once                | Rain, a wildfire already running, a standing suspension | GDD 3.6.1        |
-| Clear a plantation    | Undo a wrong turn and get bare land back         | Nothing standing, a crew already on it, not affordable  | GDD 3.1.1        |
-| Pay the matter away   | Make a case and a suspension go away             | The district office is honest that year                 | GDD 3.9          |
-| Answer for the estate | Survive the letter, the case, the suspension     | Not a command: it happens to the estate                 | GDD 3.9          |
-| Close the year        | Bank the year and read the card                  | Not a command: the clock does it                        | GDD 3.8          |
-| Seek certification    | Meet five conditions and be read by the Ministry | Before year 3 the checklist is not even shown           | GDD 3.8          |
-| End the run           | Reach one of the eight endings                   | Not a command, except carrying on in sandbox            | GDD 3.8          |
+| Use case              | The planter's goal                               | Refused when                                           | Rules            |
+| --------------------- | ------------------------------------------------ | ------------------------------------------------------ | ---------------- |
+| Take land             | Own the block next door                          | Not for sale, not adjacent, not affordable             | GDD 3.1.1        |
+| Clear a hectare       | Turn wild land into plantable ground             | Under investigation, already burning, protected forest | GDD 3.1.1        |
+| Plant palms           | Fill 144 slots with bibit                        | Ground not cleared, no stock, spoil from a slide       | GDD 3.2          |
+| Put forest back       | Buy and plant saplings in one press              | No Kopdes in range and nothing in stock                | GDD 3.10         |
+| Tend the crop         | Keep palms alive and bearing                     | No stock of the kit, nothing wrong yet                 | GDD 3.4, GDD 3.5 |
+| Harvest and sell      | Turn fruit into cash the same day                | Not ripe, out of Kopdes range, the crew has it on auto | GDD 3.3          |
+| Build and upgrade     | Reach further and unlock the payroll and clock   | Not cleared, not affordable                            | GDD 3.3          |
+| Burn to clear         | Clear almost free, almost at once                | Nothing to burn, a case, a suspension, no crew money   | GDD 3.6.1        |
+| Clear a plantation    | Undo a wrong turn and get bare land back         | Nothing standing, a crew already on it, not affordable | GDD 3.1.1        |
+| Pay the matter away   | Make a case and a suspension go away             | The district office is honest that year                | GDD 3.9          |
+| Answer for the estate | Survive the letter, the case, the suspension     | Not a command: it happens to the estate                | GDD 3.9          |
+| Close the year        | Bank the year and read the card                  | Not a command: the clock does it                       | GDD 3.8          |
+| Seek certification    | Meet five conditions and be read by the Ministry | Before year 3 the checklist is not even shown          | GDD 3.8          |
+| End the run           | Reach one of the eight endings                   | Not a command, except carrying on in sandbox           | GDD 3.8          |
 
 ## GDD 1.3: how these diagrams are cut
 

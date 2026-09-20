@@ -65,15 +65,29 @@ in `localStorage`. English and Indonesian.
 
 ## Verifying
 
+**Every change runs the unit suite and the smoke suite before it is
+committed.** Not only features: a chore, a fix, a CI tweak, a documentation
+pass, a comment. A docs commit has broken the build here before, and the two
+suites together take about three minutes.
+
+```
+npx vitest run                      # the unit suite, every change
+npx playwright test --grep @smoke   # the smoke suite, every change
+```
+
 Before a commit, all of:
 
 ```
 npx eslint src tests e2e
-npx tsc --noEmit
+npx tsc --noEmit && npx tsc -p tsconfig.node.json --noEmit
 npx svelte-check --threshold error
 npx vitest run
-npx playwright test --workers=1
+npx playwright test --grep @smoke --workers=1
 ```
+
+The whole browser suite (`npx playwright test --workers=1`, about five
+minutes) goes with anything that touches the interface, the renderer or the
+loop, and runs nightly in CI regardless.
 
 The e2e suite runs against the production preview on `:4173`, so `/src/*`
 imports fail there; reach the running game through `window.__sawit`

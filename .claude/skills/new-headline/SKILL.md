@@ -36,3 +36,12 @@ through `src/sim/macro.ts`. That is the contract; keep it.
 The register matters. Ministers are fair game; the ecological consequences
 (`hazeSeason`, `animalsGone`, `onTheBrink`, `burnedCarcasses`) are written
 flat, and the contrast is the point.
+
+## Before you commit
+
+The unit suite and the smoke suite run on every change, this one included:
+
+```
+npx vitest run
+npx playwright test --grep @smoke --workers=1
+```

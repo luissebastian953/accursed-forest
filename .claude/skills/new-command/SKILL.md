@@ -36,3 +36,12 @@ breaks quietly.
 
 `src/sim/commands/reforestBlock.ts` is a complete recent example: it reuses
 another handler's `validate`, buys what is short, and plants.
+
+## Before you commit
+
+The unit suite and the smoke suite run on every change, this one included:
+
+```
+npx vitest run
+npx playwright test --grep @smoke --workers=1
+```

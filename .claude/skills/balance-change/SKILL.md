@@ -26,7 +26,16 @@ how the claim is checked.
 6. **Commit as `feat(sim):` or `fix(sim):`.** `balance` is a scope, not a
    type. Say in the body what the sweep showed, with the numbers.
 
-## Where things are
+## Before you commit
+
+The unit suite and the smoke suite run on every change, this one included:
+
+```
+npx vitest run
+npx playwright test --grep @smoke --workers=1
+```
+
+## Where the numbers live
 
 | Number                                   | File                             |
 | ---------------------------------------- | -------------------------------- |
