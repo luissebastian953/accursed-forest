@@ -63,13 +63,12 @@ export const HARVEST_ROTATION_DAYS = 5;
 export const FERTILIZER_DAYS = 90;
 
 /**
- * Reforestation: the palms' growth machinery with its own thresholds, about eight years to
- * mature forest (GDD 3.10). Saplings take hold fast, so the ground greens within a season.
+ * Reforestation: the palms' growth machinery with its own thresholds, about a year to mature
+ * forest (GDD 3.10). Putting land back has to pay inside a run, or nobody does it.
  */
 export const FOREST_GROWTH = {
   saplingDays: 40,
-  youngDays: 860,
-  matureDays: 1720,
+  matureDays: 360,
   /** Forest cover weight by stage (GDD 3.10: young counts half). */
   youngCoverWeight: 0.5,
   matureCoverWeight: 1,

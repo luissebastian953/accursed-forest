@@ -375,7 +375,7 @@ describe('forest cover (GDD 3.6.2)', () => {
     const own = (): number => forestCoverAround(sim.state, sim.world, block, 0);
 
     expect(own()).toBe(0);
-    sim.state.palms.get(block)!.growth.fill(400);
+    sim.state.palms.get(block)!.growth.fill(200);
     expect(own()).toBeCloseTo(0.5, 6);
     sim.state.palms.get(block)!.growth.fill(5000);
     expect(own()).toBeCloseTo(1, 6);

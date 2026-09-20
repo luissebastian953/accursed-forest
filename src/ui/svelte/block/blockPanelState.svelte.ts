@@ -145,6 +145,8 @@ export interface BlockView {
    * and why the button is dead when it is.
    */
   settle: { cost: number; enabled: boolean; note: string } | null;
+  /** A crew has the block: the panel reports, and nothing on it can be pressed. */
+  busy: boolean;
   /**
    * The one thing on a planted block that cannot be taken back (GDD 8 panel
    * 13a): felling the lot, priced and named to read as a loss, not a form.
@@ -954,6 +956,11 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     land,
     settle: settleView(state, block.phase),
     danger: block.burning ? null : dangerView(sim, id),
+    busy:
+      block.phase === 'clearing' ||
+      block.burning ||
+      block.fellingUntil > state.tick ||
+      block.excavateUntil > state.tick,
     autoHarvest:
       kopdes &&
       (block.phase === 'kopdes' || (block.phase === 'planted' && block.species === 'palm'))
