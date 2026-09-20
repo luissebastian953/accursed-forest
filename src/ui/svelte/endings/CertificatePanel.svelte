@@ -79,6 +79,7 @@
 </script>
 
 {#if view}
+  {@const forest = view.reforest}
   <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
   <div
     class="absolute inset-0 z-30 flex items-center justify-center bg-[rgba(74,51,32,0.45)] p-4"
@@ -86,15 +87,28 @@
     onclick={(e) => e.target === e.currentTarget && panel.handlers.close()}
   >
     <div class="card w-full max-w-lg overflow-hidden !p-0" data-testid="certificate-panel">
-      <!-- The band: what this is, and how to be rid of it. -->
-      <div class="flex items-start gap-3 bg-[linear-gradient(180deg,#ffe9a8,#f6d572)] p-4">
-        <span class="pill flex h-11 w-11 shrink-0 items-center justify-center !bg-[#fffaea]">
-          <Icon name="certificate-ispo" class="!h-6 !w-6" />
+      <!-- The band: what this is, and how to be rid of it. The forest win has
+           its own colours, because it is not the Ministry's paperwork. -->
+      <div
+        class="flex items-start gap-3 p-4 {forest
+          ? 'bg-[linear-gradient(180deg,#bfe9b4,#8ed389)]'
+          : 'bg-[linear-gradient(180deg,#ffe9a8,#f6d572)]'}"
+        data-testid="certificate-band"
+        data-win={forest ?? 'ispo'}
+      >
+        <span class="pill flex h-11 w-11 shrink-0 items-center justify-center !bg-[#f7fdf3]">
+          <Icon name={forest ? 'reboisasi' : 'certificate-ispo'} class="!h-6 !w-6" />
         </span>
         <div class="min-w-0 flex-1">
-          <div class="label !text-[0.6rem] !text-[#9a7a26]">{t('certificate.kicker')}</div>
-          <div class="text-lg font-extrabold leading-tight">{t('certificate.title')}</div>
-          <p class="mt-0.5 text-xs leading-snug text-[#6b5526]">{t('certificate.intro')}</p>
+          <div class="label !text-[0.6rem] {forest ? '!text-[#3f7a35]' : '!text-[#9a7a26]'}">
+            {forest ? t('certificate.forestKicker') : t('certificate.kicker')}
+          </div>
+          <div class="text-lg font-extrabold leading-tight">
+            {forest ? t(`certificate.${forest}Title`) : t('certificate.title')}
+          </div>
+          <p class="mt-0.5 text-xs leading-snug {forest ? 'text-[#2f5c28]' : 'text-[#6b5526]'}">
+            {forest ? t(`certificate.${forest}Intro`) : t('certificate.intro')}
+          </p>
         </div>
         <button
           class="btn btn-close shrink-0"

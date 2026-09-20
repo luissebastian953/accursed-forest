@@ -10,6 +10,10 @@ export type IconName =
   | 'biome-scrub'
   | 'calendar'
   | 'certificate-ispo'
+  | 'chevron-down'
+  | 'chevron-left'
+  | 'chevron-right'
+  | 'chevron-up'
   | 'close-x'
   | 'coin'
   | 'eye-attention'
@@ -25,6 +29,7 @@ export type IconName =
   | 'play'
   | 'police-warning'
   | 'rain'
+  | 'reboisasi'
   | 'shop-bibit'
   | 'shop-excavator'
   | 'shop-fertilizer'
@@ -37,6 +42,10 @@ export type IconName =
   | 'speaker-on'
   | 'sun'
   | 'tbs-fruit'
+  | 'triangle-down'
+  | 'triangle-left'
+  | 'triangle-right'
+  | 'triangle-up'
   | 'water-irrigate';
 
 export function iconUrl(name: IconName): string {

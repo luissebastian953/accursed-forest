@@ -12,6 +12,8 @@ export interface CertificateHandlers {
 
 export interface CertificateView {
   conditions: readonly IspoCondition[];
+  /** The forest win already standing, which dresses the band (GDD 3.10). */
+  reforest: 'reboisasi' | 'redemption' | null;
   /** Days until the Ministry next looks, which is the next year's close. */
   daysToCheck: number;
   /** Day of the run, for naming the check. */

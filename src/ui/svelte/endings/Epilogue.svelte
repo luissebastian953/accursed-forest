@@ -308,8 +308,9 @@
                 yearWord: years === 1 ? t('epilogue.yearOne') : t('epilogue.yearMany'),
               })}
             </span>
-            <span class="ml-auto text-sm font-extrabold opacity-70">
+            <span class="ml-auto flex items-center gap-1 text-sm font-extrabold opacity-70">
               {ui.timelineOpen ? t('epilogue.hide') : t('epilogue.show')}
+              <Icon name={ui.timelineOpen ? 'chevron-up' : 'chevron-down'} class="!h-4 !w-4" />
             </span>
           </button>
           {#if ui.timelineOpen}

@@ -169,7 +169,12 @@
           <div class="flex items-baseline justify-between">
             <div class="font-extrabold">{t('shop.tbsToday')}</div>
             <div class="num" data-testid="shop-price">
-              {t('shop.perKg', { price: formatRp(v.price) })} <span class="muted">{v.trend}</span>
+              {t('shop.perKg', { price: formatRp(v.price) })}
+              {#if v.trend === 'flat'}
+                <span class="muted">=</span>
+              {:else}
+                <Icon name={v.trend === 'up' ? 'triangle-up' : 'triangle-down'} class="!h-4 !w-4" />
+              {/if}
             </div>
           </div>
           <div class="muted mt-1 text-xs">

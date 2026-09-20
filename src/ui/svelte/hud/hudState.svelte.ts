@@ -52,6 +52,8 @@ export interface HudView {
   ispoMet: number | null;
   /** How many there are to meet, so the pips are not a magic number. */
   ispoTotal: number;
+  /** The forest win is already won, and waiting for the year to close (GDD 3.10). */
+  reforest: 'reboisasi' | 'redemption' | null;
 }
 
 export interface HudHandlers {

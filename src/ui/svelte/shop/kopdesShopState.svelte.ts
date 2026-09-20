@@ -76,7 +76,7 @@ export interface ShopView {
   })[];
   autoHarvest: Offer & { on: boolean };
   price: number;
-  trend: '▲' | '▼' | '▬';
+  trend: 'up' | 'down' | 'flat';
   soldKgTotal: number;
   sales: { tick: number; note: string; amount: number }[];
   upgrade: Offer & { cost: number | null; from: number; to: number; range: number };
@@ -136,7 +136,7 @@ export function shopView(sim: Sim): ShopView {
       ...offer({ type: 'SetAutoHarvest', on: !(kopdes?.autoHarvest ?? false) }),
     },
     price: e.tbsPrice,
-    trend: e.tbsPrice > earlier * 1.01 ? '▲' : e.tbsPrice < earlier * 0.99 ? '▼' : '▬',
+    trend: e.tbsPrice > earlier * 1.01 ? 'up' : e.tbsPrice < earlier * 0.99 ? 'down' : 'flat',
     soldKgTotal: e.soldKgTotal,
     sales: e.ledger
       .filter((entry) => entry.kind === 'sale')

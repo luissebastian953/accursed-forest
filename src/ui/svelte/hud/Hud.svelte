@@ -155,7 +155,11 @@
   {#if v}
     {#snippet priceBody()}
       {formatRp(v.tbsPrice)}<span class="text-sm">/kg</span>
-      <span class={trendClass}>{v.tbsTrend > 0 ? '▲' : v.tbsTrend < 0 ? '▼' : '▬'}</span>
+      {#if v.tbsTrend === 0}
+        <span class={trendClass}>=</span>
+      {:else}
+        <Icon name={v.tbsTrend > 0 ? 'triangle-up' : 'triangle-down'} class="!h-4 !w-4" />
+      {/if}
     {/snippet}
     {#snippet forestBody()}
       <span class={cover < 25 ? 'text-[#b85e12]' : ''}>{cover}%</span>
@@ -306,7 +310,31 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-          {#if v.ispoMet !== null}
+          {#if v.reforest}
+            <!--
+              The forest win is already won and waits for the year to close, so
+              the certificate's ladder gives way to it (GDD 3.10).
+            -->
+            {@const kind = v.reforest}
+            <button
+              class="btn btn-green reforest"
+              title={t('hud.reforestNote')}
+              data-testid="hud-reforest"
+              data-state={kind}
+              onclick={() => hud.handlers.openCertificate()}
+            >
+              <span class="reforest-tile">
+                <Icon name="reboisasi" />
+              </span>
+              <span class="flex flex-col items-start leading-tight">
+                <span class="label !text-[0.58rem] !text-white/80">
+                  {t(`hud.${kind}Kicker`)}
+                </span>
+                <span class="text-sm font-extrabold">{t(`hud.${kind}Lead`)}</span>
+              </span>
+              <i class="ispo-dot reforest-dot"></i>
+            </button>
+          {:else if v.ispoMet !== null}
             <!-- Three states: nothing met is neutral, some met is gold, all met is green and waits. -->
             {@const all = v.ispoMet >= v.ispoTotal}
             <button
@@ -383,6 +411,13 @@
             {/if}
           </div>
         </div>
+
+        {#if v.reforest}
+          <!-- Under the pill, on the card's own cream: the win is already standing. -->
+          <div class="muted w-full px-1 text-sm font-extrabold" data-testid="reforest-note">
+            {t('hud.reforestNote')}
+          </div>
+        {/if}
       </div>
     </div>
 

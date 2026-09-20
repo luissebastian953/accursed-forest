@@ -60,7 +60,14 @@ import { createSim, restoreSim, seedFromEstateCode, type Sim } from '@sim/index'
 import { blockLabel } from '@sim/labels';
 import { estateForestCover } from '@sim/landscape';
 import { runOver } from '@sim/run';
-import { creditLine, ispoConditions, matureHectares, ISPO_CONDITIONS } from '@sim/systems/endings';
+import {
+  creditLine,
+  ispoConditions,
+  matureHectares,
+  reboisasiReached,
+  redemptionReached,
+  ISPO_CONDITIONS,
+} from '@sim/systems/endings';
 import { workedBlocks } from '@sim/systems/mobs';
 import { ganodermaCounts } from '@sim/systems/pest';
 import type { BlockId, Command } from '@sim/types';
@@ -393,6 +400,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
         certificate.show({
           conditions: ispoConditions(sim.state, sim.world),
+          reforest: forestWinNow(),
           daysToCheck: GROWTH.daysPerYear - dayOfYear,
           checkDay: sim.state.tick + (GROWTH.daysPerYear - dayOfYear),
         });
@@ -924,6 +932,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       ispoMet:
         sim.state.tick >= (ISPO.progressFromYear - 1) * GROWTH.daysPerYear ? ispoMetNow() : null,
       ispoTotal: ISPO_CONDITIONS,
+      reforest: forestWinNow(),
     });
   }
 
@@ -1121,6 +1130,18 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
    * Cached for the day because it walks every block; a successful command clears it.
    */
   let ispoCount: { tick: number; met: number } | null = null;
+
+  /**
+   * The forest endings are read at the year close, so once either test passes
+   * the run is already won and the bar says so (GDD 3.8, GDD 3.10).
+   */
+  function forestWinNow(): 'reboisasi' | 'redemption' | null {
+    if (sim.state.run.ending) return null;
+    if (sim.state.tick < (ISPO.progressFromYear - 1) * GROWTH.daysPerYear) return null;
+    if (redemptionReached(sim.state)) return 'redemption';
+
+    return reboisasiReached(sim.state) ? 'reboisasi' : null;
+  }
 
   function ispoMetNow(): number {
     if (ispoCount === null || ispoCount.tick !== sim.state.tick) {

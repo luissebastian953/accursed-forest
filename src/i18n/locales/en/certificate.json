@@ -25,5 +25,10 @@
   "met": "Met",
   "inProgress": "In progress",
   "daysLeft": "{days} days left",
-  "back": "Back to the estate"
+  "back": "Back to the estate",
+  "forestKicker": "The win already standing",
+  "reboisasiTitle": "Reforestation",
+  "reboisasiIntro": "More land is back under forest than under palms. The run ends at the close of this year, and the certificate below is no longer the point.",
+  "redemptionTitle": "Reforestation, Redemption",
+  "redemptionIntro": "You burned this ground, then put every hectare of it back and never took a crop off it. The run ends at the close of this year."
 }

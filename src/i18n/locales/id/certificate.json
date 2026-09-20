@@ -25,5 +25,10 @@
   "met": "Terpenuhi",
   "inProgress": "Berjalan",
   "daysLeft": "sisa {days} hari",
-  "back": "Kembali ke kebun"
+  "back": "Kembali ke kebun",
+  "forestKicker": "Kemenangan yang sudah berdiri",
+  "reboisasiTitle": "Reboisasi",
+  "reboisasiIntro": "Lebih banyak lahan kembali berhutan daripada yang ditanami sawit. Permainan berakhir di tutup tahun ini, dan sertifikat di bawah bukan lagi intinya.",
+  "redemptionTitle": "Reboisasi, Penebusan",
+  "redemptionIntro": "Kamu membakar tanah ini, lalu mengembalikan setiap hektarnya dan tidak pernah memanen darinya. Permainan berakhir di tutup tahun ini."
 }
