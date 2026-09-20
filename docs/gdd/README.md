@@ -12,6 +12,7 @@ the rule and every line of code that serves it.
 
 | Section           | Subject                                                           | File                                     |
 | ----------------- | ----------------------------------------------------------------- | ---------------------------------------- |
+| 1.1 to GDD 1.10   | The game in use: actors, use cases, the flows, a block's life     | [01-use-cases.md](01-use-cases.md)       |
 | 2                 | The estate: a block is one hectare, 12 by 12, 144 palms           | [02-estate.md](02-estate.md)             |
 | 3.1, 3.1.1        | Clearing: chopping, the crew, the timber                          | [03-systems.md](03-systems.md)           |
 | 3.2               | Planting palms and forest                                         | [03-systems.md](03-systems.md)           |
