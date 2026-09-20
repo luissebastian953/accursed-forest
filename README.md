@@ -111,6 +111,35 @@ fails the build. After deploying: verify the domain in Search Console, submit
 `https://<origin>/sitemap.xml` under Sitemaps, and request indexing for `/` and
 `/id/` with URL Inspection (Google retired sitemap pings in 2023).
 
+## Deploying
+
+The build is a folder of static files, so any host that serves `dist/` will do.
+It ships on [EdgeOne Pages](https://pages.edgeone.ai/) (Tencent's edge hosting),
+built from `master`:
+
+| Setting        | Value                                                  |
+| -------------- | ------------------------------------------------------ |
+| Root directory | `./`                                                   |
+| Install        | `pnpm install --frozen-lockfile`                       |
+| Build          | `pnpm build` (typechecks, then `vite build`)           |
+| Output         | `dist`                                                 |
+| Node           | 22 or newer, with pnpm from the `packageManager` field |
+| Acceleration   | a global zone, which is what avoids ICP filing         |
+
+Set `VITE_SITE_URL` to the origin the site actually answers on, and nothing
+else is required. Two things to leave alone: `VITE_BASE`, which stays empty
+because the site is served from a domain root, and SPA fallback, which must
+stay **off**, since this is four real pages (`/`, `/id/`, `/play.html`,
+`/workbench.html`) and a catch-all rewrite would hide genuine 404s.
+
+Cache the hashed assets under `/assets/` for a year as immutable, and keep the
+HTML, `robots.txt` and `sitemap.xml` short-lived so a deploy is visible at once.
+
+Deploying from CI instead of the host's own git build is what ties a release to
+a green suite: `npx edgeone pages deploy dist -n <project> -t $EDGEONE_API_TOKEN`
+after `verify` passes. The host's git build ships whatever compiles, tests or no
+tests.
+
 The landing page exists in English (`/`) and Indonesian (`/id/`), cross-linked
 with `hreflang` (also in the sitemap), each with scenario sections (forest
 fire / kebakaran hutan, deforestation / penebangan hutan, reboisasi, petani

@@ -22,6 +22,10 @@ empty the game builds and runs, and ships no third-party script.
   "HTML tag" method, which is the content value of the
   `<meta name="google-site-verification">` tag it hands out. It is added to both
   landing pages. Leave it empty when ownership is verified by DNS instead.
+- `VITE_BASE`: where the site is mounted. Empty is a domain root, which is what
+  EdgeOne Pages and any real host give you. A project host such as GitHub Pages
+  serves under `/<repo>/`, and the value is that path segment; the build then
+  fixes its own hand-written links to `/play.html` and `/id/`.
 - `VITE_OBFUSCATE` and `VITE_SOURCEMAP`: production builds obfuscate the game's
   own chunks and ship no source maps. `VITE_OBFUSCATE=0` gives a readable build
   and `VITE_SOURCEMAP=1` emits maps. Both are for debugging a deployed build,
