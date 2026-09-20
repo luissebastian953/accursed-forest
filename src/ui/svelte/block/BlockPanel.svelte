@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { t } from '../../i18n/index.ts';
-  import { formatKg, formatRp } from '../format.ts';
+  import { t } from '../../../i18n/index.ts';
+  import { formatKg, formatRp } from '../../format.ts';
+  import Icon from '../base/Icon.svelte';
 
   import AutoHarvestToggle from './AutoHarvestToggle.svelte';
   import { blockView, type ActionView, type BlockPanel } from './blockPanelState.svelte.ts';
-  import Icon from './Icon.svelte';
 
   interface Props {
     panel: BlockPanel;

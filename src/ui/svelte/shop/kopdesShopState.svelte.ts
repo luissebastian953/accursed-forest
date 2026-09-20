@@ -7,7 +7,7 @@ import type { Sim } from '@sim/index';
 import { kopdesRange } from '@sim/kopdes';
 import type { Command, DispatchResult, ItemId } from '@sim/types';
 
-import type { IconName } from '../icons.ts';
+import type { IconName } from '../../icons.ts';
 
 import KopdesShopView from './KopdesShop.svelte';
 

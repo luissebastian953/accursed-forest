@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { t } from '../../i18n/index.ts';
+  import { t } from '../../../i18n/index.ts';
 
   import { TONE, dismissToast, toastState } from './toastsState.svelte.ts';
 

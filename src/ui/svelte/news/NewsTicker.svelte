@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { t } from '../../i18n/index.ts';
-  import { LANE_TONE } from '../newsLane.ts';
+  import { t } from '../../../i18n/index.ts';
+  import { LANE_TONE } from '../../newsLane.ts';
+  import Icon from '../base/Icon.svelte';
 
-  import Icon from './Icon.svelte';
   import { tickerState, type TickerHandlers } from './newsTickerState.svelte.ts';
 
   interface Props {

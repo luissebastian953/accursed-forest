@@ -65,24 +65,24 @@ import { workedBlocks } from '@sim/systems/mobs';
 import { ganodermaCounts } from '@sim/systems/pest';
 import type { BlockId, Command } from '@sim/types';
 import { formatKg, formatRp } from '@ui/format';
-import { AuthorityCards, type CardKind } from '@ui/svelte/authorityCardsState.svelte.ts';
-import { BlockPanel } from '@ui/svelte/blockPanelState.svelte.ts';
-import { CertificatePanel, YearEndCard } from '@ui/svelte/certificateState.svelte.ts';
-import { ControlsHelp } from '@ui/svelte/controlsHelpState.svelte.ts';
-import { Epilogue } from '@ui/svelte/epilogueState.svelte.ts';
-import { HudMarkers, type HudMarker } from '@ui/svelte/hudMarkersState.svelte.ts';
-import { Hud, type EventChip } from '@ui/svelte/hudState.svelte.ts';
-import { KopdesShop } from '@ui/svelte/kopdesShopState.svelte.ts';
-import { Menu } from '@ui/svelte/menuState.svelte.ts';
-import { NewsPanel } from '@ui/svelte/newsPanelState.svelte.ts';
-import { NewsTicker } from '@ui/svelte/newsTickerState.svelte.ts';
+import { AuthorityCards, type CardKind } from '@ui/svelte/authority/authorityCardsState.svelte.ts';
+import { BlockPanel } from '@ui/svelte/block/blockPanelState.svelte.ts';
+import { CertificatePanel, YearEndCard } from '@ui/svelte/endings/certificateState.svelte.ts';
+import { Epilogue } from '@ui/svelte/endings/epilogueState.svelte.ts';
+import { HudMarkers, type HudMarker } from '@ui/svelte/hud/hudMarkersState.svelte.ts';
+import { Hud, type EventChip } from '@ui/svelte/hud/hudState.svelte.ts';
+import { Toasts } from '@ui/svelte/hud/toastsState.svelte.ts';
+import { WorkMarkers, type WorkMarker } from '@ui/svelte/hud/workMarkersState.svelte.ts';
+import { NewsPanel } from '@ui/svelte/news/newsPanelState.svelte.ts';
+import { NewsTicker } from '@ui/svelte/news/newsTickerState.svelte.ts';
+import { KopdesShop } from '@ui/svelte/shop/kopdesShopState.svelte.ts';
+import { ControlsHelp } from '@ui/svelte/start/controlsHelpState.svelte.ts';
+import { Menu } from '@ui/svelte/start/menuState.svelte.ts';
 import {
   START_FADE_MS,
   StartScreen,
   type SaveSummary,
-} from '@ui/svelte/startScreenState.svelte.ts';
-import { Toasts } from '@ui/svelte/toastsState.svelte.ts';
-import { WorkMarkers, type WorkMarker } from '@ui/svelte/workMarkersState.svelte.ts';
+} from '@ui/svelte/start/startScreenState.svelte.ts';
 
 import { t } from '../i18n/index.ts';
 

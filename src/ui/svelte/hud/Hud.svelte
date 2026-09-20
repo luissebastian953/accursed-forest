@@ -4,13 +4,13 @@
   import { FIRE_LOCK_SPEED, SPEEDS, speedNeedsKopdes, TURBO_KOPDES_LEVEL } from '@app/timeControl';
   import type { ClimateRegime, SkyCondition } from '@sim/types';
 
-  import { t } from '../../i18n/index.ts';
-  import { formatDate, formatRp } from '../format.ts';
-  import type { IconName } from '../icons.ts';
+  import { t } from '../../../i18n/index.ts';
+  import { formatDate, formatRp } from '../../format.ts';
+  import type { IconName } from '../../icons.ts';
+  import Icon from '../base/Icon.svelte';
+  import Tooltip from '../base/Tooltip.svelte';
 
   import type { EventChip, Hud } from './hudState.svelte.ts';
-  import Icon from './Icon.svelte';
-  import Tooltip from './Tooltip.svelte';
 
   interface Props {
     hud: Hud;

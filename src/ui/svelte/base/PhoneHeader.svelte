@@ -2,8 +2,8 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
 
-  import { t } from '../../i18n/index.ts';
-  import type { IconName } from '../icons.ts';
+  import { t } from '../../../i18n/index.ts';
+  import type { IconName } from '../../icons.ts';
 
   import Icon from './Icon.svelte';
 

@@ -2,8 +2,8 @@
 <script lang="ts">
   import { HARVEST } from '@sim/balance/prices';
 
-  import { t } from '../../i18n/index.ts';
-  import { formatRp } from '../format.ts';
+  import { t } from '../../../i18n/index.ts';
+  import { formatRp } from '../../format.ts';
 
   interface Props {
     on: boolean;

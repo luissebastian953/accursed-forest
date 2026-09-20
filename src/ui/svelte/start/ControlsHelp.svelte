@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { t } from '../../i18n/index.ts';
+  import { t } from '../../../i18n/index.ts';
 
   import { controlsHelpState, type ControlsHelpHandlers } from './controlsHelpState.svelte.ts';
 

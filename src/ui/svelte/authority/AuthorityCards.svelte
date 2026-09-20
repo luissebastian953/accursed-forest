@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { t } from '../../i18n/index.ts';
-  import { formatDate, formatRp } from '../format.ts';
+  import { t } from '../../../i18n/index.ts';
+  import { formatDate, formatRp } from '../../format.ts';
 
   import type { AuthorityCards } from './authorityCardsState.svelte.ts';
 

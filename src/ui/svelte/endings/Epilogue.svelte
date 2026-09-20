@@ -5,12 +5,12 @@
   import { GROWTH } from '@sim/balance/growth';
   import type { ChronicleEntry } from '@sim/types';
 
-  import { t } from '../../i18n/index.ts';
-  import { formatDate, formatPercent, formatRp } from '../format.ts';
-  import type { IconName } from '../icons.ts';
+  import { t } from '../../../i18n/index.ts';
+  import { formatDate, formatPercent, formatRp } from '../../format.ts';
+  import type { IconName } from '../../icons.ts';
+  import Icon from '../base/Icon.svelte';
 
   import { LOOK, type Epilogue, type EpilogueView } from './epilogueState.svelte.ts';
-  import Icon from './Icon.svelte';
 
   interface Props {
     epilogue: Epilogue;

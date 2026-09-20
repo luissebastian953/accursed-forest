@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { t } from '../../i18n/index.ts';
-  import { formatDate } from '../format.ts';
-  import { LANE_LABEL_KEY, LANE_TONE } from '../newsLane.ts';
+  import { t } from '../../../i18n/index.ts';
+  import { formatDate } from '../../format.ts';
+  import { LANE_LABEL_KEY, LANE_TONE } from '../../newsLane.ts';
+  import Phone from '../base/Phone.svelte';
+  import PhoneHeader from '../base/PhoneHeader.svelte';
 
   import { type NewsFilter, type NewsPanel } from './newsPanelState.svelte.ts';
-  import Phone from './Phone.svelte';
-  import PhoneHeader from './PhoneHeader.svelte';
 
   interface Props {
     panel: NewsPanel;

@@ -2,7 +2,7 @@ import { mount, unmount, type Component } from 'svelte';
 
 import type { ChronicleEntry, Ending, NewsItem, RunStats, YearSummary } from '@sim/types';
 
-import type { IconName } from '../icons.ts';
+import type { IconName } from '../../icons.ts';
 
 import EpilogueView_ from './Epilogue.svelte';
 

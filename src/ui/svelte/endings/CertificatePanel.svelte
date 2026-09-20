@@ -1,12 +1,12 @@
 <script lang="ts">
   import type { IspoCondition, IspoConditionId } from '@sim/systems/endings';
 
-  import { t } from '../../i18n/index.ts';
-  import { formatPercent, formatRp } from '../format.ts';
-  import type { IconName } from '../icons.ts';
+  import { t } from '../../../i18n/index.ts';
+  import { formatPercent, formatRp } from '../../format.ts';
+  import type { IconName } from '../../icons.ts';
+  import Icon from '../base/Icon.svelte';
 
   import type { CertificatePanel } from './certificateState.svelte.ts';
-  import Icon from './Icon.svelte';
 
   interface Props {
     panel: CertificatePanel;

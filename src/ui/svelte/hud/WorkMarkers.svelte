@@ -1,5 +1,6 @@
 <script lang="ts">
-  import Icon from './Icon.svelte';
+  import Icon from '../base/Icon.svelte';
+
   import type { WorkMarkers } from './workMarkersState.svelte.ts';
 
   interface Props {

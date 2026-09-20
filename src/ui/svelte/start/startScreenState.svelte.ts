@@ -2,7 +2,7 @@ import { mount, unmount, type Component } from 'svelte';
 
 import { estateCodeFor, seedFromEstateCode } from '@sim/index';
 
-import type { IconName } from '../icons.ts';
+import type { IconName } from '../../icons.ts';
 
 import StartScreenView_ from './StartScreen.svelte';
 

@@ -26,81 +26,15 @@ Tokens first, then the handful of component classes every panel builds
 from. The 3D palette lives in `render/materials/palette.ts`; the game
 colours below mirror it so the HUD and the world stay in step (GDD 6.1).
 
-## `src/ui/svelte/BlockPanel.svelte`
+## `src/ui/svelte/authority/authorityCardsState.svelte.ts`
 
-The block panel's markup (GDD 8 panel 9): the tiles, the pest section, the
-burn options, and the open land and danger zone footers, drawn from
-`blockPanelState.svelte.ts`'s `BlockView` snapshot.
+The authorities' paperwork (GDD 8 panel 17b): the letter, the investigation
+notice with its "settle the matter" option when integrity allows, and the
+operating ban (GDD 3.8). The arrest is an ending; the epilogue tells it.
+`AuthorityCards` keeps the pre-Svelte constructor and
+`show`/`hide`/`showing`/`dispose` surface so `App.ts` is unchanged.
 
-### Notes
-
-- `open land footer`: open land's two things to do with it (GDD 8 panel
-  11a). The crew is the loud one; the saplings are the quiet one, and
-  buying them is folded into the same press.
-- `danger zone footer`: the danger zone (GDD 8 panel 13a) is folded shut by
-  default so it never competes with Harvest or Fertilize. Unfolded, it
-  shows the red button; that button only asks, and the card it opens names
-  what goes.
-
-## `src/ui/svelte/CertificatePanel.svelte`
-
-The win condition, spelled out (design kit 7a). A gold band at the top, the
-five conditions as rows with a bar each, and a footer that says what
-meeting them is worth. Each row shows how far along it is, so a condition
-that is nearly met does not look the same as one that has not started.
-
-## `src/ui/svelte/Hud.svelte`
-
-The top bar's markup: the cream card of tiles, the speed and ISPO buttons,
-and the event chip strip below it, drawn from `hudState.svelte.ts`'s view.
-
-### Notes
-
-- `bar`/`card` measurement: the bar card grows with its own contents (the
-  controls card, the ISPO checklist, the year-end card), so anything hung
-  below it is told where its bottom edge is, rather than guessing a fixed
-  offset.
-- `$effect` bar measurement: it measures the bar card itself, not the
-  column it sits in, because the column also holds the event chips, and a
-  panel hung below those would open a hand's width from the bar on any day
-  the weather is doing something.
-- `ISPO button` states: three states, so progress reads without opening
-  anything: nothing met is neutral, some met is gold, all met is green and
-  waits on the Ministry's year-end check.
-
-## `src/ui/svelte/HudMarker.svelte`
-
-One pin over a hectare (design kit 6a): the Kopdes workshop, or a block the
-pests have got into. The `kind` prop picks the pin and its colour; the
-label pill sits above it and only appears on hover, so a field of sick
-blocks does not bury the estate in text.
-
-## `src/ui/svelte/KopdesShop.svelte`
-
-The Kopdes shop's markup (GDD 8 panel 12): the buy and sell tabs, the
-workers list, the picking toggle, the TBS price, recent sales and the
-upgrade button, on the phone frame, drawn from `kopdesShopState.svelte.ts`'s
-view.
-
-### Notes
-
-- `workers list` pill layout: one pill each, with the name on its own line,
-  the job under it, and the button across the bottom. Side by side they
-  wrapped three deep on the phone.
-
-## `src/ui/svelte/Menu.svelte`
-
-The menu (GDD 8 panel 16), in two steps. Its face carries the save, the
-sound and the language; the new-estate form takes the whole card over when
-it is asked for, because starting one replaces what is in play.
-
-### Notes
-
-- `new game button`: one button, and nothing else that can start a world by
-  itself. With an estate in play it is a question in the quiet style; with
-  nothing to lose, it is the coral call to action.
-
-## `src/ui/svelte/Phone.svelte`
+## `src/ui/svelte/base/Phone.svelte`
 
 The cartoon smartphone (design kit, phone-frame asset) that the news feed
 and the Kopdes shop both live on. The frame body sits under the screen, the
@@ -117,7 +51,7 @@ stands between the HUD and the ticker, on the left.
   frame's width instead: 1 at the 360px the layout was drawn for, never
   below 0.7 or above 1.1.
 
-## `src/ui/svelte/Tooltip.svelte`
+## `src/ui/svelte/base/Tooltip.svelte`
 
 A hover bubble for anything the UI needs to explain in a few words: why a
 button is locked, what a number means, what a pin is for.
@@ -136,15 +70,23 @@ Usage:
 </Tooltip>
 ```
 
-## `src/ui/svelte/authorityCardsState.svelte.ts`
+## `src/ui/svelte/block/BlockPanel.svelte`
 
-The authorities' paperwork (GDD 8 panel 17b): the letter, the investigation
-notice with its "settle the matter" option when integrity allows, and the
-operating ban (GDD 3.8). The arrest is an ending; the epilogue tells it.
-`AuthorityCards` keeps the pre-Svelte constructor and
-`show`/`hide`/`showing`/`dispose` surface so `App.ts` is unchanged.
+The block panel's markup (GDD 8 panel 9): the tiles, the pest section, the
+burn options, and the open land and danger zone footers, drawn from
+`blockPanelState.svelte.ts`'s `BlockView` snapshot.
 
-## `src/ui/svelte/blockPanelState.svelte.ts`
+### Notes
+
+- `open land footer`: open land's two things to do with it (GDD 8 panel
+  11a). The crew is the loud one; the saplings are the quiet one, and
+  buying them is folded into the same press.
+- `danger zone footer`: the danger zone (GDD 8 panel 13a) is folded shut by
+  default so it never competes with Harvest or Fertilize. Unfolded, it
+  shows the red button; that button only asks, and the card it opens names
+  what goes.
+
+## `src/ui/svelte/block/blockPanelState.svelte.ts`
 
 The block panel (GDD 8 panel 9): what the selected block is, and what you can
 do with it. Invalid actions stay visible with the sim's own rejection
@@ -173,7 +115,14 @@ text already localized, so a language switch re-derives it too.
   It appears only with something to settle, and says plainly when the
   district office is too honest to take it, rather than hiding the button.
 
-## `src/ui/svelte/certificateState.svelte.ts`
+## `src/ui/svelte/endings/CertificatePanel.svelte`
+
+The win condition, spelled out (design kit 7a). A gold band at the top, the
+five conditions as rows with a bar each, and a footer that says what
+meeting them is worth. Each row shows how far along it is, so a condition
+that is nearly met does not look the same as one that has not started.
+
+## `src/ui/svelte/endings/certificateState.svelte.ts`
 
 ISPO progress (GDD 8 panels 18–19): the year-end card each New Year, and the
 five-condition checklist reachable from the top bar from Year 3, so the win
@@ -181,14 +130,7 @@ is legible before it happens. Both classes keep the pre-Svelte
 constructor and `show`/`hide`/`isOpen`/`dispose` surface so `App.ts` is
 unchanged.
 
-## `src/ui/svelte/controlsHelpState.svelte.ts`
-
-Controls (GDD 8 panel 4): which button does what, in a popover from the top
-bar's "?" button or the H key. `ControlsHelp` keeps the pre-Svelte
-constructor and `toggle`/`show`/`hide`/`isOpen`/`dispose` surface so
-`App.ts` is unchanged.
-
-## `src/ui/svelte/epilogueState.svelte.ts`
+## `src/ui/svelte/endings/epilogueState.svelte.ts`
 
 The epilogue (GDD 3.8, GDD 8 panel 15): how the run ended, the numbers that tell
 the truth about it, and the run replayed as a chain of headlines. Losses
@@ -196,7 +138,33 @@ offer the rewind; the certificate and the fade offer sandbox. `Epilogue`
 keeps the pre-Svelte constructor and `show`/`hide`/`isOpen`/
 `dispose` surface so `App.ts` is unchanged.
 
-## `src/ui/svelte/hudMarkersState.svelte.ts`
+## `src/ui/svelte/hud/Hud.svelte`
+
+The top bar's markup: the cream card of tiles, the speed and ISPO buttons,
+and the event chip strip below it, drawn from `hudState.svelte.ts`'s view.
+
+### Notes
+
+- `bar`/`card` measurement: the bar card grows with its own contents (the
+  controls card, the ISPO checklist, the year-end card), so anything hung
+  below it is told where its bottom edge is, rather than guessing a fixed
+  offset.
+- `$effect` bar measurement: it measures the bar card itself, not the
+  column it sits in, because the column also holds the event chips, and a
+  panel hung below those would open a hand's width from the bar on any day
+  the weather is doing something.
+- `ISPO button` states: three states, so progress reads without opening
+  anything: nothing met is neutral, some met is gold, all met is green and
+  waits on the Ministry's year-end check.
+
+## `src/ui/svelte/hud/HudMarker.svelte`
+
+One pin over a hectare (design kit 6a): the Kopdes workshop, or a block the
+pests have got into. The `kind` prop picks the pin and its colour; the
+label pill sits above it and only appears on hover, so a field of sick
+blocks does not bury the estate in text.
+
+## `src/ui/svelte/hud/hudMarkersState.svelte.ts`
 
 The pin layer (design kit 6a): a marker over the hectare a thing is
 happening on. The Kopdes carries one so the workshop is findable from
@@ -207,7 +175,7 @@ slope has given way under it.
 The App projects the world positions each frame and hands them over; the
 markers themselves know nothing about the camera.
 
-## `src/ui/svelte/hudState.svelte.ts`
+## `src/ui/svelte/hud/hudState.svelte.ts`
 
 Top bar and time controls (GDD 8 panels 1–2, 5–8), in the cartoon kit: one
 cream card of pills, icons from `icons.ts`, and chunky buttons. `Hud`
@@ -215,7 +183,50 @@ keeps the pre-Svelte constructor and `setHidden`/`update`/
 `dispose` surface so `App.ts` is unchanged; the view it is given is held
 raw and swapped whole on every update.
 
-## `src/ui/svelte/kopdesShopState.svelte.ts`
+## `src/ui/svelte/hud/toastsState.svelte.ts`
+
+Transient notices (GDD 8 panel 17): pop in, slide from the left, fade out
+after a few seconds. The `Toasts` class keeps the exact constructor and
+`push`/`dispose` surface it always had, so `App.ts` mounts and
+drives it without knowing the rendering underneath changed.
+
+## `src/ui/svelte/hud/workMarkersState.svelte.ts`
+
+Progress rings over the blocks a crew is working (GDD 8 panel 22b): a circle
+that fills as the chop, the burn or the dig advances, pinned above
+the work site. The App projects each block's centre every frame and hands
+the positions over; nothing here touches the camera.
+
+## `src/ui/svelte/news/newsPanelState.svelte.ts`
+
+The news panel (GDD 8 panel 13): the full feed, newest first, with lane
+filters and a "what this does to you" line per item, on the phone.
+`NewsPanel` keeps the pre-Svelte constructor and
+`show`/`hide`/`update`/`isOpen`/`dispose` surface so `App.ts` is
+unchanged. The feed itself is held raw: it is the sim's own array, read,
+never mutated here, and far too big to proxy.
+
+## `src/ui/svelte/news/newsTickerState.svelte.ts`
+
+The news ticker (GDD 8 panels 3 and 8): the latest three headlines along the
+bottom, lane-coloured, with a badge for unread warnings. Click to open the
+full feed. `NewsTicker` keeps the pre-Svelte constructor and
+`update`/`setHidden`/`dispose` surface so `App.ts` is unchanged.
+
+## `src/ui/svelte/shop/KopdesShop.svelte`
+
+The Kopdes shop's markup (GDD 8 panel 12): the buy and sell tabs, the
+workers list, the picking toggle, the TBS price, recent sales and the
+upgrade button, on the phone frame, drawn from `kopdesShopState.svelte.ts`'s
+view.
+
+### Notes
+
+- `workers list` pill layout: one pill each, with the name on its own line,
+  the job under it, and the button across the bottom. Side by side they
+  wrapped three deep on the phone.
+
+## `src/ui/svelte/shop/kopdesShopState.svelte.ts`
 
 The Kopdes shop (GDD 8 panel 12): a Buy tab for inputs at `base × index`, a
 Sell tab showing today's TBS price, the intake and recent sales, and the
@@ -226,7 +237,26 @@ building's upgrade. The range ring is drawn on the map while it is open.
 is unchanged. The sim is not reactive, so `refresh()` bumps a version the
 view derives its snapshot (`shopView`) from.
 
-## `src/ui/svelte/menuState.svelte.ts`
+## `src/ui/svelte/start/Menu.svelte`
+
+The menu (GDD 8 panel 16), in two steps. Its face carries the save, the
+sound and the language; the new-estate form takes the whole card over when
+it is asked for, because starting one replaces what is in play.
+
+### Notes
+
+- `new game button`: one button, and nothing else that can start a world by
+  itself. With an estate in play it is a question in the quiet style; with
+  nothing to lose, it is the coral call to action.
+
+## `src/ui/svelte/start/controlsHelpState.svelte.ts`
+
+Controls (GDD 8 panel 4): which button does what, in a popover from the top
+bar's "?" button or the H key. `ControlsHelp` keeps the pre-Svelte
+constructor and `toggle`/`show`/`hide`/`isOpen`/`dispose` surface so
+`App.ts` is unchanged.
+
+## `src/ui/svelte/start/menuState.svelte.ts`
 
 The menu (GDD 8 panel 16): save, load, a new estate, and the language.
 `Menu` keeps the pre-Svelte constructor and
@@ -259,23 +289,7 @@ reopens it to find a half-filled form pointed at their estate.
   filled, the name when it is not. A world drawn at random comes from the
   title card instead.
 
-## `src/ui/svelte/newsPanelState.svelte.ts`
-
-The news panel (GDD 8 panel 13): the full feed, newest first, with lane
-filters and a "what this does to you" line per item, on the phone.
-`NewsPanel` keeps the pre-Svelte constructor and
-`show`/`hide`/`update`/`isOpen`/`dispose` surface so `App.ts` is
-unchanged. The feed itself is held raw: it is the sim's own array, read,
-never mutated here, and far too big to proxy.
-
-## `src/ui/svelte/newsTickerState.svelte.ts`
-
-The news ticker (GDD 8 panels 3 and 8): the latest three headlines along the
-bottom, lane-coloured, with a badge for unread warnings. Click to open the
-full feed. `NewsTicker` keeps the pre-Svelte constructor and
-`update`/`setHidden`/`dispose` surface so `App.ts` is unchanged.
-
-## `src/ui/svelte/startScreenState.svelte.ts`
+## `src/ui/svelte/start/startScreenState.svelte.ts`
 
 The title screen (GDD 8 panel 1, design kit 5a): a modal over the live estate,
 pulled back so the terrain reads as a dimmed backdrop. Two states:
@@ -296,17 +310,3 @@ and `show`/`dismiss`/`isOpen`/`dispose` surface so `App.ts` is unchanged.
 - `preview` getter: the estate the card is offering, the one behind the
   title until the player types, then the one their boxes describe. The
   name alone settles the code, so it moves as they type.
-
-## `src/ui/svelte/toastsState.svelte.ts`
-
-Transient notices (GDD 8 panel 17): pop in, slide from the left, fade out
-after a few seconds. The `Toasts` class keeps the exact constructor and
-`push`/`dispose` surface it always had, so `App.ts` mounts and
-drives it without knowing the rendering underneath changed.
-
-## `src/ui/svelte/workMarkersState.svelte.ts`
-
-Progress rings over the blocks a crew is working (GDD 8 panel 22b): a circle
-that fills as the chop, the burn or the dig advances, pinned above
-the work site. The App projects each block's centre every frame and hands
-the positions over; nothing here touches the camera.

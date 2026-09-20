@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
 
-  import { formatDateShort } from '../format.ts';
+  import { formatDateShort } from '../../format.ts';
 
   interface Props {
     testId: string;

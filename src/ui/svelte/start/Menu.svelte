@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { locale, LOCALES, localeTag, setLocale, t, type Locale } from '../../i18n/index.ts';
+  import { locale, LOCALES, localeTag, setLocale, t, type Locale } from '../../../i18n/index.ts';
+  import Icon from '../base/Icon.svelte';
 
-  import Icon from './Icon.svelte';
   import type { Menu } from './menuState.svelte.ts';
 
   interface Props {

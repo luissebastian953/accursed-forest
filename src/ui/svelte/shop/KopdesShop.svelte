@@ -1,15 +1,15 @@
 <script lang="ts">
   import { WORKERS_FROM_LEVEL } from '@sim/balance/mobs';
 
-  import { t } from '../../i18n/index.ts';
-  import { formatDate, formatKg, formatRp } from '../format.ts';
+  import { t } from '../../../i18n/index.ts';
+  import { formatDate, formatKg, formatRp } from '../../format.ts';
+  import Icon from '../base/Icon.svelte';
+  import Phone from '../base/Phone.svelte';
+  import PhoneHeader from '../base/PhoneHeader.svelte';
+  import Tooltip from '../base/Tooltip.svelte';
+  import AutoHarvestToggle from '../block/AutoHarvestToggle.svelte';
 
-  import AutoHarvestToggle from './AutoHarvestToggle.svelte';
-  import Icon from './Icon.svelte';
   import { shopView, type KopdesShop, type ShopTab } from './kopdesShopState.svelte.ts';
-  import Phone from './Phone.svelte';
-  import PhoneHeader from './PhoneHeader.svelte';
-  import Tooltip from './Tooltip.svelte';
 
   interface Props {
     shop: KopdesShop;

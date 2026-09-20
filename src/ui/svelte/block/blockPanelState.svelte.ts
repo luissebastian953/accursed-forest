@@ -40,9 +40,9 @@ import type {
   SimState,
 } from '@sim/types';
 
-import { t } from '../../i18n/index.ts';
-import { formatKg, formatPercent, formatRp } from '../format.ts';
-import type { IconName } from '../icons.ts';
+import { t } from '../../../i18n/index.ts';
+import { formatKg, formatPercent, formatRp } from '../../format.ts';
+import type { IconName } from '../../icons.ts';
 
 import BlockPanelView_ from './BlockPanel.svelte';
 

@@ -1,6 +1,6 @@
 <!-- One flat SVG from the design kit (`public/icons`), as an `<img>`. -->
 <script lang="ts">
-  import { iconUrl, type IconName } from '../icons.ts';
+  import { iconUrl, type IconName } from '../../icons.ts';
 
   interface Props {
     name: IconName;

@@ -2,12 +2,12 @@
   import { GROWTH } from '@sim/balance/growth';
   import { ECONOMY } from '@sim/balance/prices';
 
-  import { locale, LOCALES, localeTag, setLocale, t } from '../../i18n/index.ts';
-  import { formatRp } from '../format.ts';
-  import type { IconName } from '../icons.ts';
+  import { locale, LOCALES, localeTag, setLocale, t } from '../../../i18n/index.ts';
+  import { formatRp } from '../../format.ts';
+  import type { IconName } from '../../icons.ts';
+  import Icon from '../base/Icon.svelte';
+  import { ENDING_COUNT } from '../endings/epilogueState.svelte.ts';
 
-  import { ENDING_COUNT } from './epilogueState.svelte.ts';
-  import Icon from './Icon.svelte';
   import type { SaveSummary, StartScreen } from './startScreenState.svelte.ts';
 
   interface Props {

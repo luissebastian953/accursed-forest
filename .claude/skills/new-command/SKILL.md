@@ -21,7 +21,7 @@ breaks quietly.
 4. **The save.** Add it to `CommandSchema` in `src/persistence/schema.ts`,
    because the command log is persisted and an unknown command fails the
    decode. No schema bump is needed for a new command alone.
-5. **The button.** In `src/ui/svelte/blockPanelState.svelte.ts`, push an
+5. **The button.** In `src/ui/svelte/block/blockPanelState.svelte.ts`, push an
    `action(label, command, 'action-<Name>', { cost, icon })`; the rejection is
    looked up for you. Strings go in both `src/i18n/locales/*/block.json`.
 6. **Feedback.** If it moves money the app plays cash-in or cash-out on its

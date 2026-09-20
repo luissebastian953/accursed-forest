@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { t } from '../../i18n/index.ts';
-  import { formatPercent, formatRp } from '../format.ts';
+  import { t } from '../../../i18n/index.ts';
+  import { formatPercent, formatRp } from '../../format.ts';
 
   import type { YearEndCard } from './certificateState.svelte.ts';
 

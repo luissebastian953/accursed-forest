@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Tooltip from '../../ui/svelte/Tooltip.svelte';
+  import Tooltip from '../../ui/svelte/base/Tooltip.svelte';
 
   import { SUBJECT_GROUPS, type ActionId } from './subjects.ts';
   import {
