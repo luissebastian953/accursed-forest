@@ -9,6 +9,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -39,8 +42,11 @@ jobs:
       - name: Install Playwright browser
         run: pnpm exec playwright install --with-deps chromium
 
+      # A runner renders in software, so the whole browser suite takes the best
+      # part of an hour there. Every push gets the smoke path; the nightly run
+      # takes the rest (docs/reference/config.md).
       - name: Smoke test
-        run: pnpm e2e
+        run: pnpm e2e --grep @smoke
 
       - uses: actions/upload-artifact@v4
         if: failure()
@@ -48,3 +54,56 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  # The site ships from master, and only behind a green suite.
+  deploy:
+    needs: verify
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Each page's lastmod is its own last commit, so the history matters.
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - uses: actions/configure-pages@v5
+        id: pages
+        with:
+          enablement: true
+
+      - name: Build for the Pages mount point
+        run: pnpm exec vite build
+        env:
+          # A project site lives under /<repo>/, so the build is told where it
+          # will be mounted. VITE_SITE_URL stays empty unless a domain is set:
+          # canonical tags and a sitemap under a path would be wrong.
+          VITE_BASE: ${{ github.event.repository.name }}
+          VITE_SITE_URL: ${{ vars.SITE_URL }}
+          VITE_GA_ID: ${{ secrets.VITE_GA_ID }}
+          VITE_GOOGLE_SITE_VERIFICATION: ${{ secrets.VITE_GOOGLE_SITE_VERIFICATION }}
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

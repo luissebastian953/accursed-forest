@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('landing page', () => {
-  test('is real HTML with a title, a description and a Play link, and loads no engine', async ({
+  test('@smoke is real HTML with a title, a description and a Play link, and loads no engine', async ({
     page,
   }) => {
     const scripts: string[] = [];
@@ -18,7 +18,7 @@ test.describe('landing page', () => {
     expect(scripts.filter((u) => /three|index-|play-/.test(u))).toEqual([]);
   });
 
-  test('carries what crawlers and social cards read: icons, Open Graph, JSON-LD', async ({
+  test('@smoke carries what crawlers and social cards read: icons, Open Graph, JSON-LD', async ({
     page,
   }) => {
     await page.goto('/');
@@ -73,7 +73,7 @@ test.describe('landing page', () => {
     }
   });
 
-  test('has an Indonesian twin that links both ways and carries its own FAQ schema', async ({
+  test('@smoke has an Indonesian twin that links both ways and carries its own FAQ schema', async ({
     page,
   }) => {
     await page.goto('/');
@@ -112,7 +112,9 @@ test.describe('landing page', () => {
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   });
 
-  test('Play opens the game: the boot shell paints first, then comes down', async ({ page }) => {
+  test('@smoke Play opens the game: the boot shell paints first, then comes down', async ({
+    page,
+  }) => {
     await page.goto('/');
     await page.getByTestId('play-link').click();
     await expect(page).toHaveURL(/play\.html/);

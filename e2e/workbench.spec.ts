@@ -1,5 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 
+/** A CI runner renders in software, so every budget below is tripled there. */
+const SLOW = process.env['CI'] ? 3 : 1;
+
 const URL = '/workbench.html?webgl';
 
 const tid = (page: Page, id: string) => page.getByTestId(id);
@@ -108,7 +111,7 @@ test.describe('workbench', () => {
   test('gives back what it takes: subjects come and go without the GPU filling up', async ({
     page,
   }) => {
-    test.setTimeout(90_000);
+    test.setTimeout(90_000 * SLOW);
 
     const errors = await boot(page);
 

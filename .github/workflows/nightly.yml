@@ -1,0 +1,69 @@
+name: Nightly
+
+on:
+  schedule:
+    # 19:00 UTC is just past two in the morning in Jakarta.
+    - cron: '0 19 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    name: The whole browser suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Every browser test, not just the smoke path
+        run: pnpm e2e
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+  sweep:
+    name: The balance sweep
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # What an estate actually earns, year by year, across seeds. A balance
+      # change that does not show up here did not happen.
+      - name: Play the estate without a player
+        run: pnpm sweep -- --ispo --years 25 --seeds 1,42,1234 | tee sweep.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: balance-sweep
+          path: sweep.txt
+          retention-days: 30

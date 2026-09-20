@@ -4,7 +4,11 @@ export default defineConfig({
   testDir: 'e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  // A runner has no GPU and rasterises in software, so everything takes longer
+  // and a retry costs minutes. One retry, and budgets to match (config.md).
+  timeout: process.env.CI ? 180_000 : 30_000,
+  expect: { timeout: process.env.CI ? 20_000 : 5_000 },
+  retries: process.env.CI ? 1 : 0,
   ...(process.env.CI ? { workers: 1 } : {}),
   reporter: process.env.CI ? 'github' : 'list',
   use: {

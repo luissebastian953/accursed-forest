@@ -1,5 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 
+/** A CI runner renders in software, so every budget below is tripled there. */
+const SLOW = process.env['CI'] ? 3 : 1;
+
 const URL = '/play.html?webgl&seed=42&fresh&turbo&debug';
 
 /** What `?debug` exposes on window; only the parts the suite touches. */
@@ -135,7 +138,7 @@ async function selectWildNeighbour(page: Page, biome?: RegExp): Promise<void> {
 }
 
 test.describe('Sawit Simulator', () => {
-  test('boots, ticks, and shows the estate', async ({ page }) => {
+  test('boots, ticks, and shows the estate @smoke', async ({ page }) => {
     const errors = await boot(page);
 
     await expect(tid(page, 'hud-date')).toContainText('Year 1');
@@ -152,7 +155,7 @@ test.describe('Sawit Simulator', () => {
     expect(errors).toEqual([]);
   });
 
-  test('the block panel follows the sim’s rules and explains refusals', async ({ page }) => {
+  test('the block panel follows the sim’s rules and explains refusals @smoke', async ({ page }) => {
     await boot(page);
     await selectCentreBlock(page);
     await expect(tid(page, 'block-phase')).toHaveText('Cleared');
@@ -162,10 +165,10 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'action-PlaceKopdes')).toBeEnabled();
   });
 
-  test('the loop: Kopdes, shop, chop, plant, grow, harvest, sell, save, reload', async ({
+  test('the loop: Kopdes, shop, chop, plant, grow, harvest, sell, save, reload @smoke', async ({
     page,
   }) => {
-    test.setTimeout(120_000);
+    test.setTimeout(120_000 * SLOW);
 
     const errors = await boot(page);
 
@@ -353,7 +356,7 @@ test.describe('Sawit Simulator', () => {
   });
 
   test('an estate can be named, and its name follows it into the bar', async ({ page }) => {
-    test.setTimeout(90_000);
+    test.setTimeout(90_000 * SLOW);
 
     const errors: string[] = [];
 
@@ -398,7 +401,7 @@ test.describe('Sawit Simulator', () => {
   });
 
   test('pause stops the world: two frames a second apart are the same frame', async ({ page }) => {
-    test.setTimeout(120_000);
+    test.setTimeout(120_000 * SLOW);
     await page.goto('/play.html?webgl&seed=42&fresh&debug');
     await expect(page.locator('canvas')).toBeVisible();
     await page.waitForTimeout(3000);
@@ -456,7 +459,7 @@ test.describe('Sawit Simulator', () => {
   });
 
   test('New estate from the title card asks before it replaces the save', async ({ page }) => {
-    test.setTimeout(120_000);
+    test.setTimeout(120_000 * SLOW);
     await page.goto('/play.html?webgl&debug');
     await expect(page.locator('canvas')).toBeVisible();
     await page.waitForTimeout(2500);
@@ -513,7 +516,7 @@ test.describe('Sawit Simulator', () => {
   });
 
   test('upgrading the Kopdes changes the building, and is cheered', async ({ page }) => {
-    test.setTimeout(90_000);
+    test.setTimeout(90_000 * SLOW);
     await page.goto('/play.html?webgl&seed=42&fresh&debug');
     await expect(page.locator('canvas')).toBeVisible();
     await page.waitForTimeout(2000);
@@ -540,7 +543,7 @@ test.describe('Sawit Simulator', () => {
   });
 
   test('the Kopdes can buy the authorities off, when they are buyable', async ({ page }) => {
-    test.setTimeout(90_000);
+    test.setTimeout(90_000 * SLOW);
     await page.goto('/play.html?webgl&seed=42&fresh&debug');
     await expect(page.locator('canvas')).toBeVisible();
     await page.waitForTimeout(2000);
@@ -586,7 +589,7 @@ test.describe('Sawit Simulator', () => {
   test('a new estate takes two steps, and nothing else in the menu starts one', async ({
     page,
   }) => {
-    test.setTimeout(90_000);
+    test.setTimeout(90_000 * SLOW);
     await page.goto('/play.html?webgl&seed=42&fresh&debug');
     await expect(page.locator('canvas')).toBeVisible();
     await page.waitForTimeout(2000);
@@ -663,7 +666,7 @@ test.describe('Sawit Simulator', () => {
   test('burning: a controlled burn caps the clock, a second one tips the wildfire', async ({
     page,
   }) => {
-    test.setTimeout(90_000);
+    test.setTimeout(90_000 * SLOW);
 
     const errors = await boot(page);
 
@@ -733,7 +736,7 @@ test.describe('Sawit Simulator', () => {
   test('pests: the panel shows beetles, the slot grid, per-palm actions and the shop kits', async ({
     page,
   }) => {
-    test.setTimeout(90_000);
+    test.setTimeout(90_000 * SLOW);
     // Seed 1 starts in forest: the chopped neighbour comes with 55 debris.
     await page.goto('/play.html?webgl&seed=1&fresh&turbo&debug');
     await expect(page.locator('canvas')).toBeVisible();
@@ -857,7 +860,7 @@ test.describe('Sawit Simulator', () => {
   test('open land: saplings go in without a crew, and the Ministry halves what it holds', async ({
     page,
   }) => {
-    test.setTimeout(90_000);
+    test.setTimeout(90_000 * SLOW);
 
     const errors: string[] = [];
 
@@ -943,7 +946,7 @@ test.describe('Sawit Simulator', () => {
   test('news and the authorities: ticker, feed, letter, police, settle, arrest', async ({
     page,
   }) => {
-    test.setTimeout(90_000);
+    test.setTimeout(90_000 * SLOW);
 
     const errors: string[] = [];
 
@@ -1012,7 +1015,7 @@ test.describe('Sawit Simulator', () => {
   });
 
   test('endings: year-end card, bankruptcy, rewind, certificate and sandbox', async ({ page }) => {
-    test.setTimeout(90_000);
+    test.setTimeout(90_000 * SLOW);
 
     const errors: string[] = [];
 

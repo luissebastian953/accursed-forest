@@ -19,6 +19,14 @@ const appVersion = JSON.stringify(process.env['npm_package_version'] ?? '0.0.0-d
 const siteUrl = normalizeSiteUrl(process.env['VITE_SITE_URL']);
 /** The Search Console "HTML tag" token, if ownership is verified that way. */
 const googleVerification = (process.env['VITE_GOOGLE_SITE_VERIFICATION'] ?? '').trim();
+/**
+ * Where the site is mounted. Empty is the root of a domain; a project host
+ * such as GitHub Pages serves under a path (config.md).
+ */
+const base = `/${(process.env['VITE_BASE'] ?? '').trim().replace(/^\/+|\/+$/g, '')}/`.replace(
+  '//',
+  '/',
+);
 
 /** A page's last commit, so `lastmod` only moves when the page does. */
 function lastCommitDate(file: string): string {
@@ -45,26 +53,38 @@ function lastCommitDate(file: string): string {
 function siteUrlPlugin(): Plugin {
   return {
     name: 'sawit-site-url',
-    transformIndexHtml(html, ctx) {
-      let out = html
-        .replaceAll('__SITE_URL__', siteUrl)
-        // The structured data names the build it is describing.
-        .replaceAll('__APP_VERSION__', JSON.parse(appVersion) as string);
+    // Post, so Vite has already put the base on everything it bundles.
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, ctx) {
+        let out = html
+          .replaceAll('__SITE_URL__', siteUrl)
+          // The structured data names the build it is describing.
+          .replaceAll('__APP_VERSION__', JSON.parse(appVersion) as string);
 
-      if (!siteUrl) {
-        out = out.replace(/^\s*<link rel="canonical"[^>]*>\n?/m, '');
-        out = out.replace(/^\s*<link rel="alternate" hreflang=[^>]*>\n?/gm, '');
-      }
+        // The pages link to `/play.html` and `/id/` by hand, which Vite does not
+        // bundle and so does not move; anything it did move already has the base.
+        if (base !== '/') {
+          out = out.replace(/(href|src)="(\/[^"]*)"/g, (whole, attr: string, url: string) =>
+            url.startsWith(base) ? whole : `${attr}="${base}${url.slice(1)}"`,
+          );
+        }
 
-      // Search Console reads the tag from the home page; the game page is noindex.
-      if (googleVerification && !ctx.filename.endsWith('play.html')) {
-        out = out.replace(
-          /(<meta name="viewport"[^>]*>)/,
-          `$1\n    ${verificationMeta(googleVerification)}`,
-        );
-      }
+        if (!siteUrl) {
+          out = out.replace(/^\s*<link rel="canonical"[^>]*>\n?/m, '');
+          out = out.replace(/^\s*<link rel="alternate" hreflang=[^>]*>\n?/gm, '');
+        }
 
-      return out;
+        // Search Console reads the tag from the home page; the game page is noindex.
+        if (googleVerification && !ctx.filename.endsWith('play.html')) {
+          out = out.replace(
+            /(<meta name="viewport"[^>]*>)/,
+            `$1\n    ${verificationMeta(googleVerification)}`,
+          );
+        }
+
+        return out;
+      },
     },
     generateBundle() {
       this.emitFile({ type: 'asset', fileName: 'robots.txt', source: renderRobots(siteUrl) });
@@ -137,6 +157,7 @@ function obfuscatePlugin(): Plugin {
 }
 
 export default defineConfig({
+  base,
   define: { __APP_VERSION__: appVersion },
   plugins: [
     siteUrlPlugin(),
