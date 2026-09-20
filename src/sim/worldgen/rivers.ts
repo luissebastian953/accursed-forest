@@ -9,11 +9,7 @@ export interface RiverField {
   /** Blocks from the nearest water cell; `Infinity` beyond the search range. */
   distance: Float32Array;
   count: number;
-  /**
-   * Each river's cells, source first, ending on the coast. The simulation
-   * only needs `water`; the renderer draws a smoothed, meandering channel
-   * along these instead of the block staircase.
-   */
+  /** Each river's cells, source first to coast; the renderer smooths these into a channel. */
   paths: number[][];
 }
 
@@ -36,10 +32,7 @@ export function traceRivers(
   const water = new Set<number>();
   const paths: number[][] = [];
 
-  // Ridge candidates: the highest cells of the map's interior, sampled
-  // coarsely so sources spread out. Sources near the border make stub rivers
-  // that leave the map after a dozen cells; the interior margin keeps every
-  // river long enough to shape the land it crosses.
+  // Ridge candidates: highest interior cells; a border source makes a stub river.
   const marginX = Math.floor(width * RIVERS.sourceMargin);
   const marginY = Math.floor(height * RIVERS.sourceMargin);
   const candidates: { x: number; y: number; h: number }[] = [];

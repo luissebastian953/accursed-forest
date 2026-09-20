@@ -1,9 +1,7 @@
 export const DEBRIS = {
   /**
-   * Debris points that decay away on their own each day. Slow on purpose:
-   * a chopped forest's trunks (55) take almost four years to rot, which is
-   * what keeps the beetles fed if nobody sanitizes. At 0.12 the pile was gone
-   * in fifteen months and beetles never finished a seedling.
+   * Debris points that rot away each day. Slow on purpose: a chopped forest's 55 takes almost
+   * four years, which keeps the beetles fed if nobody sanitizes.
    */
   decayPerDay: 0.04,
   /** Debris points one sanitation crew removes. */
@@ -21,11 +19,7 @@ export const BEETLES = {
   seedPopulation: 2,
   /** Population shrinks by this factor per day once there is nothing to breed in. */
   decayWithoutFood: 0.9,
-  /**
-   * Expected health lost per immature palm per day, per beetle. At capacity on
-   * fresh forest debris (~110 beetles) a seedling loses ~0.7 hp/day and dies
-   * inside a year if nothing is done; mature palms are not attacked (GDD 2).
-   */
+  /** Health lost per immature palm per day, per beetle; mature palms are not attacked (GDD 2). */
   damagePerBeetle: 0.005,
   /** Beetles killed per day while pheromone traps are up, and how long they last. */
   trapKillPerDay: 3,
@@ -39,11 +33,8 @@ export const BEETLES = {
 
 export const GANODERMA = {
   /**
-   * Chance per day that an infected palm infects each of its six lattice
-   * neighbours, before debris, plague and Trichoderma. One symptomatic palm
-   * takes a neighbour roughly every four months: Ganoderma is the slow pest,
-   * and at 0.0025 an outbreak ran through a block faster than a careful
-   * player could answer it.
+   * Chance per day an infected palm infects each of its six lattice neighbours, before
+   * modifiers. Ganoderma is the slow pest: at 0.0025 it outran a careful player.
    */
   spreadPerDay: 0.0013,
   /** A dead palm's stump keeps spreading at this fraction until removed. */
@@ -53,8 +44,7 @@ export const GANODERMA = {
   seedPerDebrisPerDay: 0.00003,
   /**
    * Latent → symptomatic, then symptomatic → dead: young palms go fast (GDD 2).
-   * Scaled with the palm life cycle (0.6) so an infection still plays out
-   * over the same share of a palm's life.
+   * Scaled with the palm life cycle (0.6).
    */
   latentDays: { immature: 145, mature: 290 },
   symptomaticDays: { immature: 290, mature: 860 },

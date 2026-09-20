@@ -143,10 +143,8 @@ export function pose(spec: SpeciesSpec, part: PartSpec, input: PoseInput, out: M
         rx += crouch * 0.55;
       }
 
-      // Working: the arms do the swinging. The body used to pitch with them,
-      // which read as falling over rather than as effort.
-      // Sitting. On four legs that means up on the haunches, back sloped; on
-      // two it means down on the ground, hips dropped and the back still up.
+      // Work swings the arms only: a pitching body read as falling over. Sitting: on four
+      // legs up on the haunches, back sloped; on two down on the ground, hips dropped.
       if (sit > 0) {
         if (spec.biped) {
           py -= sit * Math.max(0, y - part.size[1] * 0.75);
@@ -218,9 +216,8 @@ export function pose(spec: SpeciesSpec, part: PartSpec, input: PoseInput, out: M
       rx += Math.sin(step + (LEG_PHASE[part.role] ?? 0)) * spec.swing * input.gait * (1 - work);
       // Crouched, the arms come forward to steady; working, both swing the tool.
       rx -= crouch * 0.6;
-      // Up a trunk, both arms reach overhead and out round the bark; asleep,
-      // they tuck in. Sitting, an ape's arms are longer than the drop to the
-      // ground, so they come forward to rest rather than through it.
+      // Climbing, the arms reach overhead and round the bark; asleep, they tuck in. Sitting,
+      // an ape's arms outreach the drop to the ground, so they come forward, not through it.
       rx -= climb * 2.05;
       rx -= sit * (spec.biped ? 0.5 : 0.4);
       rx -= sleep * 0.35;

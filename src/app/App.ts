@@ -108,11 +108,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   root.style.position = 'relative';
 
-  // The world fills the root; the block panel is an aside laid over its right
-  // edge that slides in with a selection (GDD 8 panel 9). Laying it over rather
-  // than docking it means the canvas never resizes when it comes and goes;
-  // the HUD and ticker shift left by its width instead (`--chrome-right`).
-  // Modals mount on the root so they cover both.
+  // The block panel is laid over the world, not docked, so the canvas never resizes (GDD 8
+  // panel 9); the HUD and ticker shift left by `--chrome-right` instead.
   const stage = document.createElement('div');
 
   stage.className = 'absolute inset-0';
@@ -125,9 +122,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   root.append(stage, aside);
 
   // ── Sound ───────────────────────────────────────────────────────────────
-  // The context cannot start until the player has clicked something, so the
-  // first gesture anywhere on the page opens it; after that the calls below
-  // are cheap no-ops that keep a suspended context awake.
+  // The context cannot start before a gesture, so the first one anywhere on the page opens it.
   const audio = new Audio();
 
   audio.setSettings(loadAudioSettings());
@@ -137,9 +132,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   root.addEventListener('pointerdown', unlockAudio, { passive: true });
   root.addEventListener('keydown', unlockAudio, { passive: true });
 
-  // Every button in the UI taps; a locked one thuds. Disabled buttons never
-  // fire click, but Chromium still delivers pointerdown to them, which is
-  // the one place this can be heard from.
+  // Every button taps and a locked one thuds. Disabled buttons never fire click, but Chromium
+  // still delivers pointerdown to them, so that is where the thud is heard from.
   const uiPress = (event: PointerEvent): void => {
     const button = (event.target as Element | null)?.closest('button');
 
@@ -841,23 +835,15 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
    */
   const THUNDER_NEAR_BLOCKS = 9;
 
-  /**
-   * Endings the epilogue frames as a win: certified either way, the forest
-   * back, or the slope put right. The rest, including the estate simply
-   * fading out, get the drone.
-   */
+  /** Endings the epilogue frames as a win; the rest, fading out included, get the drone. */
   const WON: ReadonlySet<string> = new Set(['clean', 'dirty', 'reboisasi', 'redemption']);
 
   /** Real seconds the sky has been dry; a shower is not over until it holds. */
   let rainDryFor = 0;
 
   /**
-   * The weather's own noise. Rain fades in when the sky turns and away when
-   * it clears, riding the day's rain so a storm is heavier than a shower.
-   *
-   * The sky flips between rain and cloudy on neighbouring days, and at 50x a
-   * day is a fifth of a second, so a shower that stopped on every dry day
-   * would stutter. It holds through the gaps and only goes when they last.
+   * Rain rides the day's wetness, and holds through short dry gaps: at 50x the sky flips
+   * between rain and cloud faster than a shower should stop.
    */
   function syncWeatherAudio(dtSeconds: number): void {
     const { sky, rain: wetness } = sim.state.weather;
@@ -878,9 +864,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   }
 
   /**
-   * Fire on the estate, under everything else. It is the loudest thing that
-   * can happen and the one the player can least afford to tune out, so it
-   * sits low and leans on the vignette and the clock lock to carry the alarm.
+   * Fire sits low, because the player can least afford to tune it out; the vignette and the
+   * clock lock carry the alarm.
    */
   function syncFireAudio(): void {
     if (burningCount > 0) {
@@ -1116,10 +1101,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   }
 
   /**
-   * Whether the attention gauge is worth a place in the bar. It arrives with
-   * the first letter and stays while anything is open: a meter above zero, a
-   * letter, a case or a suspension. An estate with a clean sheet loses it
-   * again rather than carrying a permanent zero.
+   * Whether the attention gauge is in the bar: from the first letter, while anything is open.
+   * A clean sheet loses it again rather than carrying a permanent zero.
    */
   function watchedByAuthorities(): boolean {
     const s = sim.state.society;
@@ -1134,10 +1117,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   }
 
   /**
-   * How many conditions are met today, which is what the certificate panel
-   * shows. The bar used to show last year's audited count instead, so the
-   * two disagreed for up to a year at a time. Worked out once a day, because
-   * it walks every block, and again whenever a command changes something.
+   * Conditions met today, as the certificate panel shows, not last year's audited count.
+   * Cached for the day because it walks every block; a successful command clears it.
    */
   let ispoCount: { tick: number; met: number } | null = null;
 
@@ -1431,9 +1412,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       syncFireState();
     }
 
-    // Moisture and growth move every tick on every estate block, so every
-    // chunk with estate in it is dirty for the save; the dirty set earns its
-    // keep on chunks far from the estate that were touched once.
+    // Every estate block changes every tick; the dirty set earns its keep on chunks far from it.
     for (const id of sim.state.blocks.keys()) dirty.mark(sim.state.width, id);
 
     autosave.onTick(sim.state.tick);
@@ -1451,19 +1430,15 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   let lastUiMs = -1;
   /**
-   * The world's own clock: wall time, less every moment the estate was
-   * paused. Everything that moves in the scene reads this instead of
-   * `performance.now()`, so Pause stops the clouds, the mobs, the fires and
-   * the crews along with the days. The camera and the interface keep wall
-   * time, because a paused player still wants to look around.
+   * Wall time less every paused moment: scene motion reads this, not `performance.now()`.
+   * The camera and the interface keep wall time, so a paused player can still look around.
    */
   let worldMs = 0;
   const worldNow = (): number => worldMs;
 
   /**
-   * A forest block gives up a tree at each quarter of the chop, and whatever
-   * is left when the block clears; a block that clears while unwatched (a
-   * loaded save, a 50× skip) just drops what remains.
+   * Trees felled per clearing block: one per quarter of the chop, the rest when it clears,
+   * all at once if it cleared unwatched (a loaded save, a 50× skip).
    */
   const treesFelled = new Map<BlockId, number>();
 
@@ -1486,11 +1461,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     }
   }
 
-  /**
-   * The pin layer (design kit 6a): the Kopdes, and any block the pests have
-   * got into. Beetles only matter once there are enough of them to bore a
-   * palm, so a stray one does not plant a pin on the map.
-   */
+  /** The pin layer (design kit 6a): the Kopdes, and blocks with beetles enough to bore a palm. */
   const PIN_LIFT = 4.6;
   const BEETLES_WORTH_A_PIN = 12;
   /** An estate in trouble everywhere is not helped by a screen full of pins. */
@@ -1700,9 +1671,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     syncWorkMarkers();
     syncHudMarkers();
 
-    // The panels are DOM: ten refreshes a second is plenty, and it leaves the
-    // frame budget to the world. (Every frame cost the sim a third of its
-    // ticks at 20x on the software renderer.)
+    // The panels are DOM: ten refreshes a second leaves the frame budget to the world.
+    // (Every frame cost the sim a third of its ticks at 20x on the software renderer.)
     if (nowMs - lastUiMs >= UI_REFRESH_MS) {
       lastUiMs = nowMs;
       refreshHud();
@@ -1710,9 +1680,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       if (shop.isOpen) shop.refresh();
     }
 
-    // Bloom only while something glows: it costs a few full-screen passes.
-    // Fire, gold coins in the air, and the glints over anything worth
-    // clicking, which is also what marks the golden capybara.
+    // Bloom only while something glows (fire, coins, glints): it costs a few full-screen passes.
     if (fires.burning || coins.count > 0 || sparklePoints.length > 0) glow.render();
     else handle.render(scene, rig.camera);
   }
@@ -1724,10 +1692,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   });
 
   /**
-   * Some mobs are worth a click rather than a block: the golden capybara, and
-   * the babi ngepet on the day it stands up at the Kopdes. Both sparkle while
-   * they can be caught, and their drawn position is projected on the click;
-   * the crowd mesh itself cannot be picked apart.
+   * Some mobs take a click themselves. The crowd mesh cannot be picked apart, so their drawn
+   * position is projected on the click.
    */
   /** Whether a mob is standing on land the player owns. */
   function onTheEstate(mob: (typeof sim.state.mobs)[number]): boolean {
@@ -1739,9 +1705,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   }
 
   /**
-   * What is worth a click: the golden capybara, and the babi ngepet once it is
-   * on your land, whether it is still ambling in as a pig or up on two legs.
-   * The sim decides what that is worth; this only decides what glints.
+   * The golden capybara, and the babi ngepet once on the estate, pig or standing.
+   * The sim decides what a click is worth; this only decides what glints.
    */
   function worthAClick(mob: (typeof sim.state.mobs)[number]): boolean {
     if (mob.shiny) return true;
@@ -1956,8 +1921,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   loop.start();
 
-  // The title screen, over the estate pulled back to a backdrop. Dev and
-  // test URLs that name a world (`?seed`, `?fresh`) go straight in.
+  // The title screen, over the estate as a backdrop; `?seed` and `?fresh` go straight in.
   // A named estate is greeted by name, with its code in hand for sharing.
   const welcome = () =>
     toasts.push(

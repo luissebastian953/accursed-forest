@@ -9,10 +9,8 @@ export const DECK = {
    */
   drawChance: 0.12,
   /**
-   * The weights are shares of this fixed total; whatever they do not claim is
-   * "nothing happens". Without it, an event that cannot be drawn (already
-   * running, wrong season) handed its share to the others; with a flood
-   * running in the wet season, a draw was a certain ash fall.
+   * Weights are shares of this fixed total and the rest is "nothing happens", so an event
+   * that cannot be drawn does not hand its share to the others.
    */
   referenceWeight: 1.6,
 } as const;
@@ -100,11 +98,7 @@ export const DROUGHT = {
 } as const;
 
 /** Forest cover and landslides (GDD 3.6.2). */
-/**
- * Digging a slide out (GDD 3.6.2): a crew and a machine for a few days, and the
- * hectare is ground again. The alternative is waiting for the debris to rot
- * and planting through the spoil, which takes seasons.
- */
+/** Digging a slide out (GDD 3.6.2): a crew and a machine for days, instead of seasons of rot. */
 export const EXCAVATION = {
   /** Days the crew is on the block. */
   days: 6,

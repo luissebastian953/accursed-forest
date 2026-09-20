@@ -156,9 +156,7 @@ export function buildPalmGeometry(
       const y = crownY + Math.sin(-localDroop) * reach + p.frondLength * 0.06;
       const horizontal = Math.cos(-localDroop) * reach;
 
-      // A palm frond is pinnate: past the middle it splits into leaflets. The
-      // outer segment is drawn as a pair fanned either side of the spine, so
-      // the crown reads as leaves rather than as paddles.
+      // Pinnate: the outer segments fan into leaflets, so the crown reads as leaves, not paddles.
       const tip = s === segments - 1;
       const split = tip ? FAN_TIP : s === segments - 2 ? FAN_MID : [0];
 

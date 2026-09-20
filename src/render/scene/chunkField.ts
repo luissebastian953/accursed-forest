@@ -101,10 +101,8 @@ export interface DivergedBlockLite {
   /** The slope gave way here and nothing has been planted since (GDD 3.6.2). */
   slid: boolean;
   /**
-   * Which of the block's slots have something standing in them, one byte per
-   * slot, or null for a block with no palms at all. The ground grid is one
-   * column per slot, so an empty slot is a column of bare earth: a hectare
-   * planted with half the bibit it needed looks half planted.
+   * One byte per slot, or null for a block with no palms: an empty slot draws
+   * as its own column of bare earth, so a half-planted hectare reads as half planted.
    */
   planted: Uint8Array | null;
 }
@@ -145,12 +143,8 @@ export function terraceHeight(elevation: number): number {
 const TERRACED: ReadonlySet<BlockPhase> = new Set(['cleared', 'planted', 'reforesting', 'kopdes']);
 
 /**
- * The height of the land the mesher draws under world point (x, z): a flat
- * terrace on cleared, planted and Kopdes blocks, otherwise the same bilinear
- * blend of neighbouring block heights the columns use, snapped to the same
- * quantum. Anything standing on the ground; mobs, cars, felled trees; must
- * use this, or it floats or sinks wherever the two formulas disagree. (The
- * river's cut is not applied; nothing should be standing in the river.)
+ * Land height at world point (x, z), on the columns' own formula; anything
+ * standing on the ground must use this, or it floats or sinks against them.
  */
 export function landHeight(
   world: World,
@@ -336,9 +330,8 @@ export function buildChunkField(
         }
       }
 
-      // A planted hectare is only green where something stands. The ground
-      // grid is one column per slot, so an empty slot is its own column of
-      // bare earth, and a half-planted block reads as half planted.
+      // A planted hectare is only green where something stands: an empty slot
+      // is its own column of bare earth, so a half-planted block reads as half planted.
       const bare =
         lite?.planted !== null &&
         lite?.planted !== undefined &&
@@ -383,9 +376,8 @@ export function buildChunkField(
 }
 
 /**
- * The biome whose colour a wild column shows: its own, or a wild neighbour's
- * when the warped sample point lands there, so edges between wild biomes
- * wander instead of following the block grid. Estate blocks stay crisp.
+ * The biome a wild column's colour shows: its own, or a wild neighbour's
+ * where the warped sample lands, so wild edges wander; estate blocks stay crisp.
  */
 function warpedBiome(
   world: World,

@@ -42,8 +42,7 @@ export const ECONOMY = {
 
 /**
  * Land price = biome base × (1 + owned × perOwnedBlock) × (1 + distance × perDistance),
- * where distance is Manhattan blocks from the Kopdes, or from the estate's
- * centre before one is placed (GDD 3.1.1: each purchase raises the next).
+ * distance in Manhattan blocks from the Kopdes (GDD 3.1.1: each purchase raises the next).
  */
 export const LAND_PRICE = {
   perOwnedBlock: 0.04,
@@ -68,12 +67,9 @@ export const ITEM_PRICES: Record<ItemId, number> = {
 
 export const KOPDES_BUILD_COST = 22_000_000;
 
-/** What a chopped block's timber fetches at the Kopdes (GDD 3.1.1: offsets wages). */
 /**
- * Clearing a plantation (GDD 3.1.1): felling every palm on a block and
- * hauling the stumps out. Priced per palm standing, so a full hectare costs
- * about twelve chops, because it is a punishment for a wrong turn, not a
- * tool; and it pays nothing for what comes down, unlike a forest chop.
+ * Clearing a plantation (GDD 3.1.1), per palm standing: a full hectare is about twelve chops
+ * and sells nothing, because it punishes a wrong turn rather than being a tool.
  */
 export const CLEAR_PLANTATION = {
   perPalm: 300_000,
@@ -83,6 +79,7 @@ export const CLEAR_PLANTATION = {
   debris: 40,
 } as const;
 
+/** What a chopped block's timber fetches at the Kopdes (GDD 3.1.1: offsets wages). */
 export const TIMBER_VALUE: Partial<Record<Biome, number>> = {
   forest: 4_500_000,
   protected: 6_000_000,
@@ -98,17 +95,8 @@ export const IRRIGATION_COST = 6_000_000;
 export const DRAINAGE_COST = 4_000_000;
 
 /**
- * Cost to go from level `i` to `i + 1`; index 0 is unused (building is
- * separate). The curve is steep on purpose: level 3 is what opens the payroll
- * and the 50x clock, and the top level is one of the five ISPO conditions, so
- * each step has to be earned out of the crop rather than paid for out of the
- * opening balance.
- */
-/**
- * What each level of the Kopdes costs (GDD 3.3). The ladder climbs steeply: the
- * range it buys is the difference between selling a corner of the estate and
- * all of it, and level 3 opens the payroll and the fast clock besides. An
- * estate should be years into its harvests before it reaches the top.
+ * Kopdes level `i` to `i + 1` (GDD 3.3); index 0 is unused, building is separate. Steep on
+ * purpose: each step is earned out of the crop, not the opening balance.
  */
 export const KOPDES_UPGRADE_COST: readonly number[] = [0, 90_000_000, 260_000_000, 650_000_000];
 

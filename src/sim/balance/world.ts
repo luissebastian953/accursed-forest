@@ -100,9 +100,8 @@ export const START_SITE = {
   /** Minimum share of the starting square that must be allowed biomes. */
   minAllowedShare: 0.7,
   /**
-   * Standing forest in and around the square (this many blocks out): the
-   * choice between chopping and burning needs forest to choose about, and a
-   * start on bare grassland looked like nothing was there.
+   * Standing forest counted this many blocks out from the square: chop or burn needs forest
+   * to choose about, and a bare grassland start looked empty.
    */
   forestRing: 3,
   /** Forest share of that area that earns the full bonus. */

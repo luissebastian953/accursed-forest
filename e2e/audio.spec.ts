@@ -1,13 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
 
-/**
- * The estate's noises are synthesised, not recorded (`src/audio`), which means
- * they can be rendered offline and measured rather than listened to. Nobody
- * here can say whether the thunder sounds like thunder, but this suite can say
- * that it is audible, that it does not clip, and that its energy sits where a
- * roll of thunder's should.
- */
-
 interface Measured {
   name: string;
   peak: number;
@@ -90,11 +82,7 @@ async function measureAll(page: Page): Promise<Measured[]> {
   });
 }
 
-/**
- * How strongly a loop's envelope repeats itself at any lag over a second:
- * 0 is a texture, 1 is a metronome. A sine LFO on a gain scores high and is
- * heard as a slope up and down, which is not what weather or fire does.
- */
+/** How strongly a loop repeats itself over a second: 0 is a texture, 1 a metronome. */
 async function cyclicity(page: Page, name: string): Promise<number> {
   await page.goto('/workbench.html?webgl');
   await page.waitForFunction(() => '__bench' in window);

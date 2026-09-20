@@ -37,6 +37,13 @@ at once; the palms stand until the last day and come down together in
 `systems/terrain.ts`, leaving the debris of the job behind. The panel asks
 twice before sending the order.
 
+### Notes
+
+- `apply`, the felling: the palms stay standing while the crew works through
+  them, and come down together when the job ends (`systems/terrain.ts`).
+  What the player sees in the meantime is a crew on the block and a ring
+  counting down.
+
 ## `src/sim/commands/coverCropBlock.ts`
 
 CoverCropBlock (GDD 3.6.2): a cheap per-block planting that holds the soil.

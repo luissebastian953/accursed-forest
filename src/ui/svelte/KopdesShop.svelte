@@ -118,9 +118,7 @@
           </div>
           <div class="flex flex-col gap-1.5">
             {#each v.workers as worker (worker.kind)}
-              <!-- One pill each: the name on its own line, the job under it,
-                   the button across the bottom. Side by side they wrapped
-                   three deep on the phone. -->
+              <!-- One pill each: side by side these wrapped three deep on the phone. -->
               <div class="pill-muted p-2.5">
                 <div class="flex items-center gap-2">
                   <span class="pill flex h-8 w-8 shrink-0 items-center justify-center">

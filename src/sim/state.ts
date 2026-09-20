@@ -99,9 +99,8 @@ export function createInitialState(world: World, name = ''): SimState {
     commandLog: [],
   };
 
-  // The starting estate: an owned square around the start site, with the
-  // Kopdes block pre-cleared (GDD 4.6). Water and protected forest inside the
-  // square stay unowned; you cannot hold title to a river.
+  // The starting estate: an owned square around the start site (GDD 4.6);
+  // water and protected forest inside it stay unowned.
   for (let y = params.startY; y < params.startY + params.startSize; y++) {
     for (let x = params.startX; x < params.startX + params.startSize; x++) {
       const generated = world.generated(x, y);

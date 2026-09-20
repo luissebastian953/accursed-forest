@@ -94,11 +94,7 @@ function plantMature(sim: Sim, n: number, ageYears = 6): BlockId[] {
   return planted;
 }
 
-/**
- * An estate one week from the end of year 10 that meets every ISPO condition:
- * Kopdes at max level, 16 bearing hectares, three profitable years and the
- * profit behind it, no burns.
- */
+/** An estate a week from the end of year 10 that meets every ISPO condition. */
 function certifiableEstate(seed = 42): Sim {
   const sim = createSim(seed);
   const { state } = sim;

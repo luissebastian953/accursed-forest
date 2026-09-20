@@ -1,16 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
 
-/**
- * The browser smoke test (GDD 9, M1a + M1b): boot on the WebGL fallback, place
- * the Kopdes, stock bibit at the shop, chop and plant a neighbour, speed
- * through the immature years, harvest a ripe round and watch it sell, then
- * save, reload and continue.
- *
- * `?webgl` forces the fallback path CI can run; `?seed=42&fresh` makes the
- * world deterministic and ignores any save in this browser profile; `?turbo`
- * runs the clock twenty times faster than a player's, so years pass in seconds.
- */
-
 const URL = '/play.html?webgl&seed=42&fresh&turbo&debug';
 
 /** What `?debug` exposes on window; only the parts the suite touches. */
@@ -29,7 +18,12 @@ interface DebugWindow {
           news: { key: string }[];
         };
         economy: { cash: number };
-        run: { ending?: string; endedAt?: number; insolventFor: number };
+        run: {
+          ending?: string;
+          endedAt?: number;
+          insolventFor: number;
+          years: { conditionsMet: number }[];
+        };
         blocks: Map<
           number,
           {
@@ -46,19 +40,16 @@ interface DebugWindow {
         };
       };
       world: { toXY: (id: number) => [number, number] };
-      gpu: () => { triangles: number };
-      effects: () => { sparkleBurst: number };
     };
+    // Siblings of `sim` on the hook, not members of the sim it returns.
+    gpu: () => { triangles: number };
+    effects: () => { sparkleBurst: number };
   };
 }
 
 const tid = (page: Page, id: string) => page.getByTestId(id);
 
-/**
- * Level 3 is what opens the payroll and the 50x clock (GDD 3.3). The suite has
- * neither the years nor the cash to grow one, so it hands itself the level
- * through the debug hook, and the shop redraws on its next refresh.
- */
+/** Level 3 opens the payroll and the 50x clock (GDD 3.3): take it, rather than grow it. */
 async function unlockKopdes(page: Page): Promise<void> {
   await page.evaluate(() => {
     const { state } = (window as unknown as DebugWindow).__sawit.sim();
@@ -265,9 +256,8 @@ test.describe('Sawit Simulator', () => {
     await page.goto('/play.html?webgl&turbo');
     await tid(page, 'start-continue').click();
     await expect(tid(page, 'hud-cash')).toContainText('Rp');
-    // The clock is already running at 1× (two ticks a second under turbo), so
-    // the date may have moved a few days by the time we read it: the save is
-    // proven by landing within a fortnight of where we left, not to the day.
+    // The clock runs while we read it, so the save is proven within a fortnight
+    // of where we left off, not to the day.
     await tid(page, 'speed-0').click();
 
     const days = (text: string | null): number => {
@@ -911,9 +901,8 @@ test.describe('Sawit Simulator', () => {
     expect(after.attention).toBeLessThan(20);
     expect(after.left).toBeLessThanOrEqual(50);
 
-    // The danger zone (GDD 8 panel 13a) is only offered where something stands,
-    // and it asks twice: the first press opens the question, and the wide
-    // button closes it without a crew.
+    // The danger zone (GDD 8 panel 13a) is offered only where something stands,
+    // and it asks twice.
     await expect(tid(page, 'danger-zone')).toBeVisible();
     // Folded shut: the red button is behind the dropdown, not on the panel.
     await expect(tid(page, 'action-ClearPlantation')).toHaveCount(0);

@@ -125,9 +125,7 @@ function mobSubject(id: string): Subject {
       const set = (wants: Partial<Record<'sleep' | 'crouch' | 'work' | 'sit' | 'climb', number>>) =>
         field.setBenchWants(mob, wants);
 
-      // A climber in the game is up a tree; on the bench there is nothing to
-      // be up. A bare trunk appears under it while it climbs and goes again
-      // after: a whole tree would only hide the thing being looked at.
+      // A bare trunk, shown only while the mob climbs: a whole tree would hide the thing on show.
       const trunk = new BoxBuilder();
 
       // Set back a little, so the climber is seen from the front rather than

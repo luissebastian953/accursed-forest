@@ -76,12 +76,8 @@ export class BoxBuilder {
   }
 
   /**
-   * Append a box.
-   *
-   * @param matrix  places the unit cube (centre origin, size 1) in local space
-   * @param faces   palette slot per face
-   * @param skip    faces to omit; the column mesher culls faces that abut a
-   *                taller neighbour, which is most of them at estate scale
+   * Append a box: `matrix` places the unit cube (centred, size 1), `faces` a slot per face.
+   * `skip` omits faces; the column mesher culls every face against a taller neighbour.
    */
   addBox(matrix: Matrix4, faces: BoxFaces, skip?: Partial<Record<FaceKey, boolean>>): this {
     const normalMatrix = _normalBasis(matrix);

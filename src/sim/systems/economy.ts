@@ -48,9 +48,8 @@ export function economy(ctx: SimContext): void {
 
   if (contract > 0) earn(state, contract, 'sale', 'co-op supply contract');
 
-  // ── Price walk ─────────────────────────────────────────────────────────
-  // Regional haze: crews stay home across the province and buyers pay less (GDD 3.6).
-  // Forest cover is worth money under a buyer that checks for it.
+  // ── Price walk ───────────────────────────────────────────────────────
+  // Haze and forest cover shift the mean the price reverts to (GDD 3.6).
   const macro = tbsMeanFactor(state, estateForestCover(state, ctx.world));
   const mean =
     ECONOMY.tbsPriceMean * macro * (activeEvent(state, HAZE_EVENT) ? 1 - HAZE.priceDip : 1);

@@ -49,9 +49,7 @@ type MeshKey =
 const INITIAL_CAPACITY = 24 * WORLD.blockSide * WORLD.blockSide;
 /**
  * A wild forest block carries about a dozen trees and a few bushes over its
- * 144 columns (`props.ts`: 36 spots, a third of them trees), so a block that
- * has grown back aims for the same: the rest of the slots are bare forest
- * floor once the canopy closes.
+ * 144 columns, so a regrown block's canopy and shrub shares aim for the same.
  */
 const CANOPY_SHARE = 0.09;
 const SHRUB_SHARE = 0.12;

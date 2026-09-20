@@ -1,8 +1,3 @@
-<!--
-  The menu (GDD 8 panel 16), in two steps. Its face carries the save, the sound
-  and the language; the new-estate form takes the whole card over when it is
-  asked for, because starting one replaces what is in play.
--->
 <script lang="ts">
   import { locale, LOCALES, localeTag, setLocale, t, type Locale } from '../../i18n/index.ts';
 
@@ -208,11 +203,7 @@
           </div>
         </div>
 
-        <!--
-          One button, and nothing that can start a world by itself. With an
-          estate in play it is a question in the quiet style; with nothing to
-          lose it is the coral call to action.
-        -->
+        <!-- One button: a quiet question with an estate in play, the coral call with nothing to lose. -->
         <div class="border-t-2 border-dashed border-[#f2e0b0] pt-4">
           <button
             class={`btn ${state.view.inPlay ? 'btn-ghost' : 'btn-coral uppercase tracking-wide'} btn-lg w-full`}

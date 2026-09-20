@@ -298,9 +298,8 @@ describe('drought (GDD 3.6)', () => {
       );
     }
 
-    // El Niño keeps the rain under the breaking point for years on end, which
-    // is the point of it; a wet regime is what ends a drought. A short one may
-    // already have broken during the five ticks above.
+    // A wet regime is what ends a drought, and a short one may have broken
+    // during the ticks above.
     let ended = !activeEvent(sim.state, DROUGHT_EVENT);
 
     for (let i = 0; i < 2 * GROWTH.daysPerYear && !ended; i++) {

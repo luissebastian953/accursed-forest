@@ -47,11 +47,7 @@ export function terrain(ctx: SimContext): void {
       continue;
     }
 
-    // The crew digging a slide out: when they are done the spoil goes, the
-    // debris with it, and the scar comes off the map.
-    // A crew felling the plantation: the palms stand until the last day, then
-    // come down together, and the block goes back to bare land with the
-    // debris of the job on it. Nothing is sold: this is the one clearing that
+    // A crew felling the plantation: nothing is sold, the one clearing that
     // pays for nothing it brings down.
     if (block.fellingUntil >= 0) {
       if (state.tick >= block.fellingUntil) {
@@ -77,6 +73,8 @@ export function terrain(ctx: SimContext): void {
       continue;
     }
 
+    // The crew digging a slide out: when done, the spoil and debris go and
+    // the scar clears.
     if (block.excavateUntil >= 0) {
       if (state.tick >= block.excavateUntil) {
         block.excavateUntil = -1;

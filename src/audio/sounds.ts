@@ -136,10 +136,8 @@ const landslide: OneShot = (ctx, out, at) => {
 };
 
 /**
- * Thunder, near or far. Noise through a resonant lowpass at 300 Hz, swelling
- * over a fifth of a second and falling away over four, with a second roll
- * arriving a moment later. Overhead it cracks and punches first; far away
- * the swell is slow, the cutoff lower, the tail longer and the hit gone.
+ * Thunder: lowpassed noise that swells and falls away, then a second roll. Overhead it
+ * cracks and punches first; far off it is slower, darker and longer, with no hit.
  */
 function thunder(distance: number): OneShot {
   return (ctx, out, at) => {
@@ -277,10 +275,8 @@ function handle(gain: GainNode, stop: (at: number) => void): LoopHandle {
 }
 
 /**
- * Rain: two layers. A bed of pink noise rolled off above 3 kHz, which is the
- * sound of rain on everything at once, and over it a thinner spatter of
- * brighter noise that swells and fades on its own, which is the drops. Flat
- * white hiss on its own reads as a radio between stations.
+ * Rain: a pink bed rolled off above 3 kHz, under a spatter of brighter drops that swells on
+ * its own. Flat white hiss alone reads as a radio between stations.
  */
 const rain: Loop = (ctx, out, at = 0) => {
   const gain = ctx.createGain();
@@ -322,11 +318,8 @@ const rain: Loop = (ctx, out, at = 0) => {
 };
 
 /**
- * Fire: a body and a crackle. The body is two layers, a low rumble and a
- * mid roar around 500 Hz that surges and drops the way flames do; the
- * crackle is short pops of noise in the low thousands, not the top of the
- * range, which is where a snap of dry wood sits. They are scheduled a few
- * seconds ahead and topped up while the loop runs.
+ * Fire: a rumble and a surging roar near 500 Hz, under pops in the low thousands, where dry
+ * wood snaps. The pops are scheduled a few seconds ahead and topped up while it runs.
  */
 const fire: Loop = (ctx, out, at = 0) => {
   const gain = ctx.createGain();
@@ -385,10 +378,8 @@ const fire: Loop = (ctx, out, at = 0) => {
       pops.push(pop);
     }
   };
-  // Offline contexts render their whole length at once and never tick a
-  // timer, so they get every crackle up front; live ones are fed ahead of
-  // the clock. Without this an offline render goes quiet after four seconds,
-  // and anything measuring it measures the silence.
+  // Offline contexts never tick a timer, so they get every crackle up front; otherwise an
+  // offline render goes quiet after four seconds and anything measuring it measures silence.
   const offline = ctx instanceof OfflineAudioContext;
   const upFront = offline ? ctx.length / ctx.sampleRate + 1 : 4;
 
@@ -428,15 +419,8 @@ const fire: Loop = (ctx, out, at = 0) => {
 };
 
 /**
- * Fire, the other way round (a second take on the same thing). The flames are
- * pink noise under a lowpass whose cutoff wanders between about 300 and 500
- * Hz, rather than a gain that breathes; the embers are narrow, resonant pops
- * that die inside a fiftieth of a second.
- *
- * The reference weighs its pops well under its flames and they still carry,
- * because the ear is far more sensitive at three kilohertz than at four
- * hundred. Here the balance is pushed further that way again: the blowing
- * sits back and the embers lead.
+ * Fire, a second take: flames under a wandering lowpass (300 to 500 Hz), and narrow resonant
+ * embers that lead, since the ear is far more sensitive at 3 kHz than at 400 Hz.
  */
 const fireAlt: Loop = (ctx, out, at = 0) => {
   const gain = ctx.createGain();

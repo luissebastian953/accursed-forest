@@ -39,9 +39,8 @@ export function cloneRng(state: RngState): RngState {
 }
 
 /**
- * Derive an independent stream from a seed and a tag, without touching or
- * consuming any existing stream. Worldgen uses this so that terrain stays a
- * pure `f(seed, x, y)` no matter what the main stream has done (GDD 4.6).
+ * Derives an independent stream from a seed and a tag, without touching the
+ * existing stream (GDD 4.6).
  */
 export function forkRng(seed: number, tag: number): RngState {
   return createRng((Math.imul(seed, 0x2545f491) ^ Math.imul(tag + 1, 0x9e3779b1)) | 0);

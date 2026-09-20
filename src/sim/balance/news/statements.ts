@@ -395,8 +395,7 @@ export const STATEMENTS: Record<string, NewsTemplate> = {
   },
 
   // ── What burning costs ────────────────────────────────────────────────
-  // Written flat. The deck jokes about ministers; it does not joke about
-  // this, and the contrast is the point.
+  // Written flat: the deck jokes about ministers, never about this.
   'macro.hazeSeason': {
     lane: 'natural',
     severity: 'warning',

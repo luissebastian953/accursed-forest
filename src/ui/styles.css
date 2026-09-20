@@ -1,13 +1,5 @@
 @import 'tailwindcss';
 
-/*
- * Cartoon UI kit (design kit, Sep 2026): cream cards with a hard bottom edge,
- * inset pills, Baloo 2 throughout, and chunky buttons that press down.
- *
- * Tokens first, then the handful of component classes every panel builds
- * from. The 3D palette lives in `render/materials/palette.ts`; the game
- * colours below mirror it so the HUD and the world stay in step (GDD 6.1).
- */
 @theme {
   --color-sawit: #2f7a2b;
   --color-frond-young: #7fb03a;

@@ -1,9 +1,3 @@
-<!--
-  The win condition, spelled out (design kit 7a). A gold band at the top, the
-  five conditions as rows with a bar each, and a footer that says what meeting
-  them is worth. Each row shows how far along it is, so a condition that is
-  nearly met does not look the same as one that has not started.
--->
 <script lang="ts">
   import type { IspoCondition, IspoConditionId } from '@sim/systems/endings';
 

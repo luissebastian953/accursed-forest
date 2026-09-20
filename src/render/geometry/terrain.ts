@@ -16,10 +16,8 @@ export interface ColumnField {
   /** Y below which nothing is drawn; the underside of the diorama slab. */
   floorY: number;
   /**
-   * Columns within `inset` of the field's edge are neighbour context only:
-   * their heights cull the faces of the columns beside them, but they are not
-   * emitted. A chunk builds with `inset: 1` so its border faces are culled
-   * against the next chunk rather than drawn as a wall down to the floor.
+   * Edge columns that only cull their neighbours' faces and are not drawn. A chunk uses 1,
+   * so its border is culled against the next chunk rather than walled down to the floor.
    */
   inset?: number;
   /** World-space position of the first *emitted* column. */

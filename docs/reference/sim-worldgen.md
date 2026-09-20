@@ -31,6 +31,22 @@ cluster, and a start site with a river in reach; so unlike elevation and
 moisture they are computed once when the world is created rather than
 per-cell on demand.
 
+### Notes
+
+- `findProtectedForest()`: the largest contiguous cluster of high forest, plus a
+  one-block buffer ring, becomes protected forest: the map's fixed boundary. It
+  returns an empty set if no cluster reaches the minimum size, which is a
+  legitimate world.
+- `findStartSite()`: searches outward from the map centre for somewhere to put
+  the estate: a core that is plantable, off the slopes, clear of protected
+  forest and water, with a river within reach and standing forest in or around
+  it. It always returns a site; if nothing scores well the best candidate found
+  wins, because a world with nowhere to start is not playable.
+- `findVillages()`: villages (GDD 4.6) are a few clusters of village land near
+  the rivers, placed after the start site and kept clear of it, so they never
+  change where the estate begins. It returns the cells, which become the
+  `village` biome.
+
 ## `src/sim/worldgen/index.ts`
 
 World generation entry point (GDD 4.6).
@@ -44,6 +60,18 @@ any other block comes here.
 Determinism: every random draw comes from streams forked off the seed with a
 fixed tag, so the same seed always produces the same world regardless of what
 the main simulation stream has done.
+
+### Notes
+
+- `createWorld()` terrain cache: per-cell terrain is cached in a flat array,
+  which is cheaper than an LRU here: at 64x64 the full cache is 4,096 entries,
+  and the render worker regenerates chunks on demand anyway.
+- `seedFromEstateCode()`: any words name a world (GDD 4.6). Seven code symbols
+  are read as a code, so a shared estate comes back exactly; anything else is
+  hashed, so a player can type what they like. Case, spacing and punctuation
+  are ignored either way: "PENYAWIT-HANDAL", "penyawit handal" and "Penyawit
+  Handal" are one estate. Only nothing at all is nothing: an empty box means a
+  random world.
 
 ## `src/sim/worldgen/moisture.ts`
 
@@ -77,3 +105,13 @@ and the tests all rely on. The result is a set of water cells plus a distance
 field, which biome selection uses for the riverbank strip and moisture uses
 for the wetness boost. Unlike elevation and moisture this cannot be a pure
 per-cell function; a river is a path; so it is computed once per world.
+
+### Notes
+
+- `RiverField.paths`: each river's cells, source first, ending on the coast.
+  The simulation only needs `water`; the renderer draws a smoothed, meandering
+  channel along these instead of the block staircase.
+- `traceRivers()` ridge candidates: the sources are chosen from the highest
+  cells of the map's interior, sampled coarsely so sources spread out. Sources
+  near the border make stub rivers that leave the map after a dozen cells; the
+  interior margin keeps every river long enough to shape the land it crosses.

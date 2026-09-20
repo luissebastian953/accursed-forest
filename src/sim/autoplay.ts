@@ -15,17 +15,9 @@ export interface AutoplayOptions {
   blocks: number;
   /** Apply fertilizer whenever a block's window lapses and stock allows. */
   fertilize?: boolean;
-  /**
-   * Do the sanitation and pest work a careful player would: sanitize debris
-   * before planting and whenever it piles up, trap beetles, treat and remove
-   * visibly sick palms, replant the gaps.
-   */
+  /** Do the sanitation and pest work a careful player would. */
   managePests?: boolean;
-  /**
-   * Keep expanding: each month, while cash stays above `reserve`, chop and
-   * plant the next owned block in Kopdes range, up to `maxBlocks`, and
-   * upgrade the Kopdes whenever it can be afforded on top of the reserve.
-   */
+  /** Keep expanding: chop, plant and upgrade while cash allows, up to `maxBlocks`. */
   expand?: { reserve: number; maxBlocks: number };
   /** Leave forest standing: never chop a block that counts as forest cover (GDD 3.6.2). */
   spareForest?: boolean;
@@ -195,11 +187,7 @@ export function autoplay(options: AutoplayOptions): AutoplayResult {
   return { sim, rows, lowestCash, ending, endedYear };
 }
 
-/**
- * The careful player's pest routine for one planted block: traps when the
- * beetles build up, sanitation when debris piles up, Trichoderma and removal
- * once Ganoderma shows, and replanting the gaps every so often.
- */
+/** The careful player's pest routine for one planted block. */
 function managePests(
   sim: Sim,
   block: BlockId,

@@ -1,11 +1,3 @@
-<!--
-  The cartoon smartphone (design kit, phone-frame asset) that the news feed
-  and the Kopdes shop both live on. The frame body sits under the screen,
-  the notch and home bar over it; the screen is the 400×840 safe zone of the
-  480×920 frame, with a status bar either side of the notch, a header, a
-  scrolling body (the children) and an optional footer above the home bar.
-  It stands between the HUD and the ticker, on the left.
--->
 <script lang="ts">
   import type { Snippet } from 'svelte';
 
@@ -26,10 +18,8 @@
   const FRAME_TOP_URL = `${import.meta.env.BASE_URL}ui/phone-frame-top.svg`;
 
   /**
-   * The frame is sized by the viewport's height, so a zoomed-in browser or a
-   * short window shrinks it while rem-based type stays put and the screen
-   * turns dense. The screen content zooms with the frame's width instead:
-   * 1 at the 360px the layout was drawn for, never below 0.7 or above 1.1.
+   * The frame is sized by viewport height; the screen content zooms with the
+   * frame's width instead, clamped between 0.7 and 1.1 of the 360px layout.
    */
   const REFERENCE_WIDTH = 360;
   let frame = $state<HTMLElement | null>(null);

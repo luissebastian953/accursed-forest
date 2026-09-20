@@ -299,15 +299,8 @@ export function growBlock(builder: BoxBuilder, ctx: PropContext, block: PropBloc
 }
 
 /**
- * The fence between the planted rows and the ground nothing stands on
- * (GDD 6.3). It is drawn only where a planted slot meets an empty one inside
- * the same hectare, which is the line a grower would actually fence: the
- * edge of the crop. Block boundaries are already drawn by the terrain, so
- * nothing is doubled up there.
- *
- * Posts are set at one end of each run so neighbouring segments share them,
- * and the rails are two thin bars, which is enough to read as a fence from
- * the height the camera sits at.
+ * The fence along the edge of the planted crop (GDD 6.3), not on block
+ * boundaries (already drawn by the terrain); posts are shared between runs.
  */
 export function growFence(
   builder: BoxBuilder,

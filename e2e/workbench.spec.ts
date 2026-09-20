@@ -1,15 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
 
-/**
- * The workbench (`workbench.html`): the development page that puts one part of
- * the estate on a turntable at a time. It is not linked from anywhere and it
- * carries `noindex`, so this suite is the only thing that opens it.
- *
- * The last test is the one worth keeping: switching subjects over and over
- * must leave the renderer holding exactly what it held to begin with. That is
- * the whole answer to "does this leak", measured rather than assumed.
- */
-
 const URL = '/workbench.html?webgl';
 
 const tid = (page: Page, id: string) => page.getByTestId(id);

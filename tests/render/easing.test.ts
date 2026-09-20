@@ -139,9 +139,8 @@ describe('cascade timing (GDD 6.5)', () => {
 
 describe('spring integrator (GDD 6.5)', () => {
   it('is visually settled by ~600 ms and numerically settled by ~1.2 s', () => {
-    // GDD 6.5 promises a ~600 ms settle. Measured, the toy preset (zeta ~= 0.54)
-    // is within ~1.3% of target at 600 ms; settled to the eye; and converges
-    // properly a few hundred ms later.
+    // GDD 6.5 promises a settle of about 600 ms; the toy preset lands within
+    // about 1.3% of target there, and converges properly soon after.
     const spring = createSpring(0);
 
     for (let i = 0; i < 36; i++) stepSpring(spring, 1, 1 / 60);

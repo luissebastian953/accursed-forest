@@ -9,11 +9,7 @@ export interface BiomeSpec {
   price: number;
   /** Plantable slots out of 144. Hills terrace to 96 (GDD 3.1). */
   plantableSlots: number;
-  /**
-   * Open land: grass and scrub, where there is nothing standing to clear. A
-   * forest can be planted straight onto it, though palms still want the land
-   * prepared first.
-   */
+  /** Nothing standing to clear: forest plants straight on, palms still want it prepared. */
   openLand?: boolean;
   /** Multiplies the fertility factor of `G` once planted. */
   fertility: number;

@@ -47,10 +47,8 @@ export class Rain {
   }
 
   /**
-   * @param rain  today's rain, 0..1
-   * @param sky  what the day is called (GDD 3.6); only rain and storms fall
-   * @param view  the ground in view; drops respawn over it
-   * @param running  false while paused: the drops hang where they are
+   * `sky` (GDD 3.6) decides whether it rains at all; `view` is where drops
+   * respawn, and `running` false leaves them hanging mid-air.
    */
   update(
     dtSeconds: number,
@@ -59,9 +57,8 @@ export class Rain {
     view: GroundRect,
     running: boolean,
   ): void {
-    // The sky decides, not the number behind it: a damp day the HUD calls
-    // cloudy must not have rain falling on it. Past that, the shower thickens
-    // with the day's rain.
+    // The sky decides whether it rains, not the rain number: a cloudy day
+    // must show nothing falling. Past that, the shower thickens with the day's rain.
     const wet = sky === 'rain' || sky === 'storm';
     const target = wet
       ? DRIZZLE + (1 - DRIZZLE) * clamp01((rain - SKY.rainAbove) / (1 - SKY.rainAbove))

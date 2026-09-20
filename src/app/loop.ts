@@ -62,9 +62,8 @@ export class GameLoop {
   }
 
   /**
-   * Advance to `nowMs`: run the ticks the elapsed time has earned, then one
-   * frame. Public so tests can drive the loop without an animation frame.
-   * Returns the number of ticks run.
+   * Advance to `nowMs`: run the ticks the elapsed time has earned, then one frame, and
+   * return the tick count. Public so tests can drive the loop without an animation frame.
    */
   step(nowMs: number = this.now()): number {
     const dtMs = this.lastFrameMs === null ? 0 : Math.max(0, nowMs - this.lastFrameMs);

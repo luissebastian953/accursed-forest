@@ -301,11 +301,7 @@
 
       {#if v.land}
         {@const land = v.land}
-        <!--
-          Open land, and the two things that can be done with it (GDD 8 panel
-          11a). The crew is the loud one; the saplings are the quiet one, and
-          buying them is folded into the same press.
-        -->
+        <!-- Open land's two things to do with it (GDD 8 panel 11a): the crew, or the saplings. -->
         <footer class="flex flex-col gap-2 border-t-2 border-dashed border-[#f2e0b0] p-4">
           <div class="label">{t('block.clearThis')}</div>
           <button
@@ -386,11 +382,7 @@
 
       {#if v.danger}
         {@const danger = v.danger}
-        <!--
-          The danger zone (GDD 8 panel 13a), folded shut by default so it never
-          competes with Harvest or Fertilize. Unfolded, it shows the red button;
-          that button only asks, and the card it opens names what goes.
-        -->
+        <!-- The danger zone (GDD 8 panel 13a): folded shut so it never competes with Harvest or Fertilize. -->
         <footer class="border-t-2 border-dashed border-[#f2e0b0] p-4" data-testid="danger-zone">
           <div class="danger rounded-2xl border-2 border-[#e9a898] bg-[#fbe4dc]">
             <button

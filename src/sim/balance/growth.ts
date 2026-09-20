@@ -1,9 +1,5 @@
 export const GROWTH = {
-  /**
-   * Growth-days from planting to first fruit. The design doc's ~900 was a
-   * real palm's three years; with a day ten seconds long that was an hour of
-   * watching seedlings, so the whole life cycle runs at 0.6.
-   */
+  /** Growth-days from planting to first fruit. The whole life cycle runs at 0.6 of the GDD's. */
   immatureDays: 540,
   /** Growth-days from planting to the end of the seedling look. */
   seedlingDays: 110,
@@ -46,11 +42,8 @@ export const MOISTURE_CURVE: readonly (readonly [moisture: number, factor: numbe
 ];
 
 /**
- * Kilograms of TBS per palm per harvest round at peak health, by calendar age
- * in years: ramp from first fruit (about a year and a half in) to year 5,
- * plateau to 18, decline to 25, then senile (GDD 2). ~10.5 kg/palm/round every
- * six days is far above a real estate's best: a good round should feel like a
- * payday, and a year of them should build something.
+ * Kilograms of TBS per palm per round at peak health, by calendar age in years (GDD 2).
+ * Far above a real estate's best on purpose: a good round should feel like a payday.
  */
 export const YIELD_CURVE: readonly (readonly [ageYears: number, kg: number])[] = [
   [0, 0],
@@ -70,10 +63,8 @@ export const HARVEST_ROTATION_DAYS = 5;
 export const FERTILIZER_DAYS = 90;
 
 /**
- * Reforestation grows on the same machinery with its own thresholds: sapling to
- * young to mature forest over roughly eight years (GDD 3.10). Saplings take hold
- * quickly, so a player who replants sees the ground turn green within a season
- * rather than waiting most of a year for the first sign of it.
+ * Reforestation: the palms' growth machinery with its own thresholds, about eight years to
+ * mature forest (GDD 3.10). Saplings take hold fast, so the ground greens within a season.
  */
 export const FOREST_GROWTH = {
   saplingDays: 40,

@@ -1,7 +1,6 @@
 /**
- * Seconds of noise kept per buffer. A looping buffer repeats its own wander,
- * and the ear finds that cycle quickly, so the buffer is long and its seam is
- * crossfaded: the tail is blended into the head and then cut.
+ * Seconds of noise per buffer: long, because the ear soon finds a loop's cycle, and its
+ * seam is crossfaded so the loop point is not a step.
  */
 const NOISE_SECONDS = 6;
 /** How much of the tail is folded back into the head. */
@@ -46,9 +45,7 @@ export function noiseBuffer(ctx: BaseAudioContext, colour: NoiseColour = 'white'
 
     for (let i = 0; i < length; i++) {
       last = (last + random() * 0.08) * 0.996;
-      // Scaled to sit around the same level as the white and pink buffers:
-      // unscaled, a brown walk peaks four times higher and clips everything
-      // built on it.
+      // Scaled to match white and pink: unscaled, a brown walk peaks four times higher and clips.
       data[i] = last * 0.9;
     }
   } else {
@@ -212,10 +209,7 @@ export function lfo(
 }
 
 /**
- * Slow, aperiodic modulation of a parameter: noise read far below its own
- * rate, which wanders instead of cycling. An LFO is a metronome and the ear
- * finds it; this is what a fire's body or a shower's weight actually does.
- *
+ * Slow, aperiodic modulation: noise read far below its rate wanders where an LFO audibly cycles.
  * @param seconds roughly how long one wander takes
  */
 export function drift(

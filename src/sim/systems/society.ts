@@ -83,10 +83,8 @@ function macroEconomy(ctx: SimContext): void {
 }
 
 /**
- * Whether the deck may deal this headline today. The consequences answer to
- * the player rather than the shuffle; once means once; a sequel waits for its
- * first part; and the headlines that leave a permanent mark hold off until
- * the estate is standing.
+ * Whether the deck may deal this headline today: once means once, and a
+ * sequel waits its turn.
  */
 export function drawable(state: SimState, id: MacroEventId): boolean {
   const spec: MacroEvent = MACRO.events[id];
@@ -103,9 +101,8 @@ export function drawable(state: SimState, id: MacroEventId): boolean {
 }
 
 /**
- * Put a headline on the wire: its permanent mark, its duration, and whatever
- * it does the moment it lands. The deck draws most of them; the ones that
- * answer to what the player has done are started from `authority()`.
+ * Puts a headline on the wire: its mark, duration and immediate effect. Most
+ * come from the deck; the rest from `authority()`.
  */
 export function startMacro(ctx: SimContext, id: MacroEventId): void {
   const { state, events } = ctx;
@@ -316,11 +313,8 @@ function authority(ctx: SimContext): void {
 }
 
 /**
- * A hectare put back under forest, credited (GDD 3.9). It halves the attention on
- * the estate and whatever is left of a suspension, on top of the meter drop
- * the planting itself earns. Doing it twice means chopping the forest down in
- * between, which costs more attention than the second credit returns, so this
- * needs no cooldown of its own.
+ * A hectare put back under forest, credited (GDD 3.9): halves the attention
+ * and any suspension left, on top of the meter drop planting itself earns.
  */
 export function creditReforestation(ctx: SimContext, block: BlockId): void {
   const { state, events } = ctx;
@@ -354,9 +348,8 @@ export function creditReforestation(ctx: SimContext, block: BlockId): void {
 }
 
 /**
- * What burning costs beyond the meter (GDD 3.7). These headlines are not dealt
- * by the deck: they answer to what the estate and the province have actually
- * set alight, which is the only way a consequence reads as one.
+ * What burning costs beyond the meter (GDD 3.7): dealt by what actually
+ * burned, not by the deck.
  */
 function ecology(ctx: SimContext, burnedToday: boolean): void {
   const { state, world } = ctx;

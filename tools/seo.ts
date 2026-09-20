@@ -8,9 +8,8 @@ export interface SitePage {
 }
 
 /**
- * The indexable pages: the landing page and its Indonesian twin, each a
- * translation of the other. `play.html` is the game behind a `noindex` tag and
- * stays out; a sitemap lists only canonical pages meant for search.
+ * The indexable pages, the landing page and its Indonesian twin. `play.html` is `noindex`
+ * and stays out: a sitemap lists only canonical pages meant for search.
  */
 export const SITE_PAGES: readonly SitePage[] = [
   { path: '/', file: 'index.html', lang: 'en' },
@@ -24,9 +23,8 @@ export const DEFAULT_PAGE_PATH = '/';
 export const SITE_IMAGES: readonly string[] = ['/brand/hero-estate-1600.webp', '/og-1200x630.png'];
 
 /**
- * `VITE_SITE_URL` as an origin with no trailing slash, or '' when unset.
- * Anything else fails the build: a wrong canonical origin quietly tells
- * Google the pages live somewhere else.
+ * `VITE_SITE_URL` as a bare origin, or '' when unset. Anything else fails the build: a
+ * wrong canonical origin quietly tells Google the pages live somewhere else.
  */
 export function normalizeSiteUrl(raw: string | undefined): string {
   const value = (raw ?? '').trim().replace(/\/+$/, '');
@@ -64,10 +62,8 @@ function escapeXml(value: string): string {
 }
 
 /**
- * The sitemap: every page with its last-modified date, its full set of
- * language alternates (each page lists all of them, itself included, plus
- * x-default, as Google requires for hreflang in sitemaps), and its images.
- * No `changefreq` or `priority`: Google ignores both.
+ * Each page with its date, every hreflang alternate plus x-default (Google wants all of them
+ * on every page) and its images. No `changefreq` or `priority`: Google ignores both.
  */
 export function renderSitemap(
   siteUrl: string,
@@ -107,10 +103,8 @@ export function renderSitemap(
 }
 
 /**
- * robots.txt: crawl everything. The game page is not blocked on purpose: a
- * blocked page cannot be fetched, so its `noindex` would never be seen and a
- * linked URL could still be indexed bare. The sitemap line needs an absolute
- * URL, so it is only written when the origin is known.
+ * robots.txt allows everything: a blocked game page could never show its `noindex`, and a
+ * linked URL could still be indexed bare. The sitemap line waits for a known origin.
  */
 export function renderRobots(siteUrl: string): string {
   const lines = ['User-agent: *', 'Allow: /'];

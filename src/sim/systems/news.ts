@@ -53,9 +53,8 @@ function capitalise(text: string): string {
 }
 
 /**
- * Headlines draw from their own stream, forked from the seed and the tick.
- * The words of the news must never change the world's future: drawing a
- * phrasing from the main stream shifted every later weather and pest roll.
+ * Headlines draw from their own stream: their words must never shift the
+ * world's future rolls.
  */
 const NEWS_STREAM = 0x4e455753;
 

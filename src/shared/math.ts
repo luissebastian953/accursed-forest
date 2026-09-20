@@ -43,11 +43,7 @@ export function quantise(v: number, step: number): number {
   return Math.round(v / step) * step;
 }
 
-/**
- * Sample a piecewise-linear curve defined by knots sorted ascending by `x`.
- * Values outside the knot range clamp to the first/last knot. This is how the
- * yield curve and the moisture curve are expressed in `sim/balance/*` (GDD 4.5).
- */
+/** Sample a piecewise-linear curve through knots sorted by `x`, clamped to the end knots. */
 export function sampleCurve(
   knots: readonly (readonly [x: number, y: number])[],
   x: number,

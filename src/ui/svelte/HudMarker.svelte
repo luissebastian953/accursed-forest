@@ -1,9 +1,3 @@
-<!--
-  One pin over a hectare (design kit 6a): the Kopdes workshop, or a block the
-  pests have got into. The `kind` prop picks the pin and its colour; the label
-  pill sits above it and only appears on hover, so a field of sick blocks does
-  not bury the estate in text.
--->
 <script lang="ts">
   import { MARKER_LOOK, type HudMarkerKind } from './hudMarkersState.svelte.ts';
 

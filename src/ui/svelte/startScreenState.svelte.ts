@@ -92,9 +92,8 @@ export class StartScreen {
   }
 
   /**
-   * The estate the card is offering: the one behind the title until the player
-   * types, then the one their boxes describe. The name alone settles the code,
-   * so it moves as they type.
+   * The estate the card is offering: the one behind the title until the
+   * player types, then the one their boxes describe.
    */
   get preview(): { name: string; code: string; isNew: boolean } {
     const name = this.ui.name.trim();

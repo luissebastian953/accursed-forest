@@ -33,6 +33,13 @@ turned, so the direction is taken from the camera each frame rather than
 fixed in the world. They live on a tile that follows the view and wraps,
 so a handful of them covers any amount of panning.
 
+### Notes
+
+- `cloudGeometry()`: one cloud is slabs that sit against each other rather
+  than through each other. Two translucent faces over the same pixel blend
+  twice and read as a hard cut across the cloud, so nothing overlaps: the
+  tiers stack on the slab below, and the lobes stand beside it.
+
 ## `src/render/scene/Coins.ts`
 
 Gold coins (GDD 6.5): a handful thrown into the air that arc, spin, land and
@@ -77,6 +84,30 @@ a flag block. Level-ups add a wing (M1b). Hiring a security guard puts a
 small post hut on the corner of the block, where the guard waits between
 patrols.
 
+### Notes
+
+- `buildKopdesGeometry()`: the building grows in one direction (GDD 6.3). A
+  one-room shop under a single fall of roof becomes a co-op: the ridge rises,
+  the far slope reaches out past the walls, and what it covers is open ground
+  on timber posts. That open hall is what the upgrades buy, so the shape says
+  the level out loud. West is -x and holds the ridge; the roof falls east
+  over the walls. Every eave and post is worked out from the two lines of the
+  roof rather than placed by hand, so the posts meet what they carry.
+- `plane()`: a roof plane laid between two points, seen side on. The box is
+  as long as the run between them plus the overhang at each end, and sits on
+  the line rather than across it: it is lifted half its thickness along its
+  own normal.
+- `gableWall()`, the height of each step: the tallest point of a step is its
+  uphill edge, so that is the height it takes, less a finger's width (0.16).
+  Any more and the corner of the step stands proud of the roof it is meant to
+  be holding up, or fights it for the same pixels.
+- The windows, from level 2: they go in the blank east wall, not the front.
+  The front is the door, the step and the annex, and a pane there ends up
+  under the eave or behind the annex roof.
+- The dormer: it sits on the slope, not in it. Its walls stand clear of the
+  roof at the uphill edge and are tucked under it at the downhill edge, so
+  the box is as tall as the roof falls across it, plus the part that shows.
+
 ## `src/render/scene/Lightning.ts`
 
 Lightning (GDD 3.6): a boxy bolt over the block a storm just hit, fading in a
@@ -100,6 +131,28 @@ and the fire-spread preview. The selection ring is a flat glowing frame
 that pops in with `easeOutBack`; the others float just above the block so
 they read on any terrain.
 
+### Notes
+
+- `overlayHeight()`: an overlay sits just above the highest point of the
+  land the mesher draws on the block, sampled at its centre and near its four
+  corners. Blended wild land (and a block being cleared) is not flat, so the
+  terrace height alone buried the ring on the high side.
+- `SelectionRing`: the selection ring (GDD 8 #11) is a flat blue frame on the
+  block with an additive halo glowing out of it, pulsing gently. It is unlit
+  and brighter than white, so it reads against any ground, and it blooms when
+  the glow pass is on.
+- `SelectionRing.update()`, `pulsing`: false holds the glow steady, for a
+  paused estate where nothing at all should be moving. The pop-in still
+  runs: the ring is the cursor, and a click has to answer even with the clock
+  stopped.
+- `RangeRing`: the Kopdes range ring (GDD 8 panel 21) is a thin frame on
+  every block the Kopdes can sell for, drawn while the shop is open. It is
+  rebuilt when the Kopdes moves or levels up; a few hundred boxes at most.
+- `RangeRing`'s materials: the same flat, self-lit treatment as the
+  selection ring, a shade deeper and a good deal thinner. Many of these are
+  on screen at once, and they are the estate's edges, not the block the
+  player is looking at.
+
 ## `src/render/scene/Palms.ts`
 
 Instanced palms (GDD 6.6): one `InstancedMesh` per growth stage and variant,
@@ -115,6 +168,14 @@ staked sapling, a young tree, a small mature tree, in two variants, with a
 little jitter, scale and yaw per slot so the block reads as woodland and
 not as a second plantation.
 
+### Notes
+
+- `CANOPY_SHARE` and `SHRUB_SHARE`: a wild forest block carries about a
+  dozen trees and a few bushes over its 144 columns (`props.ts`: 36 spots, a
+  third of them trees), so a block that has grown back aims for the same,
+  with 9% of its slots reaching the canopy and 12% left as shrubs. The rest
+  of the slots are bare forest floor once the canopy closes.
+
 ## `src/render/scene/Police.ts`
 
 Police cars at the Kopdes (GDD 3.9, GDD 6.3): boxy bodies and cabins with a light
@@ -126,6 +187,17 @@ SWAT-style truck joins them at the arrest.
 Rain (GDD 6.1): streaks falling over the part of the world in view, as thick
 as the day's rain. One instanced mesh; positions are stepped on the CPU;
 a couple of thousand drops is nothing next to the terrain.
+
+### Notes
+
+- `update()`: `rain` is today's rain, 0 to 1. `sky` is what the day is
+  called (GDD 3.6), and only rain and storms fall. `view` is the ground in
+  view, which drops respawn over. `running` is false while paused, and the
+  drops hang where they are.
+- `update()`, whether it rains at all: the sky decides, not the number
+  behind it. A damp day the HUD calls cloudy must not have rain falling on
+  it. Past that, the shower thickens with the day's rain, from a drizzle at
+  `SKY.rainAbove` up to the full count.
 
 ## `src/render/scene/Sky.ts`
 
@@ -192,6 +264,29 @@ the land does not read as a checkerboard. Trees and rocks grow on top.
 
 Runs in the mesher worker, so it imports nothing that touches the renderer.
 
+### Notes
+
+- `DivergedBlockLite.planted`: which of the block's slots have something
+  standing in them, one byte per slot, or null for a block with no palms at
+  all. The ground grid is one column per slot, so an empty slot is a column
+  of bare earth: a hectare planted with half the bibit it needed looks half
+  planted.
+- `landHeight()`: the height of the land the mesher draws under world point
+  (x, z). It is a flat terrace on the `TERRACED` phases (cleared, planted,
+  reforesting and Kopdes blocks), and otherwise the same bilinear blend of
+  neighbouring block heights the columns use, snapped to the same quantum.
+  Anything standing on the ground (mobs, cars, felled trees) must use this,
+  or it floats or sinks wherever the two formulas disagree. The river's cut
+  is not applied; nothing should be standing in the river.
+- The bare-slot check in the top-slot pass: a planted hectare is only green
+  where something stands. The ground grid is one column per slot, so an empty
+  slot is its own column of bare earth, and a half-planted block reads as
+  half planted. Burning, flooded and slid ground keeps its own colour.
+- `warpedBiome()`: the biome whose colour a wild column shows, which is its
+  own, or a wild neighbour's when the warped sample point lands there, so
+  edges between wild biomes wander instead of following the block grid.
+  Estate blocks stay crisp.
+
 ## `src/render/scene/chunkProtocol.ts`
 
 Messages between `ChunkManager` and the mesher worker (GDD 6.7).
@@ -222,6 +317,16 @@ without the trees. Each block visits a jittered grid of spots, asks what the
 ground there shows (the same warped edges the ground colour uses, so forest
 edges wander across the block grid), and rolls that land's table. A hash of
 (seed, block, draw) makes a block always grow the same things.
+
+### Notes
+
+- `growFence()`: the fence between the planted rows and the ground nothing
+  stands on (GDD 6.3). It is drawn only where a planted slot meets an empty
+  one inside the same hectare, which is the line a grower would actually
+  fence: the edge of the crop. Block boundaries are already drawn by the
+  terrain, so nothing is doubled up there. Posts are set at one end of each
+  run so neighbouring segments share them, and the rails are two thin bars,
+  which is enough to read as a fence from the height the camera sits at.
 
 ## `src/render/scene/riverChannel.ts`
 

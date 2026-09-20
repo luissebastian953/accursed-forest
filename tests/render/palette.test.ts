@@ -2,13 +2,6 @@ import { describe, expect, it } from 'vitest';
 
 import { PALETTE_WIDTH, Palette, createPaletteTexture, paletteU } from '@render/materials/palette';
 
-/**
- * The palette strip is 256x2: wet colours on row 0, dry on row 1, and the alpha
- * channel of both is how much light a slot gives off rather than opacity. The
- * material turns that into an emissive term, so a slot with alpha is a slot
- * that glows.
- */
-
 function slotBytes(data: Uint8Array, slot: number, row: 0 | 1): number[] {
   const at = (row * PALETTE_WIDTH + slot) * 4;
 

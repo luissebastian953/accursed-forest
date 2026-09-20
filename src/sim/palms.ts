@@ -51,12 +51,7 @@ export function ageInYears(plantedAt: Tick, tick: Tick): number {
   return (tick - plantedAt) / GROWTH.daysPerYear;
 }
 
-/**
- * The stage a palm (or reforested tree) is in.
- *
- * `ganoderma === 3` and zero health are both "dead"; senescence is by calendar
- * age; everything else is by accumulated growth-days.
- */
+/** The stage a palm, or a reforested tree, is in. */
 export function stageOf(
   species: Species,
   growthDays: number,

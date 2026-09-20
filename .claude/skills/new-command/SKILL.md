@@ -30,6 +30,9 @@ breaks quietly.
 7. **Tests.** A unit test in `tests/sim/` that dispatches it and asserts the
    state, including one rejection with its reason. A browser test in
    `e2e/app.spec.ts` if it has a button, clicking `action-<Name>`.
+8. **The reference.** An entry for the new file in
+   `docs/reference/sim-commands.md`, in path order: what the command is for,
+   and under `### Notes` anything a two-line comment in the file cannot hold.
 
 `src/sim/commands/reforestBlock.ts` is a complete recent example: it reuses
 another handler's `validate`, buys what is short, and plants.

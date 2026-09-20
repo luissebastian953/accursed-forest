@@ -1,18 +1,5 @@
 import { expect, test } from '@playwright/test';
 
-/**
- * Smoke test (GDD 10.2): boot the app on the WebGL 2 fallback path, prove the
- * scene actually renders, and prove the spike's weather uniforms are wired.
- *
- * `?webgl` forces the fallback because WebGPU is not available in headless CI
- * (GDD 6.4); `?spike` selects the spike over the game. The WebGPU path is
- * exercised by hand in a real browser.
- *
- * Note: the canvas cannot be read back with `drawImage`; the renderer runs
- * without `preserveDrawingBuffer`, so the backbuffer is empty by the time a 2D
- * context could sample it. Playwright's compositor-level screenshot is the
- * reliable way to see what was actually drawn.
- */
 test.describe('art spike', () => {
   test('boots on the WebGL fallback and draws a non-trivial scene', async ({ page }) => {
     const errors: string[] = [];

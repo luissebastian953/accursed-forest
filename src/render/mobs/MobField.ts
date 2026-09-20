@@ -411,11 +411,7 @@ export class MobField {
     if (mob && mob.fade >= 1) mob.fade = 0.999;
   }
 
-  /**
-   * Something has bolted: it runs for a moment, then fades out where it got
-   * to. The sim keeps walking it off the map, but as far as the player is
-   * concerned it went into the trees and was gone.
-   */
+  /** Bolt for a moment, then fade where it got to; the sim may keep walking it, unseen. */
   flee(id: number, seconds = 0.9): void {
     const mob = this.byId.get(id);
 
@@ -628,9 +624,8 @@ export class MobField {
   // ── Per frame ──────────────────────────────────────────────────────────
 
   /**
-   * @param tickSeconds how long the sim's current day lasts in real time, so a
-   *   sim-driven mob spreads its day's walk over the day instead of dashing it
-   *   and then standing still.
+   * @param tickSeconds the sim day's length in real time: a sim-driven mob spreads its walk
+   *   over it instead of dashing it and then standing still.
    */
   update(dtSeconds: number, tickSeconds = 0.5): void {
     const started = performance.now();
@@ -687,10 +682,8 @@ export class MobField {
       mob.climb += (mob.wants.climb - mob.climb) * Math.min(1, dtSeconds * 0.9);
 
       if (mob.glide) {
-        // Sim-driven: spread the gap to the latest sim position over the rest
-        // of the day, so a slow day is a slow walk; never slower than a creep,
-        // and faster than the species' pace only when the clock has run ahead
-        // of the legs. The legs follow the actual speed.
+        // Sim-driven: spread the gap over the rest of the day, so a slow day is a slow walk;
+        // past the species' pace only when the clock has run ahead of the legs.
         if (distance > 0.05 && mob.wants.sleep === 0) {
           const pace = mob.species.speed;
           const speed = Math.max(pace * 0.15, Math.min(pace, (distance / tick) * 1.15));

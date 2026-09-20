@@ -28,10 +28,8 @@ const _drift = new Vector3();
 const _up = new Vector3(0, 1, 0);
 
 /**
- * One chunk: slabs that sit against each other rather than through each
- * other. Two translucent faces over the same pixel blend twice and read as a
- * hard cut across the cloud, so nothing here overlaps: the tiers stack on the
- * slab below, and the lobes stand beside it.
+ * One chunk: slabs that sit against each other, not through each other, so
+ * two translucent faces never double-blend into a hard seam.
  */
 function cloudGeometry(): ReturnType<BoxBuilder['build']> {
   const b = new BoxBuilder();

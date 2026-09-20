@@ -1,9 +1,3 @@
-<!--
-  The workbench chrome: the catalogue on the left, the controls on the right,
-  and the stage between them. Every subject is offered the same vocabulary of
-  actions; the ones it has not implemented are disabled, so what is missing is
-  as plain as what works.
--->
 <script lang="ts">
   import Tooltip from '../../ui/svelte/Tooltip.svelte';
 

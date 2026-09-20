@@ -175,11 +175,8 @@ function quadruped(options: {
 
   if (options.scales !== undefined) {
     const slot = options.scales;
-    // Each plate is a thin slab just proud of the hide, laid in rows that
-    // overlap like roof tiles: alternate rows are offset by half a plate, so
-    // the back reads as armour rather than as a grid. Nine plates in all,
-    // which lands the species exactly on the rig's part budget of 24; the
-    // tail is too thin on screen for plates of its own to earn their cost.
+    // Rows offset by half a plate, so the back reads as armour, not a grid. Nine plates lands
+    // exactly on the rig's 24-part budget; the tail is too thin to earn plates of its own.
     const skin = 0.012;
     const plateW = width * 0.34;
     const plateD = length * 0.24;
@@ -395,10 +392,8 @@ function biped(options: {
 }
 
 /**
- * A great ape: upright on two short legs, with arms that nearly reach the
- * ground, a heavy belly it carries in front of it, and the bare grey face and
- * cheek flanges of an old male orangutan. Its legs take the biped roles, so
- * the rig swings them against the arms rather than against a second pair.
+ * A great ape, upright on two short legs, drawn from an old male orangutan. Its legs take
+ * the biped roles, so the rig swings them against the arms rather than a second pair.
  */
 function ape(options: {
   id: string;
@@ -455,9 +450,8 @@ function ape(options: {
     },
   ];
 
-  // The bare front, in two boxes: a narrow chest above a gut that is wider
-  // than it and carried further forward. Two boxes taper where one slab of
-  // grey would read as a bib.
+  // The bare front: a narrow chest above a wider gut carried further forward. Two boxes
+  // taper where one slab of grey would read as a bib.
   if (options.gut ?? true) {
     parts.push(
       {
@@ -493,18 +487,16 @@ function ape(options: {
     }
   }
 
-  // A tail, for the ones that have one. It starts behind the rump rather than
-  // inside it, and droops as it goes: these legs are too short to hang a tail
-  // from, and a rod through the middle of the body reads as a spit.
+  // A drooping tail off the back of the body: these legs are too short to hang one from,
+  // and a rod through the middle of the body reads as a spit.
   if (options.tail) {
     const tail = options.tail;
 
     parts.push({
       name: 'tail',
       parent: 'body',
-      // The root sits inside the rump, not against it: the droop turns the
-      // tail about its middle, and a tail that starts at the back face swings
-      // its near end out into the open.
+      // The root sits inside the rump: the droop turns the tail about its middle, and a
+      // root at the back face would swing out into the open.
       at: [0, -torso * 0.45, -(width * 0.12 + tail / 2)],
       size: [limb * 0.85, limb * 0.85, tail],
       slot: fur,
@@ -647,9 +639,7 @@ export const SPECIES: Record<string, SpeciesSpec> = {
   pangolin: quadruped({
     id: 'pangolin',
     label: 'Pangolin',
-    // A pale hide under dark armour, and a tail as long as the body. The
-    // plates carry the dark tone: light plates on a dark body read as
-    // patches, dark plates on a light body read as scales.
+    // The plates carry the dark tone: light plates on a dark body read as patches.
     fur: Palette.FurPangolin,
     belly: Palette.FurPangolin,
     snout: Palette.FurPangolin,

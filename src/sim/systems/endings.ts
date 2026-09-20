@@ -161,9 +161,8 @@ function capitalise(text: string): string {
 // ── Bankruptcy and the ban ────────────────────────────────────────────────
 
 /**
- * How far into the red the bank lets the estate go: palms planted within
- * Kopdes range are the collateral. Nothing is lent to an estate without a
- * Kopdes or with its licence suspended.
+ * How far into the red the bank lets the estate go, with palms in Kopdes
+ * range as collateral.
  */
 export function creditLine(state: SimState, world: World): number {
   if (!state.kopdes || operatingBanned(state)) return 0;
@@ -237,9 +236,8 @@ export function reforestedHectares(state: SimState): number {
 }
 
 /**
- * Redemption's test (secret): fire was set here, the forest has been put
- * back, and the estate never became an estate. Nothing standing in palms,
- * and not a kilogram of fruit ever sold off the land that was cleared.
+ * Redemption's test (secret): fire was set here, the forest put back, and
+ * the estate never became an estate.
  */
 export function redemptionReached(state: SimState): boolean {
   if (state.run.stats.burns < REDEMPTION.burnsAtLeast) return false;
@@ -275,9 +273,8 @@ export function matureHectares(state: SimState): number {
 }
 
 /**
- * Forest share around the estate's slopes (GDD 3.6.2): the mean neighbourhood
- * cover of every slope block the estate touches. An estate with no slopes is
- * judged on its forest cover overall.
+ * Forest share around the estate's slopes (GDD 3.6.2); overall cover if there
+ * are none.
  */
 export function slopeForestCover(state: SimState, world: World): number {
   const r = LANDSLIDE.coverRadius;

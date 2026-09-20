@@ -13,10 +13,8 @@ import { normalizeSiteUrl, renderRobots, renderSitemap, verificationMeta } from 
 const appVersion = JSON.stringify(process.env['npm_package_version'] ?? '0.0.0-dev');
 
 /**
- * The public origin, for the tags crawlers want absolute: canonical, hreflang,
- * Open Graph image, JSON-LD url, the sitemap. Empty locally, so `__SITE_URL__`
- * resolves to '' (relative URLs), the canonical and hreflang tags are dropped,
- * and no sitemap is written. A malformed value fails the build.
+ * The public origin, for the tags crawlers want absolute. Empty locally, which
+ * drops those tags and the sitemap; a malformed value fails the build.
  */
 const siteUrl = normalizeSiteUrl(process.env['VITE_SITE_URL']);
 /** The Search Console "HTML tag" token, if ownership is verified that way. */
@@ -88,23 +86,13 @@ function siteUrlPlugin(): Plugin {
 }
 
 /**
- * Production hardening: the game's own chunks are obfuscated on top of
- * minification, and no source maps ship. three.js is left alone (public code,
- * and by far the largest chunk). Only the cheap transforms are on: string
- * literals move into an encoded, rotated array and identifiers become hex;
- * control-flow flattening, dead-code injection, self-defending and debug
- * protection stay off because they cost frame time in the sim's hot loops and
- * fight the minifier. `VITE_OBFUSCATE=0` turns it off for a readable build.
- *
- * Honest limit: the browser runs whatever it downloads, so nothing here
- * "encrypts" the game; it raises the cost of reading and reusing the code.
+ * Production hardening: only the cheap transforms, because the rest cost frame
+ * time in the sim's hot loops. Nothing here encrypts the game (GDD, config.md).
  */
 const obfuscate = process.env['VITE_OBFUSCATE'] !== '0';
 /**
- * The string array halves the sim's tick rate (measured: 24.8 to 12.5 days a
- * second at 50×): every literal in the per-block loops becomes a call and a
- * lookup. So it applies only to the app and UI chunks, where the strings are
- * copy and markup; the sim, the loop and the mesher get the rest of the pass.
+ * The string array halves the sim's tick rate (24.8 to 12.5 days a second at
+ * 50x), so only the chunks whose strings are copy and markup get it.
  */
 const STRING_ARRAY_CHUNKS = new Set(['App', 'play']);
 
@@ -161,9 +149,8 @@ export default defineConfig({
     obfuscatePlugin(),
   ],
   resolve: {
-    // Vite 8 resolves the `@sim/*` style aliases from tsconfig natively, but
-    // only for imports made from TypeScript; a `.svelte` file's imports go
-    // through the plain resolver, so the same map is spelled out here.
+    // Vite 8 reads the tsconfig aliases only for imports made from TypeScript,
+    // so a `.svelte` file's imports need the same map spelled out below.
     tsconfigPaths: true,
     alias: Object.fromEntries(
       ['app', 'sim', 'render', 'ui', 'input', 'persistence', 'workers', 'shared', 'audio'].map(

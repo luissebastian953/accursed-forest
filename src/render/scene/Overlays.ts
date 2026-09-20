@@ -21,9 +21,8 @@ import { Palette } from '../materials/paletteSlots.ts';
 import { landHeight } from './chunkField.ts';
 
 /**
- * Where an overlay sits over a block: just above the highest point of the
- * land the mesher draws there. Blended wild land (and a block being cleared)
- * is not flat, so the terrace height alone buried the ring on the high side.
+ * Where an overlay sits over a block: just above the land's highest point,
+ * since blended wild land is not flat and the terrace height buries it.
  */
 function overlayHeight(state: SimState, world: World, block: BlockId, lift: number): number {
   const [bx, by] = world.toXY(block);
@@ -72,9 +71,8 @@ function buildSelectionFrame() {
 const HALO_SPILL = 0.35;
 
 /**
- * The selection ring (GDD 8 #11): a flat blue frame on the block with an
- * additive halo glowing out of it, pulsing gently. Unlit and brighter than
- * white, so it reads against any ground; and blooms when the glow pass is on.
+ * The selection ring (GDD 8 #11): a flat blue frame with a pulsing additive
+ * halo, unlit and brighter than white so it reads against any ground.
  */
 export class SelectionRing {
   readonly group = new Group();
@@ -139,9 +137,8 @@ export class SelectionRing {
   }
 
   /**
-   * @param pulsing false holds the glow steady, for a paused estate where
-   * nothing at all should be moving. The pop-in still runs: the ring is the
-   * cursor, and a click has to answer even with the clock stopped.
+   * @param pulsing false holds the glow steady while the estate is paused;
+   * the pop-in still runs, since a click must answer even with the clock stopped.
    */
   update(nowMs: number, pulsing = true): void {
     if (!this.group.visible) return;
@@ -164,9 +161,8 @@ export class SelectionRing {
 }
 
 /**
- * The Kopdes range ring (GDD 8 panel 21): a thin frame on every block the Kopdes
- * can sell for, drawn while the shop is open. Rebuilt when the Kopdes moves or
- * levels up; a few hundred boxes at most.
+ * The Kopdes range ring (GDD 8 panel 21): a thin frame on every block it can
+ * sell for, rebuilt when the Kopdes moves or levels up.
  */
 export class RangeRing {
   readonly group = new Group();
@@ -177,8 +173,7 @@ export class RangeRing {
   /** `_material` is the shared palette material; these rings light themselves. */
   constructor(_material?: Material) {
     // The same flat, self-lit treatment as the selection ring, a shade deeper
-    // and a good deal thinner: many of these are on screen at once, and they
-    // are the estate's edges, not the block the player is looking at.
+    // and thinner: many of these are on screen at once, showing the estate's edges.
     const coreMaterial = new MeshBasicNodeMaterial({ transparent: true, depthWrite: false });
 
     coreMaterial.colorNode = vec3(0.04, 0.22, 0.92);

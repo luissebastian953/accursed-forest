@@ -59,8 +59,7 @@ export class Menu {
   private namedFor: string | null = null;
   /**
    * Whether the menu was opened straight into the form, from the title
-   * card's "New estate". Cancel then means "never mind", not "back to the
-   * menu the player never asked for".
+   * card's "New estate": Cancel then means "never mind", not "back".
    */
   private openedIntoForm = false;
 
@@ -78,9 +77,8 @@ export class Menu {
   }
 
   /**
-   * The estate the form describes, as its boxes stand. The name alone settles
-   * the code, so it moves as the player types; an empty pair means a world
-   * drawn at random, which has no code until it exists.
+   * The estate the form describes, as its boxes stand: the name alone
+   * settles the code, moving as the player types.
    */
   get preview(): { code: string; random: boolean } {
     const name = this.state.name.trim();
@@ -113,9 +111,8 @@ export class Menu {
   }
 
   /**
-   * Step two: the boxes that describe a new estate.
-   *
-   * @param direct opened from outside the menu, so Cancel closes it.
+   * Step two, the boxes for a new estate. `direct` means opened from outside
+   * the menu, so Cancel closes it.
    */
   openNew(direct = false): void {
     this.state.step = 'new';
@@ -131,9 +128,8 @@ export class Menu {
   update(view: MenuView): void {
     this.state.view = view;
 
-    // The name box starts on what this estate is called, so a player renaming
-    // one is editing rather than retyping. Only refilled while the menu is
-    // shut, or when the estate itself changed: never over what is being typed.
+    // The name box starts on what this estate is called, refilled only while
+    // the menu is shut or when the estate itself changed, never mid-type.
     if (!this.state.open || this.namedFor !== view.estateName) {
       this.state.name = view.estateName;
       this.namedFor = view.estateName;
@@ -151,8 +147,7 @@ export class Menu {
     const code = this.state.code.trim();
 
     // The button is dead until the estate has a name, so there is always
-    // something to seed from: the seed box when it is filled, the name when it
-    // is not. A world drawn at random comes from the title card instead.
+    // something to seed from: the seed box if filled, else the name.
     if (name === '') return;
 
     const seed = seedFromEstateCode(code === '' ? name : code) ?? 0;

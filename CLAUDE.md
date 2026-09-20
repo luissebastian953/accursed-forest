@@ -49,9 +49,13 @@ in `localStorage`. English and Indonesian.
   of declarations; consecutive declarations stay together and `else` stays
   on its closing brace. `@stylistic/padding-line-between-statements` enforces
   it and `eslint --fix` applies it, so write freely and let the fixer space it.
-- Comments explain a surprise, not a function's existence. Reasons that would
-  stop someone undoing a decision belong in an ADR, with the comment pointing
-  at it.
+- Comments explain a surprise, not a function's existence, in **two lines at
+  most**. Write the detail first, then cut the comment: the full reasoning
+  goes in the file's entry in `docs/reference/`, under `### Notes`, one bullet
+  per annotated thing; a rule that binds other files goes in this file; a
+  repeatable procedure goes in a skill. Reasons that would stop someone
+  undoing a decision belong in an ADR, with the comment pointing at it.
+  `tests/tools/comments.test.ts` fails on any longer comment, in any file.
 - The game's officials are invented: Prerows, BehLOL, Purboy, Amrun, Rajuli,
   Nazarra, Mulyonows, Tanjidoor. A test fails on any real name.
 

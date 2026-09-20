@@ -22,10 +22,8 @@ export const ISPO = {
 } as const;
 
 /**
- * Reboisasi: the ending nobody planned for. An estate that has put more of
- * its land back to forest than it holds in palms, by a clear margin and not
- * a token strip, is called at the close of the year, from the same year the
- * ISPO checklist opens. Young forest counts, saplings do not.
+ * Reboisasi: more land back to forest than in palms, by a clear margin, called at year close
+ * from the year the ISPO checklist opens. Young forest counts, saplings do not.
  */
 export const REBOISASI = {
   /** Reforested hectares must beat palm hectares by at least this many. */
@@ -42,10 +40,8 @@ export const REBOISASI = {
 } as const;
 
 /**
- * Redemption (GDD 3.10, secret): the run of someone who cleared land with fire,
- * thought better of it, and put the forest back without ever taking a crop
- * off the ground they burned. Rarer than reboisasi and quieter: it asks for
- * less land back, but it asks that the estate never became an estate.
+ * Redemption (GDD 3.10, secret): burned, then put the forest back without ever taking a crop
+ * off the burned ground. Less land than reboisasi, but the estate never became an estate.
  */
 export const REDEMPTION = {
   /** At least one burn lit by hand: an accident of lightning is not a sin to atone for. */
@@ -55,10 +51,8 @@ export const REDEMPTION = {
 } as const;
 
 /**
- * The bank's patience (GDD 3.8). Palms planted within Kopdes range are collateral:
- * the estate may sit this far in the red per hectare of them. Below that line
- * for `daysInRed` straight days, or below zero with no collateral at all, or
- * with the licence suspended, the loans are called.
+ * The bank's patience (GDD 3.8): palms within Kopdes range are collateral, `creditPerHectare`
+ * of red each. The loans are called after `daysInRed` straight days below that line.
  */
 export const BANKRUPTCY = {
   daysInRed: 90,
@@ -66,18 +60,13 @@ export const BANKRUPTCY = {
 } as const;
 
 /**
- * The enforcement roll on burn-to-clear (GDD 3.8). It only rolls while integrity
- * is high, which only happens after a scandal made the news, so an operating
- * ban is rare and always has a headline before it.
+ * The enforcement roll on burn-to-clear (GDD 3.8). It only rolls at high integrity, so a ban
+ * is rare and always follows a scandal headline.
  */
 export const OPERATING_BAN = {
   minIntegrity: 0.5,
   chance: 0.4,
-  /**
-   * A quarter of the year shut. Half a year read as longer than it was: a
-   * suspension in the back half of a year ran into the next one, so the
-   * notice named a year the player had not reached yet.
-   */
+  /** A quarter of the year: half a year ran into the next, and the notice named a future year. */
   days: 90,
   /** Caretaker crews: upkeep runs at this share while the estate is shut. */
   upkeepFactor: 0.5,

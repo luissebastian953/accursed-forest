@@ -111,9 +111,7 @@ export class Audio {
   }
 
   /**
-   * Fire a one-shot, unless it fired a moment ago or the frame is already
-   * full. Returns whether it actually played, which the tests read.
-   *
+   * Fire a one-shot unless it fired a moment ago or the frame is full; returns whether it did.
    * @param delaySeconds hold it back, for a sound whose cause is far off.
    */
   play(id: OneShotId, nowMs = performance.now(), delaySeconds = 0): boolean {

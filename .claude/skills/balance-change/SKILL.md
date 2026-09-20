@@ -9,12 +9,15 @@ A balance change is a claim about what the game will feel like. The sweep is
 how the claim is checked.
 
 1. **Find the rule.** Every constant in `src/sim/balance/` sits under a comment
-   naming the GDD section it serves. Read that section in `docs/gdd/` first; the number
-   may be wrong, or the rule may be.
+   naming the GDD section it serves, and the longer reasoning is in its note in
+   `docs/reference/sim-balance.md`. Read that section in `docs/gdd/` first; the
+   number may be wrong, or the rule may be.
 2. **Sweep before.** `pnpm sweep` plays several seeds for eight years with the
    autoplayer and prints cash, profit, kilograms sold, bearing hectares, price
    and ISPO progress per year. Keep the output.
-3. **Change the number, and the comment above it** if the reason moved.
+3. **Change the number, and the comment above it** if the reason moved. The
+   comment stays at two lines; a longer reason goes in the constant's note in
+   `docs/reference/sim-balance.md`, and a stale note there is worse than none.
 4. **Sweep after.** Compare year by year. A change that does not show up did
    not happen; a change that flips a run from profit to loss in year 3 is
    bigger than it looked.

@@ -20,10 +20,8 @@ export function speedNeedsKopdes(speed: Speed, kopdesLevel: number): boolean {
 }
 
 /**
- * Ticks per real second at each speed. 1× is one sim day every five seconds
- * (GDD 4.2): long enough to watch a crew work a tree and a boar cross a block.
- * 10× is two days a second, 50× ten days a second; a year in about half a
- * minute.
+ * Ticks per real second. 1× is a day every five seconds (GDD 4.2), long enough to watch a
+ * crew work a tree; 50× is ten days a second, a year in about half a minute.
  */
 export const TICKS_PER_SECOND: Record<Speed, number> = { 0: 0, 1: 0.2, 10: 2, 50: 10 };
 

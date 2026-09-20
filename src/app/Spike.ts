@@ -33,9 +33,8 @@ const PALM_COUNT = BLOCK * BLOCK;
 const PITCH = (35 * Math.PI) / 180;
 const AZIMUTH = Math.PI / 4;
 /**
- * How far back the camera sits. Under an orthographic projection this changes
- * nothing about the framing, but fog is measured in view depth, so every fog
- * distance below is expressed relative to it.
+ * How far back the camera sits. Ortho framing ignores it, but fog is measured in view
+ * depth, so every fog distance below is relative to it.
  */
 const CAMERA_DISTANCE = 60;
 
@@ -44,8 +43,7 @@ const SKY_DRY = new Color(0xd8d2b4);
 
 export async function startSpike(root: HTMLElement): Promise<() => void> {
   // ── Renderer ────────────────────────────────────────────────────────────
-  // WebGPU with automatic WebGL 2 fallback; `?webgl` forces the fallback so the
-  // Playwright smoke test and CI exercise the same path (GDD 6.4).
+  // WebGPU, or WebGL 2; `?webgl` forces the fallback so CI takes the same path (GDD 6.4).
   const forceWebGL = new URLSearchParams(location.search).has('webgl');
   const renderer = new WebGPURenderer({ antialias: true, forceWebGL });
 
@@ -277,9 +275,8 @@ function makeSpikeField(): ColumnField {
         MARGIN - z,
         z - (MARGIN + BLOCK - 1),
       );
-      // Low-frequency deterministic wobble. It must vary slowly across
-      // neighbouring columns: per-column noise carves one-column pits, and the
-      // mesher then correctly draws their walls, which reads as speckle.
+      // A wobble that varies slowly across columns: per-column noise carves one-column pits,
+      // whose walls the mesher correctly draws, and that reads as speckle.
       const wobble = hash01(Math.floor(x / 3), Math.floor(z / 3));
 
       heights[i] = -0.5 * (out + (wobble > 0.6 ? 1 : 0));

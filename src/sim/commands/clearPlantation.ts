@@ -75,9 +75,8 @@ export const clearPlantation: CommandHandler<ClearPlantation> = {
     const cost = clearPlantationCost(state, command.block);
 
     spend(state, cost, 'wages', `clear plantation: block ${command.block}`);
-    // The palms stay standing while the crew works through them, and come
-    // down together when the job ends (`terrain.ts`). What the player sees
-    // in the meantime is a crew on the block and a ring counting down.
+    // The palms stand until the job ends and come down together in `terrain.ts`;
+    // meanwhile the player sees a crew on the block and a ring counting down.
     block.fellingUntil = state.tick + CLEAR_PLANTATION.days;
     staffBlock(ctx, command.block);
     events.push({ type: 'FellingStarted', block: command.block, palms, cost });

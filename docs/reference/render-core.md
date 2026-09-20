@@ -25,6 +25,17 @@ curves written as TSL nodes for GPU per-instance animation, and
 `tests/render/easing-parity.test.ts` asserts the two agree at 32 sample points.
 Change a curve here and you must change it there.
 
+### Notes
+
+- `squashStretch()`: volume-preserving squash and stretch (GDD 6.5).
+  `curveValue` is the overshooting curve's output, and `f = curveValue - 1`
+  is its deviation from rest, scaled by `amount`. The vertical scale is
+  `sy = 1 + amount * f`, and the two horizontal axes take `1 / sqrt(sy)`, so
+  `sy * sxz * sxz === 1`. This is a modulation around 1, applied on top of
+  whatever base scale the animation already has, not the base scale itself.
+  The abbreviated TSL sketch in GDD 6.5 folds the two together and is
+  degenerate at t = 0, where `1 / sqrt(0)` is infinite.
+
 ## `src/render/anim/spring.ts`
 
 Damped harmonic oscillator (GDD 6.5), integrated semi-implicit Euler.
@@ -52,6 +63,13 @@ Everything in this game is boxes arranged well (GDD 6.1, GDD 6.3).
 `BoxBuilder` accumulates non-indexed triangles so flat shading is free, and
 tags every vertex with a `paletteU` instead of a UV (GDD 6.4). Geometry is built
 once at startup and merged; nothing here runs per frame.
+
+### Notes
+
+- `addBox()`: `matrix` places the unit cube (centred on the origin, size 1)
+  in local space, and `faces` gives the palette slot for each face. `skip`
+  names faces to leave out: the column mesher culls every face that abuts a
+  taller neighbour, which is most of them at estate scale.
 
 ## `src/render/geometry/forestTree.ts`
 
@@ -84,6 +102,14 @@ One generator, four parameter sets = the four growth stages. Scale is
 half with a crown that nearly touches its neighbours, and an old one
 overtops it: the way a plantation reads from the air.
 
+### Notes
+
+- The frond's outer segments: a palm frond is pinnate, so past the middle it
+  splits into leaflets. The second-last segment is drawn fanned either side
+  of the spine (`FAN_MID`), and the tip twice as wide (`FAN_TIP`), so the
+  crown reads as leaves rather than as paddles. The leaflets are narrower
+  than the spine they hang off, so the gaps between them read at a distance.
+
 ## `src/render/geometry/terrain.ts`
 
 Column terrain mesher (GDD 6.3, GDD 6.7).
@@ -96,6 +122,14 @@ most of the geometry, which is what keeps a 48x48 chunk inside the
 
 This runs in `workers/mesher.worker.ts` once chunk streaming lands; it is kept
 dependency-light (no sim imports) so the worker can own it.
+
+### Notes
+
+- `ColumnField.inset`: columns within `inset` of the field's edge are
+  neighbour context only. Their heights cull the faces of the columns beside
+  them, but they are not emitted. A chunk builds with `inset: 1` so its
+  border faces are culled against the next chunk rather than drawn as a wall
+  down to the floor.
 
 ## `src/render/materials/palette.ts`
 
@@ -111,6 +145,14 @@ whole world shifts mood with two floats.
 Colours are the real-place set from GDD 6.1: saturated sawit green, yellow-green
 young fronds, laterite red-orange soil, dark peat brown, ochre grassfield.
 
+### Notes
+
+- `EMISSION`: how much of its own light a slot gives off, 0 to 1, carried in
+  the palette's alpha channel because nothing else uses it. The material
+  turns it into an emissive term, which lifts these slots (coin, sparkle,
+  golden capybara fur) past the bloom threshold: the gold things glow instead
+  of sitting there as flat yellow paint.
+
 ## `src/render/materials/paletteMaterial.ts`
 
 The one material everything static shares (GDD 6.4).
@@ -121,6 +163,22 @@ an event tint (haze amber-grey, ash grey) on top. Two floats shift the mood of
 the entire world.
 
 Lambert, flat-shaded, no specular; GDD 6.1.
+
+### Notes
+
+- `PaletteUniforms`: `season` lerps the wet row against the dry row, and
+  `tintColor` and `tintAmount` wash the result toward an event colour. The
+  type is inferred from `createPaletteUniforms()` rather than spelled out, so
+  the TSL node types stay whatever three says they are.
+- `EMISSION_GAIN`: how hard a fully emissive slot lights itself. 0.55 is
+  enough that gold lands just over the bloom threshold (1.1) and blooms in
+  its own colour, and not so much that it burns out to white.
+- `emissiveNode` in `createPaletteMaterial()`: the palette's alpha is an
+  emission mask (see `palette.ts`). A slot that carries one lights itself in
+  its own colour, which puts gold over the bloom threshold while leaving
+  everything else exactly as it was. `emissiveNode` is typed on the standard
+  material only, hence the cast; every node material honours it, because
+  `NodeMaterial` reads it when it sets up lighting.
 
 ## `src/render/materials/paletteSlots.ts`
 

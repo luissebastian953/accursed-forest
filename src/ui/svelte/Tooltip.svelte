@@ -1,18 +1,3 @@
-<!--
-  A hover bubble for anything the UI needs to explain in a few words: why a
-  button is locked, what a number means, what a pin is for.
-
-  It wraps its children rather than being placed by hand, so the bubble
-  follows whatever it labels. CSS does the showing, not state, which is the
-  one way it also works over a `disabled` button: a disabled control fires no
-  events, but the pointer still lands on it and `:hover` still reaches this
-  wrapper.
-
-  Usage:
-    <Tooltip text={t('hud.speedLocked')}>
-      <button disabled>50x</button>
-    </Tooltip>
--->
 <script lang="ts">
   import type { Snippet } from 'svelte';
 

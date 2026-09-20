@@ -1,12 +1,6 @@
 import mitt, { type Emitter, type EventType } from 'mitt';
 
-/**
- * The render/UI event bus (GDD 10.2).
- *
- * `sim/` deliberately does NOT use this: the simulation returns an array of
- * `SimEvent`s from each tick and never emits. This bus is only for the layers
- * above the sim talking to each other through `app/`.
- */
+/** The render/UI event bus (GDD 10.2). `sim/` never emits: `tick()` returns its events. */
 export function createEventBus<T extends Record<EventType, unknown>>(): Emitter<T> {
   return mitt<T>();
 }

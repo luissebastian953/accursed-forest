@@ -21,6 +21,20 @@ harvest every block the day it is ripe. With `managePests` it also does the
 sanitation and pest work a careful player would. Nothing clever; the point
 is to see what the numbers do to a player who simply follows the loop.
 
+### Notes
+
+- `AutoplayOptions.managePests`: do the sanitation and pest work a careful
+  player would: sanitize debris before planting and whenever it piles up, trap
+  beetles, treat and remove visibly sick palms, and replant the gaps.
+- `AutoplayOptions.expand`: keep expanding. Each month, while cash stays above
+  `reserve`, chop and plant the next owned block in Kopdes range, up to
+  `maxBlocks`, and upgrade the Kopdes whenever it can be afforded on top of the
+  reserve.
+- `managePests()`: the careful player's pest routine for one planted block:
+  traps when the beetles build up, sanitation when debris piles up,
+  Trichoderma and removal once Ganoderma shows, and replanting the gaps every
+  so often.
+
 ## `src/sim/events.ts`
 
 Events a tick produces (GDD 4.2 step 4).
@@ -91,6 +105,12 @@ calendar age; palms get tall whether or not they grew well.
 Slots form a 12×12 triangular lattice: odd rows are offset half a slot, so
 every palm has six neighbours. Ganoderma spreads root to root along it.
 
+### Notes
+
+- `stageOf()`: the stage a palm, or a reforested tree, is in. A Ganoderma
+  stump (`ganoderma === 3`) and zero health both count as dead; senescence goes
+  by calendar age; every other stage goes by accumulated growth-days.
+
 ## `src/sim/rng.ts`
 
 xoshiro128**; the single seeded PRNG for the whole simulation (GDD 4.3).
@@ -101,6 +121,13 @@ save file can restore the exact stream position, and every random draw in
 
 State is four uint32s kept as plain number fields (JSON-friendly, no typed
 array to base64-encode for something this small).
+
+### Notes
+
+- `forkRng()`: derives an independent stream from a seed and a tag, without
+  touching or consuming any existing stream. Worldgen uses it so that terrain
+  stays a pure `f(seed, x, y)` no matter what the main stream has done
+  (GDD 4.6).
 
 ## `src/sim/run.ts`
 
@@ -116,6 +143,13 @@ Everything reads through `readBlock` and writes through `writeBlock`, which
 materialises the block into the map on first touch. That is the whole trick
 that lets a 64x64 world cost the size of the estate.
 
+### Notes
+
+- `createInitialState()`, the starting estate: the player owns a square around
+  the start site, with the Kopdes block pre-cleared (GDD 4.6). Water and
+  protected forest inside the square stay unowned: you cannot hold title to a
+  river.
+
 ## `src/sim/types.ts`
 
 Core simulation types (GDD 4.4).
@@ -123,3 +157,19 @@ Core simulation types (GDD 4.4).
 Everything here is plain data: no classes with behaviour, no references to
 anything outside `sim/`. If it cannot be JSON-ish serialised (typed arrays
 excepted, see `persistence/`), it does not belong in `SimState`.
+
+### Notes
+
+- `Block.fellingUntil`: a crew is felling the plantation until this tick, and
+  the block goes back to bare land when they finish; -1 when nobody is. It is
+  the one job that pays nothing for what comes down.
+- `PalmArrays`: palms for one block, struct-of-arrays over the block's 144
+  slots. `fertility` is deliberately absent from `Block` and from here:
+  GDD 3.6.1 makes it a function of the fertilizer window, the ash window, the
+  biome and the clearing history, so it is computed per tick rather than
+  stored.
+- `MobIntent`: what a mob is doing. Animals and ghosts cycle through `idle`,
+  `pace`, `wander`, `circle` and (animals only) `sleep`; the climbers add
+  `sit`, `climb` and `climbJump` among the trees; visitors `travel`, `hide`,
+  `raid` and `flee`; workers `travel` and `work`; everyone eventually
+  `leave`s.

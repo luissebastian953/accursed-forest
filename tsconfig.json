@@ -36,5 +36,6 @@
       "@audio/*": ["src/audio/*"]
     }
   },
-  "include": ["src", "tests"]
+  "include": ["src", "tests"],
+  "exclude": ["tests/tools/comments.test.ts"]
 }

@@ -43,15 +43,8 @@ const BOUNDARY_POLICIES = [
 ];
 
 /**
- * Layer rule (GDD 4.1): arrows point down only.
- *
- *   app  -> ui, render, input, persistence, sim, shared
- *   ui   -> sim (read-only), shared
- *   render / input / persistence / workers -> sim (read-only), shared
- *   sim  -> shared ONLY. Never three, never DOM, never timers.
- *   shared -> nothing
- *
- * `render/` and `ui/` may not import each other; they meet in `app/`.
+ * Layer rule (GDD 4.1): arrows point down only, and the full table is in
+ * `docs/reference/config.md`. `sim` reaches shared and nothing else.
  */
 export default tseslint.config(
   {
@@ -117,9 +110,7 @@ export default tseslint.config(
   },
 
   // ── Svelte components (ui/ only) ─────────────────────────────────────────
-  // Syntactic checks only (import order, the layer boundary): type-aware
-  // rules need a project service `svelte-check` already provides, and
-  // running both would just duplicate work.
+  // Syntax only: the type-aware rules would duplicate `svelte-check`.
   ...svelte.configs.recommended,
   {
     files: ['**/*.svelte'],
@@ -163,10 +154,7 @@ export default tseslint.config(
   },
 
   // ── `.svelte.ts` / `.svelte.js` modules ─────────────────────────────────
-  // Svelte 5 runes (`$state`, `$derived`) work outside a `.svelte` file in a
-  // module named `*.svelte.ts`; `eslint-plugin-svelte`'s own setup for these
-  // sets a parser but not what it hands TS syntax to, so it chokes on
-  // ordinary `import { type X } from` and worse. Point it at the real one.
+  // The plugin sets a parser but not what it hands TS syntax to: name the real one.
   {
     files: ['**/*.svelte.ts'],
     languageOptions: {
@@ -177,10 +165,7 @@ export default tseslint.config(
   },
 
   // ── Breathing room ──────────────────────────────────────────────────────
-  // Prettier never adds a blank line, so this is where the code's rhythm is
-  // set: a blank line on both sides of anything that ends in a block, and
-  // around a run of declarations. `else` is part of its `if`, so it stays on
-  // the closing brace. Auto-fixed, so it costs nothing to keep.
+  // Prettier never adds a blank line, so the code's rhythm is set here, auto-fixed.
   {
     files: ['**/*.ts', '**/*.svelte'],
     plugins: { '@stylistic': stylistic },

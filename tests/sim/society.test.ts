@@ -86,10 +86,8 @@ describe('news templates (GDD 3.7)', () => {
   });
 
   /**
-   * The deck names officials now, so the rule moved rather than went: every
-   * name in it must be one of the invented cast, and no headline may carry
-   * the name of a real person the cast is drawn from. The guard is the point,
-   * because the register invites exactly that mistake.
+   * Every name in the deck must be one of the invented cast, and none may be a
+   * real person's. The register invites exactly that mistake.
    */
   it('names only its own invented cast, never a real person', () => {
     const CAST = [

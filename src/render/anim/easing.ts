@@ -67,16 +67,8 @@ export function easeOutBounce(t: number): number {
 }
 
 /**
- * Volume-preserving squash and stretch (GDD 6.5).
- *
- * `curveValue` is the overshooting curve's output; `f = curveValue - 1` is the
- * deviation from rest, scaled by `amount`. Vertical scale is `1 + a·f`, and the
- * two horizontal axes take `1/sqrt(sy)` so the product `sy · sxz² === 1`.
- *
- * Note this is a modulation *around 1*, applied on top of whatever base scale
- * the animation already has; not the base scale itself. (The abbreviated TSL
- * sketch in GDD 6.5 folds the two together and is degenerate at t = 0,
- * where `1/sqrt(0)` is infinite.)
+ * Volume-preserving squash and stretch (GDD 6.5): a modulation around 1 on top of the base
+ * scale, not the base itself; GDD 6.5's sketch folds the two and is infinite at t = 0.
  */
 export function squashStretch(curveValue: number, amount = 1): { sy: number; sxz: number } {
   const sy = Math.max(1e-4, 1 + amount * (curveValue - 1));

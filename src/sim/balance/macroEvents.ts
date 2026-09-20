@@ -47,9 +47,8 @@ export interface MacroEvent {
   /** Not before this year: the permanent ones should not land in year one. */
   fromYear?: number;
   /**
-   * Only after this event has already happened. A `MacroEventId` by intent,
-   * but typed loosely because the ids are read back off this very table; a
-   * test holds it to real ones.
+   * Only after this event has happened. A `MacroEventId`, typed loosely because the ids are
+   * read back off this very table; a test holds it to real ones.
    */
   after?: string;
   /** At most once in a run. */

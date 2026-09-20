@@ -5,31 +5,20 @@ export const FIRE = {
   burnDays: { 1: 8, 2: 4, 3: 2 } satisfies Record<FireIntensity, number>,
 
   /**
-   * Chance per day of igniting each burnable neighbour, before fuel and
-   * regime. Read together with `burnDays`: what matters is the chance over
-   * the whole burn. Low ≈ 0.16 per neighbour over 8 days (a controlled burn
-   * mostly stays put), medium ≈ 0.34 over 4 (sometimes takes one), high ≈ 0.4
-   * over 2 (takes a couple and often more; a big fire is meant to be a thing
-   * that gets away from you. 0.35/day is the ceiling: one high burn
-   * chain-reacted into 130 blocks on its own). The design doc's per-day figures were
-   * written without the durations and chain-reacted even at low intensity.
+   * Chance per day of igniting each burnable neighbour, before fuel and regime. Tune it with
+   * `burnDays`: the chance over the whole burn is what matters. 0.35 a day is the ceiling.
    */
   spreadPerDay: { 1: 0.01, 2: 0.058, 3: 0.3 } satisfies Record<FireIntensity, number>,
 
   /**
-   * A man-made burn spreads this much more readily into a neighbouring block
-   * of standing forest: dry canopy and litter catch where grass would not.
-   * Lightning and drought fires do not spread at all (`weather.naturalFires`):
-   * they burn their block out and stop, so an act of God never costs the
-   * player the hillside; only their own matches do.
+   * A man-made burn spreads this much more readily into standing forest. Natural fires never
+   * spread (`weather.naturalFires`): only the player's own matches cost the hillside.
    */
   forestSpreadFactor: 3,
 
   /**
-   * A wildfire's own daily spread chance per neighbour, replacing the block's
-   * intensity. Tuned by burned area over a dry season: ~50 blocks in two
-   * months and ~95 over the season in a normal year; a disaster for a
-   * 64-block estate, not a map reset. (0.4 burned a quarter of the map.)
+   * A wildfire's own daily spread chance per neighbour, replacing the block's intensity.
+   * Tuned on burned area over a dry season: a disaster, not a map reset.
    */
   wildfireSpreadPerDay: 0.3,
 
@@ -41,9 +30,8 @@ export const FIRE = {
   } satisfies Record<ClimateRegime, number>,
 
   /**
-   * The same for a wildfire, gentler: its reproduction rate sits near 1, so
-   * doubling it burned two thirds of the map, ×1.25 a fifth, ×1.1 a few hundred
-   * blocks; the bad-year haze story without erasing the world.
+   * The same for a wildfire, and gentler: its reproduction rate sits near 1, so doubling it
+   * burned two thirds of the map.
    */
   wildfireRegimeMultiplier: {
     normal: 1,
@@ -52,11 +40,8 @@ export const FIRE = {
   } satisfies Record<ClimateRegime, number>,
 
   /**
-   * Fuel dryness from block moisture: 1 at or below `fuelWetAt − fuelDryRange`,
-   * 0 at or above `fuelWetAt`, raised to `moistureResistance`. Dry-season
-   * ground (~0.4) reads ~0.6; riverbanks and irrigated blocks are firebreaks.
-   * Soil moisture is not fuel dryness; an earlier (1 − moisture) term choked
-   * every fire and made the wildfire a hair-trigger between 3 and 600 blocks.
+   * Fuel dryness: 1 at or below `fuelWetAt - fuelDryRange`, 0 at or above `fuelWetAt`. Soil
+   * moisture is not fuel dryness: a (1 - moisture) term made the wildfire a hair-trigger.
    */
   fuelWetAt: 0.7,
   fuelDryRange: 0.5,

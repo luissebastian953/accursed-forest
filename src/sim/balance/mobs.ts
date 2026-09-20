@@ -34,11 +34,7 @@ export const WILDLIFE = {
   arrivePerDay: 0.35,
   /** Days a wild animal stays before it wanders off, min and max. */
   stayDays: { min: 20, max: 90 },
-  /**
-   * Where each kind turns up (block biomes it spawns on and prefers to
-   * wander over) and its weight in the draw. Monkeys and orangutans keep to
-   * the forest; the capybara keeps near the water.
-   */
+  /** Where each kind turns up (the biomes it spawns on and wanders over), and its draw weight. */
   kinds: {
     wildBoar: { weight: 3, biomes: ['forest', 'grassfield', 'scrub'] },
     pig: { weight: 2, biomes: ['grassfield', 'scrub', 'village'] },
@@ -57,9 +53,8 @@ export const WILDLIFE = {
 } as const;
 
 /**
- * What each animal actually does with its day. A species with no habits of
- * its own falls back to `BEHAVIOUR.weights`; anything left out of its table
- * it never does, so a pangolin never circles and only a climber climbs.
+ * What each animal does with its day; a species with none uses `BEHAVIOUR.weights`. Anything
+ * left out of a table the animal never does: a pangolin never circles.
  */
 export const HABITS = {
   /** Orangutans and monkeys: up in the trees as much as on the ground. */
@@ -135,11 +130,7 @@ export const BABI_NGEPET = {
   raidDays: 3,
   /** Caught at it: what falls out of its coat, and how fast it bolts. */
   caughtDrop: 6_000_000,
-  /**
-   * Spotted on the estate before it ever reaches the Kopdes, while it is
-   * still ambling in as a pig. Less falls out of it, but clicking it here
-   * costs it the raid it came for.
-   */
+  /** Clicked while it still ambles in as a pig: less falls out, but it loses the raid. */
   spottedDrop: 1_500_000,
   fleeSpeed: 1.8,
   /** It looks like a pig until it stands up at the Kopdes. */

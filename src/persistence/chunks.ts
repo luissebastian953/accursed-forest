@@ -56,9 +56,8 @@ export class SaveSlot {
   }
 
   /**
-   * Write the manifest and the given chunks. `'all'` rewrites every chunk;
-   * the first save, and the save after a load, must do this. Returns the
-   * storage keys written, chunks first, manifest last.
+   * Write the manifest and the given chunks. The first save, and the save after a load, must
+   * pass `'all'`. Returns the keys written, chunks first, manifest last.
    */
   save(state: SimState, dirty: ReadonlySet<string> | 'all' = 'all'): string[] {
     const { manifest, chunks } = serializeState(state, this.appVersion, this.now());

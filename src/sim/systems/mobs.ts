@@ -378,12 +378,8 @@ function spawnGhost(ctx: SimContext, rng: RngState): void {
 }
 
 /**
- * Keep every worked block's crew topped up. A chop is always the player's
- * order, so every clearing block is staffed, and so is every block being dug
- * out after a slide. A fire is only the player's if
- * the burn command staffed it: lightning, a drought spark and a fire that
- * spread in from next door burn with nobody standing round them; and once
- * the pressure tips into a wildfire, nobody works any fire at all.
+ * Keeps every worked block's crew topped up: a spreading wildfire is nobody's
+ * job to staff.
  */
 function spawnCrews(ctx: SimContext, rng: RngState): void {
   const { state } = ctx;
@@ -419,9 +415,8 @@ export function workedBlocks(state: SimState): Set<BlockId> {
 }
 
 /**
- * Top a block's crew up to `crewSize`. The chop and burn commands call this
- * the moment the order is given, so the crew is on the block before the
- * next day's tick; at five seconds a day, waiting for it read as a delay.
+ * Tops a block's crew up to `crewSize`, called the moment an order is given
+ * rather than on the next tick.
  */
 export function staffBlock(ctx: SimContext, id: BlockId, rng?: RngState): void {
   const { state } = ctx;

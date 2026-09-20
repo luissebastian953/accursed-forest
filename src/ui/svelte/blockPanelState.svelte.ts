@@ -147,8 +147,7 @@ export interface BlockView {
   settle: { cost: number; enabled: boolean; note: string } | null;
   /**
    * The one thing on a planted block that cannot be taken back (GDD 8 panel
-   * 13a): felling the lot. Priced to hurt, and named for what it costs beyond
-   * the money, so the confirm step reads as a loss and not a form.
+   * 13a): felling the lot, priced and named to read as a loss, not a form.
    */
   danger: {
     cost: number;
@@ -195,10 +194,8 @@ function dangerView(sim: Sim, id: BlockId): BlockView['danger'] {
 }
 
 /**
- * Open land's two futures (GDD 8 panel 11a): the crew with its timber, or the
- * saplings. Reforesting buys what the block is short of and plants it in one
- * step, so the price here is the whole price, and the note says why it
- * cannot be paid when it cannot.
+ * Open land's two futures (GDD 8 panel 11a): the crew with its timber, or
+ * the saplings, reforested in one step at the whole price.
  */
 function landView(sim: Sim, id: BlockId, chop: ActionView): BlockView['land'] {
   const { state, world } = sim;
@@ -239,9 +236,8 @@ function landView(sim: Sim, id: BlockId, chop: ActionView): BlockView['land'] {
 }
 
 /**
- * The coordination fee, as the Kopdes offers it (GDD 3.9). It appears only with
- * something to settle, and says plainly when the district office is too
- * honest to take it rather than hiding the button.
+ * The coordination fee, as the Kopdes offers it (GDD 3.9): shown only with
+ * something to settle, and says plainly when the office will not take it.
  */
 function settleView(state: SimState, phase: string): BlockView['settle'] {
   if (phase !== 'kopdes' || !settleable(state)) return null;

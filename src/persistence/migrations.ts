@@ -75,9 +75,8 @@ export const MIGRATIONS: readonly Migration[] = [
     },
   },
   {
-    // M1g: endings. Rebuild what the books can from what a v4 save kept: the
-    // ledger (capped, so profit is a floor), the command log's last burn, and
-    // the warnings in the news for the chronicle.
+    // M1g: endings. Rebuild the books from what a v4 save kept; the ledger is capped, so the
+    // rebuilt profit is only a floor.
     from: 4,
     up(save) {
       const head = save.manifest['head'] as
@@ -236,9 +235,8 @@ export const MIGRATIONS: readonly Migration[] = [
   },
   {
     /**
-     * Redemption: nothing in an old save changes. The bump is so a build that
-     * has never heard of the ending refuses the save rather than choking on
-     * it when it reads `run.ending`.
+     * Redemption: nothing changes. The bump makes a build that has never heard of the ending
+     * refuse the save rather than choke on `run.ending`.
      */
     from: 12,
     up() {},

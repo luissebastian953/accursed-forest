@@ -62,9 +62,8 @@ export function createWorld(
     return [x, (id - x) / width];
   };
 
-  // ── Per-cell terrain, cached ────────────────────────────────────────────
-  // A flat array is cheaper than an LRU here: at 64x64 the full cache is 4,096
-  // entries, and the render worker regenerates chunks on demand anyway.
+  // ── Per-cell terrain, cached ─────────────────────────────────────────────
+  // A flat array beats an LRU here: 4,096 entries at 64x64, cheap to regenerate.
   const terrainCache = new Array<(CellTerrain & { height01: number }) | undefined>(width * height);
 
   const terrainAt = (x: number, y: number): CellTerrain & { height01: number } => {
@@ -266,14 +265,7 @@ function hashWords(words: string): number {
   return (hash ^ (hash >>> 15)) >>> 0;
 }
 
-/**
- * Any words name a world (GDD 4.6). Seven code symbols are read as a code, so a
- * shared estate comes back exactly; anything else is hashed, so a player can
- * type what they like. Case, spacing and punctuation are ignored either way:
- * "PENYAWIT-HANDAL", "penyawit handal" and "Penyawit Handal" are one estate.
- *
- * Only nothing at all is nothing: an empty box means a random world.
- */
+/** Any words name a world (GDD 4.6): a 7-symbol code decodes exactly, other text is hashed. */
 export function seedFromEstateCode(code: string): number | null {
   // Letters and digits of any script; a phrase in Indonesian works as well as
   // one in English, and the separators a player puts between words do not.

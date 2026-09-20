@@ -70,11 +70,7 @@ export interface Block {
   landslidePalms: number;
   /** While an excavation crew is digging the slide out, the tick it finishes. */
   excavateUntil: Tick;
-  /**
-   * A crew is felling the plantation until this tick, and the block goes
-   * back to bare land when they finish; -1 when nobody is. The one job that
-   * pays nothing for what comes down.
-   */
+  /** A crew is felling the plantation until this tick, or -1; pays nothing for what comes down. */
   fellingUntil: Tick;
   /**
    * What is planted here. Meaningless unless `phase` is `planted` or
@@ -83,13 +79,7 @@ export interface Block {
   species: Species;
 }
 
-/**
- * Palms for one block, struct-of-arrays over the block's 144 slots.
- *
- * `fertility` is deliberately absent from `Block` and from here: GDD 3.6.1 makes it
- * a function of the fertilizer window, the ash window, the biome and the
- * clearing history, so it is computed per tick rather than stored.
- */
+/** Palms for one block, struct-of-arrays over 144 slots; fertility is computed, not stored here. */
 export interface PalmArrays {
   /** Calendar tick planted; -1 means the slot is empty. Drives senescence. */
   plantedAt: Int32Array;
@@ -237,12 +227,6 @@ export type MobSpecies =
   | 'crew';
 
 /** What a mob is up to. */
-/**
- * What a mob is doing. Animals and ghosts cycle through `idle`, `pace`,
- * `wander`, `circle` and (animals only) `sleep`; the climbers add `sit`,
- * `climb` and `climbJump` among the trees; visitors `travel`, `hide`,
- * `raid` and `flee`; workers `travel` and `work`; everyone eventually `leave`s.
- */
 export type MobIntent =
   | 'idle'
   | 'sit'

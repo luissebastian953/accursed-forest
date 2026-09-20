@@ -76,17 +76,12 @@
     note?: string;
   }
 
-  /**
-   * The bar grows with its own contents, so anything that hangs under it
-   * (the controls card, the ISPO checklist, the year-end card) is told where
-   * its bottom edge is rather than guessing a fixed offset.
-   */
+  /** Tells anything hung under the bar where its bottom edge is, rather than a fixed offset. */
   let bar = $state<HTMLElement | null>(null);
   let card = $state<HTMLElement | null>(null);
   $effect(() => {
-    // Measure the bar card itself, not the column it sits in: the column also
-    // holds the event chips, and a panel hung below those opens a hand's
-    // width from the bar on any day the weather is doing something.
+    // Measure the bar card, not the column: the column also holds the event
+    // chips, which would open a panel a hand's width from the bar.
     const element = card ?? bar;
 
     if (!element) return;
@@ -312,9 +307,7 @@
 
         <div class="flex flex-wrap items-center gap-2">
           {#if v.ispoMet !== null}
-            <!-- Three states, so progress reads without opening anything:
-                 nothing met is neutral, some met is gold, all met is green
-                 and waits on the Ministry's year-end check. -->
+            <!-- Three states: nothing met is neutral, some met is gold, all met is green and waits. -->
             {@const all = v.ispoMet >= v.ispoTotal}
             <button
               class="btn ispo {all ? 'btn-green' : v.ispoMet > 0 ? 'btn-gold' : 'btn-ghost'}"

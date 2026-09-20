@@ -14,8 +14,7 @@ export const INTEGRITY = {
 
 /**
  * Attention (GDD 3.9): how much the authorities have noticed you, 0..100.
- * Increases are scaled by `0.5 + integrity`; with low integrity the meter
- * climbs slower (three quarters speed at the starting 0.25).
+ * Increases are scaled by `0.5 + integrity`, so a low-integrity meter climbs slower.
  */
 export const ATTENTION = {
   /** Each forest block chopped; small, cumulative. */
@@ -39,9 +38,8 @@ export const AUTHORITY = {
   /** The letter's surcharge lifts once attention falls back below this. */
   letterClearsBelow: 25,
   /**
-   * Putting forest back is the one thing the Ministry takes at face value:
-   * each reforested hectare halves what is held against the estate, both the
-   * attention on it and whatever is left of a suspension.
+   * Each reforested hectare halves what is held against the estate: the attention on it and
+   * whatever is left of a suspension.
    */
   reforestationRelief: 0.5,
   /** Clearing costs this much more while a letter stands (GDD 3.9: +50%). */
@@ -51,19 +49,15 @@ export const AUTHORITY = {
   /** Three months' ban on chopping and burning; sales continue. (Was two years: too long to sit out.) */
   investigationDays: 90,
   /**
-   * When a case runs its course, attention falls to at most this: still over
-   * the letter line, so the file stays open, but far enough under the police
-   * line that only a new offence brings them back. Without it, a meter still
-   * at 70+ on the last day opened a fresh 90-day case the same tick.
+   * Attention after a case runs its course: over the letter line, under the police line.
+   * Without it, a meter still at 70+ opened a fresh case the same tick.
    */
   investigationClosesAt: 45,
   /** Game over. */
   arrestAt: 100,
   /**
-   * "Settle the matter" (GDD 3.9): the envelope that makes a case go away, and a
-   * suspension with it. Only while the district office is crooked enough to
-   * take it, and dear enough that it is never the cheap way out: an estate
-   * pays about a year of good harvests for the favour.
+   * "Settle the matter" (GDD 3.9): the envelope that ends a case and a suspension. About a
+   * year of good harvests, so it is never the cheap way out.
    */
   settleCost: 320_000_000,
   /** A standing suspension costs this much again on top. */

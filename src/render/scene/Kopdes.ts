@@ -14,14 +14,8 @@ import { terraceHeight } from './chunkField.ts';
 export type KopdesLevel = 1 | 2 | 3 | 4;
 
 /**
- * The building grows in one direction (GDD 6.3). A one-room shop under a single
- * fall of roof becomes a co-op: the ridge rises, the far slope reaches out
- * past the walls, and what it covers is open ground on timber posts. That
- * open hall is what the upgrades buy, so the shape says the level out loud.
- *
- * West is -x and holds the ridge; the roof falls east over the walls. Every
- * eave and post below is worked out from the two lines of the roof rather
- * than placed by hand, so the posts meet what they carry.
+ * The building grows in one direction (GDD 6.3): west holds the ridge, and
+ * the roof falls east over the walls, worked out from the two roof lines.
  */
 export function buildKopdesGeometry(level: KopdesLevel = 1) {
   const b = new BoxBuilder();
@@ -40,9 +34,8 @@ export function buildKopdesGeometry(level: KopdesLevel = 1) {
   const reachOf = (n: KopdesLevel) => (n >= 4 ? 5.6 : 4.4);
 
   /**
-   * A roof plane laid between two points, seen side on. The box is as long as
-   * the run between them plus the overhang at each end, and sits on the line
-   * rather than across it.
+   * A roof plane laid between two points, seen side on: as long as the run
+   * plus the overhang at each end, sitting on the line rather than across it.
    */
   const plane = (
     x1: number,
@@ -81,10 +74,8 @@ export function buildKopdesGeometry(level: KopdesLevel = 1) {
     const run = (x2 - x1) / steps;
 
     for (let i = 0; i < steps; i++) {
-      // The tallest point of each step is its uphill edge, so that is the
-      // height it takes, less a finger's width: any more and the corner of the
-      // step stands proud of the roof it is meant to be holding up, or fights
-      // it for the same pixels.
+      // The tallest point of each step is its uphill edge, less a finger's
+      // width; any more and the step's corner stands proud of the roof above it.
       const top = y1 + ((y2 - y1) * i) / steps - 0.16;
 
       b.addAABox(x1 + run * (i + 0.5), top / 2, 0, Math.abs(run) + 0.01, top, depth, wall);
@@ -166,9 +157,8 @@ export function buildKopdesGeometry(level: KopdesLevel = 1) {
     );
     b.addAABox(annexX, 1.3, annexZ + 1.15, 1, 1.5, 0.14, timber);
 
-    // The windows go in the blank east wall, not the front: the front is the
-    // door, the step and the annex, and a pane there ends up under the eave
-    // or behind the annex roof.
+    // The windows go in the blank east wall: the front is the door, the step
+    // and the annex, where a pane would end up under the eave or hidden.
     const wallPaneY = eaveEast - 1.15;
 
     if (level >= 4) {
@@ -183,9 +173,8 @@ export function buildKopdesGeometry(level: KopdesLevel = 1) {
     // wide enough for the office's two windows.
     const dormerZ = -1;
     const dormerWide = level >= 4 ? 2.8 : 1.6;
-    // It sits on the slope, not in it: the walls stand clear of the roof at
-    // the uphill edge and are tucked under it at the downhill edge, so the
-    // box is as tall as the roof falls across it, plus the part that shows.
+    // It sits on the slope, not in it: walls clear the roof at the uphill
+    // edge and tuck under it downhill, so its height follows the roof's fall.
     const dormerRun = 1.7;
     const uphill = west + (east - west) * 0.42;
     const downhill = uphill + dormerRun;

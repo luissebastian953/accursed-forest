@@ -17,11 +17,7 @@ export interface FeatureInputs {
   riverDistanceAt: (x: number, y: number) => number;
 }
 
-/**
- * The largest contiguous cluster of high forest, plus a one-block buffer ring,
- * becomes protected forest; the map's fixed boundary. Returns an empty set if
- * no cluster reaches the minimum size, which is a legitimate world.
- */
+/** The largest contiguous cluster of high forest, plus a buffer ring, becomes protected forest. */
 export function findProtectedForest(input: FeatureInputs): Set<number> {
   const { width, height, biomeAt, elevationAt } = input;
   const seen = new Uint8Array(width * height);
@@ -101,10 +97,8 @@ export interface StartSite {
 const ALLOWED: ReadonlySet<Biome> = new Set(START_SITE.allowed);
 
 /**
- * Search outward from the map centre for somewhere to put the estate: a core
- * that is plantable, off the slopes, clear of protected forest and water, with
- * a river within reach and standing forest in or around it. Always returns a site; if nothing scores well the best
- * candidate found wins, because a world with nowhere to start is not playable.
+ * Searches outward from the map centre for a plantable core; always returns a
+ * site, even a poor one, because a world with nowhere to start is not playable.
  */
 export function findStartSite(
   input: FeatureInputs,
@@ -213,11 +207,7 @@ function scoreSite(
   return share * 10 + riverBonus + forestBonus - (blocked / cells) * 8;
 }
 
-/**
- * Villages (GDD 4.6): a few clusters of village land near the rivers, placed
- * after the start site and kept clear of it, so they never change where the
- * estate begins. Returns the cells, which become the `village` biome.
- */
+/** Village clusters (GDD 4.6), placed after the start site and kept clear of it. */
 export function findVillages(
   input: FeatureInputs,
   isProtected: (x: number, y: number) => boolean,

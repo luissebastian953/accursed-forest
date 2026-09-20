@@ -119,12 +119,7 @@ const COLOURS: Partial<Record<number, [Hex, Hex]>> = {
 
 const FALLBACK: [Hex, Hex] = [0xff00ff, 0xff00ff];
 
-/**
- * How much of its own light a slot gives off, 0..1, carried in the palette's
- * alpha channel because nothing else uses it. The material turns it into an
- * emissive term, which lifts these slots past the bloom threshold: the gold
- * things glow instead of sitting there as flat yellow paint.
- */
+/** Self-light per slot, 0..1, carried in alpha: it lifts the gold things past the bloom threshold. */
 const EMISSION: Partial<Record<number, number>> = {
   [Palette.Coin]: 0.9,
   [Palette.Sparkle]: 1,

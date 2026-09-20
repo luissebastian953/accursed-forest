@@ -8,13 +8,8 @@ export const SEASONS = {
   wetEndDay: 90,
 
   /**
-   * Daily rain is a clamped normal draw from the season's distribution.
-   *
-   * Calibrated so a grassfield block under the normal regime averages G ≈ 1.0
-   * over a year and reaches 900 growth-days in ~900 calendar days (GDD 3.6.1);
-   * El Niño (×0.55 rain) stretches that to ~1000 days. The Kalimantan dry
-   * season is "less wet", not arid; an earlier 0.2 mean starved growth to
-   * G ≈ 0.6 and pushed first harvest past four years.
+   * Daily rain, a clamped normal draw, calibrated so grassfield averages G ≈ 1.0 (GDD 3.6.1).
+   * The Kalimantan dry season is "less wet", not arid: a 0.2 mean starved growth.
    */
   rain: {
     wet: { mean: 0.65, sd: 0.2 },
@@ -32,19 +27,16 @@ export const SEASONS = {
   },
 
   /**
-   * `dryStreak` counts consecutive ticks with rain below this; a day drier
-   * than an ordinary dry-season day, not a day with no rain at all. Daily rain
-   * is drawn independently, so a strict "no rain" threshold (0.1) never
-   * produced a fortnight's streak even under El Niño.
+   * `dryStreak` counts consecutive ticks with rain below this: drier than a dry-season day,
+   * not rainless. A strict 0.1 never made a fortnight's streak, even under El Niño.
    */
   dryStreakBelow: 0.3,
   /** `wetStreak` counts consecutive ticks with rain above this. */
   wetStreakAbove: 0.6,
 
   /**
-   * `sun = 1 - cloudPerRain * rain`, before haze and ash attenuation. Kept
-   * mild on purpose: GDD 3.6.1 puts normal light near 1.0 and reserves the big
-   * drops for haze (≈0.7) and ash (≈0.5).
+   * `sun = 1 - cloudPerRain * rain`, before haze and ash. Mild on purpose: GDD 3.6.1 keeps
+   * normal light near 1.0 and saves the big drops for haze and ash.
    */
   cloudPerRain: 0.15,
 
@@ -73,18 +65,16 @@ export const SKY = {
   stormAbove: 0.82,
 
   /**
-   * Dry storms: after a run of dry days, a middling sky can still turn to
-   * thunder. These are the storms that start fires; a wet one douses its own
-   * lightning within a day or two.
+   * Dry storms: after a run of dry days a middling sky can still thunder. These start the
+   * fires; a wet storm douses its own lightning.
    */
   dryStormStreak: 5,
   dryStormRain: 0.2,
   dryStormChance: 0.3,
 
   /**
-   * Weather comes in spells: once the sky is set it holds for this many days
-   * before it is read off the rain again, so a sunny week is a week. A storm
-   * still breaks in whenever the rain calls for one.
+   * Weather comes in spells: the sky holds this many days before it is read off the rain
+   * again. A storm still breaks in whenever the rain calls for one.
    */
   spellDays: { min: 6, max: 14 },
   /** Tag for the spell lengths' own random stream. */
