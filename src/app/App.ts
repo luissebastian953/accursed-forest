@@ -14,6 +14,7 @@ import { createPaletteTexture } from '@render/materials/palette';
 import { createPaletteMaterial } from '@render/materials/paletteMaterial';
 import { MobField } from '@render/mobs/MobField';
 import { Picker } from '@render/picking';
+import { AdaptiveResolution } from '@render/quality';
 import { createRenderer } from '@render/Renderer';
 import { Ceremony } from '@render/scene/Ceremony';
 import { landHeight } from '@render/scene/chunkField';
@@ -1653,6 +1654,12 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   }
 
   function onFrame(dt: number, nowMs: number): void {
+    // A laptop runs out of pixels before it runs out of anything else, so the
+    // buffer shrinks when frames are slow and grows back when they are not.
+    const scale = quality.sample(dt * 1000);
+
+    if (scale !== null) handle.setPixelRatio(scale);
+
     // Nothing in the world moves while the clock is stopped.
     const running = time.speed > 0;
     const worldDt = running ? dt : 0;
@@ -1705,6 +1712,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     if (fires.burning || coins.count > 0 || sparklePoints.length > 0) glow.render();
     else handle.render(scene, rig.camera);
   }
+
+  const quality = new AdaptiveResolution({ cap: handle.maxPixelRatio });
 
   const loop = new GameLoop({
     ticksPerSecond: () => time.ticksPerSecond,

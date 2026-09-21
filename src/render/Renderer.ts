@@ -8,6 +8,10 @@ export interface RendererHandle {
   readonly backend: Backend;
   /** Match the canvas to its container. */
   resize(): { width: number; height: number };
+  /** The best scale this display can use, which adaptive quality starts from. */
+  readonly maxPixelRatio: number;
+  /** Spend fewer pixels per frame when the machine cannot afford them. */
+  setPixelRatio(ratio: number): void;
   render(scene: Scene, camera: Camera): void;
   dispose(): void;
 }
@@ -19,7 +23,10 @@ export async function createRenderer(
   const renderer = new WebGPURenderer({ antialias: true, forceWebGL: options.forceWebGL ?? false });
 
   await renderer.init();
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  const maxPixelRatio = Math.min(window.devicePixelRatio, 2);
+
+  renderer.setPixelRatio(maxPixelRatio);
   root.appendChild(renderer.domElement);
 
   const backendFlags = renderer.backend as unknown as { isWebGPUBackend?: boolean };
@@ -40,6 +47,12 @@ export async function createRenderer(
     canvas: renderer.domElement,
     backend,
     resize,
+    maxPixelRatio,
+    setPixelRatio(ratio) {
+      renderer.setPixelRatio(ratio);
+      // The drawing buffer only changes size when the canvas is sized again.
+      resize();
+    },
     // `init()` has resolved, so the synchronous `render` is the right call.
     render: (scene, camera) => {
       renderer.render(scene, camera);

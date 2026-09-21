@@ -17,7 +17,7 @@ named in backticks so a search from the code lands on it.
 | [Localisation](i18n.md)                                             | 4       |
 | [Input](input.md)                                                   | 2       |
 | [Persistence](persistence.md)                                       | 5       |
-| [Rendering: geometry, materials, animation, camera](render-core.md) | 14      |
+| [Rendering: geometry, materials, animation, camera](render-core.md) | 15      |
 | [Rendering: the crowd](render-mobs.md)                              | 3       |
 | [Rendering: models](render-models.md)                               | 18      |
 | [Rendering: the scene](render-scene.md)                             | 22      |
@@ -27,7 +27,7 @@ named in backticks so a search from the code lands on it.
 | [Simulation: core](sim-core.md)                                     | 14      |
 | [Simulation: systems](sim-systems.md)                               | 11      |
 | [Simulation: world generation](sim-worldgen.md)                     | 6       |
-| [Tests](tests.md)                                                   | 33      |
+| [Tests](tests.md)                                                   | 34      |
 | [Tools](tools.md)                                                   | 2       |
 | [Interface](ui.md)                                                  | 39      |
 | [Workers](workers.md)                                               | 1       |

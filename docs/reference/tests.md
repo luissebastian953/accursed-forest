@@ -161,6 +161,13 @@ dry on row 1, and the alpha channel of both is how much light a slot gives off
 rather than opacity. The material turns that into an emissive term, so a slot
 with alpha is a slot that glows.
 
+## `tests/render/quality.test.ts`
+
+Adaptive resolution: that it holds full resolution while frames are fine, gives
+pixels back a step at a time when they are not, notices a drowning machine in
+seconds rather than in frames, refuses to read a stalled tab as a slow machine,
+and never offers a scale the display cannot use.
+
 ## `tests/render/rain.test.ts`
 
 The rain: it falls only on the days the sky itself calls rain, shows something

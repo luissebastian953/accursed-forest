@@ -193,6 +193,23 @@ for each slot, and the texture that carries them, live in `palette.ts`.
 Picking (GDD 6.6): raycast the terrain chunks for block selection. Per-palm
 picking against the instanced meshes arrives with the palm panel (M1b+).
 
+## `src/render/quality.ts`
+
+Adaptive resolution (GDD 6.4). A laptop with an integrated GPU runs out of
+pixels long before it runs out of triangles or CPU, and a Retina display asks
+for four buffer pixels per CSS pixel, so the renderer starts at what the
+display can do and gives pixels back when frames run long.
+
+### Notes
+
+- The verdict is on elapsed time, not a frame count. At two frames a second a
+  count of sixty would take half a minute to notice the machine is drowning,
+  which is exactly the machine that needs the help soonest.
+- A frame over a second is a stall, not a slow machine: a backgrounded tab
+  hands back enormous frames and must not cost the player resolution.
+- Climbing back costs twice the patience once it has dropped, so a machine that
+  is borderline settles rather than oscillating between two resolutions.
+
 ## `src/render/sync.ts`
 
 From a tick's events to what the scene needs to redo (GDD 4.2 step 5).
