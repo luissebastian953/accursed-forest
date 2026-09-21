@@ -29,7 +29,7 @@ named in backticks so a search from the code lands on it.
 | [Simulation: world generation](sim-worldgen.md)                     | 6       |
 | [Tests](tests.md)                                                   | 34      |
 | [Tools](tools.md)                                                   | 2       |
-| [Interface](ui.md)                                                  | 39      |
+| [Interface](ui.md)                                                  | 40      |
 | [Workers](workers.md)                                               | 1       |
 
 The curated overviews are [architecture](../architecture.md) and

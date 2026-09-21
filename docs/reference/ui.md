@@ -406,3 +406,22 @@ and `show`/`dismiss`/`isOpen`/`dispose` surface so `App.ts` is unchanged.
 - `preview` getter: the estate the card is offering, the one behind the
   title until the player types, then the one their boxes describe. The
   name alone settles the code, so it moves as they type.
+
+## `src/ui/toastPolicy.ts`
+
+What the estate is allowed to say, and how often (GDD 8). At 50x a day passes
+every tenth of a second, so the notices arrive faster than anyone can read
+them and the strip blinks rather than informs.
+
+### Notes
+
+- `offer()` answers `show`, `repeat` or `drop`. The same words already on
+  screen are counted rather than said twice, which is what turns twenty
+  identical sale notices into one with a number beside it.
+- Nothing is dropped while the strip still has room: a drop only happens when
+  a notice would push an unread one off a full strip, so a slow game loses
+  nothing at all.
+- A warning or an error is never dropped. A fire spreading is worth
+  interrupting for even when the strip is full.
+- Words are forgotten once they are older than the repeat window, so the same
+  headline much later reads as news again rather than as a repeat.

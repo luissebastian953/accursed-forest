@@ -1,5 +1,7 @@
 import { mount, unmount, type Component } from 'svelte';
 
+import { ToastPolicy } from '../../toastPolicy.ts';
+
 import ToastsView from './Toasts.svelte';
 
 export type ToastKind = 'info' | 'warn' | 'error';
@@ -8,6 +10,8 @@ export interface ToastItem {
   id: number;
   text: string;
   kind: ToastKind;
+  /** The same notice happening again, counted rather than repeated. */
+  repeat: number;
 }
 
 export const TONE: Record<ToastKind, string> = {
@@ -17,7 +21,7 @@ export const TONE: Record<ToastKind, string> = {
 };
 
 /** How many notices sit on screen at once; more than this and the oldest goes. */
-const AT_ONCE = 2;
+const AT_ONCE = 3;
 
 const state = $state<{ items: ToastItem[] }>({ items: [] });
 
@@ -37,6 +41,7 @@ export class Toasts {
   private readonly target: HTMLElement;
   private readonly instance: ReturnType<Component>;
   private nextId = 1;
+  private readonly policy = new ToastPolicy();
 
   constructor(
     parent: HTMLElement,
@@ -48,11 +53,33 @@ export class Toasts {
   }
 
   push(text: string, kind: ToastKind = 'info'): void {
-    const toast: ToastItem = { id: this.nextId++, text, kind };
+    const verdict = this.policy.offer(text, kind, Date.now(), state.items.length, AT_ONCE);
+
+    if (verdict === 'drop') return;
+
+    if (verdict === 'repeat') {
+      const live = state.items.find((item) => item.text === text);
+
+      if (live) {
+        live.repeat += 1;
+        return;
+      }
+    }
+
+    const toast: ToastItem = { id: this.nextId++, text, kind, repeat: 1 };
 
     state.items.push(toast);
-    while (state.items.length > AT_ONCE) state.items.shift();
-    setTimeout(() => dismissToast(toast.id), this.ttlMs);
+
+    while (state.items.length > AT_ONCE) {
+      const gone = state.items.shift();
+
+      if (gone) this.policy.forgetText(gone.text);
+    }
+
+    setTimeout(() => {
+      this.policy.forgetText(toast.text);
+      dismissToast(toast.id);
+    }, this.ttlMs);
   }
 
   dispose(): void {

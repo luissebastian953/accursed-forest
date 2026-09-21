@@ -18,8 +18,8 @@
   const FRAME_TOP_URL = `${import.meta.env.BASE_URL}ui/phone-frame-top.svg`;
 
   /**
-   * The frame is sized by viewport height; the screen content zooms with the
-   * frame's width instead, clamped between 0.7 and 1.1 of the 360px layout.
+   * The frame hangs from the bar's own bottom edge and fills the height below
+   * it; the screen zooms with the frame's width, 0.7 to 1.35 of a 360px layout.
    */
   const REFERENCE_WIDTH = 360;
   let frame = $state<HTMLElement | null>(null);
@@ -27,7 +27,7 @@
   $effect(() => {
     if (!frame) return;
 
-    const fit = (width: number) => Math.min(1.1, Math.max(0.7, width / REFERENCE_WIDTH));
+    const fit = (width: number) => Math.min(1.35, Math.max(0.7, width / REFERENCE_WIDTH));
 
     // Size once now: the observer's first call waits for a frame, and the
     // software renderer can hold that frame for a second.
@@ -45,7 +45,8 @@
 <!-- `data-phone` marks the whole frame: a handset's own screen does not click
      back at you, so the UI press sound stops at this boundary. -->
 <div
-  class="@container absolute bottom-10 left-3 top-[12.5rem] z-20 aspect-[480/920] max-h-[1100px] min-h-[560px] max-w-[calc(100vw-1.5rem)]"
+  class="@container absolute bottom-6 left-3 z-20 aspect-[480/920] max-h-[1400px] min-h-[620px] max-w-[calc(100vw-1.5rem)]"
+  style="top: var(--panel-top, 12.5rem)"
   data-testid={testId}
   data-phone="true"
   bind:this={frame}

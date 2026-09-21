@@ -28,7 +28,10 @@
       >
         ✕
       </button>
-      <span>{toast.text}</span>
+      <span
+        >{toast.text}{#if toast.repeat > 1}<span class="num opacity-70">&nbsp;x{toast.repeat}</span
+          >{/if}</span
+      >
     </div>
   {/each}
 </div>
