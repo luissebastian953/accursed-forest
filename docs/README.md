@@ -9,6 +9,7 @@ belongs.
 | [Architecture](architecture.md)    | How the code is arranged and which layer may talk to which.                                           |
 | [The simulation](simulation.md)    | What happens on a tick, in what order, and why that order.                                            |
 | [Decision records](adr/)           | Choices that were hard to make and would be expensive to reverse.                                     |
+| [Backlog](backlog.md)              | Work that is understood and not done, specific enough to start.                                       |
 
 ## Where a new piece of writing goes
 
