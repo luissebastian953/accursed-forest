@@ -327,6 +327,10 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   });
   const glow = new Glow(handle.renderer, scene, rig.camera);
 
+  // Pay for the bloom shaders now, behind the boot shell, rather than on the
+  // first fire. A machine that never shows one has lost nothing but a frame.
+  void glow.warm().catch(() => undefined);
+
   scene.add(
     coins.mesh,
     sparkles.mesh,
@@ -1708,8 +1712,11 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       if (shop.isOpen) shop.refresh();
     }
 
-    // Bloom only while something glows (fire, coins, glints): it costs a few full-screen passes.
-    if (fires.burning || coins.count > 0 || sparklePoints.length > 0) glow.render();
+    // Bloom only while something glows (fire, coins, glints), and never on a
+    // machine that has already given up every pixel it had (config.md).
+    const glowing = fires.burning || coins.count > 0 || sparklePoints.length > 0;
+
+    if (glowing && !quality.lean) glow.render();
     else handle.render(scene, rig.camera);
   }
 

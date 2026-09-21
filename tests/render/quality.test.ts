@@ -59,6 +59,26 @@ describe('adaptive resolution (GDD 6.4)', () => {
     expect(q.scale).toBe(2);
   });
 
+  it('goes lean only at the bottom, where the glow pass is worth giving up', () => {
+    const q = new AdaptiveResolution({ cap: 2 });
+
+    expect(q.lean).toBe(false);
+    untilVerdict(q, 30);
+    expect(q.lean).toBe(false);
+    untilVerdict(q, 30);
+    untilVerdict(q, 30);
+    expect(q.scale).toBe(1);
+    expect(q.lean).toBe(true);
+  });
+
+  it('a display with one step to give has nothing to go lean with', () => {
+    const q = new AdaptiveResolution({ cap: 1 });
+
+    expect(q.lean).toBe(false);
+    untilVerdict(q, 40);
+    expect(q.lean).toBe(false);
+  });
+
   it('never offers a scale the display cannot use', () => {
     const q = new AdaptiveResolution({ cap: 1 });
 

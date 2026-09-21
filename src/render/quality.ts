@@ -64,6 +64,14 @@ export class AdaptiveResolution {
   }
 
   /**
+   * At the bottom step the machine has already given up every pixel it can,
+   * so the glow pass goes too: several full-screen passes and 37 MB of it.
+   */
+  get lean(): boolean {
+    return this.index >= this.steps.length - 1 && this.steps.length > 1;
+  }
+
+  /**
    * Feed one frame. Returns the new scale when it changes, or null, so the
    * caller only touches the renderer on a verdict rather than every frame.
    */

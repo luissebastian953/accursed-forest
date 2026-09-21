@@ -10,6 +10,13 @@ than white glow; the fire's HDR particles and nothing else, because lit
 land never gets that bright. It costs a few full-screen passes, so the app
 only renders through it while something is burning.
 
+### Notes
+
+- `warm()`: the bloom shaders compile on first use, which without this is the
+  first flame: 22 programs and 37 MB of render targets, at the exact moment the
+  estate catches fire. Warming behind the boot shell moves that cost to a
+  screen the player is already waiting on.
+
 ## `src/render/Renderer.ts`
 
 Renderer setup (GDD 6.4): WebGPU with automatic WebGL 2 fallback, and a
@@ -209,6 +216,10 @@ display can do and gives pixels back when frames run long.
   hands back enormous frames and must not cost the player resolution.
 - Climbing back costs twice the patience once it has dropped, so a machine that
   is borderline settles rather than oscillating between two resolutions.
+- `lean` is true at the bottom step, and the app drops the glow pass there: a
+  machine that has given up every pixel it had should not also be paying for
+  several full-screen passes. The pipeline stays allocated, so the glow returns
+  the moment the machine climbs back.
 
 ## `src/render/sync.ts`
 
