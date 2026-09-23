@@ -201,16 +201,33 @@ export function pest(ctx: SimContext): void {
         palms.ganodermaSince[target] = tick;
       }
     }
+  }
 
-    // ── Plague flag, with hysteresis ──────────────────────────────────────
+  plagueFlags(ctx);
+}
+
+/**
+ * Over every block, not only the planted ones: a plague that outlived its
+ * plantation used to keep the flag, and the bar counted it for the whole run.
+ */
+function plagueFlags(ctx: SimContext): void {
+  const { state, events } = ctx;
+
+  for (const block of state.blocks.values()) {
+    const palms = state.palms.get(block.id);
+    const plantation =
+      palms !== undefined && (block.phase === 'planted' || block.phase === 'reforesting');
     const pressure = pestPressure(block, palms);
 
-    if (!block.plagued && pressure >= PLAGUE.onAt) {
-      block.plagued = true;
-      events.push({ type: 'PlagueStarted', block: id });
-    } else if (block.plagued && pressure <= PLAGUE.offAt) {
+    if (!block.plagued) {
+      // A plague wants something to be a plague on; debris alone is beetles.
+      if (plantation && !block.burning && pressure >= PLAGUE.onAt) {
+        block.plagued = true;
+        events.push({ type: 'PlagueStarted', block: block.id });
+      }
+    } else if (!plantation || pressure <= PLAGUE.offAt) {
       block.plagued = false;
-      events.push({ type: 'PlagueEnded', block: id });
+      events.push({ type: 'PlagueEnded', block: block.id });
     }
   }
 }

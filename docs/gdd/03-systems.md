@@ -347,6 +347,14 @@ faster) on that block, and the news publishes `plague.start` (GDD 3.7). That
 headline's own effects line claims spread "doubles" on a plagued block; the
 constant it is describing is 1.6, not 2, and this document follows the code.
 
+The flag is kept over every block rather than only the planted ones, because
+a plague can outlive the plantation it was on. Clearing a hectare, a slide
+burying it or a fire taking it leaves no palms for the pest loop to walk, and
+the flag used to stay set for the rest of the run: an estate cleared back to
+bare ground still read "Plague: 79 blocks" on the bar. It lifts now the
+moment the plantation goes. It is still only ever _set_ on a plantation, so
+beetles in the debris of bare ground are beetles, not a plague.
+
 ```mermaid
 stateDiagram-v2
   [*] --> Healthy

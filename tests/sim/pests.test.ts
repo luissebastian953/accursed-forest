@@ -421,6 +421,32 @@ describe('plague (GDD 3.4)', () => {
     expect(ended).toBe(true);
     expect(b.plagued).toBe(false);
   });
+
+  it('lifts when the plantation goes, rather than counting it for the rest of the run', () => {
+    const { sim, block } = plantedEstate(42, { sanitize: true });
+    const b = sim.state.blocks.get(block)!;
+
+    b.debris = 100;
+
+    let started = false;
+
+    for (let i = 0; i < 200 && !started; i++)
+      for (const e of sim.tick()) if (e.type === 'PlagueStarted') started = true;
+    expect(started).toBe(true);
+    expect(b.plagued).toBe(true);
+
+    // The palms come out, which is what a cleared hectare is. The flag used to
+    // stay on for good, because the pest loop only ever walked planted blocks.
+    sim.state.palms.delete(block);
+    b.phase = 'cleared';
+
+    let ended = false;
+
+    for (let i = 0; i < 5 && !ended; i++)
+      for (const e of sim.tick()) if (e.type === 'PlagueEnded') ended = true;
+    expect(ended).toBe(true);
+    expect(b.plagued).toBe(false);
+  });
 });
 
 describe('the careful player (M1d done-criterion)', () => {

@@ -142,6 +142,15 @@ same tick make one headline; a key does not repeat within its cooldown.
 Pest system (GDD 3.4): Ganoderma along the lattice, beetles in the debris,
 and the plague flag when either gets out of hand.
 
+### Notes
+
+- `plagueFlags()`: its own pass over every block, after the palm loop. The
+  flag used to be set inside that loop, which walks `state.palms` and skips
+  anything not planted, so a block whose palms were cleared, buried or burned
+  was never visited again and kept the flag for the rest of the run. Turning
+  it off is therefore allowed anywhere; turning it on still wants a
+  plantation, so debris on bare ground reads as beetles rather than a plague.
+
 Ganoderma is the slow, structural pest: a latent palm turns symptomatic,
 loses yield, dies, and spreads to its six lattice neighbours the whole
 time; the stump keeps spreading until it is removed. Debris raises both
