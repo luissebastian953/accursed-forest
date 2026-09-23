@@ -350,6 +350,63 @@ canvas {
     box-shadow: 0 2px 0 #e2d2a8;
   }
 
+  /* The icon square and the headline inside a tooltip, in the state's colour. */
+  .tip-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 9px;
+    border: 2px solid var(--tip-ring, #e0cfa4);
+    background: var(--tip-tint, #f6f0dd);
+  }
+
+  .tip-head {
+    font-weight: 800;
+    color: var(--tip-ink, var(--ink));
+  }
+
+  .tip-badge[data-tone='green'],
+  .tip-head[data-tone='green'] {
+    --tip-ring: #a7d178;
+    --tip-tint: #eaf6d8;
+    --tip-ink: #2f7a2b;
+  }
+
+  .tip-badge[data-tone='deep'],
+  .tip-head[data-tone='deep'] {
+    --tip-ring: #7ab648;
+    --tip-tint: #e6f3d5;
+    --tip-ink: #2f6b2e;
+  }
+
+  .tip-badge[data-tone='purple'],
+  .tip-head[data-tone='purple'] {
+    --tip-ring: #b79ada;
+    --tip-tint: #f0e8fa;
+    --tip-ink: #5b2d90;
+  }
+
+  .tip-badge[data-tone='grey'],
+  .tip-head[data-tone='grey'] {
+    --tip-ring: #c6bfb4;
+    --tip-tint: #efece6;
+    --tip-ink: #6b6259;
+  }
+
+  .tip-badge[data-tone='sand'],
+  .tip-head[data-tone='sand'] {
+    --tip-ring: #ddcba0;
+    --tip-tint: #faf4e4;
+    --tip-ink: #6b5a3c;
+  }
+
+  .tip-badge[data-tone='sand'] {
+    border-style: dashed;
+  }
+
   /* The cash readout: a gold pill with a coin. */
   .cash {
     display: inline-flex;
@@ -588,6 +645,86 @@ canvas {
   .disclaimer-head {
     background: linear-gradient(180deg, var(--gold), var(--gold-2));
     border-bottom: 2px solid var(--gold-edge);
+  }
+
+  .disclaimer-crest {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 16px;
+    border: 3px solid var(--gold-edge);
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  .disclaimer-point {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding: 0.7rem 0.85rem;
+    border-radius: 16px;
+    border: 2px solid transparent;
+    background: var(--pill-muted);
+  }
+
+  .disclaimer-badge {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 11px;
+    border: 2px solid #e0cfa4;
+    background: #fffdf7;
+  }
+
+  .disclaimer-point-title {
+    font-weight: 800;
+    color: var(--ink);
+  }
+
+  /* The one point that is about the law and about lungs, not about play. */
+  .disclaimer-point[data-grave] {
+    background: #fdeceb;
+    border-color: #f3c6c0;
+  }
+
+  .disclaimer-point[data-grave] .disclaimer-badge {
+    border-color: #e08a7c;
+  }
+
+  .disclaimer-point[data-grave] .disclaimer-point-title {
+    color: var(--red-edge);
+  }
+
+  /* A checkbox big enough to hit, in the same cream and gold as the buttons. */
+  .tick {
+    appearance: none;
+    flex: none;
+    width: 1.4rem;
+    height: 1.4rem;
+    border-radius: 8px;
+    border: 2px solid var(--card-shadow);
+    background: #fffdf7;
+    box-shadow: 0 2px 0 #e2d2a8;
+    cursor: pointer;
+  }
+
+  .tick:checked {
+    border-color: var(--green-edge);
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5 L6.5 11.5 L12.5 4.5' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+        center / 1rem no-repeat,
+      linear-gradient(180deg, var(--green), var(--green-2));
+    box-shadow: 0 2px 0 var(--green-edge);
+  }
+
+  .tick:focus-visible {
+    outline: 3px solid var(--gold-edge);
+    outline-offset: 2px;
   }
 
   /* Scrolling words cannot be read by someone who asked for stillness, so the

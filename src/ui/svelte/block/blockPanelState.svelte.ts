@@ -4,7 +4,7 @@ import { BIOMES } from '@sim/balance/biomes';
 import { COVER_CROP } from '@sim/balance/events';
 import { FIRE } from '@sim/balance/fire';
 import { FERTILIZER_YIELD_BONUS, FOREST_GROWTH, GROWTH } from '@sim/balance/growth';
-import { PEST_LABOUR, PLAGUE } from '@sim/balance/pests';
+import { GANODERMA, PEST_LABOUR, PLAGUE } from '@sim/balance/pests';
 import {
   CLEAR_PLANTATION,
   DRAINAGE_COST,
@@ -26,7 +26,7 @@ import type { Sim } from '@sim/index';
 import { distanceToKopdes, inKopdesRange, kopdesRange } from '@sim/kopdes';
 import { slotLabel } from '@sim/labels';
 import { coverCropEstablished, forestCoverAround, landslideChance } from '@sim/landscape';
-import { isBearing, slotStage } from '@sim/palms';
+import { isBearing, isYoung, slotStage } from '@sim/palms';
 import { hasWon } from '@sim/run';
 import { neighbourIds, readBlock } from '@sim/state';
 import { growthMultiplier } from '@sim/systems/growth';
@@ -40,12 +40,15 @@ import type {
   DispatchResult,
   FireIntensity,
   GrowthStage,
+  PalmArrays,
   SimState,
+  Species,
 } from '@sim/types';
 
 import { t } from '../../../i18n/index.ts';
 import { formatKg, formatPercent, formatRp } from '../../format.ts';
 import type { IconName } from '../../icons.ts';
+import type { TipTone } from '../base/tooltip.ts';
 
 import BlockPanelView_ from './BlockPanel.svelte';
 
@@ -84,6 +87,17 @@ interface TileView {
 type SlotGrid = NonNullable<NonNullable<BlockView['pests']>['grid']>;
 type SlotDetail = SlotGrid['detail'];
 
+/** One hovered square, read as a caption, a state and the figure to act on. */
+export interface SlotTip {
+  tone: TipTone;
+  icon: IconName | null;
+  at: string;
+  head: string;
+  figure: string;
+  /** The figure is the reason to look: it gets the loud colour. */
+  hot: boolean;
+}
+
 export interface BlockView {
   x: number;
   y: number;
@@ -109,7 +123,7 @@ export interface BlockView {
     treatments: ActionView[];
     grid: {
       /** `sick`: Ganoderma is showing; the cell carries a warning mark. */
-      cells: { slot: number; cls: string; title: string; sick: boolean }[];
+      cells: { slot: number; cls: string; title: string; sick: boolean; tip: SlotTip }[];
       detail:
         | { kind: 'palm'; head: string; health: string; lines: string[]; actions: ActionView[] }
         | { kind: 'empty'; text: string }
@@ -375,6 +389,81 @@ function slopeLine(sim: Sim, id: BlockId): string {
   const now = isWetSeason(state.weather.dayOfYear) ? t('block.wetSeasonNow') : '';
 
   return t('block.slopeLine', { cover, risk, pct: Math.round(season * 100) }) + crop + now;
+}
+
+/**
+ * A latent infection is invisible to the player, so the bubble reads it as the
+ * healthy palm it still looks like. Only `ganoderma === 2` shows.
+ */
+function slotTip(
+  palms: PalmArrays,
+  slot: number,
+  stage: GrowthStage,
+  ganoderma: number,
+  species: Species,
+  tick: number,
+): SlotTip {
+  const at = t('block.tipSlot', { at: slotLabel(slot) });
+
+  if (stage === 'empty')
+    return {
+      tone: 'sand',
+      icon: null,
+      at,
+      head: t('block.tipEmpty'),
+      figure: t('block.tipReplant'),
+      hot: false,
+    };
+
+  if (ganoderma === 3 || stage === 'dead')
+    return {
+      tone: 'grey',
+      icon: 'ganoderma-mushroom',
+      at,
+      head: t('block.tipDead'),
+      figure: t('block.tipStump'),
+      hot: false,
+    };
+
+  if (ganoderma === 2) {
+    const young = isYoung(stage);
+    const window = young ? GANODERMA.symptomaticDays.immature : GANODERMA.symptomaticDays.mature;
+    const left = Math.max(0, window - (tick - palms.ganodermaSince[slot]!));
+
+    return {
+      tone: 'purple',
+      icon: 'ganoderma-mushroom',
+      at,
+      head: t('block.tipSick'),
+      figure: t('block.tipDays', { n: left }),
+      hot: true,
+    };
+  }
+
+  if (isBearing(stage)) {
+    const kg = palms.yieldAcc[slot]!;
+
+    return {
+      tone: 'deep',
+      icon: species === 'palm' ? 'biome-palm-planted' : 'forest-cover',
+      at,
+      head: t('block.tipMature'),
+      figure: t('block.tipRipe', { kg: kg.toFixed(1) }),
+      hot: kg > 0,
+    };
+  }
+
+  const bearsAt = species === 'palm' ? GROWTH.immatureDays : FOREST_GROWTH.matureDays;
+  const months = Math.max(1, Math.ceil((bearsAt - palms.growth[slot]!) / 30));
+
+  return {
+    tone: 'green',
+    icon: 'shop-bibit',
+    at,
+    head: t('block.tipYoung'),
+    figure: t('block.tipMonths', { n: months }),
+    hot: false,
+  };
 }
 
 /** A plain, localized snapshot of everything the panel shows for one block. */
@@ -851,6 +940,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
             stage: t(`block.stage_${stage}`),
             sick: g === 2 ? t('block.sick') : '',
           }),
+          tip: slotTip(palmTrees, slot, stage, g, block.species, state.tick),
         });
       }
 

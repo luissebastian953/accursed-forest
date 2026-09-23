@@ -5,10 +5,14 @@
 
   import AutoHarvestToggle from './AutoHarvestToggle.svelte';
   import { blockView, type ActionView, type BlockPanel } from './blockPanelState.svelte.ts';
+  import SlotCell from './SlotCell.svelte';
 
   interface Props {
     panel: BlockPanel;
   }
+
+  // Matches `grid-cols-12` below: the tooltip needs to know which end it is at.
+  const SLOT_COLUMNS = 12;
 
   const { panel }: Props = $props();
   const ui = $derived(panel.ui);
@@ -140,7 +144,7 @@
           <!-- The water and ground work reads with the tiles it answers to,
                not after the pests at the foot of the panel. -->
           {#if v.minor.length > 0}
-            <div class="flex flex-col gap-1.5" data-testid="land-work">
+            <div class="grid grid-cols-2 gap-1.5" data-testid="land-work">
               {#each v.minor as action (action.testId)}
                 {@render landButton(action)}
               {/each}
@@ -257,24 +261,14 @@
                 <div class="mt-2">
                   <div class="label mb-1">{t('block.bySlot')}</div>
                   <div class="grid grid-cols-12 gap-1" data-testid="slot-grid">
-                    {#each p.grid.cells as cell (cell.slot)}
-                      <button
-                        class="flex aspect-square w-full items-center justify-center rounded-[5px] {cell.cls} {cell.sick
-                          ? 'slot-alert'
-                          : ''}"
-                        title={cell.title}
-                        aria-label={cell.title}
-                        data-testid={`slot-cell-${cell.slot}`}
-                        data-sick={cell.sick || undefined}
-                        onclick={() => panel.toggleSlot(cell.slot)}
-                      >
-                        {#if cell.sick}
-                          <span
-                            class="text-[11px] font-black leading-none text-[#7a2a12]"
-                            aria-hidden="true">!</span
-                          >
-                        {/if}
-                      </button>
+                    {#each p.grid.cells as cell, i (cell.slot)}
+                      <SlotCell
+                        {...cell}
+                        row={Math.floor(i / SLOT_COLUMNS)}
+                        column={i % SLOT_COLUMNS}
+                        columns={SLOT_COLUMNS}
+                        pick={() => panel.toggleSlot(cell.slot)}
+                      />
                     {/each}
                   </div>
                   {#if p.grid.detail?.kind === 'palm'}

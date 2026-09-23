@@ -122,6 +122,11 @@ one way it also works over a `disabled` button: a disabled control fires no
 events, but the pointer still lands on it and `:hover` still reaches this
 wrapper.
 
+`text` is the one-line form. `body` takes a snippet instead, for a bubble
+with a caption, a headline and a figure in it. `tone` picks the border
+colour from `tooltip.ts`, `withArrow` adds the pointer, and `align` decides
+which end of the child a top or bottom bubble lines up with.
+
 Usage:
 
 ```svelte
@@ -129,6 +134,25 @@ Usage:
   <button disabled>50x</button>
 </Tooltip>
 ```
+
+### Notes
+
+- The delay is 200ms of `transition-delay` on the way in and none on the way
+  out, so a pointer crossing a grid of squares leaves no trail of bubbles
+  behind it but a pointer moving between two of them is answered at once.
+- The arrow is a sibling of the bubble, not a child of it. Inside, it could
+  only be placed relative to the bubble, which is wrong the moment `align`
+  moves the bubble off centre; outside, `left: 50%` is the child's middle
+  whatever the bubble is doing.
+- The triangle is an open SVG path, `M ... L ... L ...` with no `Z`. The fill
+  closes anyway, so the two slanted sides get the border and the flat top
+  does not, which is what makes it read as part of the card.
+
+## `src/ui/svelte/base/tooltip.ts`
+
+The tooltip's tone names, in a plain module rather than in the component.
+A type exported from a `.svelte` file is reachable from `svelte-check` but
+not from `tsc`, which sees every component through one `*.svelte` shim.
 
 ## `src/ui/svelte/block/AutoHarvestToggle.svelte`
 
@@ -158,6 +182,24 @@ burn options, and the open land and danger zone footers, drawn from
   default so it never competes with Harvest or Fertilize. Unfolded, it
   shows the red button; that button only asks, and the card it opens names
   what goes.
+
+## `src/ui/svelte/block/SlotCell.svelte`
+
+One square of the palm lattice, with the bubble that explains it (GDD 8 panel
+16a). The square is the button the player clicks to select a slot; the bubble
+is a `Tooltip` carrying the slot number as a caption, the state as the
+headline, and the one figure that state gives the player to act on: months
+until it bears, kilograms ripe on it, days until Ganoderma kills it, or the
+fact that the gap can be replanted.
+
+### Notes
+
+- The lattice is twelve wide, so the two columns at each end anchor their
+  bubble to their own edge instead of centring it: centred, they would push
+  the panel's scroller sideways.
+- The top row hangs its bubble below the square rather than above. The panel
+  scrolls, and at the top of that scroll there is nothing above the row for a
+  bubble to sit in.
 
 ## `src/ui/svelte/block/blockPanelState.svelte.ts`
 
@@ -219,9 +261,15 @@ The legal gate a first visit passes through (GDD 8 panel 0): a yellow warning
 band with the `police-warning` icon, then the lead and three cards saying
 that the estate and its officials are invented, that nothing here is advice,
 and that chopping and burning are choices the game prices rather than things
-it recommends. One button closes it, and it is the only way out: there is no
-backdrop click and no Escape, because a gate that can be dismissed by
-accident is not a gate.
+it recommends. Each card carries an icon and runs its title into its body as
+one sentence; the burning one is red, because it is the only point that is
+about the law and about lungs rather than about play. One button closes it,
+and it is the only way out: there is no backdrop click and no Escape, because
+a gate that can be dismissed by accident is not a gate.
+
+Beside the button sits a `Don't show this again` tick. Unticked, which is how
+it starts, the acknowledgement lasts the visit; ticked, it is written to
+`localStorage` and the gate stops asking.
 
 It is raised by `play()` in `App.ts` when the player presses Play or Continue,
 not at boot, so it reads as the last step of starting a run rather than as
@@ -244,9 +292,10 @@ Mounts `DisclaimerModal.svelte` and owns whether it is up.
 ### Notes
 
 - `sawit:disclaimer`: the acknowledgement is one `localStorage` key carrying
-  a version, next to `sawit:locale`. Reading and writing it are both wrapped,
-  and a browser with storage off falls through to showing the gate again,
-  which errs on the side of it being read rather than skipped.
+  a version, next to `sawit:locale`. It is only written when the player ticks
+  the box, so the default is that the gate is read every visit. Reading and
+  writing it are both wrapped, and a browser with storage off falls through to
+  showing the gate again, which errs on the side of it being read.
 - `VERSION`: bumping it shows the gate again to everyone, which is what a
   change to the wording is for.
 

@@ -19,6 +19,7 @@ export type IconName =
   | 'eye-attention'
   | 'fire'
   | 'forest-cover'
+  | 'ganoderma-mushroom'
   | 'harvest-basket'
   | 'haze'
   | 'kopdes'
