@@ -228,7 +228,7 @@ test.describe('Sawit Simulator', () => {
     });
 
     // ~540 growth-days at turbo speed, then the first ripe round.
-    await expect(tid(page, 'harvest-info')).toContainText(/ripe now/i, { timeout: 60_000 * SLOW });
+    await expect(tid(page, 'harvest-note')).toContainText(/ripe now/i, { timeout: 60_000 * SLOW });
     await tid(page, 'speed-0').click();
     await expect(tid(page, 'action-HarvestBlock')).toBeEnabled();
 
@@ -242,10 +242,10 @@ test.describe('Sawit Simulator', () => {
 
     // Hand the picking to the Kopdes crew and take it back.
     await tid(page, 'toggle-auto-harvest').click();
-    await expect(tid(page, 'toggle-auto-harvest')).toContainText('ON');
+    await expect(tid(page, 'toggle-auto-harvest')).toHaveAttribute('data-on', 'true');
     await expect(tid(page, 'action-HarvestBlock')).toBeDisabled();
     await tid(page, 'toggle-auto-harvest').click();
-    await expect(tid(page, 'toggle-auto-harvest')).toContainText('OFF');
+    await expect(tid(page, 'toggle-auto-harvest')).toHaveAttribute('data-on', 'false');
 
     // The sale lands on the next tick.
     await tid(page, 'speed-1').click();

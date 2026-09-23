@@ -2,6 +2,7 @@
   import { t } from '../../../i18n/index.ts';
   import { formatKg, formatRp } from '../../format.ts';
   import Icon from '../base/Icon.svelte';
+  import Tooltip from '../base/Tooltip.svelte';
 
   import AutoHarvestToggle from './AutoHarvestToggle.svelte';
   import { blockView, type ActionView, type BlockPanel } from './blockPanelState.svelte.ts';
@@ -13,6 +14,7 @@
 
   // Matches `grid-cols-12` below: the tooltip needs to know which end it is at.
   const SLOT_COLUMNS = 12;
+  const HARVEST_ID = 'action-HarvestBlock';
 
   const { panel }: Props = $props();
   const ui = $derived(panel.ui);
@@ -47,12 +49,13 @@
 {/snippet}
 
 {#snippet actionButton(action: ActionView)}
-  <div>
+  <div class="relative">
     <button
       class={action.minor ? 'btn btn-sm btn-ghost' : 'btn btn-lg w-full btn-green'}
       disabled={action.rejection !== null}
       title={action.rejection ?? ''}
       data-testid={action.testId}
+      data-urgent={action.urgent || undefined}
       onclick={() => panel.act(action.command)}
     >
       <span class="flex w-full items-center justify-between gap-2">
@@ -193,37 +196,71 @@
           {/if}
 
           {#if v.palms}
-            <div class="rounded-2xl border-2 border-[#bfe3a8] bg-[#eaf7dd] p-3 text-xs">
-              <div class="mb-1 flex items-center justify-between gap-2">
-                <div class="text-base font-extrabold">
-                  {v.palms.heading}: <span class="num">{v.palms.count}</span>
-                </div>
-                <span class="chip chip-cream">{v.palms.stages}</span>
-              </div>
-              {#if v.palms.growth}
-                <div class="muted num mt-1" data-testid="growth-progress">{v.palms.growth}</div>
-              {/if}
-              {#if v.palms.bearing}
-                <div
-                  class="mt-1.5 flex items-center justify-between text-sm font-extrabold"
-                  data-testid="harvest-info"
-                >
-                  <span class="flex items-center gap-1.5">
-                    {t('block.onTrees')} <span class="num">{v.palms.bearing.kg}</span>
-                    {#if v.palms.bearing.full}
+            {@const p = v.palms}
+            <div data-testid="stand-card">
+              <div class="label mb-1">{p.caption}</div>
+              <div class="stand" data-ripe={p.bearing?.ripe || undefined}>
+                <div class="flex items-center gap-2.5">
+                  <span class="stand-crest"><Icon name={p.icon} class="h-6 w-6" /></span>
+                  <div class="min-w-0 flex-1">
+                    <div class="text-base font-extrabold leading-tight">
+                      {p.heading}: <span class="num">{p.count}</span>
+                    </div>
+                    <div class="muted text-xs">{p.stageLine}</div>
+                  </div>
+                  <!-- The chip names the stage most of the stand is in; the
+                       breakdown that used to crowd the card is behind it. -->
+                  <Tooltip text={p.stages} tone="deep" withArrow align="end">
+                    {#if p.bearing?.ripe}
                       <span
-                        class="chip chip-pest !px-2 !py-0.5 !text-[0.68rem]"
-                        title={t('block.onTreesFullNote')}
+                        class="chip chip-coral flex items-center gap-1"
+                        data-testid="stand-chip"
                       >
-                        {t('block.onTreesFull')}
+                        <Icon name="harvest-basket" />
+                        {t('block.standHarvest')}
                       </span>
+                    {:else}
+                      <span class="chip chip-cream" data-testid="stand-chip">{p.stage}</span>
                     {/if}
-                  </span>
-                  <span class={v.palms.bearing.ripe ? 'text-[#c94a30]' : 'muted'}
-                    >{v.palms.bearing.note}</span
-                  >
+                  </Tooltip>
                 </div>
-              {/if}
+
+                <div class="mt-2 flex items-center gap-2">
+                  <span class="stand-bar" aria-hidden="true">
+                    {#each [1, 2, 3] as segment (segment)}
+                      <span
+                        class="stand-seg"
+                        style="--seg: {p.step > segment ? 1 : p.step === segment ? p.fill : 0}"
+                      ></span>
+                    {/each}
+                  </span>
+                  {#if p.figure}
+                    <span
+                      class="flex shrink-0 items-center gap-1.5 text-xs font-extrabold"
+                      data-testid={p.growth ? 'growth-progress' : 'harvest-info'}
+                    >
+                      <span class="num">{p.figure}</span>
+                      {#if p.bearing?.full}
+                        <span
+                          class="chip chip-pest !px-2 !py-0.5 !text-[0.68rem]"
+                          title={t('block.onTreesFullNote')}
+                          data-testid="harvest-max">{t('block.onTreesFull')}</span
+                        >
+                      {/if}
+                    </span>
+                  {/if}
+                </div>
+
+                <div class="muted mt-1.5 text-xs leading-snug">
+                  {p.note}
+                  {#if p.bearing?.note}
+                    <span
+                      class={p.bearing.ripe ? 'font-extrabold text-[#c94a30]' : 'muted'}
+                      data-testid="harvest-note">{p.bearing.note}</span
+                    >
+                  {/if}
+                </div>
+              </div>
             </div>
           {/if}
 
@@ -418,12 +455,48 @@
         {/if}
 
         {#if v.major.length > 0 || (v.autoHarvest && !v.kopdes)}
+          {@const auto = v.kopdes ? null : v.autoHarvest}
+          {@const picking = auto ? v.major.find((a) => a.testId === HARVEST_ID) : undefined}
+          {@const rest = picking ? v.major.filter((a) => a !== picking) : v.major}
           <footer class="flex flex-col gap-2 border-t-2 border-dashed border-[#f2e0b0] p-4">
-            {#each v.major as action (action.testId)}
+            <!-- Picking and who does the picking are one question, so they
+                 share a row and the reason sits under both (GDD 8 panel 18a). -->
+            {#if auto && picking}
+              <div class="label">
+                {auto.on
+                  ? t('block.footerAutoOn')
+                  : v.palms?.bearing?.ripe
+                    ? t('block.footerAutoOffRipe')
+                    : t('block.footerAutoOff')}
+              </div>
+              <div class="grid grid-cols-2 items-stretch gap-2">
+                <button
+                  class="btn btn-lg h-full w-full justify-between btn-green"
+                  disabled={picking.rejection !== null}
+                  title={picking.rejection ?? ''}
+                  data-testid={picking.testId}
+                  onclick={() => panel.act(picking.command)}
+                >
+                  <span class="flex items-center gap-2">
+                    {#if picking.icon}<Icon name={picking.icon} />{/if}{picking.label}
+                  </span>
+                  {#if picking.badge !== undefined}
+                    <span class="num rounded-lg bg-black/15 px-1.5 py-0.5 text-xs"
+                      >{picking.badge}</span
+                    >
+                  {/if}
+                </button>
+                <AutoHarvestToggle on={auto.on} toggle={() => panel.act(auto.command)} paired />
+              </div>
+              {#if picking.rejection}
+                <div class="px-1 text-xs font-bold text-[#b85e12]">{picking.rejection}</div>
+              {/if}
+            {/if}
+
+            {#each rest as action (action.testId)}
               {@render actionButton(action)}
             {/each}
-            {#if v.autoHarvest && !v.kopdes}
-              {@const auto = v.autoHarvest}
+            {#if auto && !picking}
               <AutoHarvestToggle on={auto.on} toggle={() => panel.act(auto.command)} />
             {/if}
           </footer>

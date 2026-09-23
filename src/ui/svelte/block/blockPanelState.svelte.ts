@@ -1,9 +1,15 @@
 import { mount, unmount, type Component } from 'svelte';
 
+import { clamp01 } from '@shared/math';
 import { BIOMES } from '@sim/balance/biomes';
 import { COVER_CROP } from '@sim/balance/events';
 import { FIRE } from '@sim/balance/fire';
-import { FERTILIZER_YIELD_BONUS, FOREST_GROWTH, GROWTH } from '@sim/balance/growth';
+import {
+  FERTILIZER_YIELD_BONUS,
+  FOREST_GROWTH,
+  GROWTH,
+  HARVEST_ROTATION_DAYS,
+} from '@sim/balance/growth';
 import { GANODERMA, PEST_LABOUR, PLAGUE } from '@sim/balance/pests';
 import {
   CLEAR_PLANTATION,
@@ -31,7 +37,7 @@ import { hasWon } from '@sim/run';
 import { neighbourIds, readBlock } from '@sim/state';
 import { growthMultiplier } from '@sim/systems/growth';
 import { daysUntilRipe, harvestCapKg, harvestableKg } from '@sim/systems/harvest';
-import { beetleCapacity, ganodermaCounts, pestPressure } from '@sim/systems/pest';
+import { beetleCapacity, ganodermaCounts, pestPressure, plantableSlots } from '@sim/systems/pest';
 import type {
   Biome,
   Block,
@@ -72,6 +78,8 @@ export interface ActionView {
   icon?: IconName;
   /** Shown in place of the cost, for actions whose reward is the point. */
   badge?: string;
+  /** The block has this problem right now, so the button asks to be pressed. */
+  urgent?: boolean;
 }
 
 /** One stat tile in the panel's grid: a label, a value, and an optional note. */
@@ -109,7 +117,19 @@ export interface BlockView {
   palms: {
     heading: string;
     count: number;
+    icon: IconName;
+    /** The eyebrow over the card: the stage the stand is mostly in. */
+    caption: string;
+    stageLine: string;
+    /** The chip on the right, with the per-stage breakdown behind it. */
+    stage: string;
     stages: string;
+    /** Three segments, `step` 1-based, `fill` the progress inside that one. */
+    step: number;
+    fill: number;
+    /** What the bar is counting: growth-days before bearing, kilograms after. */
+    figure: string;
+    note: string;
     growth: string | null;
     bearing: { kg: string; note: string; ripe: boolean; full: boolean } | null;
   } | null;
@@ -391,6 +411,13 @@ function slopeLine(sim: Sim, id: BlockId): string {
   return t('block.slopeLine', { cover, risk, pct: Math.round(season * 100) }) + crop + now;
 }
 
+/** The stand card's crest: what the stand mostly looks like from outside. */
+function standIcon(step: number, forest: boolean): IconName {
+  if (step === 1) return 'shop-bibit';
+  if (step === 2) return forest ? 'shop-sapling' : 'biome-palm-planted';
+  return forest ? 'forest-cover' : 'biome-palm-planted';
+}
+
 /**
  * A latent infection is invisible to the player, so the bubble reads it as the
  * healthy palm it still looks like. Only `ganoderma === 2` shows.
@@ -477,7 +504,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     label: string,
     command: Command,
     testId: string,
-    extra: Partial<Pick<ActionView, 'cost' | 'icon' | 'badge' | 'minor'>> = {},
+    extra: Partial<Pick<ActionView, 'cost' | 'icon' | 'badge' | 'minor' | 'urgent'>> = {},
   ): ActionView => ({
     label,
     command,
@@ -487,6 +514,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     ...(extra.cost !== undefined ? { cost: extra.cost } : {}),
     ...(extra.icon !== undefined ? { icon: extra.icon } : {}),
     ...(extra.badge !== undefined ? { badge: extra.badge } : {}),
+    ...(extra.urgent ? { urgent: true } : {}),
   });
 
   const actions: ActionView[] = [];
@@ -800,15 +828,43 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     // block is losing fruit rather than saving it (GDD 3.3).
     const cap = block.species === 'palm' ? harvestCapKg(palms, 'palm', state.tick) : 0;
     const days = daysUntilRipe(block, state.tick);
+    const step = meanGrowth < firstStage ? 1 : meanGrowth < secondStage ? 2 : 3;
+    const fill =
+      step === 1
+        ? meanGrowth / firstStage
+        : step === 2
+          ? (meanGrowth - firstStage) / (secondStage - firstStage)
+          : 1;
+    const stageKey = step === 1 ? 'seedling' : step === 2 ? 'immature' : 'mature';
+    const stage = t(forest ? `block.forestStage_${stageKey}` : `block.stage_${stageKey}`);
+    const kgLine = t('block.standOnTrees', { kg: formatKg(kg) });
 
     palmsView = {
       heading: block.species === 'forest' ? t('block.forest') : t('block.palms'),
       count: growthN,
+      icon: standIcon(step, forest),
+      caption: step === 3 && days === 0 ? t('block.standReady') : stage,
+      stageLine: t('block.standStage', { n: step, stage }),
+      stage,
       stages: STAGE_ORDER.filter((s) => stageCounts[s] !== undefined)
         .map(
           (s) => `${stageCounts[s]} ${t(forest ? `block.forestStage_${s}` : `block.stage_${s}`)}`,
         )
         .join(', '),
+      step,
+      fill: clamp01(fill),
+      figure:
+        nextStage !== null
+          ? t('block.growthDays', { mean: Math.round(meanGrowth), next: nextStage })
+          : bearing > 0
+            ? kgLine
+            : '',
+      note:
+        bearing > 0
+          ? t('block.standNoteBearing', { n: HARVEST_ROTATION_DAYS })
+          : forest
+            ? t('block.standNoteForest')
+            : t('block.standNoteYoung'),
       growth:
         nextStage !== null
           ? t('block.growthDays', { mean: Math.round(meanGrowth), next: nextStage })
@@ -853,6 +909,12 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     const capacity = beetleCapacity(block.debris);
     const pressure = pestPressure(block, palmTrees);
     const counts = palmTrees ? ganodermaCounts(palmTrees) : null;
+    // A treatment the block actually needs pulses, whether or not it can be
+    // afforded: a greyed button that is also the answer still has to be seen.
+    const beetles = block.beetles > 0 || capacity > 0;
+    const fungus = counts !== null && counts.symptomatic + counts.dead > 0;
+    const gaps =
+      palmTrees !== undefined && counts !== null && counts.planted < plantableSlots(block);
     // Sanitising is the one that fixes the cause rather than the symptom, so
     // it leads the treatments instead of sitting on its own below them.
     const treatments: ActionView[] = [];
@@ -861,6 +923,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
       treatments.push(
         action(t('block.sanitize'), { type: 'SanitizeBlock', block: id }, 'action-SanitizeBlock', {
           minor: true,
+          urgent: capacity > 0,
         }),
       );
     }
@@ -868,6 +931,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     treatments.push(
       action(t('block.setTraps'), { type: 'SetTrap', block: id }, 'action-SetTrap', {
         minor: true,
+        urgent: beetles && block.trapsUntil <= tick,
       }),
       action(
         t('block.metarhizium'),
@@ -875,6 +939,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
         'action-ApplyMetarhizium',
         {
           minor: true,
+          urgent: beetles && block.metarhiziumUntil <= tick,
         },
       ),
     );
@@ -887,10 +952,12 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
           'action-ApplyTrichoderma',
           {
             minor: true,
+            urgent: fungus && block.trichodermaUntil <= tick,
           },
         ),
         action(t('block.replantGaps'), { type: 'ReplantBlock', block: id }, 'action-ReplantBlock', {
           minor: true,
+          urgent: gaps,
         }),
       );
     }

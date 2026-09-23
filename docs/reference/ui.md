@@ -159,6 +159,8 @@ not from `tsc`, which sees every component through one `*.svelte` shim.
 The Kopdes crew's picking rounds, on or off, with the surcharge spelled out on
 the button (`HARVEST.autoSurchargePerRound`). It appears on the Kopdes block
 and on any planted block in range, because that is where the question comes up.
+`paired` is the footer's form, beside Harvest in a two-column row; without it
+the button spans the footer on its own.
 
 ### Notes
 
@@ -182,6 +184,29 @@ burn options, and the open land and danger zone footers, drawn from
   default so it never competes with Harvest or Fertilize. Unfolded, it
   shows the red button; that button only asks, and the card it opens names
   what goes.
+
+## `src/ui/svelte/block/BlockPanel.svelte` (stand card and footer)
+
+The stand card (GDD 8 panel 17a) is the block's plantation in one read: an
+eyebrow naming the stage most of the stand is in, a crest, the count, a
+three-segment bar for the three growth stages, the figure that stage is
+counting, and one line of what to expect next. The per-stage breakdown that
+used to sit on the card face is behind the chip on the right, as a tooltip.
+
+The footer (panel 18a) puts Harvest and the auto-harvest toggle in one row,
+because who picks and whether to pick are the same question, with the reason
+under both and Fertilize spanning the width below.
+
+### Notes
+
+- The bar's segments take their fill from a `--seg` custom property rather
+  than from a width class, so the partial one animates with the rest and the
+  three stay the same size whatever the stage.
+- A treatment button the block actually needs carries `data-urgent` and pulses.
+  The halo is a pseudo-element, so it keeps pulsing on a button that is greyed
+  out: an answer you cannot afford yet still has to be seen.
+- The footer finds Harvest by test-id and pulls it out of `major`. A block
+  with no Kopdes in range has no toggle, so `major` renders as a plain column.
 
 ## `src/ui/svelte/block/SlotCell.svelte`
 

@@ -44,6 +44,7 @@
   "autoHarvest": "Auto-harvest",
   "autoOn": "ON, +{fee}/round",
   "autoOff": "OFF",
+  "autoFee": "{fee}/round",
   "autoTitleOn": "The Kopdes crew picks for you. Click to take it back.",
   "autoTitleOff": "Let the Kopdes crew pick every ripe block for {fee} a round on top of wages.",
   "tbsToday": "TBS today",

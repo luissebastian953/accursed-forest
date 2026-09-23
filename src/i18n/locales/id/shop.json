@@ -44,6 +44,7 @@
   "autoHarvest": "Panen otomatis",
   "autoOn": "AKTIF, +{fee}/putaran",
   "autoOff": "MATI",
+  "autoFee": "{fee}/putaran",
   "autoTitleOn": "Regu Kopdes memanen untukmu. Klik untuk mengambil alih lagi.",
   "autoTitleOff": "Biarkan regu Kopdes memanen setiap petak yang matang seharga {fee} per putaran di luar upah.",
   "tbsToday": "TBS hari ini",

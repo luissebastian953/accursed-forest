@@ -272,8 +272,10 @@ at an ordinary three-day wet streak, so the number reads stably).
 Below the tiles, whichever of these apply to the block appear as their own
 sections: a Kopdes card with `action-OpenShop`, the auto-harvest toggle
 (`toggle-auto-harvest`) and, only with something to settle, the coordination
-fee (`action-SettleInvestigation`, GDD 3.9); a palms card with stage counts
-and, once fruit is on the trees, `harvest-info`; a pest card
+fee (`action-SettleInvestigation`, GDD 3.9); a stand card (`stand-card`, panel 17a) naming
+the stage the stand is mostly in, a three-segment progress bar, and either
+`growth-progress` or, once fruit is on the trees, `harvest-info` with
+`harvest-note`; a pest card
 (`pest-section`, GDD 3.4) with beetle and Ganoderma readouts
 (`pest-beetles`, `pest-ganoderma`, `plague-badge`) and up to four treatment
 buttons; a burn card (`burn-section`, panel 22); the open-land footer
