@@ -107,6 +107,23 @@ and a manifest naming a chunk that is gone. Saves from v1, v2, v3 and v4 are
 opened in the current build, and the migration list is checked to cover every
 schema from 1 to current.
 
+## `tests/persistence/compatibility.test.ts`
+
+The estate a player already has, kept as a file (GDD 7). `fixtures/` holds a
+real save written by a shipped build, byte for byte, and the test opens it
+with the current code: it decodes, the saved estate and the map regenerated
+from the seed still agree on where the Kopdes and the owned land are, four
+hundred more days pass, and every headline in the feed still has its words.
+
+`save.test.ts` proves the migration chain in the abstract, from saves it
+builds itself. This proves the thing the player cares about, which is that
+the estate they left is the estate they come back to. Simulating the
+mistake it exists for, a schema bump with no migration alongside it, fails
+it with "no migration from schema 18 to 19" rather than silently.
+
+Add a fixture whenever a build ships, named for its schema and the commit
+it came from, and never edit one: an edited fixture proves nothing.
+
 ## `tests/render/chunkField.test.ts`
 
 The chunk mesher (GDD 6.3, GDD 6.7): a chunk covers its footprint plus a
