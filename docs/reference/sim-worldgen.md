@@ -42,6 +42,15 @@ per-cell on demand.
   forest and water, with a river within reach and standing forest in or around
   it. It always returns a site; if nothing scores well the best candidate found
   wins, because a world with nowhere to start is not playable.
+- `openNeighbours()`: the Kopdes used to be free to land in the middle of the
+  trees, which opened the estate inside a clearing with no view of anything
+  (GDD 4.6). A candidate hectare with fewer than `START_SITE.kopdesMinOpen` of
+  its eight neighbours open is marked down by `kopdesBuriedPenalty`, which is
+  larger than the whole distance term, so the only way to be buried now is for
+  every candidate to be. Fixing the cell alone left about one seed in eight
+  still walled in: those are squares that are forest wall to wall, which is
+  why `scoreSite` gained the `openTarget` term as well. Together they clear it
+  on all 400 seeds probed, and `tests/sim/worldgen.test.ts` pins 120 of them.
 - `findVillages()`: villages (GDD 4.6) are a few clusters of village land near
   the rivers, placed after the start site and kept clear of it, so they never
   change where the estate begins. It returns the cells, which become the

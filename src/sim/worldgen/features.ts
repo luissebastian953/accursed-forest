@@ -1,3 +1,4 @@
+import { BIOMES } from '../balance/biomes.ts';
 import { PROTECTED, START_SITE, VILLAGES, WORLD } from '../balance/world.ts';
 import { nextInt, type RngState } from '../rng.ts';
 import type { Biome } from '../types.ts';
@@ -96,6 +97,30 @@ export interface StartSite {
 
 const ALLOWED: ReadonlySet<Biome> = new Set(START_SITE.allowed);
 
+/** How many of the eight neighbours are open ground rather than standing trees. */
+function openNeighbours(
+  x: number,
+  y: number,
+  input: FeatureInputs,
+  isProtected: (x: number, y: number) => boolean,
+): number {
+  let open = 0;
+
+  for (let dy = -1; dy <= 1; dy++) {
+    for (let dx = -1; dx <= 1; dx++) {
+      if (dx === 0 && dy === 0) continue;
+
+      const nx = x + dx;
+      const ny = y + dy;
+
+      if (nx < 0 || ny < 0 || nx >= input.width || ny >= input.height) continue;
+      if (!BIOMES[input.biomeAt(nx, ny)].forestCover && !isProtected(nx, ny)) open += 1;
+    }
+  }
+
+  return open;
+}
+
 /**
  * Searches outward from the map centre for a plantable core; always returns a
  * site, even a poor one, because a world with nowhere to start is not playable.
@@ -141,10 +166,15 @@ export function findStartSite(
     for (let x = bestX + 1; x < bestX + size - 1; x++) {
       if (!ALLOWED.has(biomeAt(x, y)) || isProtected(x, y)) continue;
 
-      // Prefer flat, central, and not right on the water.
+      // Prefer flat, central, not right on the water, and with a way out:
+      // a hectare ringed by trees reads as a clearing, not an estate gate.
       const distance = Math.abs(x - midX) + Math.abs(y - midY);
       const riverPenalty = riverDistanceAt(x, y) < 2 ? 6 : 0;
-      const score = -distance - riverPenalty + (biomeAt(x, y) === 'grassfield' ? 2 : 0);
+      const buried =
+        openNeighbours(x, y, input, isProtected) < START_SITE.kopdesMinOpen
+          ? START_SITE.kopdesBuriedPenalty
+          : 0;
+      const score = -distance - riverPenalty - buried + (biomeAt(x, y) === 'grassfield' ? 2 : 0);
 
       if (score > kopdesScore) {
         kopdesScore = score;
@@ -167,6 +197,7 @@ function scoreSite(
   const { biomeAt, riverDistanceAt } = input;
   let allowed = 0;
   let blocked = 0;
+  let open = 0;
   let nearestRiver = Infinity;
 
   for (let y = originY; y < originY + size; y++) {
@@ -174,7 +205,11 @@ function scoreSite(
       const biome = biomeAt(x, y);
 
       if (isProtected(x, y) || biome === 'river' || biome === 'village') blocked += 1;
-      else if (ALLOWED.has(biome)) allowed += 1;
+      else if (ALLOWED.has(biome)) {
+        allowed += 1;
+        if (!BIOMES[biome].forestCover) open += 1;
+      }
+
       nearestRiver = Math.min(nearestRiver, riverDistanceAt(x, y));
     }
   }
@@ -203,8 +238,9 @@ function scoreSite(
     Math.min(1, forest / area / START_SITE.forestTarget) * START_SITE.forestWeight;
 
   const riverBonus = nearestRiver <= START_SITE.riverWithin ? 3 : 0;
+  const openBonus = Math.min(1, open / cells / START_SITE.openTarget) * START_SITE.openWeight;
 
-  return share * 10 + riverBonus + forestBonus - (blocked / cells) * 8;
+  return share * 10 + riverBonus + forestBonus + openBonus - (blocked / cells) * 8;
 }
 
 /** Village clusters (GDD 4.6), placed after the start site and kept clear of it. */

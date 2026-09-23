@@ -213,6 +213,33 @@ describe('world generation (GDD 4.6)', () => {
     }
   });
 
+  it('the Kopdes lands on the forest edge, never ringed by it (GDD 4.6)', () => {
+    // Enough seeds to catch a regression: before the open-ground terms this
+    // failed on about two in five.
+    for (let seed = 1; seed <= 120; seed++) {
+      const world = createWorld(seed);
+      const { kopdesX, kopdesY } = world.start;
+      let open = 0;
+
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          if (dx === 0 && dy === 0) continue;
+
+          const x = kopdesX + dx;
+          const y = kopdesY + dy;
+
+          if (!world.inBounds(x, y)) continue;
+
+          const cell = world.generated(x, y);
+
+          if (!BIOMES[cell.biome].forestCover && !cell.isProtected) open += 1;
+        }
+      }
+
+      expect(open, `seed ${seed} is walled in`).toBeGreaterThanOrEqual(START_SITE.kopdesMinOpen);
+    }
+  });
+
   it('river paths are the water, cell to neighbouring cell, ending on the map edge', () => {
     const world = createWorld(42);
     const { paths, water } = world.rivers;

@@ -356,3 +356,13 @@ Balance lives in data, never as literals inside systems (GDD 4.5).
   starting square, this many blocks out. The choice between chopping and
   burning needs forest to choose about, and a start on bare grassland looked
   like nothing was there.
+- `START_SITE.openTarget` / `openWeight`: the counterweight to the two above.
+  Wanting forest around the square says nothing about what is inside it, so
+  two seeds in five used to open with the Kopdes ringed by trees. This asks
+  for a fifth of the square to be open ground, which is what gives the Kopdes
+  an edge cell to sit on (GDD 4.6).
+- `START_SITE.kopdesMinOpen` / `kopdesBuriedPenalty`: the same rule at the
+  scale of one hectare. The penalty is deliberately larger than the whole
+  distance-to-centre range it competes with, so it reads as a veto rather
+  than a preference, and falls back to the old behaviour only where every
+  candidate is buried.

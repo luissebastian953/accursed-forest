@@ -185,6 +185,25 @@ riverbank within `1` block of water. The map itself is `WORLD.width` by
 square around the start site, water and protected forest inside it excepted,
 because nobody holds title to a river.
 
+**The Kopdes hectare is put on the forest's edge, never inside it.** Two terms
+do it, both in `START_SITE`. `openWeight` rewards a start square that contains
+open ground at all (`openTarget`, a fifth of it), because a square that is
+forest wall to wall used to score exactly as well as a mixed one and then had
+no edge cell to offer. `kopdesBuriedPenalty` then marks down any candidate
+hectare with fewer than `kopdesMinOpen` (3) of its eight neighbours open,
+by more than the whole distance-to-centre term, so an edge always beats a
+clearing. Across 400 seeds that moves the count of estates that open ringed
+by trees from 169 to none, with nothing left in the one-to-two band either.
+The forest is still wanted, and `forestRing` and `forestWeight` still ask for
+it around the square: the point is that the player should be able to see out
+of their own gate, not that the trees should go.
+
+This changes what a seed generates, so **an estate code shared before the
+change now opens on a different hectare**: 186 of 400 seeds move the Kopdes
+and 128 move the whole square. Saved estates are unaffected, because ownership
+and `worldGen.kopdesBlock` are written into the save at
+`createInitialState` rather than recomputed on load.
+
 Because the map is deterministic, it never has to be stored: `SimState.blocks`
 is sparse, holding only blocks that have diverged from what `createWorld`
 would generate on its own, and `readBlock` / `writeBlock` in `src/sim/state.ts`

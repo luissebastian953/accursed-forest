@@ -107,4 +107,17 @@ export const START_SITE = {
   /** Forest share of that area that earns the full bonus. */
   forestTarget: 0.3,
   forestWeight: 5,
+  /**
+   * Open (non-forest, unprotected) neighbours of the eight around the Kopdes
+   * hectare, below which it counts as buried in the trees (GDD 4.6).
+   */
+  kopdesMinOpen: 3,
+  /** Marked down by more than the whole distance term, so an edge always wins. */
+  kopdesBuriedPenalty: 40,
+  /**
+   * Open ground inside the square that earns the full bonus: without it a
+   * forest square scores like a mixed one, and buries the Kopdes (GDD 4.6).
+   */
+  openTarget: 0.2,
+  openWeight: 4,
 } as const;
