@@ -172,25 +172,6 @@ text already localized, so a language switch re-derives it too.
 - `settleView()`: the coordination fee, as the Kopdes offers it (GDD 3.9).
   It appears only with something to settle, and says plainly when the
   district office is too honest to take it, rather than hiding the button.
-
-## `src/ui/svelte/endings/CertificatePanel.svelte`
-
-The win condition, spelled out (design kit 7a). A gold band at the top, the
-five conditions as rows with a bar each, and a footer that says what
-meeting them is worth. Each row shows how far along it is, so a condition
-that is nearly met does not look the same as one that has not started.
-
-## `src/ui/svelte/endings/Epilogue.svelte`
-
-The epilogue's markup (GDD 3.8, GDD 8 panel 15): the ending's own colours from
-`LOOK`, the numbers that tell the truth about the run, and the chronicle as a
-chain of headlines. The rewind buttons belong to a loss, sandbox to a
-certificate or the fade.
-
-## `src/ui/svelte/endings/YearEndCard.svelte`
-
-The year that just closed (GDD 8 panel 18), as a small card at the right: what
-
 - `fertilizerGain()`: the fertilizer tile said how long the window had left
   but never what it was worth, and what it is worth is not the flat fifth
   the shop implies: fertility is clamped to 1.4 (`GROWTH_FACTORS`), so a
@@ -232,6 +213,25 @@ CSS loop can turn on a half translation with no seam, and the pair is marked
 `aria-hidden` with the words carried once in an `sr-only` label beside it, so
 a screen reader hears the sentence once rather than twice. The whole band is
 a button: it reopens the disclaimer, which is how the gate stays reachable
+after it has been accepted.
+
+## `src/ui/svelte/disclaimer/disclaimerState.svelte.ts`
+
+Mounts `DisclaimerModal.svelte` and owns whether it is up.
+
+### Notes
+
+- `sawit:disclaimer`: the acknowledgement is one `localStorage` key carrying
+  a version, next to `sawit:locale`. Reading and writing it are both wrapped,
+  and a browser with storage off falls through to showing the gate again,
+  which errs on the side of it being read rather than skipped.
+- `VERSION`: bumping it shows the gate again to everyone, which is what a
+  change to the wording is for.
+
+## `src/ui/svelte/disclaimer/marqueeState.svelte.ts`
+
+Mounts `Marquee.svelte`. It holds no state: the band says the same thing all
+run, so there is nothing for `App.ts` to update.
 
 ## `src/ui/svelte/endings/CertificatePanel.svelte`
 
@@ -265,25 +265,6 @@ certificate or the fade.
 ## `src/ui/svelte/endings/YearEndCard.svelte`
 
 The year that just closed (GDD 8 panel 18), as a small card at the right: what
-after it has been accepted.
-
-## `src/ui/svelte/disclaimer/disclaimerState.svelte.ts`
-
-Mounts `DisclaimerModal.svelte` and owns whether it is up.
-
-### Notes
-
-- `sawit:disclaimer`: the acknowledgement is one `localStorage` key carrying
-  a version, next to `sawit:locale`. Reading and writing it are both wrapped,
-  and a browser with storage off falls through to showing the gate again,
-  which errs on the side of it being read rather than skipped.
-- `VERSION`: bumping it shows the gate again to everyone, which is what a
-  change to the wording is for.
-
-## `src/ui/svelte/disclaimer/marqueeState.svelte.ts`
-
-Mounts `Marquee.svelte`. It holds no state: the band says the same thing all
-run, so there is nothing for `App.ts` to update.
 the estate earned, what it spent, and how the forest cover moved against last
 year. It stops the clock until it is dismissed.
 
@@ -302,6 +283,13 @@ the truth about it, and the run replayed as a chain of headlines. Losses
 offer the rewind; the certificate and the fade offer sandbox. `Epilogue`
 keeps the pre-Svelte constructor and `show`/`hide`/`isOpen`/
 `dispose` surface so `App.ts` is unchanged.
+
+### Notes
+
+- `FOREST_BAND`: `reboisasi` and `redemption` are the game's best endings and
+  now say so in gold, where they used to wear a pale green and a green-orange
+  that read as softer than the certificate's. Their badge tiles are
+  deliberately left as they were.
 
 ## `src/ui/svelte/hud/Hud.svelte`
 

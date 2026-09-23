@@ -598,6 +598,25 @@ be gated `once`, `after` another headline has already landed, or
 `fromYear` a given year, so the permanent, escalating stories never open a
 run.
 
+**Copy is what makes a headline dealable.** `drawable()` asks `hasHeadline()`
+before anything else, so a headline commented out of the news files leaves the
+deck entirely and takes its levers with it. Retiring one is a single edit:
+comment the template out of `economic.ts`, `government.ts`, `natural.ts` or
+`statements.ts` and nothing else needs touching, not the deck entry, not the
+chip labels, not a test. Writing one back in is the same edit in reverse.
+
+That rule exists because the alternative is worse than a missing headline. A
+deck entry carries levers, and an entry whose words were deleted while its
+entry remained went on moving land prices, wages and the authorities' patience
+for months with nothing anywhere to explain why: the bar showed a chip, the
+shop got dearer, and the feed said nothing. Silence is the one thing the deck
+must never do, because the whole point of it is that the country is legible.
+
+`endings.ts` is the exception and is not free to comment out: those headlines
+are named in code by the endings and the authority, and a missing one is a
+bug rather than a retirement. `tests/tools/newsKeys.test.ts` holds that line,
+and also catches a key the code names that no file spells.
+
 **What a headline may do**, and nothing else, because every lever is read
 in exactly one place (`src/sim/macro.ts`):
 
@@ -628,25 +647,6 @@ nobody who says either is the one who pays.
 
 **Consequences the deck never deals.** `ecology()` (`src/sim/systems/society.ts`)
 starts four headlines directly from what the estate and the province have
-**Copy is what makes a headline dealable.** `drawable()` asks `hasHeadline()`
-before anything else, so a headline commented out of the news files leaves the
-deck entirely and takes its levers with it. Retiring one is a single edit:
-comment the template out of `economic.ts`, `government.ts`, `natural.ts` or
-`statements.ts` and nothing else needs touching, not the deck entry, not the
-chip labels, not a test. Writing one back in is the same edit in reverse.
-
-That rule exists because the alternative is worse than a missing headline. A
-deck entry carries levers, and an entry whose words were deleted while its
-entry remained went on moving land prices, wages and the authorities' patience
-for months with nothing anywhere to explain why: the bar showed a chip, the
-shop got dearer, and the feed said nothing. Silence is the one thing the deck
-must never do, because the whole point of it is that the country is legible.
-
-`endings.ts` is the exception and is not free to comment out: those headlines
-are named in code by the endings and the authority, and a missing one is a
-bug rather than a retirement. `tests/tools/newsKeys.test.ts` holds that line,
-and also catches a key the code names that no file spells.
-
 actually set alight, never from the shuffle: `hazeSeason` (yield ×0.9) once
 three or more of the estate's own blocks are burning at once; `animalsGone`
 (wildlife quiet) once six or more blocks carry an ash window; `onTheBrink`
@@ -689,6 +689,20 @@ undo the point it just made. This is the only rule that reads `hasWon` rather
 than `runOver`, because `KeepPlaying` is precisely the state where a won run
 still takes commands.
 
+**Certification**, checked once a year at the close (`closeYear()` in
+`src/sim/systems/endings.ts`), from `CERTIFICATE.progressFromYear` (year 3) on. Five
+conditions (`certificateConditions()`):
+
+| Condition | Passes when                                                                                                                                                                                             |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Profit    | Cumulative operating profit (land and buildings excluded) reaches `CERTIFICATE.winProfit` (Rp 6,000,000,000), and each of the last `CERTIFICATE.profitableYears` (3) closed years was itself profitable |
+| Hectares  | At least `CERTIFICATE.winHectares` (20) blocks of palms have at least `CERTIFICATE.matureShare` (50%) of their palms bearing                                                                            |
+| No burn   | No burn-to-clear in the last `CERTIFICATE.noBurnYears` (5) years, or ever                                                                                                                               |
+| Forest    | Forest cover around the estate's own slopes is at least `CERTIFICATE.winForestFloor` (0.2); an estate with no slopes is judged on its overall cover                                                     |
+| Kopdes    | The Kopdes has reached `ECONOMY.kopdesMaxLevel` (4)                                                                                                                                                     |
+
+If profit, hectares and the Kopdes level are all met, the run certifies. If
+no-burn and forest are also both met, the ending is **clean**. If either is
 short, the Ministry waives them anyway, but only while the hidden integrity
 stat is under `CERTIFICATE.waiverMaxIntegrity` (0.4): a corrupt office looks away
 and the ending is **dirty**; an honest one insists on the real conditions

@@ -466,6 +466,15 @@ badge or a days-to-go estimate for the no-burn clock, and a segmented count
 bar (`certificate-segments`) that fills from the left regardless of which
 conditions happen to be met.
 
+**Once won, it stays won.** `conditionsNow()` in `App.ts` reads every
+condition as met from the moment `hasWon(state)` is true, and the bar's pip
+count follows. The sandbox exists so a certified estate can be played on, and
+played on it will drift: profit dips, a Kopdes is sold back, forest cover
+falls. A checklist that un-ticked itself would be telling the player they had
+lost something the Ministry has already awarded. The freeze is in the app, not
+the sim, so `certificateConditions()` keeps answering honestly for the year
+close that decides the ending in the first place.
+
 ## GDD 8 panel 21: the Kopdes range ring
 
 `RangeRing` in `src/render/scene/Overlays.ts`: a thin frame on every block

@@ -1015,6 +1015,11 @@ test.describe('Sawit Simulator', () => {
     await tid(page, 'epilogue-timeline-toggle').click();
     await expect(page.locator('[data-testid="epilogue-timeline"] li').first()).toBeVisible();
     await expect(tid(page, 'epilogue-keep-playing')).toHaveCount(0);
+    // The run is over: neither Escape nor the backdrop gets the player out of
+    // deciding what happens next (GDD 8 panel 15).
+    await page.keyboard.press('Escape');
+    await page.mouse.click(10, 400);
+    await expect(tid(page, 'epilogue')).toBeVisible();
     await tid(page, 'epilogue-new-estate').click();
     await expect(tid(page, 'epilogue')).toHaveCount(0);
     await expect(tid(page, 'hud-date')).toContainText('Year 1');

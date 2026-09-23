@@ -45,6 +45,12 @@ Nothing below this file knows about anything beside it.
   instead, so the two disagreed for up to a year at a time. It is worked out
   once a day, because it walks every block, and again whenever a command
   changes something (a successful dispatch clears the cache).
+- `conditionsNow()`: the same conditions, but every one of them reads as met
+  once `hasWon(state)` (GDD 8 panel 19). A certified estate played on in the
+  sandbox will drift out of its own conditions, and a checklist that un-ticks
+  itself claims the Ministry took something back that it did not. The freeze
+  lives here rather than in `certificateConditions()` so the sim keeps
+  answering honestly for the year close that awards the ending.
 - `onTick()` save marking: moisture and growth move every tick on every
   estate block, so every chunk with estate in it is dirty for the save on
   every tick. The dirty set earns its keep on chunks far from the estate that

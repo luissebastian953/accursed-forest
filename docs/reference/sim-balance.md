@@ -214,6 +214,18 @@ the words give it away. `.hollow` variants publish under low integrity,
 
 Every headline template, by key (GDD 3.7).
 
+### Notes
+
+- `hasHeadline()`: the one question the deck asks before dealing. It is here
+  rather than in `society.ts` so that both the draw and `news.ts` build the
+  key the same way, through `macroNewsKey()`, and so that neither system has
+  to import the other.
+- Commenting an entry out of `economic.ts`, `government.ts`, `natural.ts` or
+  `statements.ts` is how a headline is retired, which is why
+  `tests/tools/comments.test.ts` exempts those four from the two-line comment
+  rule: a commented-out template is a thirty-line comment by any other reading,
+  and the rule is about prose, not about copy on the shelf.
+
 ## `src/sim/balance/news/natural.ts`
 
 Natural lane (GDD 3.7): generated directly by the weather and the land.
@@ -228,19 +240,6 @@ Energy Minister BehLOL, Finance Minister Purboy, Agriculture Minister
 Amrun, Forestry Minister Rajuli, his deputy Nazarra and the former
 president Mulyonows hold offices that do not exist in a kabupaten that does
 not exist. What the deck satirises is the shape: that a sentence said into
-
-### Notes
-
-- `hasHeadline()`: the one question the deck asks before dealing. It is here
-  rather than in `society.ts` so that both the draw and `news.ts` build the
-  key the same way, through `macroNewsKey()`, and so that neither system has
-  to import the other.
-- Commenting an entry out of `economic.ts`, `government.ts`, `natural.ts` or
-  `statements.ts` is how a headline is retired, which is why
-  `tests/tools/comments.test.ts` exempts those four from the two-line comment
-  rule: a commented-out template is a thirty-line comment by any other reading,
-  and the rule is about prose, not about copy on the shelf.
-
 a microphone moves the price of a seedling, and that nobody who says it is
 ever the one who pays.
 

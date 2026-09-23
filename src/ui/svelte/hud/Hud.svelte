@@ -148,7 +148,7 @@
 {/snippet}
 
 <div
-  class="ui-slide chrome-right pointer-events-none absolute left-0 top-0 z-10 flex flex-col items-start gap-2 p-3"
+  class="ui-slide chrome-right pointer-events-none absolute left-0 z-10 flex flex-col items-start gap-2 p-3"
   class:ui-hidden-top={ui.hidden}
   style="top: var(--marquee-h, 0px)"
   bind:this={bar}

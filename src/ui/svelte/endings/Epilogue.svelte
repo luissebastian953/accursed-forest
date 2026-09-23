@@ -164,6 +164,10 @@
   const look = $derived(v ? LOOK[v.ending] : null);
   const certified = $derived(v ? v.ending === 'clean' || v.ending === 'dirty' : false);
   const win = $derived(certified || v?.ending === 'reboisasi' || v?.ending === 'redemption');
+  // The scold is for a certificate won over burned ground. Redemption is the
+  // one ending that already answers for its fires, so it is spared this.
+  const arsonist = $derived(certified && (v?.stats.burns ?? 0) > 0);
+  const forestWin = $derived(v?.ending === 'reboisasi' || v?.ending === 'redemption');
   const sandbox = $derived(win || v?.ending === 'fade');
   const rewind = $derived(v ? !win && v.rewindYears.length > 0 : false);
   const oldest = $derived(v ? Math.min(...v.rewindYears) : 0);
@@ -211,10 +215,20 @@
       “{t('epilogue.presidentQuote')}”
     </div>
   {/snippet}
+  {#snippet arsonistBody()}
+    <div class="text-base font-extrabold leading-snug text-[#9e2e20]">
+      {t('epilogue.arsonistTitle')}
+    </div>
+    <div class="mt-1 font-bold text-[#9e2e20] opacity-90">{t('epilogue.arsonistBody')}</div>
+  {/snippet}
 
-  <div class="absolute inset-0 z-40 flex items-center justify-center bg-[rgba(30,20,12,0.6)] p-4">
+  <!-- Above the disclaimer band, and with nothing to click but its own two
+       buttons: the run is over and the player says how it continues. -->
+  <div class="absolute inset-0 z-[65] flex items-center justify-center bg-[rgba(30,20,12,0.6)] p-4">
     <div
-      class="card flex max-h-full w-full max-w-2xl flex-col overflow-hidden"
+      class="card flex max-h-full w-full max-w-2xl flex-col overflow-hidden {forestWin
+        ? 'epilogue-glow'
+        : ''}"
       data-testid="epilogue"
       data-ending={v.ending}
     >
@@ -242,7 +256,13 @@
           >
             {t(look.title)}
           </div>
-          <p class="mt-1 text-sm font-bold opacity-80">{t(look.line)}</p>
+          <p class="mt-1 text-sm font-bold opacity-80">
+            {t(look.line)}
+            {#if arsonist}
+              {t('epilogue.arsonistLead')}
+              <b class="text-[#9e2e20] opacity-100">{t('epilogue.arsonistShout')}</b>
+            {/if}
+          </p>
         </div>
       </div>
 
@@ -264,6 +284,14 @@
             reboisasiBody,
             'bg-[#e4f6dc] border-[var(--green)]',
             'epilogue-reboisasi',
+          )}
+        {/if}
+        {#if arsonist}
+          {@render note(
+            'fire',
+            arsonistBody,
+            'bg-[#ffdcd6] border-[var(--red)]',
+            'epilogue-arsonist',
           )}
         {/if}
         {#if certified}

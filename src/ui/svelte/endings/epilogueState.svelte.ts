@@ -46,6 +46,8 @@ export interface Look {
 
 const WIN_BAND = 'linear-gradient(180deg, #fff3cd, #ffe9a8)';
 const LOSS_BAND = 'linear-gradient(180deg, #ffd9cc, #f9c5b5)';
+/** The forest wins are the game's best ending, so they get the loudest gold. */
+const FOREST_BAND = 'linear-gradient(180deg, #ffe9a8, #f4b731)';
 
 export const LOOK: Record<Ending, Look> = {
   clean: {
@@ -73,7 +75,7 @@ export const LOOK: Record<Ending, Look> = {
     title: 'epilogue.titleReboisasi',
     line: 'epilogue.lineReboisasi',
     icon: 'forest-cover',
-    band: 'linear-gradient(180deg, #e4f6dc, #c9ecbd)',
+    band: FOREST_BAND,
     badge: '#f1faec',
     titleColor: '#2f7a2b',
     numbers: 'epilogue.numbers',
@@ -83,7 +85,7 @@ export const LOOK: Record<Ending, Look> = {
     title: 'epilogue.titleRedemption',
     line: 'epilogue.lineRedemption',
     icon: 'shop-sapling',
-    band: 'linear-gradient(180deg, #ffe9c9, #d9edbe)',
+    band: FOREST_BAND,
     badge: '#f6fbec',
     titleColor: '#2f7a2b',
     numbers: 'epilogue.numbers',
