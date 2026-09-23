@@ -112,7 +112,6 @@ canvas {
     align-items: center;
     justify-content: center;
     gap: 0.4rem;
-    border: none;
     border-radius: 14px;
     padding: 0.5rem 0.9rem;
     font-weight: 800;
@@ -122,6 +121,7 @@ canvas {
     transition:
       transform 90ms ease,
       filter 120ms ease;
+    border: 2px solid var(--btn-edge, #2f7a2b);
     box-shadow: 0 3px 0 var(--btn-edge, #2f7a2b);
     background: linear-gradient(180deg, var(--btn-from, #5fd06a), var(--btn-to, #3faa4c));
   }
@@ -137,6 +137,7 @@ canvas {
 
   .btn:disabled,
   .btn[disabled] {
+    border-color: #ddcba0;
     background: var(--pill-muted);
     color: var(--ink-3);
     box-shadow: 0 3px 0 #ddcba0;
@@ -258,17 +259,24 @@ canvas {
 
   /* A quiet button on cream: reads as a card row, not a call to action. */
   .btn-ghost {
-    background: var(--pill);
-    color: var(--ink);
+    background: #fffdf7;
+    color: #6b5a3c;
+    border: 2px solid var(--card-shadow);
     box-shadow: 0 3px 0 #e2d2a8;
   }
 
   .btn-ghost:hover:not(:disabled) {
-    background: #fdf3d9;
+    background: #fff8e8;
+    border-color: var(--gold-edge);
   }
 
   .btn-ghost:active:not(:disabled) {
     box-shadow: 0 1px 0 #e2d2a8;
+  }
+
+  .btn-ghost:disabled,
+  .btn-ghost[disabled] {
+    border-color: #e6d7ae;
   }
 
   /* The round × on every panel. */
@@ -276,7 +284,7 @@ canvas {
     width: 1.9rem;
     height: 1.9rem;
     padding: 0;
-    border-radius: 999px;
+    border-radius: 12px;
     --btn-from: var(--coral);
     --btn-to: var(--coral-2);
     --btn-edge: var(--coral-edge);
