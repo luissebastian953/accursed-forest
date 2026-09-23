@@ -80,18 +80,20 @@
               <span class="pill flex h-9 w-9 shrink-0 items-center justify-center">
                 <Icon name={row.icon} />
               </span>
-              <div class="min-w-0 flex-1 font-extrabold">{t(`shop.item_${row.item}`)}</div>
-              <div class="num shrink-0 text-right text-xs">
-                {t('shop.each', { price: formatRp(row.unit) })}
+              <!-- The name holds the line alone: sharing it with the price left
+                   sixty pixels, and a name with nowhere to break ran over it. -->
+              <div class="min-w-0 flex-1">
+                <div class="font-extrabold">{t(`shop.item_${row.item}`)}</div>
+                <div class="flex items-baseline justify-between gap-2 text-xs">
+                  <span class="num">{t('shop.each', { price: formatRp(row.unit) })}</span>
+                  <span class="muted shrink-0">
+                    {t('shop.inStock')}
+                    <span data-testid={`stock-${row.item}`}>{row.stock}</span>
+                  </span>
+                </div>
               </div>
             </div>
-            <div class="mt-1 flex items-baseline justify-between gap-2 text-xs">
-              <span class="muted min-w-0 flex-1">{t(`shop.note_${row.item}`)}</span>
-              <span class="muted shrink-0">
-                {t('shop.inStock')}
-                <span data-testid={`stock-${row.item}`}>{row.stock}</span>
-              </span>
-            </div>
+            <div class="muted mt-1 text-xs">{t(`shop.note_${row.item}`)}</div>
             <div class="mt-2 flex gap-1.5">
               {#each row.bundles as bundle (bundle.quantity)}
                 <button
@@ -124,11 +126,11 @@
                   <span class="pill flex h-8 w-8 shrink-0 items-center justify-center">
                     <Icon name={worker.icon} />
                   </span>
-                  <div class="min-w-0 flex-1 text-sm font-extrabold">
-                    {t(`shop.worker_${worker.kind}`)}
-                  </div>
-                  <div class="num muted shrink-0 text-xs">
-                    {t('shop.perDay', { wage: formatRp(worker.wagePerDay) })}
+                  <div class="min-w-0 flex-1">
+                    <div class="text-sm font-extrabold">{t(`shop.worker_${worker.kind}`)}</div>
+                    <div class="num muted text-xs">
+                      {t('shop.perDay', { wage: formatRp(worker.wagePerDay) })}
+                    </div>
                   </div>
                 </div>
                 <div class="muted mt-1 text-xs">{t(`shop.blurb_${worker.kind}`)}</div>
@@ -156,9 +158,9 @@
         </div>
 
         <div class="pill-muted p-2.5">
-          <div class="flex items-baseline justify-between">
-            <div class="font-extrabold">{t('shop.picking')}</div>
-            <div class="muted text-xs">
+          <div class="flex items-baseline justify-between gap-2">
+            <div class="shrink-0 font-extrabold">{t('shop.picking')}</div>
+            <div class="muted text-right text-xs">
               {v.kopdes.autoHarvest ? t('shop.pickingCrew') : t('shop.pickingYou')}
             </div>
           </div>
@@ -166,9 +168,9 @@
         </div>
 
         <div class="pill-muted p-2.5">
-          <div class="flex items-baseline justify-between">
+          <div class="flex items-baseline justify-between gap-2">
             <div class="font-extrabold">{t('shop.tbsToday')}</div>
-            <div class="num" data-testid="shop-price">
+            <div class="num shrink-0" data-testid="shop-price">
               {t('shop.perKg', { price: formatRp(v.price) })}
               {#if v.trend === 'flat'}
                 <span class="muted">=</span>
@@ -200,9 +202,9 @@
         </div>
 
         <div class="pill-muted p-2.5">
-          <div class="flex items-baseline justify-between">
+          <div class="flex items-baseline justify-between gap-2">
             <div class="font-extrabold">{t('shop.upgradeKopdes')}</div>
-            <div class="muted text-xs">
+            <div class="muted text-right text-xs">
               {v.upgrade.cost === null
                 ? t('shop.maxLevel')
                 : t('shop.upgradeNext', {

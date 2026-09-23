@@ -308,6 +308,12 @@ view.
 - `workers list` pill layout: one pill each, with the name on its own line,
   the job under it, and the button across the bottom. Side by side they
   wrapped three deep on the phone.
+- `item row` head: the name and the unit price shared a line, which left the
+  name about sixty pixels. Names with a space wrapped three deep; a name with
+  none, Metarhizium and Trichoderma, overflowed and painted over the price.
+  The name now has the line, and the price sits with the stock under it. The
+  worker pills read the same way, and the label rows in the sell tab carry a
+  gap so a heading cannot touch its note.
 
 ## `src/ui/svelte/shop/kopdesShopState.svelte.ts`
 
