@@ -124,3 +124,26 @@ per-cell function; a river is a path; so it is computed once per world.
   cells of the map's interior, sampled coarsely so sources spread out. Sources
   near the border make stub rivers that leave the map after a dozen cells; the
   interior margin keeps every river long enough to shape the land it crosses.
+
+## `src/sim/worldgen/riverChannel.ts`
+
+The river as it is drawn (GDD 6.1): a smooth, meandering channel instead of
+the block staircase the simulation reasons about.
+
+Each river's cell path becomes a polyline through block centres, is rounded
+with Chaikin corner cutting, resampled, and pushed sideways by low-frequency
+noise so long runs bend. The channel widens from source to mouth. The
+mesher asks one question per column; how far is it from the water's edge;
+which a per-block bucket of nearby segments answers cheaply.
+
+It lives in the simulation rather than the renderer because it is not only a
+picture: it is where the water is, and the mobs have to agree with it. Nothing
+in the game swims, and `onLand()` in `systems/mobs.ts` asks this same channel
+whether a step lands in the river. Asking `world.rivers` instead put animals in
+the water wherever the drawn channel and the block grid disagreed, which is
+everywhere the channel crosses a block edge.
+
+`riverChannel(world)` memoises it per world, because building it walks every
+river path and every `createWorld` the suite and the sweep make would otherwise
+pay for it. Which blocks are river is still `world.rivers`; the mesher confines
+the water to blocks at most two cells from it.

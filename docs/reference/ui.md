@@ -202,6 +202,10 @@ under both and Fertilize spanning the width below.
 - The bar's segments take their fill from a `--seg` custom property rather
   than from a width class, so the partial one animates with the rest and the
   three stay the same size whatever the stage.
+- `data-step` carries the stage to the stylesheet. A bearing stand gets the
+  thick green edge and the moss chip whether or not there is fruit on it today:
+  reaching stage three is the block's arrival, and ripeness is the coral pill's
+  job, which changes every few days.
 - A treatment button carries `data-urgent` and pulses whenever the block has
   the problem it answers: beetles, visible Ganoderma, or gaps to replant. The
   halo is a pseudo-element, so it keeps pulsing on a button that is greyed out,

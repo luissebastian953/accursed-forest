@@ -66,7 +66,7 @@ export const plantBlock: CommandHandler<PlantBlock> = {
     const have = state.inventory[item];
 
     if (have < needed) {
-      const label = command.species === 'forest' ? 'saplings' : 'bibit';
+      const label = command.species === 'forest' ? 'saplings' : 'seedlings';
 
       return reject(
         'noInventory',

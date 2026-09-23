@@ -3,13 +3,13 @@ import { WORLD } from '@sim/balance/world';
 import type { Biome, Block, BlockId, BlockPhase } from '@sim/types';
 import { NOISE_TAG, noiseFor } from '@sim/worldgen/elevation';
 import type { World } from '@sim/worldgen/index';
+import { buildRiverChannel, type RiverChannel } from '@sim/worldgen/riverChannel';
 
 import type { MeshArrays } from '../geometry/boxBuilder.ts';
 import { buildColumnArrays, type ColumnField } from '../geometry/terrain.ts';
 import { Palette } from '../materials/paletteSlots.ts';
 
 import { growBlock, growFence, hash01 } from './props.ts';
-import { buildRiverChannel, type RiverChannel } from './riverChannel.ts';
 
 /** World units of height per elevation level. */
 export const ELEVATION_STEP = 1.5;

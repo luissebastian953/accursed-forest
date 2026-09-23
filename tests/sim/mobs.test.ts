@@ -13,13 +13,14 @@ import {
   WORKERS_FROM_LEVEL,
   WORKER_JOBS,
 } from '@sim/balance/mobs.ts';
-import { SLOTS_PER_BLOCK } from '@sim/balance/world.ts';
+import { SLOTS_PER_BLOCK, WORLD } from '@sim/balance/world.ts';
 import { createSim, type Sim } from '@sim/index.ts';
 import { distanceToKopdes } from '@sim/kopdes.ts';
 import { createPalmArrays, plantSlots } from '@sim/palms.ts';
 import { writeBlock } from '@sim/state.ts';
 import { guardPost, wildKinds, workedBlocks } from '@sim/systems/mobs.ts';
 import type { BlockId, Mob } from '@sim/types.ts';
+import { riverChannel } from '@sim/worldgen/riverChannel.ts';
 
 const YEAR = GROWTH.daysPerYear;
 
@@ -397,6 +398,32 @@ describe('the thief (mobs)', () => {
     expect(order.indexOf('hide')).toBeGreaterThan(-1);
     expect(order.indexOf('raid')).toBeGreaterThan(order.indexOf('hide'));
     expect(order.indexOf('flee')).toBeGreaterThan(order.indexOf('raid'));
+  });
+
+  it('keeps out of the river: nothing in the game swims', () => {
+    const wet: string[] = [];
+
+    for (const seed of [1, 42, 1234, 7, 99]) {
+      const sim = createSim(seed);
+
+      sim.state.economy.cash = 1e12;
+
+      // The water is the drawn channel, not the block grid: a `river` block the
+      // channel missed is dry bank, and the bank of one is wet.
+      const edge = riverChannel(sim.world).edge;
+
+      for (let i = 0; i < 1500; i++) {
+        sim.tick();
+
+        for (const mob of sim.state.mobs) {
+          if (!sim.world.inBounds(Math.floor(mob.x), Math.floor(mob.z))) continue;
+          if (edge(mob.x * WORLD.blockSide, mob.z * WORLD.blockSide) < 0)
+            wet.push(`${seed}:${mob.species}@${i}`);
+        }
+      }
+    }
+
+    expect(wet).toEqual([]);
   });
 
   it('a security guard makes thieves rarer and catches the ones who come', () => {

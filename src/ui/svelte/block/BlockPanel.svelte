@@ -199,7 +199,7 @@
             {@const p = v.palms}
             <div data-testid="stand-card">
               <div class="label mb-1">{p.caption}</div>
-              <div class="stand" data-ripe={p.bearing?.ripe || undefined}>
+              <div class="stand" data-step={p.step}>
                 <div class="flex items-center gap-2.5">
                   <span class="stand-crest"><Icon name={p.icon} class="h-6 w-6" /></span>
                   <div class="min-w-0 flex-1">
@@ -220,7 +220,10 @@
                         {t('block.standHarvest')}
                       </span>
                     {:else}
-                      <span class="chip chip-cream" data-testid="stand-chip">{p.stage}</span>
+                      <span
+                        class="chip {p.step === 3 ? 'chip-moss' : 'chip-cream'}"
+                        data-testid="stand-chip">{p.stage}</span
+                      >
                     {/if}
                   </Tooltip>
                 </div>

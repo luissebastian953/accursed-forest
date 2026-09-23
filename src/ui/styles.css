@@ -396,8 +396,10 @@ canvas {
     padding: 0.7rem;
   }
 
-  .stand[data-ripe] {
-    border-color: #5aa34a;
+  /* A bearing stand is the point of the block, so it reads as finished. */
+  .stand[data-step='3'] {
+    border-width: 3px;
+    border-color: #3f8a34;
     background: #e3f3d3;
   }
 
@@ -413,8 +415,13 @@ canvas {
     background: #fffdf7;
   }
 
-  .stand[data-ripe] .stand-crest {
+  .stand[data-step='3'] .stand-crest {
     border-color: #3f8a34;
+  }
+
+  .chip-moss {
+    --chip-bg: #4f9a3f;
+    --chip-edge: #34702a;
   }
 
   .stand-bar {

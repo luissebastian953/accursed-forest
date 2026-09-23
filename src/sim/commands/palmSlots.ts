@@ -134,7 +134,7 @@ export const replantBlock: CommandHandler<ReplantBlock> = {
     const item = seedlingItem(block.species);
 
     if (state.inventory[item] < empties.length) {
-      const label = block.species === 'forest' ? 'saplings' : 'bibit';
+      const label = block.species === 'forest' ? 'saplings' : 'seedlings';
 
       return reject(
         'noInventory',

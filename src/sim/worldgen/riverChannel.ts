@@ -1,6 +1,7 @@
-import { WORLD } from '@sim/balance/world';
-import { NOISE_TAG, noiseFor } from '@sim/worldgen/elevation';
-import type { World } from '@sim/worldgen/index';
+import { WORLD } from '../balance/world.ts';
+
+import { NOISE_TAG, noiseFor } from './elevation.ts';
+import type { World } from './index.ts';
 
 const SIDE = WORLD.blockSide;
 
@@ -180,4 +181,18 @@ export function buildRiverChannel(world: World): RiverChannel {
       return best;
     },
   };
+}
+
+const CHANNELS = new WeakMap<World, RiverChannel>();
+
+/** The world's channel, built once. Where the water is, to both layers. */
+export function riverChannel(world: World): RiverChannel {
+  let channel = CHANNELS.get(world);
+
+  if (!channel) {
+    channel = buildRiverChannel(world);
+    CHANNELS.set(world, channel);
+  }
+
+  return channel;
 }

@@ -28,6 +28,11 @@ export const BEHAVIOUR = {
 } as const;
 
 export const WILDLIFE = {
+  /**
+   * Columns of dry ground a mob keeps between itself and the water's edge, so
+   * a body standing at the bank does not overhang it.
+   */
+  bankClearance: 1.2,
   /** Wild animals around the estate at once. */
   cap: 14,
   /** Chance per day of one more arriving while under the cap. */

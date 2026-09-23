@@ -100,6 +100,16 @@ and pick the next thing when the current one runs out.
   burn commands call it the moment the order is given, so the crew is on the
   block before the next day's tick; at five seconds a day, waiting for the tick
   read as a delay.
+- `onLand()` / `walk()`: nothing in the game swims, so a step into the water is
+  refused and the mob slides along the bank instead. The water it tests is
+  `riverChannel(world)`, the same meandering channel the renderer draws, not
+  the `river` biome: the channel crosses block edges, so a `riverbank` block can
+  be wet and a `river` block the channel missed is dry. Testing the biome
+  instead put animals in the water wherever the two disagreed.
+  `WILDLIFE.bankClearance` keeps a body's width of dry ground between the mob
+  and the edge. Off the map counts as ground, so a mob with the `leave` intent
+  can still go, and a mob already in the water walks out, which is what a save
+  from before this rule needs.
 - `stepDoctor()`: it chooses a block by sick palms per day of walking rather
   than by the raw count, and leaves only when the block is clean. Both changes
   are about the same thing, which is that walking treats nothing: the old rule

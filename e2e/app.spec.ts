@@ -781,7 +781,7 @@ test.describe('Sawit Simulator', () => {
     await tid(page, 'action-RemovePalm').click();
     await expect(tid(page, 'slot-detail')).toContainText('empty');
     await expect(tid(page, 'action-ReplantBlock')).toBeDisabled();
-    await expect(tid(page, 'action-ReplantBlock')).toHaveAttribute('title', /Needs 1 bibit/);
+    await expect(tid(page, 'action-ReplantBlock')).toHaveAttribute('title', /Needs 1 seedlings/);
 
     // Beetles breed in the debris if the block was not sanitized.
     await expect(tid(page, 'pest-beetles')).toContainText(/beetles:\s*[1-9]\d+\s*\//, {

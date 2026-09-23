@@ -563,7 +563,9 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
           ),
         );
 
-        if (state.kopdes && state.inventory.bibit < needed) {
+        // Buying is not blocked by a slide, but nothing can be planted through
+        // spoil, so offering the seedlings would be selling into a dead end.
+        if (state.kopdes && state.inventory.bibit < needed && block.landslideAt < 0) {
           const shortfall = needed - state.inventory.bibit;
 
           actions.push(

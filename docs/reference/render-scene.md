@@ -327,17 +327,3 @@ edges wander across the block grid), and rolls that land's table. A hash of
   terrain, so nothing is doubled up there. Posts are set at one end of each
   run so neighbouring segments share them, and the rails are two thin bars,
   which is enough to read as a fence from the height the camera sits at.
-
-## `src/render/scene/riverChannel.ts`
-
-The river as it is drawn (GDD 6.1): a smooth, meandering channel instead of
-the block staircase the simulation reasons about.
-
-Each river's cell path becomes a polyline through block centres, is rounded
-with Chaikin corner cutting, resampled, and pushed sideways by low-frequency
-noise so long runs bend. The channel widens from source to mouth. The
-mesher asks one question per column; how far is it from the water's edge;
-which a per-block bucket of nearby segments answers cheaply.
-
-Only the picture changes. Which blocks are river is still `world.rivers`;
-the mesher confines the water to blocks at most two cells from it.

@@ -19,6 +19,7 @@ import {
   type WorkerKind,
 } from '../balance/mobs.ts';
 import { BEETLES, GANODERMA } from '../balance/pests.ts';
+import { WORLD } from '../balance/world.ts';
 import { itemPrice } from '../commands/buyItem.ts';
 import { isWildfire } from '../fire.ts';
 import { shopIndex, wageFactor, wildlifeQuiet } from '../macro.ts';
@@ -27,6 +28,7 @@ import { chance, forkRng, nextFloat, nextInt, pickWeighted, type RngState } from
 import { readBlock, spend, writeBlock, type SimContext } from '../state.ts';
 import type { Block, BlockId, ItemId, Mob, MobIntent, MobSpecies, SimState } from '../types.ts';
 import type { World } from '../worldgen/index.ts';
+import { riverChannel } from '../worldgen/riverChannel.ts';
 
 import { ganodermaCounts } from './pest.ts';
 
@@ -78,20 +80,37 @@ function days(rng: RngState, range: { min: number; max: number }): number {
   return range.min + nextInt(rng, range.max - range.min + 1);
 }
 
-/** Move toward the target at `speed` blocks a day. */
-function walk(mob: Mob, speed: number): void {
+/** Nothing swims, and the water is the drawn channel, not the block grid. */
+function onLand(ctx: SimContext, x: number, z: number): boolean {
+  const { world } = ctx;
+
+  if (!world.inBounds(Math.floor(x), Math.floor(z))) return true;
+
+  const edge = riverChannel(world).edge(x * WORLD.blockSide, z * WORLD.blockSide);
+
+  return edge >= WILDLIFE.bankClearance;
+}
+
+/** Move toward the target at `speed` blocks a day, keeping out of the river. */
+function walk(ctx: SimContext, mob: Mob, speed: number): void {
   const dx = mob.tx - mob.x;
   const dz = mob.tz - mob.z;
   const d = Math.hypot(dx, dz);
+  const nx = d <= speed ? mob.tx : mob.x + (dx / d) * speed;
+  const nz = d <= speed ? mob.tz : mob.z + (dz / d) * speed;
 
-  if (d <= speed) {
-    mob.x = mob.tx;
-    mob.z = mob.tz;
+  // Already in the water, it walks out: a save from before this rule, or a
+  // river that moved under a mob, must not strand anything mid-stream.
+  if (onLand(ctx, nx, nz) || !onLand(ctx, mob.x, mob.z)) {
+    mob.x = nx;
+    mob.z = nz;
     return;
   }
 
-  mob.x += (dx / d) * speed;
-  mob.z += (dz / d) * speed;
+  // The bank turns it rather than stopping it dead, so a wanderer follows the
+  // water round instead of standing at the edge until its intent runs out.
+  if (onLand(ctx, nx, mob.z)) mob.x = nx;
+  else if (onLand(ctx, mob.x, nz)) mob.z = nz;
 }
 
 function headTo(mob: Mob, world: World, block: BlockId, intent: MobIntent, jitter = 0): void {
@@ -639,7 +658,7 @@ function stepRepertoire(
         mob.tz = tz;
       }
 
-      walk(mob, CLIMB.jumpSpeed);
+      walk(ctx, mob, CLIMB.jumpSpeed);
       return;
     }
 
@@ -650,7 +669,7 @@ function stepRepertoire(
         paceTarget(mob, rng, BEHAVIOUR.paceRadius);
       }
 
-      walk(mob, speeds.pace);
+      walk(ctx, mob, speeds.pace);
       return;
 
     case 'circle': {
@@ -659,12 +678,12 @@ function stepRepertoire(
       mob.heading += (mob.phase < 0.5 ? 1 : -1) * BEHAVIOUR.circleTurn * (speeds.wander / 0.28);
       mob.tx = mob.ax + Math.cos(mob.heading) * r;
       mob.tz = mob.az + Math.sin(mob.heading) * r;
-      walk(mob, speeds.wander);
+      walk(ctx, mob, speeds.wander);
       return;
     }
 
     case 'wander':
-      walk(mob, speeds.wander);
+      walk(ctx, mob, speeds.wander);
       if (atTarget(mob)) pickBehaviour(ctx, mob, rng, canSleep);
       return;
     default:
@@ -677,7 +696,7 @@ function stepWild(ctx: SimContext, mob: Mob, rng: RngState): void {
   const { state, world } = ctx;
 
   if (mob.intent === 'leave') {
-    walk(mob, WILDLIFE.wanderSpeed);
+    walk(ctx, mob, WILDLIFE.wanderSpeed);
     return;
   }
 
@@ -711,7 +730,7 @@ function stepThief(ctx: SimContext, mob: Mob, rng: RngState): void {
   const { state, world, events } = ctx;
 
   if (mob.intent === 'leave') {
-    walk(mob, THIEF.sneakSpeed);
+    walk(ctx, mob, THIEF.sneakSpeed);
     return;
   }
 
@@ -730,7 +749,7 @@ function stepThief(ctx: SimContext, mob: Mob, rng: RngState): void {
   switch (mob.intent) {
     case 'travel':
       // Creeping to the trees by the block.
-      walk(mob, THIEF.sneakSpeed);
+      walk(ctx, mob, THIEF.sneakSpeed);
 
       if (atTarget(mob)) {
         mob.intent = 'hide';
@@ -745,12 +764,12 @@ function stepThief(ctx: SimContext, mob: Mob, rng: RngState): void {
 
       return;
     case 'raid':
-      walk(mob, THIEF.raidSpeed);
+      walk(ctx, mob, THIEF.raidSpeed);
       if (!atTarget(mob) || mob.target === null) return;
       break;
     case 'flee':
       // Back to the trees with the sack, then away.
-      walk(mob, THIEF.raidSpeed);
+      walk(ctx, mob, THIEF.raidSpeed);
       if (atTarget(mob)) leave(ctx, mob, rng);
       return;
     default:
@@ -798,7 +817,7 @@ function stepBabi(ctx: SimContext, mob: Mob, rng: RngState): void {
   switch (mob.intent) {
     case 'leave':
       // Startled, it goes faster than it ever came.
-      walk(mob, mob.standing ? BABI_NGEPET.fleeSpeed : BABI_NGEPET.raidSpeed);
+      walk(ctx, mob, mob.standing ? BABI_NGEPET.fleeSpeed : BABI_NGEPET.raidSpeed);
       return;
 
     case 'raid': {
@@ -817,13 +836,13 @@ function stepBabi(ctx: SimContext, mob: Mob, rng: RngState): void {
         if (owned.length > 0) headTo(mob, world, owned[nextInt(rng, owned.length)]!, 'raid', 0.8);
       }
 
-      walk(mob, BABI_NGEPET.raidSpeed);
+      walk(ctx, mob, BABI_NGEPET.raidSpeed);
       return;
     }
 
     default:
       // Ambling in as a pig.
-      walk(mob, BABI_NGEPET.pigSpeed);
+      walk(ctx, mob, BABI_NGEPET.pigSpeed);
       if (!atTarget(mob)) return;
   }
 
@@ -908,7 +927,7 @@ function stepCrew(ctx: SimContext, mob: Mob, rng: RngState): void {
     mob.intentUntil = state.tick + days(rng, WORKER_JOBS.crewSpotDays);
   }
 
-  walk(mob, WORKER_JOBS.crewSpeed);
+  walk(ctx, mob, WORKER_JOBS.crewSpeed);
 }
 
 /** Where a hired worker idles when there is nothing to do: the Kopdes. */
@@ -965,7 +984,7 @@ function stepSanitizer(ctx: SimContext, mob: Mob, rng: RngState): void {
     else idleAtKopdes(ctx, mob);
   }
 
-  walk(mob, WORKERS.sanitizer.speed);
+  walk(ctx, mob, WORKERS.sanitizer.speed);
   if (mob.target === null || !atTarget(mob)) return;
 
   const block = writeBlock(state, world, mob.target);
@@ -1025,7 +1044,7 @@ function stepDoctor(ctx: SimContext, mob: Mob): void {
     else idleAtKopdes(ctx, mob);
   }
 
-  walk(mob, WORKERS.plantDoctor.speed);
+  walk(ctx, mob, WORKERS.plantDoctor.speed);
   if (mob.target === null || !atTarget(mob)) return;
   mob.intent = 'work';
 
@@ -1076,7 +1095,7 @@ function stepSecurity(ctx: SimContext, mob: Mob, rng: RngState): void {
     mob.tz = thief.z;
     mob.target = null;
     mob.intent = 'travel';
-    walk(mob, WORKER_JOBS.chaseSpeed);
+    walk(ctx, mob, WORKER_JOBS.chaseSpeed);
     return;
   }
 
@@ -1105,7 +1124,7 @@ function stepSecurity(ctx: SimContext, mob: Mob, rng: RngState): void {
     }
   }
 
-  walk(mob, WORKERS.security.speed);
+  walk(ctx, mob, WORKERS.security.speed);
 }
 
 /** The wild kinds, for the renderer and the tests. */
