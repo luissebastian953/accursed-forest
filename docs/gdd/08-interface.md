@@ -87,15 +87,19 @@ row of named officials, and it lets the player burn forest for money; both
 of those want saying out loud rather than leaving to be inferred.
 
 **The gate** (`src/ui/svelte/disclaimer/DisclaimerModal.svelte`,
-`disclaimerState.svelte.ts`, `data-testid="disclaimer-modal"`) is the first
-thing a first-time visitor sees, before the title screen and over the same
-pulled-back estate, so accepting it does not move the backdrop. A yellow
-warning band carries the `police-warning` icon and the heading; under it sit
-the lead and three cards: nobody in the game is real, none of it is advice,
-and clearing land is a choice the game prices rather than one it recommends.
-`disclaimer-accept` is the only way out. There is no backdrop click and no
-Escape binding, which is the one place the interface deliberately refuses the
-player a shortcut: a gate that closes by accident has not been read.
+`disclaimerState.svelte.ts`, `data-testid="disclaimer-modal"`) stands between
+the title screen's Play and the estate, not in front of the title. It is
+raised by `play()` in `App.ts`, which every route into a run goes through:
+Start a game, Continue, an estate code, and a new estate made from the title
+card. The title stays up behind it and only fades on accept, so the gate reads
+as the last step of pressing Play rather than as something in the way of the
+game. A yellow warning band carries the `police-warning` icon and the heading;
+under it sit the lead and three cards: nobody in the game is real, none of it
+is advice, and clearing land is a choice the game prices rather than one it
+recommends. `disclaimer-accept` is the only way out. There is no backdrop
+click and no Escape binding, which is the one place the interface deliberately
+refuses the player a shortcut: a gate that closes by accident has not been
+read.
 
 Acceptance is remembered in `localStorage` under `sawit:disclaimer`, against a
 version, so the gate is passed once per browser rather than once per visit,
@@ -103,7 +107,8 @@ and changing the wording can put it back in front of everyone. A browser with
 storage turned off sees it every time, which is the safe way to fail. The
 `?seed` and `?fresh` URLs skip the title screen and the gate together, which
 is how the browser suite reaches the estate; `landing.spec.ts` covers the
-gate itself, on the path a real visitor takes.
+gate itself, on the path a real visitor takes, and pins the order: Play
+raises the disclaimer, and the title is still standing behind it.
 
 **The band** (`Marquee.svelte`, `marqueeState.svelte.ts`,
 `data-testid="disclaimer-marquee"`) owns the very top edge of the page, above

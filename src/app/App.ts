@@ -630,7 +630,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     newGame: (seed, name) => {
       switchSim(freshSim(seed, name));
       // Started from the title card: the estate is made, so go and play it.
-      if (startScreen.isOpen) beginPlay();
+      if (startScreen.isOpen) play();
     },
     setSound: (on) => setSound(on),
     save: () => {
@@ -2044,8 +2044,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   }
 
   const startScreen = new StartScreen(root, {
-    start: () => beginPlay(),
-    resume: () => beginPlay(),
+    start: () => play(),
+    resume: () => play(),
     newEstate: () => {
       // The save is about to be replaced, so the player names what replaces
       // it and sees the warning first: the same form the menu uses.
@@ -2062,7 +2062,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
       if (seed === null) return t('start.codeError');
       switchSim(freshSim(seed, name));
-      beginPlay();
+      play();
       return null;
     },
     howToPlay: () => help.toggle(),
@@ -2085,10 +2085,19 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     welcome();
   }
 
-  const disclaimer = new DisclaimerModal(root, { accept: () => openTitle() });
+  const disclaimer = new DisclaimerModal(root, { accept: () => beginPlay() });
   const marquee = new Marquee(root, { open: () => disclaimer.show() });
 
-  /** The title card, raised once the disclaimer is out of the way. */
+  /**
+   * Play, once the disclaimer has been read. It stands between the title's
+   * Play and the estate rather than in front of the title (GDD 8 panel 0).
+   */
+  function play(): void {
+    if (disclaimerAccepted()) beginPlay();
+    else disclaimer.show();
+  }
+
+  /** The title card over the pulled-back estate. */
   function openTitle(): void {
     startScreen.show({
       estateCode: sim.world.estateCode,
@@ -2108,9 +2117,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     hud.setHidden(true);
     ticker.setHidden(true);
     select(null);
-    // The same backdrop carries the disclaimer, so accepting it does not jump.
-    if (disclaimerAccepted()) openTitle();
-    else disclaimer.show();
+    openTitle();
   } else {
     // Straight into play: a dev or test URL that names a world, or a run that
     // is already over and reopens on its epilogue.

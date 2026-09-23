@@ -123,14 +123,15 @@ test.describe('landing page', () => {
     await expect(page).toHaveURL(/play\.html/);
     await expect(page.locator('canvas')).toBeVisible({ timeout: 30_000 * SLOW });
     await expect(page.getByTestId('boot')).toHaveCount(0);
-    // The disclaimer is the gate a first visit passes through, and the title
-    // screen is behind it on the same backdrop.
-    await expect(page.getByTestId('disclaimer-modal')).toBeVisible();
-    await page.getByTestId('disclaimer-accept').click();
-    await expect(page.getByTestId('disclaimer-modal')).toHaveCount(0);
-    // The title screen sits over the estate; Start fades it and the HUD is live.
+    // The title screen sits over the estate.
     await expect(page.getByTestId('start-screen')).toBeVisible();
     await page.getByTestId('start-game').click();
+    // Play opens the gate rather than the estate: the disclaimer stands
+    // between them, over a title screen that has not gone anywhere yet.
+    await expect(page.getByTestId('disclaimer-modal')).toBeVisible();
+    await expect(page.getByTestId('start-screen')).toBeVisible();
+    await page.getByTestId('disclaimer-accept').click();
+    await expect(page.getByTestId('disclaimer-modal')).toHaveCount(0);
     await expect(page.getByTestId('start-screen')).toHaveCount(0, { timeout: 5_000 * SLOW });
     await expect(page.getByTestId('hud-date')).toContainText('Year 1');
   });

@@ -205,6 +205,10 @@ it recommends. One button closes it, and it is the only way out: there is no
 backdrop click and no Escape, because a gate that can be dismissed by
 accident is not a gate.
 
+It is raised by `play()` in `App.ts` when the player presses Play or Continue,
+not at boot, so it reads as the last step of starting a run rather than as
+something standing in front of the title screen.
+
 ## `src/ui/svelte/disclaimer/Marquee.svelte`
 
 The reforestation band along the very top edge (GDD 8 panel 0), above the top
