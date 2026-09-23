@@ -46,6 +46,24 @@ export function harvestableKg(palms: PalmArrays, species: Species, tick: Tick): 
 }
 
 /**
+ * The most fruit this block can hold: past it the bunches rot rather than
+ * accrue, so a stand left standing this long is losing what it grows.
+ */
+export function harvestCapKg(palms: PalmArrays, species: Species, tick: Tick): number {
+  let kg = 0;
+
+  for (let slot = 0; slot < palms.plantedAt.length; slot++) {
+    const plantedAt = palms.plantedAt[slot]!;
+
+    if (plantedAt < 0) continue;
+    if (!isBearing(slotStage(palms, slot, species, tick))) continue;
+    kg += sampleCurve(YIELD_CURVE, ageInYears(plantedAt, tick)) * HARVEST.overripeCapRounds;
+  }
+
+  return kg;
+}
+
+/**
  * Take the round off one block: fruit to the Kopdes intake, wages paid, clock
  * reset. The crew's own rounds pay a surcharge on top (GDD 3.3).
  */

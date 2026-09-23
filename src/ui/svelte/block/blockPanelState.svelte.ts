@@ -30,7 +30,7 @@ import { isBearing, slotStage } from '@sim/palms';
 import { hasWon } from '@sim/run';
 import { neighbourIds, readBlock } from '@sim/state';
 import { growthMultiplier } from '@sim/systems/growth';
-import { daysUntilRipe, harvestableKg } from '@sim/systems/harvest';
+import { daysUntilRipe, harvestCapKg, harvestableKg } from '@sim/systems/harvest';
 import { beetleCapacity, ganodermaCounts, pestPressure } from '@sim/systems/pest';
 import type {
   Biome,
@@ -97,7 +97,7 @@ export interface BlockView {
     count: number;
     stages: string;
     growth: string | null;
-    bearing: { kg: string; note: string; ripe: boolean } | null;
+    bearing: { kg: string; note: string; ripe: boolean; full: boolean } | null;
   } | null;
   pests: {
     plagued: boolean;
@@ -705,6 +705,9 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     // Trees carry no fruit: only palms have a harvest line.
     const bearing = forest ? 0 : (stageCounts.mature ?? 0) + (stageCounts.senile ?? 0);
     const kg = block.species === 'palm' ? harvestableKg(palms, 'palm', state.tick) : 0;
+    // Bunches stop accruing at the cap and start rotting instead, so a full
+    // block is losing fruit rather than saving it (GDD 3.3).
+    const cap = block.species === 'palm' ? harvestCapKg(palms, 'palm', state.tick) : 0;
     const days = daysUntilRipe(block, state.tick);
 
     palmsView = {
@@ -730,6 +733,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
                     ? t('block.ripeNow')
                     : t('block.nextRound', { n: days }),
               ripe: days === 0,
+              full: cap > 0 && kg >= cap - 1e-6,
             }
           : null,
     };

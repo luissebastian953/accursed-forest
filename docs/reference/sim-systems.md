@@ -66,6 +66,14 @@ the tree past ~1.5 rounds' worth rots; the cap keeps a neglected block from
 banking a year of yield. Harvesting itself is a command (`HarvestBlock`):
 manual per block, as GDD 2 says, until auto-harvest arrives as an upgrade.
 
+### Notes
+
+- `harvestCapKg()`: the same sum the rot loop trims each slot to, totalled for
+  the block, so the panel can say when a stand is carrying all it can. The cap
+  was invisible until now, which made a full block look like a saving account
+  rather than what it is: fruit going over, and the reason fertilizer's
+  bearing bonus (GDD 3.5) pays nothing to a block nobody picks.
+
 ## `src/sim/systems/mobs.ts`
 
 Mobs (POC → game): wild animals for the eye, a thief and a babi ngepet for

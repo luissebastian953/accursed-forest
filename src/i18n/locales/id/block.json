@@ -132,6 +132,8 @@
   "forestStage_dead": "mati",
   "growthDays": "{mean} / {next} hari tumbuh",
   "onTrees": "Di pohon:",
+  "onTreesFull": "MAKS",
+  "onTreesFullNote": "Pohon sudah menahan sebanyak yang bisa; kelebihannya membusuk sebelum sempat dipanen.",
   "ripeNow": "MATANG SEKARANG",
   "nextRound": "putaran berikutnya {n} h",
   "pests": "Hama",

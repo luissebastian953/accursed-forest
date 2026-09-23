@@ -267,6 +267,13 @@ plant doctor's Trichoderma used to be free, which made a hired doctor strictly
 better than the same treatment bought by hand. The fertilizer habit is the
 expensive one, at `ITEM_PRICES.fertilizer` per block per `FERTILIZER_DAYS`.
 
+**Fruit does not wait on the tree.** Each slot's standing bunches are capped
+at `HARVEST.overripeCapRounds` rounds' worth of its own yield curve, and the
+harvest system trims anything above it every tick: past that the fruit rots
+rather than accrues. A stand at the cap is therefore losing what it grows, so
+the block panel marks it, and it is also why fertilizer's bearing bonus
+(GDD 3.5) is collected only by picking.
+
 ## GDD 3.4: pests
 
 Two pests, two tempos (`src/sim/balance/pests.ts`, `src/sim/systems/pest.ts`).
@@ -574,13 +581,6 @@ lasts (`COVER_CROP.days`, three years), multiplies landslide chance by
 `LANDSLIDE.coverCropFactor` (0.5). It never replaces real forest cover; it
 only ever halves the number forest cover is already shrinking.
 
-**ExcavateBlock** clears a landslide scar outright: one `excavationCrew`
-(Rp 14,000,000) and `EXCAVATION.crewSize` (4) diggers on the block for
-`EXCAVATION.days` (6), after which the spoil, the scar and the debris are
-all gone and the hectare is ground again rather than waiting out the rot.
-The alternative, free but slow, is to leave the spoil and simply plant
-through it once nature clears the debris on its own schedule (GDD 3.1),
-which takes seasons rather than days.
 **A buried hectare takes nothing but the digger.** While `landslideAt` is
 set, `Sim.validate` refuses every command that names the block except
 `ExcavateBlock`, with one reason on all of them: spoil is not ground you can
@@ -588,6 +588,14 @@ plant, burn, sanitize, irrigate or sow a cover crop on, and offering those
 while the slide sits there invited the player to spend on work that could not
 land. The check is central rather than repeated in each handler, so a command
 added later cannot quietly work on a block that is under a metre of hillside.
+
+**ExcavateBlock** clears a landslide scar outright: one `excavationCrew`
+(Rp 14,000,000) and `EXCAVATION.crewSize` (4) diggers on the block for
+`EXCAVATION.days` (6), after which the spoil, the scar and the debris are
+all gone and the hectare is ground again rather than waiting out the rot.
+The alternative, free but slow, is to leave the spoil and simply plant
+through it once nature clears the debris on its own schedule (GDD 3.1),
+which takes seasons rather than days.
 
 ## GDD 3.7: news, the macro deck, and what a headline may do
 

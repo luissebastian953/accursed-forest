@@ -14,6 +14,7 @@ import { SLOTS_PER_BLOCK } from '@sim/balance/world.ts';
 import { createSim, type Sim } from '@sim/index.ts';
 import { distanceToKopdes, inKopdesRange, kopdesRange } from '@sim/kopdes.ts';
 import { isBearing, slotStage } from '@sim/palms.ts';
+import { harvestCapKg, harvestableKg } from '@sim/systems/harvest.ts';
 import { tbsMeanFactor } from '@sim/systems/society.ts';
 import type { BlockId } from '@sim/types.ts';
 
@@ -421,6 +422,32 @@ describe('fertilizer (GDD 3.5)', () => {
     // never buy a fifth more on its own; the surplus is the bearing bonus.
     expect(unfed).toBeGreaterThan(0);
     expect(fed).toBeGreaterThan(unfed * 1.3);
+  });
+});
+
+describe('fruit on the tree (GDD 3.3)', () => {
+  it('stops accruing at the cap, which is what the panel calls MAX', () => {
+    const { sim, block } = plantedEstate();
+    const bearing = (): boolean =>
+      isBearing(slotStage(sim.state.palms.get(block)!, 0, 'palm', sim.state.tick));
+
+    tickUntil(sim, bearing, 20_000);
+    expect(bearing()).toBe(true);
+
+    const palms = sim.state.palms.get(block)!;
+
+    expect(harvestableKg(palms, 'palm', sim.state.tick)).toBeLessThan(
+      harvestCapKg(palms, 'palm', sim.state.tick),
+    );
+
+    // Left standing long past a round, every slot is trimmed back to its cap.
+    palms.yieldAcc.fill(1e6);
+    sim.tick();
+
+    const cap = harvestCapKg(palms, 'palm', sim.state.tick);
+
+    expect(cap).toBeGreaterThan(0);
+    expect(harvestableKg(palms, 'palm', sim.state.tick)).toBeCloseTo(cap, 3);
   });
 });
 

@@ -132,6 +132,8 @@
   "forestStage_dead": "dead",
   "growthDays": "{mean} / {next} growth-days",
   "onTrees": "On the trees:",
+  "onTreesFull": "MAX",
+  "onTreesFullNote": "The trees are carrying all they can; anything more rots before you pick it.",
   "ripeNow": "RIPE NOW",
   "nextRound": "next round in {n} d",
   "pests": "Pests",

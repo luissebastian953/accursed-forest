@@ -171,7 +171,17 @@
                   class="mt-1.5 flex items-center justify-between text-sm font-extrabold"
                   data-testid="harvest-info"
                 >
-                  <span>{t('block.onTrees')} <span class="num">{v.palms.bearing.kg}</span></span>
+                  <span class="flex items-center gap-1.5">
+                    {t('block.onTrees')} <span class="num">{v.palms.bearing.kg}</span>
+                    {#if v.palms.bearing.full}
+                      <span
+                        class="chip chip-pest !px-2 !py-0.5 !text-[0.68rem]"
+                        title={t('block.onTreesFullNote')}
+                      >
+                        {t('block.onTreesFull')}
+                      </span>
+                    {/if}
+                  </span>
                   <span class={v.palms.bearing.ripe ? 'text-[#c94a30]' : 'muted'}
                     >{v.palms.bearing.note}</span
                   >

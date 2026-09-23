@@ -205,6 +205,10 @@ text already localized, so a language switch re-derives it too.
 
 ## `src/ui/svelte/disclaimer/DisclaimerModal.svelte`
 
+- `bearing.full`: the fruit tile gains a MAX chip once the block is at
+  `harvestCapKg()`. Standing bunches stop accruing there and start rotting, so
+  the chip is a prompt to pick rather than a reward for waiting.
+
 The legal gate a first visit passes through (GDD 8 panel 0): a yellow warning
 band with the `police-warning` icon, then the lead and three cards saying
 that the estate and its officials are invented, that nothing here is advice,
