@@ -19,6 +19,29 @@
   });
 </script>
 
+{#snippet landButton(action: ActionView)}
+  <div>
+    <button
+      class="btn w-full justify-between !border-2 !border-[#b9d3f5] !bg-none !bg-[#eaf2fd] !text-[var(--ink)] !shadow-[0_3px_0_#b9d3f5] disabled:!border-[#e2d2a8] disabled:!bg-[var(--pill-muted)] disabled:!text-[var(--ink-3)] disabled:!shadow-[0_3px_0_#e2d2a8]"
+      disabled={action.rejection !== null}
+      title={action.rejection ?? ''}
+      data-testid={action.testId}
+      onclick={() => panel.act(action.command)}
+    >
+      <span class="flex items-center gap-2">
+        {#if action.icon}<Icon name={action.icon} />{/if}{action.label}
+      </span>
+      {#if action.cost !== undefined}
+        <span class="num rounded-lg bg-white/70 px-1.5 py-0.5 text-xs">{formatRp(action.cost)}</span
+        >
+      {/if}
+    </button>
+    {#if action.rejection}
+      <div class="mt-0.5 px-1 text-xs font-bold text-[#b85e12]">{action.rejection}</div>
+    {/if}
+  </div>
+{/snippet}
+
 {#snippet actionButton(action: ActionView)}
   <div>
     <button
@@ -113,6 +136,16 @@
               </div>
             {/each}
           </div>
+
+          <!-- The water and ground work reads with the tiles it answers to,
+               not after the pests at the foot of the panel. -->
+          {#if v.minor.length > 0}
+            <div class="flex flex-col gap-1.5" data-testid="land-work">
+              {#each v.minor as action (action.testId)}
+                {@render landButton(action)}
+              {/each}
+            </div>
+          {/if}
 
           {#if v.kopdes}
             <div class="pill mb-3 text-xs">
@@ -213,8 +246,8 @@
               {#if p.windows}<div class="mt-0.5 opacity-70">{p.windows}</div>{/if}
               {#if p.breeding}<div class="mt-0.5 text-amber-200/90">{t('block.breeding')}</div>{/if}
 
-              <!-- Three across: the six treatments sit as two even rows. -->
-              <div class="mt-2 grid grid-cols-3 gap-1.5">
+              <!-- Two across: at three, a name as long as Metarhizium wrapped. -->
+              <div class="mt-2 grid grid-cols-2 gap-1.5">
                 {#each p.treatments as action (action.testId)}
                   {@render actionButton(action)}
                 {/each}
@@ -223,10 +256,10 @@
               {#if p.grid}
                 <div class="mt-2">
                   <div class="label mb-1">{t('block.bySlot')}</div>
-                  <div class="grid grid-cols-12 gap-[3px]" data-testid="slot-grid">
+                  <div class="grid grid-cols-12 gap-1" data-testid="slot-grid">
                     {#each p.grid.cells as cell (cell.slot)}
                       <button
-                        class="flex h-4 w-4 items-center justify-center rounded-[3px] {cell.cls} {cell.sick
+                        class="flex aspect-square w-full items-center justify-center rounded-[5px] {cell.cls} {cell.sick
                           ? 'slot-alert'
                           : ''}"
                         title={cell.title}
@@ -317,14 +350,6 @@
                 {b.preview}
                 {#if b.wildfire}<span class="text-[#9e2e20]"> {t('block.wildfireJoins')}</span>{/if}
               </div>
-            </div>
-          {/if}
-
-          {#if v.minor.length > 0}
-            <div class="flex flex-wrap gap-1.5">
-              {#each v.minor as action (action.testId)}
-                {@render actionButton(action)}
-              {/each}
             </div>
           {/if}
         </div>

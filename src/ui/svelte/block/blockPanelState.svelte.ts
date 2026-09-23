@@ -541,7 +541,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
             block.coverCropUntil > state.tick ? t('block.coverCropDone') : t('block.coverCrop'),
             { type: 'CoverCropBlock', block: id },
             'action-CoverCropBlock',
-            { cost: COVER_CROP.cost, minor: true },
+            { cost: COVER_CROP.cost, icon: 'forest-cover', minor: true },
           ),
         );
       }
@@ -554,6 +554,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
             'action-IrrigateBlock',
             {
               cost: IRRIGATION_COST,
+              icon: 'water-irrigate',
               minor: true,
             },
           ),
@@ -564,6 +565,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
         actions.push(
           action(t('block.drain'), { type: 'DrainBlock', block: id }, 'action-DrainBlock', {
             cost: DRAINAGE_COST,
+            icon: 'rain',
             minor: true,
           }),
         );
