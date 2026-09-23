@@ -2,13 +2,14 @@
   "badge": "Harap dibaca dahulu",
   "title": "Ini karya fiksi",
   "lead": "Sawit Simulator adalah permainan. Kebun, kabupaten, koperasi dan semua pejabat di dalamnya adalah rekaan.",
-  "point1Title": "Tidak ada tokoh nyata di sini",
+  "point1Title": "Tidak ada tokoh nyata di sini.",
   "point1": "Semua nama, jabatan, lembaga dan perusahaan dalam permainan ini dibuat untuk permainan. Kemiripan dengan orang, perusahaan atau badan publik yang nyata adalah kebetulan, dan tidak ada isinya yang merupakan pernyataan tentang mereka.",
-  "point2Title": "Ini bukan nasihat",
+  "point2Title": "Ini bukan nasihat.",
   "point2": "Tidak ada bagian permainan ini yang menjadi nasihat pertanian, hukum, keuangan atau politik. Angkanya disusun agar permainan berjalan, bukan untuk menggambarkan kebun, pasar atau aturan yang sebenarnya.",
-  "point3Title": "Membuka lahan itu pilihan, bukan anjuran",
+  "point3Title": "Membuka lahan itu pilihan, bukan anjuran.",
   "point3": "Permainan ini mengizinkan Anda menebang dan membakar justru karena yang dibicarakan adalah harga dari pilihan itu. Keduanya bukan anjuran.",
-  "accept": "Saya mengerti",
+  "dontShow": "Jangan tampilkan lagi",
+  "accept": "Saya mengerti, ayo main",
   "marquee": "Ini permainan tentang kebun kelapa sawit. Hutan sungguhan tidak tumbuh kembali dalam hitungan hari. Dukung reboisasi: tanam kembali lebih banyak daripada yang Anda buka.",
   "marqueeOpen": "Baca penafian"
 }

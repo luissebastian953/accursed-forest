@@ -21,7 +21,7 @@ export function disclaimerAccepted(): boolean {
 }
 
 export class DisclaimerModal {
-  readonly ui = $state<{ open: boolean }>({ open: false });
+  readonly ui = $state<{ open: boolean; hushed: boolean }>({ open: false, hushed: false });
   private readonly target: HTMLElement;
   private readonly instance: ReturnType<Component>;
 
@@ -42,14 +42,21 @@ export class DisclaimerModal {
     this.ui.open = true;
   }
 
-  /** Close it and remember, so the gate is passed once per browser, not once per visit. */
+  /** Tick the box, and the gate is passed once per browser rather than per visit. */
+  hush(on: boolean): void {
+    this.ui.hushed = on;
+  }
+
+  /** Unticked, the acknowledgement lasts this visit only: the gate comes back. */
   accept(): void {
     this.ui.open = false;
 
-    try {
-      localStorage.setItem(STORAGE_KEY, VERSION);
-    } catch {
-      // Session only, then.
+    if (this.ui.hushed) {
+      try {
+        localStorage.setItem(STORAGE_KEY, VERSION);
+      } catch {
+        // Session only, then.
+      }
     }
 
     this.handlers.accept();

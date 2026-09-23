@@ -134,5 +134,23 @@ test.describe('landing page', () => {
     await expect(page.getByTestId('disclaimer-modal')).toHaveCount(0);
     await expect(page.getByTestId('start-screen')).toHaveCount(0, { timeout: 5_000 * SLOW });
     await expect(page.getByTestId('hud-date')).toContainText('Year 1');
+    // The box was left unticked, so the gate was passed for this visit only.
+    expect(await page.evaluate(() => localStorage.getItem('sawit:disclaimer'))).toBeNull();
+  });
+
+  test('the disclaimer only stops asking once the box is ticked', async ({ page }) => {
+    await page.goto('/play.html?webgl');
+    await expect(page.getByTestId('start-screen')).toBeVisible({ timeout: 30_000 * SLOW });
+    await page.getByTestId('start-game').click();
+    await page.getByTestId('disclaimer-hush').check();
+    await page.getByTestId('disclaimer-accept').click();
+    await expect(page.getByTestId('disclaimer-modal')).toHaveCount(0);
+    expect(await page.evaluate(() => localStorage.getItem('sawit:disclaimer'))).toBe('1');
+
+    await page.reload();
+    await expect(page.getByTestId('start-screen')).toBeVisible({ timeout: 30_000 * SLOW });
+    // A run was started above, so the second visit may be offered as Continue.
+    await page.getByTestId('start-continue').or(page.getByTestId('start-game')).first().click();
+    await expect(page.getByTestId('disclaimer-modal')).toHaveCount(0);
   });
 });
