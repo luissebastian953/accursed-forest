@@ -136,6 +136,13 @@ The Kopdes crew's picking rounds, on or off, with the surcharge spelled out on
 the button (`HARVEST.autoSurchargePerRound`). It appears on the Kopdes block
 and on any planted block in range, because that is where the question comes up.
 
+### Notes
+
+- Running, it is red and carries a cross. A toggle that went green while it
+  was on read as a state rather than as a button, and the only thing pressing
+  it can do at that point is stop the crew, so it wears the colour and the
+  mark of what it would do. `data-on` carries the state for the suite.
+
 ## `src/ui/svelte/block/BlockPanel.svelte`
 
 The block panel's markup (GDD 8 panel 9): the tiles, the pest section, the
@@ -197,6 +204,9 @@ text already localized, so a language switch re-derives it too.
   identically greyed buttons with the same tooltip say that three times and
   badly. The note carries it once above the group, and the buttons keep the
   sim's own rejection underneath as every other action does.
+- `bearing.full`: the fruit tile gains a MAX chip once the block is at
+  `harvestCapKg()`. Standing bunches stop accruing there and start rotting, so
+  the chip is a prompt to pick rather than a reward for waiting.
 - `coverCombo()`: an established cover crop under a reforesting block is
   the strongest thing a player can do to a slope (GDD 3.6.2), worth about
   six times bare planted ground before the growing forest starts pulling
@@ -204,10 +214,6 @@ text already localized, so a language switch re-derives it too.
   now either names the combination as the fix or confirms it is in place.
 
 ## `src/ui/svelte/disclaimer/DisclaimerModal.svelte`
-
-- `bearing.full`: the fruit tile gains a MAX chip once the block is at
-  `harvestCapKg()`. Standing bunches stop accruing there and start rotting, so
-  the chip is a prompt to pick rather than a reward for waiting.
 
 The legal gate a first visit passes through (GDD 8 panel 0): a yellow warning
 band with the `police-warning` icon, then the lead and three cards saying
