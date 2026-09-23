@@ -598,6 +598,25 @@ nobody who says either is the one who pays.
 
 **Consequences the deck never deals.** `ecology()` (`src/sim/systems/society.ts`)
 starts four headlines directly from what the estate and the province have
+**Copy is what makes a headline dealable.** `drawable()` asks `hasHeadline()`
+before anything else, so a headline commented out of the news files leaves the
+deck entirely and takes its levers with it. Retiring one is a single edit:
+comment the template out of `economic.ts`, `government.ts`, `natural.ts` or
+`statements.ts` and nothing else needs touching, not the deck entry, not the
+chip labels, not a test. Writing one back in is the same edit in reverse.
+
+That rule exists because the alternative is worse than a missing headline. A
+deck entry carries levers, and an entry whose words were deleted while its
+entry remained went on moving land prices, wages and the authorities' patience
+for months with nothing anywhere to explain why: the bar showed a chip, the
+shop got dearer, and the feed said nothing. Silence is the one thing the deck
+must never do, because the whole point of it is that the country is legible.
+
+`endings.ts` is the exception and is not free to comment out: those headlines
+are named in code by the endings and the authority, and a missing one is a
+bug rather than a retirement. `tests/tools/newsKeys.test.ts` holds that line,
+and also catches a key the code names that no file spells.
+
 actually set alight, never from the shuffle: `hazeSeason` (yield ×0.9) once
 three or more of the estate's own blocks are burning at once; `animalsGone`
 (wildlife quiet) once six or more blocks carry an ash window; `onTheBrink`

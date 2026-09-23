@@ -136,7 +136,11 @@ since the last one, whose events wait in the same sink.
   consequences answer to the player rather than the shuffle, so a `triggered`
   headline is never dealt; once means once; a sequel waits for its first part;
   and the headlines that leave a permanent mark hold off until the estate is
-  standing.
+  standing. Before any of that it asks `hasHeadline()`: a headline commented
+  out of the news files leaves the deck and takes its levers with it, so
+  retiring copy is one edit rather than a hunt through the deck, the chip
+  labels and the suite (GDD 3.7). Weights are relative, so the rest of the
+  deck closes the gap on its own.
 - `startMacro()`: puts a headline on the wire: its permanent mark, its
   duration, and whatever it does the moment it lands. The deck draws most of
   them; the ones that answer to what the player has done are started from

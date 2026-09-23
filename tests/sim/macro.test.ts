@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { BIOMES } from '@sim/balance/biomes.ts';
 import { GROWTH } from '@sim/balance/growth.ts';
-import { NEWS_TEMPLATES } from '@sim/balance/news/index.ts';
+import { NEWS_TEMPLATES, hasHeadline, macroNewsKey } from '@sim/balance/news/index.ts';
 import { MACRO_EVENTS, MACRO_PREFIX, type MacroEventId } from '@sim/balance/society.ts';
 import { landPrice } from '@sim/commands/buyBlock.ts';
 import { itemPrice } from '@sim/commands/buyItem.ts';
@@ -25,6 +25,8 @@ import { drawable } from '@sim/systems/society.ts';
 import { lookup } from '../../src/i18n/catalog.ts';
 
 const IDS = Object.keys(MACRO_EVENTS) as MacroEventId[];
+/** The ones that still have copy, which is the only kind the deck deals. */
+const PRINTABLE = IDS.filter((id) => hasHeadline(id));
 
 /** Put one headline on the wire, as the draw would. */
 function run(sim: Sim, id: MacroEventId, days = 60): void {
@@ -69,17 +71,38 @@ describe('the headline deck (GDD 3.7)', () => {
   it('the sequel waits for its first part, and once means once', () => {
     const sim = createSim(1);
 
-    // Mulyonows has to reach Osaka before he can fall through it.
-    expect(drawable(sim.state, 'endlessCastle')).toBe(false);
-    sim.state.society.macroSeen.push('osakaCulvert');
-    expect(drawable(sim.state, 'endlessCastle')).toBe(true);
-    sim.state.society.macroSeen.push('endlessCastle');
-    expect(drawable(sim.state, 'endlessCastle')).toBe(false);
+    // Examples are found, not named: commenting a headline out retires it
+    // here too, rather than failing the suite.
+    const sequel = PRINTABLE.find((id) => {
+      const after = (MACRO_EVENTS[id] as { after?: MacroEventId }).after;
+
+      return after !== undefined && hasHeadline(after);
+    });
+
+    if (sequel) {
+      const after = (MACRO_EVENTS[sequel] as { after: MacroEventId }).after;
+
+      expect(drawable(sim.state, sequel), sequel).toBe(false);
+      sim.state.society.macroSeen.push(after);
+      expect(drawable(sim.state, sequel), sequel).toBe(true);
+
+      if ((MACRO_EVENTS[sequel] as { once?: boolean }).once) {
+        sim.state.society.macroSeen.push(sequel);
+        expect(drawable(sim.state, sequel), sequel).toBe(false);
+      }
+    }
 
     // The permanent ones wait for the estate to find its feet.
-    expect(drawable(sim.state, 'integrityLeaves')).toBe(false);
-    sim.state.tick = GROWTH.daysPerYear * 3;
-    expect(drawable(sim.state, 'integrityLeaves')).toBe(true);
+    const permanent = PRINTABLE.find((id) => (MACRO_EVENTS[id] as { fromYear?: number }).fromYear);
+
+    if (permanent) {
+      const from = (MACRO_EVENTS[permanent] as { fromYear: number }).fromYear;
+
+      sim.state.tick = 0;
+      expect(drawable(sim.state, permanent), permanent).toBe(false);
+      sim.state.tick = GROWTH.daysPerYear * (from - 1);
+      expect(drawable(sim.state, permanent), permanent).toBe(true);
+    }
 
     // And the consequences are never dealt at random.
     for (const id of IDS) {
@@ -89,13 +112,33 @@ describe('the headline deck (GDD 3.7)', () => {
     }
   });
 
-  it('every headline has something to say', () => {
-    for (const id of IDS) {
-      const template = NEWS_TEMPLATES[`macro.${id}`];
+  it('deals only what it can print, so commenting a headline out retires it', () => {
+    const sim = createSim(42);
 
-      expect(template, `macro.${id} has no template`).toBeDefined();
-      expect(template!.titles.length).toBeGreaterThan(0);
-      expect(template!.bodies.length).toBeGreaterThan(0);
+    sim.state.tick = GROWTH.daysPerYear * 6;
+
+    for (const id of IDS) {
+      const template = NEWS_TEMPLATES[macroNewsKey(id)];
+
+      if (!template) {
+        // Commented out of the news files: its levers go with its words.
+        expect(drawable(sim.state, id), `${id} has no copy but is still dealt`).toBe(false);
+        continue;
+      }
+
+      expect(template.titles.length, id).toBeGreaterThan(0);
+      expect(template.bodies.length, id).toBeGreaterThan(0);
+    }
+  });
+
+  it('keeps a deck worth drawing from, however much is commented out', () => {
+    expect(PRINTABLE.length, 'the deck has been emptied').toBeGreaterThanOrEqual(8);
+  });
+
+  it('carries no headline copy the deck can never deal', () => {
+    for (const key of Object.keys(NEWS_TEMPLATES)) {
+      if (!key.startsWith('macro.')) continue;
+      expect(IDS as string[], `${key} has no deck entry`).toContain(key.slice('macro.'.length));
     }
   });
 
@@ -232,7 +275,7 @@ describe('the headline deck (GDD 3.7)', () => {
 
 describe('the bar chips (GDD 8)', () => {
   it('every headline that runs for days has a label in both languages', () => {
-    for (const key of IDS) {
+    for (const key of PRINTABLE) {
       const spec = MACRO_EVENTS[key] as { days?: unknown };
 
       // Only the timed ones put a chip on the bar; the permanent ones are a

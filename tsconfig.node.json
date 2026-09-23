@@ -34,6 +34,7 @@
     "playwright.config.ts",
     "tools",
     "e2e",
-    "tests/tools/comments.test.ts"
+    "tests/tools/comments.test.ts",
+    "tests/tools/newsKeys.test.ts"
   ]
 }

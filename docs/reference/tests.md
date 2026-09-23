@@ -302,6 +302,26 @@ than by review. It counts a comment's text lines, ignoring the delimiters, and
 fails with the file and line of anything longer. The detail that does not fit in
 two lines belongs in this reference, under the file's `### Notes`.
 
+### Notes
+
+- `COPY`: the four news files are exempt. Retiring a headline means commenting
+  its template out (GDD 3.7), and a retired template is a thirty-line comment
+  by the letter of the rule. The rule is about prose that should have been a
+  reference entry, not about copy left on the shelf.
+
+## `tests/tools/newsKeys.test.ts`
+
+The two halves of the news contract (GDD 3.7), checked against the source
+rather than a list that would go stale.
+
+A headline the code names by hand must either be printed or be deliberately
+retired, which means a commented-out entry in one of the four free news files.
+That catches a mistyped key, or copy deleted outright instead of commented,
+while leaving a developer free to retire any headline they like. The second
+half is that `endings.ts` carries no commented-out entries at all: those
+headlines are named by the endings and the authority, so a missing one is a
+bug and not a retirement.
+
 ## `tests/tools/seo.test.ts`
 
 The crawl files: that the sitemap lists exactly the indexable pages and never

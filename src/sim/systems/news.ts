@@ -1,5 +1,11 @@
 import { GROWTH } from '../balance/growth.ts';
-import { NEWS, NEWS_TEMPLATES, regionName, type NewsTemplate } from '../balance/news/index.ts';
+import {
+  NEWS,
+  NEWS_TEMPLATES,
+  macroNewsKey,
+  regionName,
+  type NewsTemplate,
+} from '../balance/news/index.ts';
 import { MACRO } from '../balance/society.ts';
 import { blockLabel } from '../labels.ts';
 import { forestCoverAround } from '../landscape.ts';
@@ -186,7 +192,7 @@ export function newsSystem(ctx: SimContext): void {
         if (state.weather.regime !== 'normal') add(`regime.${state.weather.regime}`);
         break;
       case 'MacroEventStarted':
-        add(`macro.${event.id}`, {
+        add(macroNewsKey(event.id), {
           days: event.days,
           pct: `${(1 + ((MACRO.events as Record<string, { inputRise?: number }>)[event.id]?.inputRise ?? 0)).toFixed(2)}`,
         });

@@ -13,6 +13,19 @@ export const NEWS_TEMPLATES: Record<string, NewsTemplate> = {
   ...ENDINGS,
 };
 
+/** The template key a deck headline is published under (GDD 3.7). */
+export function macroNewsKey(id: string): string {
+  return `macro.${id}`;
+}
+
+/**
+ * Whether a deck headline still has copy in the news files. Commenting one
+ * out is how a headline is retired, so the deck asks before it deals.
+ */
+export function hasHeadline(id: string): boolean {
+  return NEWS_TEMPLATES[macroNewsKey(id)] !== undefined;
+}
+
 export const NEWS = {
   /** The feed keeps this many items; older ones fall off (GDD 3.7). */
   cap: 200,

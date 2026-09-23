@@ -2,6 +2,7 @@ import { clamp } from '@shared/math';
 
 import { OPERATING_BAN } from '../balance/endings.ts';
 import { GROWTH } from '../balance/growth.ts';
+import { hasHeadline } from '../balance/news/index.ts';
 import {
   ATTENTION,
   AUTHORITY,
@@ -91,6 +92,9 @@ export function drawable(state: SimState, id: MacroEventId): boolean {
   const seen = new Set(state.society.macroSeen);
   const year = Math.floor(state.tick / GROWTH.daysPerYear) + 1;
 
+  // Copy is what makes a headline dealable: commenting one out of the news
+  // files takes its levers off the table with it, rather than in silence.
+  if (!hasHeadline(id)) return false;
   if (spec.triggered) return false;
   if (spec.days && activeEvent(state, MACRO_PREFIX + id)) return false;
   if (spec.inputRise && state.economy.inputPriceIndex >= MACRO.maxInputIndex) return false;

@@ -6,6 +6,11 @@ import { describe, expect, it } from 'vitest';
 const CODE = /\.(ts|svelte|css|js|mjs|cjs|html)$/;
 const HASH = /(\.ya?ml|\.sh|\.env\.example|\.gitignore|\.npmrc|\.prettierignore)$/;
 const DELIMITERS = new Set(['/**', '/*', '*/', '<!--', '-->']);
+/**
+ * The news files are copy, not code, and a headline is retired by
+ * commenting it out (GDD 3.7), which is a block comment by any other name.
+ */
+const COPY = /^src\/sim\/balance\/news\/(economic|government|natural|statements)\.ts$/;
 
 /** Every comment in `text` longer than two text lines, as `line (n lines)`. */
 function longComments(text: string, hashComments: boolean): string[] {
@@ -53,7 +58,9 @@ function trackedFiles(): string[] {
 
   return listed
     .split('\n')
-    .filter((f) => f && !f.startsWith('public/') && (CODE.test(f) || HASH.test(f)));
+    .filter(
+      (f) => f && !f.startsWith('public/') && !COPY.test(f) && (CODE.test(f) || HASH.test(f)),
+    );
 }
 
 describe('comments (CLAUDE.md, Writing)', () => {
