@@ -38,6 +38,8 @@ export function createInitialState(world: World, name = ''): SimState {
       tbsPriceHistory: [ECONOMY.startingTbsPrice],
       tbsPending: 0,
       soldKgTotal: 0,
+      soldKgYear: 0,
+      soldRpYear: 0,
     },
     inventory: {
       bibit: 0,

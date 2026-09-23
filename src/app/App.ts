@@ -433,6 +433,10 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       if (blocks) hazardRing.show(blocks, sim.state, sim.world);
       else hazardRing.hide();
     },
+    focus: (block) => {
+      select(block);
+      focusBlock(block);
+    },
   });
 
   // ── News and the authorities ────────────────────────────────────────────

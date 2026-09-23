@@ -22,7 +22,7 @@ export const KEY_PREFIX = 'accursed-forest';
  * Bump on any breaking change to the save shape; add a migration alongside.
  * What each schema brought is listed in docs/reference/persistence.md.
  */
-export const CURRENT_SCHEMA = 18;
+export const CURRENT_SCHEMA = 19;
 
 export type SaveErrorCode = 'missing' | 'corrupt' | 'newerSchema' | 'quota';
 
@@ -187,6 +187,8 @@ const EconomySchema = z.object({
   tbsPriceHistory: z.array(z.number()),
   tbsPending: z.number(),
   soldKgTotal: z.number(),
+  soldKgYear: z.number(),
+  soldRpYear: z.number(),
 });
 
 const RunStatsSchema = z.object({
@@ -464,6 +466,8 @@ export function serializeState(
         tbsPriceHistory: [...state.economy.tbsPriceHistory],
         tbsPending: state.economy.tbsPending,
         soldKgTotal: state.economy.soldKgTotal,
+        soldKgYear: state.economy.soldKgYear,
+        soldRpYear: state.economy.soldRpYear,
       },
       weather: {
         ...state.weather,
@@ -626,6 +630,8 @@ export function deserializeState(manifestJson: unknown, chunkJsons: Iterable<unk
       tbsPriceHistory: [...h.economy.tbsPriceHistory],
       tbsPending: h.economy.tbsPending,
       soldKgTotal: h.economy.soldKgTotal,
+      soldKgYear: h.economy.soldKgYear,
+      soldRpYear: h.economy.soldRpYear,
     },
     inventory: { ...h.inventory },
     weather: { ...h.weather, activeEvents: h.weather.activeEvents.map(decodeActiveEvent) },

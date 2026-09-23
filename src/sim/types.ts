@@ -192,6 +192,9 @@ export interface Economy {
   tbsPending: number;
   /** Lifetime kilograms sold. */
   soldKgTotal: number;
+  /** Kilograms and rupiah sold since the year turned; the Kopdes panel reads them. */
+  soldKgYear: number;
+  soldRpYear: number;
 }
 
 export type ItemId =

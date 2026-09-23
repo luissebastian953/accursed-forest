@@ -16,6 +16,13 @@
   const SLOT_COLUMNS = 12;
   const HARVEST_ID = 'action-HarvestBlock';
 
+  const LAND_SWATCH: Record<string, string> = {
+    bearing: '#3faa4c',
+    immature: '#a7d178',
+    forest: '#2f6b2e',
+    bare: '#a8875a',
+  };
+
   const { panel }: Props = $props();
   const ui = $derived(panel.ui);
 
@@ -99,7 +106,20 @@
           <div>
             <div class="label">{t('block.block', { x: v.x, y: v.y })}</div>
             <div class="text-xl font-extrabold leading-tight">{v.title}</div>
-            <div class="label" data-testid="block-phase">{v.phase}</div>
+            {#if v.kopdes}
+              <div class="mt-0.5 flex flex-wrap items-center gap-2">
+                <span class="chip chip-moss" data-testid="kopdes-level">
+                  {t('block.level', { n: v.kopdes.level })}{v.kopdes.atMax
+                    ? `, ${t('block.kopMax')}`
+                    : ''}
+                </span>
+                <span class="muted text-xs font-bold">
+                  {t('block.kopRange', { n: v.kopdes.range })}
+                </span>
+              </div>
+            {:else}
+              <div class="label" data-testid="block-phase">{v.phase}</div>
+            {/if}
           </div>
         </div>
         <button
@@ -120,7 +140,7 @@
         inert={v.busy}
       >
         <div class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
-          <div class="grid grid-cols-2 gap-2">
+          <div class="grid gap-2 {v.kopdes ? 'grid-cols-3' : 'grid-cols-2'}">
             {#each v.tiles as tile (tile.label)}
               <div class="pill">
                 <div class="label">{tile.label}</div>
@@ -155,22 +175,128 @@
           {/if}
 
           {#if v.kopdes}
-            <div class="pill mb-3 text-xs">
-              <div class="flex items-baseline justify-between">
-                <span class="font-extrabold">{t('block.level', { n: v.kopdes.level })}</span>
-                <span class="muted">{t('block.sellsWithin', { n: v.kopdes.range })}</span>
-              </div>
+            {@const k = v.kopdes}
+            <div class="flex flex-col gap-3 text-xs" data-testid="kopdes-report">
               <button
-                class="btn btn-ghost mt-2 w-full justify-between"
+                class="btn btn-lg w-full justify-between btn-coral"
                 data-testid="action-OpenShop"
                 onclick={() => panel.handlers.openShop()}
               >
-                {t('block.openShop')}
+                <span class="flex items-center gap-2">
+                  <Icon name="kopdes" />{t('block.openShop')}
+                </span>
+                <span class="num rounded-lg bg-black/15 px-1.5 py-0.5 text-xs">
+                  {t('block.kopItems', { n: k.shopItems })}
+                </span>
               </button>
-              {#if v.autoHarvest}
-                {@const auto = v.autoHarvest}
-                <AutoHarvestToggle on={auto.on} toggle={() => panel.act(auto.command)} />
+
+              <!-- What this Kopdes is worth to you: today's price, and the year. -->
+              <div class="kop-price">
+                <Icon name="tbs-fruit" class="h-6 w-6" />
+                <div class="flex min-w-0 flex-1 items-end justify-between gap-2">
+                  <div>
+                    <div class="label">{t('block.kopPriceToday')}</div>
+                    <div class="font-extrabold" data-testid="kopdes-price">
+                      <span class="num">{k.price}</span><span class="muted text-[0.7rem]"
+                        >{t('block.kopPerKg')}</span
+                      >
+                      <span class={k.trend === 'down' ? 'text-[#c94a30]' : 'text-[#3f8a34]'}>
+                        {k.trend === 'flat' ? '' : k.trend === 'up' ? '▲' : '▼'}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <div class="label">{t('block.kopSoldYear')}</div>
+                    <div class="num font-extrabold" data-testid="kopdes-sold">
+                      {k.soldKg}, {k.soldRp}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div class="mb-1 flex items-baseline justify-between">
+                  <span class="label">{t('block.kopInRange', { n: k.blocksInRange })}</span>
+                  <span class="muted">{t('block.kopYours', { n: k.yours })}</span>
+                </div>
+                <div class="grid grid-cols-2 gap-1.5">
+                  {#each k.land as plot (plot.key)}
+                    <div class="kop-stat">
+                      <span class="kop-swatch" style="--swatch: {LAND_SWATCH[plot.key]}"></span>
+                      <span class="min-w-0">
+                        <span class="label block leading-none"
+                          >{t(`block.kopLand_${plot.key}`)}</span
+                        >
+                        <span class="num font-extrabold"
+                          >{t('block.kopHa', { n: plot.hectares })}</span
+                        >
+                      </span>
+                    </div>
+                  {/each}
+                </div>
+              </div>
+
+              {#if k.crew}
+                {@const c = k.crew}
+                <div class="pill" data-testid="kopdes-crew">
+                  <div class="flex items-baseline justify-between gap-2">
+                    <span class="flex items-center gap-1.5 font-extrabold">
+                      <Icon name="harvest-basket" />{t('block.kopCrew')}
+                    </span>
+                    <span class="muted">{c.nextRound ?? ''}</span>
+                  </div>
+                  <div class="mt-1.5 flex items-center gap-2">
+                    <span class="gauge flex-1">
+                      <i style="width: {c.ofBlocks ? (c.onAuto / c.ofBlocks) * 100 : 0}%"></i>
+                    </span>
+                    <span class="num shrink-0 font-extrabold">
+                      {t('block.kopOnAuto', { on: c.onAuto, of: c.ofBlocks })}
+                    </span>
+                  </div>
+                  <div class="mt-1 flex items-baseline justify-between gap-2">
+                    <span class="num muted">
+                      {t('block.kopPerRound', { rp: formatRp(c.perRound) })}
+                    </span>
+                    {#if c.unpicked > 0}
+                      <span class="font-extrabold text-[#c94a30]">
+                        {t('block.kopUnpicked', { n: c.unpicked })}
+                      </span>
+                    {/if}
+                  </div>
+                </div>
               {/if}
+
+              <div>
+                <div class="label mb-1">{t('block.kopStock')}</div>
+                <div class="flex flex-wrap gap-1.5">
+                  {#each k.stock as item (item.item)}
+                    <span class="kop-stock" data-zero={item.count === 0 || undefined}>
+                      <Icon name={item.icon} />{item.label}
+                      <span class="num">{item.count}</span>
+                    </span>
+                  {/each}
+                </div>
+              </div>
+
+              {#if k.attention.length > 0}
+                <div class="kop-alert" data-testid="kopdes-attention">
+                  <div class="label mb-1.5 text-[#b0402c]">{t('block.kopAttention')}</div>
+                  <div class="flex flex-col gap-1.5">
+                    {#each k.attention as row (row.block)}
+                      <button
+                        class="kop-alert-row"
+                        data-testid={`kopdes-attention-${row.block}`}
+                        onclick={() => panel.handlers.focus(row.block)}
+                      >
+                        <Icon name={row.kind === 'beetle' ? 'beetle' : 'ganoderma-mushroom'} />
+                        <span class="min-w-0 flex-1 truncate">{row.label}</span>
+                        <Icon name="chevron-right" />
+                      </button>
+                    {/each}
+                  </div>
+                </div>
+              {/if}
+
               {#if v.settle}
                 {@const settle = v.settle}
                 <!--

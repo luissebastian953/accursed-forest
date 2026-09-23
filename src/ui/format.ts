@@ -19,6 +19,11 @@ export function formatKg(kilograms: number): string {
   return `${kilos.format(Math.round(kilograms))} kg`;
 }
 
+/** A year of fruit in tonnes, where kilograms would run to six digits. */
+export function formatTonnes(kilograms: number): string {
+  return t('format.tonnes', { n: (kilograms / 1000).toFixed(1) });
+}
+
 function calendar(tick: number): { year: number; day: number } {
   return {
     year: Math.floor(tick / GROWTH.daysPerYear) + 1,

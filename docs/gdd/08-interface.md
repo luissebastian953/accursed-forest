@@ -272,7 +272,7 @@ at an ordinary three-day wet streak, so the number reads stably).
 Below the tiles, whichever of these apply to the block appear as their own
 sections: a Kopdes card with `action-OpenShop`, the auto-harvest toggle
 (`toggle-auto-harvest`) and, only with something to settle, the coordination
-fee (`action-SettleInvestigation`, GDD 3.9); a stand card (`stand-card`, panel 17a) naming
+fee (`action-SettleInvestigation`, GDD 3.9); a Kopdes report (`kopdes-report`, panel 19a) on the Kopdes block; a stand card (`stand-card`, panel 17a) naming
 the stage the stand is mostly in, a three-segment progress bar, and either
 `growth-progress` or, once fruit is on the trees, `harvest-info` with
 `harvest-note`; a pest card

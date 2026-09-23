@@ -366,6 +366,8 @@ function closeYear(ctx: SimContext, year: number): void {
 
   run.profitTotal += profit;
   run.yearProfit = 0;
+  state.economy.soldKgYear = 0;
+  state.economy.soldRpYear = 0;
 
   const summary: YearSummary = {
     year,

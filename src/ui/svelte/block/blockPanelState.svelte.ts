@@ -14,7 +14,10 @@ import { GANODERMA, PEST_LABOUR, PLAGUE } from '@sim/balance/pests';
 import {
   CLEAR_PLANTATION,
   DRAINAGE_COST,
+  ECONOMY,
+  HARVEST,
   IRRIGATION_COST,
+  ITEM_PRICES,
   KOPDES_BUILD_COST,
 } from '@sim/balance/prices';
 import { isWetSeason } from '@sim/balance/seasons';
@@ -46,13 +49,15 @@ import type {
   DispatchResult,
   FireIntensity,
   GrowthStage,
+  ItemId,
   PalmArrays,
   SimState,
   Species,
 } from '@sim/types';
+import type { World } from '@sim/worldgen/index';
 
 import { t } from '../../../i18n/index.ts';
-import { formatKg, formatPercent, formatRp } from '../../format.ts';
+import { formatKg, formatPercent, formatRp, formatRpCompact, formatTonnes } from '../../format.ts';
 import type { IconName } from '../../icons.ts';
 import type { TipTone } from '../base/tooltip.ts';
 
@@ -64,6 +69,8 @@ export interface BlockPanelHandlers {
   openShop(): void;
   /** Hovering a Burn button previews which neighbours could catch (GDD 8 panel 22). */
   hoverBurn(blocks: BlockId[] | null): void;
+  /** Select another block and bring the camera to it, from the Kopdes list. */
+  focus(block: BlockId): void;
 }
 
 /** A button that issues a command, with the sim's reason when it is greyed out. */
@@ -113,7 +120,29 @@ export interface BlockView {
   title: string;
   phase: string;
   tiles: TileView[];
-  kopdes: { level: number; range: number } | null;
+  /** Everything this Kopdes serves, as a status report (GDD 8 panel 19a). */
+  kopdes: {
+    level: number;
+    range: number;
+    atMax: boolean;
+    shopItems: number;
+    price: string;
+    trend: 'up' | 'down' | 'flat';
+    soldKg: string;
+    soldRp: string;
+    blocksInRange: number;
+    yours: number;
+    land: { key: LandKind; hectares: number }[];
+    crew: {
+      onAuto: number;
+      ofBlocks: number;
+      nextRound: string | null;
+      perRound: number;
+      unpicked: number;
+    } | null;
+    stock: { item: ItemId; label: string; icon: IconName; count: number }[];
+    attention: { block: BlockId; kind: 'beetle' | 'ganoderma'; label: string }[];
+  } | null;
   palms: {
     heading: string;
     count: number;
@@ -409,6 +438,159 @@ function slopeLine(sim: Sim, id: BlockId): string {
   const now = isWetSeason(state.weather.dayOfYear) ? t('block.wetSeasonNow') : '';
 
   return t('block.slopeLine', { cover, risk, pct: Math.round(season * 100) }) + crop + now;
+}
+
+type LandKind = 'bearing' | 'immature' | 'forest' | 'bare';
+
+/** Beetles worth pinning: below this the block is not worth walking to. */
+const BEETLES_WORTH_A_LINE = 12;
+/** Longest the attention list gets before it stops being a list. */
+const ATTENTION_SHOWN = 4;
+
+const STOCK_ICON: Record<ItemId, IconName> = {
+  bibit: 'shop-bibit',
+  forestSapling: 'shop-sapling',
+  fertilizer: 'shop-fertilizer',
+  pheromoneTrap: 'shop-trap',
+  metarhizium: 'shop-metarhizium',
+  trichoderma: 'shop-trichoderma',
+  sanitationCrew: 'shop-sanitation',
+  excavationCrew: 'shop-excavator',
+};
+
+const STOCK_SHOWN: ItemId[] = ['bibit', 'fertilizer', 'pheromoneTrap', 'forestSapling'];
+
+/** Block ids inside the Kopdes diamond, water excluded: it serves no river. */
+function blocksInRange(state: SimState, world: World, level: number): BlockId[] {
+  const kopdes = state.kopdes;
+
+  if (!kopdes) return [];
+
+  const range = kopdesRange(level);
+  const [kx, ky] = world.toXY(kopdes.blockId);
+  const out: BlockId[] = [];
+
+  for (let dy = -range; dy <= range; dy++) {
+    for (let dx = -range; dx <= range; dx++) {
+      if (Math.abs(dx) + Math.abs(dy) > range) continue;
+
+      const bx = kx + dx;
+      const by = ky + dy;
+
+      if (!world.inBounds(bx, by)) continue;
+      if (world.generated(bx, by).biome === 'river') continue;
+      out.push(world.toId(bx, by));
+    }
+  }
+
+  return out;
+}
+
+/** What a hectare counts as on the land bar: what is standing, not what it is zoned. */
+function landKind(state: SimState, block: Readonly<Block>): LandKind {
+  if (block.phase === 'reforesting') return 'forest';
+
+  if (block.phase === 'planted' && block.species === 'palm') {
+    const palms = state.palms.get(block.id);
+
+    if (palms) {
+      for (let slot = 0; slot < palms.plantedAt.length; slot++) {
+        if (palms.plantedAt[slot]! < 0) continue;
+        if (isBearing(slotStage(palms, slot, 'palm', state.tick))) return 'bearing';
+      }
+    }
+
+    return 'immature';
+  }
+
+  if (block.phase === 'wild' && BIOMES[block.biome].forestCover) return 'forest';
+  return 'bare';
+}
+
+/** The status report the Kopdes panel is (GDD 8 panel 19a). */
+function kopdesView(sim: Sim, level: number): NonNullable<BlockView['kopdes']> {
+  const { state, world } = sim;
+  const e = state.economy;
+  // Ten days back, the same window the HUD and the shop read the trend over.
+  const earlier = e.tbsPriceHistory[Math.max(0, e.tbsPriceHistory.length - 11)] ?? e.tbsPrice;
+  const hectares: Record<LandKind, number> = { bearing: 0, immature: 0, forest: 0, bare: 0 };
+  const attention: NonNullable<BlockView['kopdes']>['attention'] = [];
+  let yours = 0;
+  let onAuto = 0;
+  let unpicked = 0;
+  let soonest: number | null = null;
+
+  const ids = blocksInRange(state, world, level);
+
+  for (const id of ids) {
+    const block = readBlock(state, world, id);
+
+    if (!block.owned) continue;
+    yours += 1;
+    if (block.phase !== 'kopdes') hectares[landKind(state, block)] += 1;
+
+    const palms = state.palms.get(id);
+
+    if (block.phase === 'planted' && block.species === 'palm' && palms) {
+      onAuto += 1;
+
+      const days = daysUntilRipe(block, state.tick);
+
+      if (days !== null && (soonest === null || days < soonest)) soonest = days;
+      if (days === 0 && harvestableKg(palms, 'palm', state.tick) > 0) unpicked += 1;
+    }
+
+    const counts = palms ? ganodermaCounts(palms) : null;
+    const [bx, by] = world.toXY(id);
+    const at = `${bx + 1}, ${by + 1}`;
+
+    if (counts && counts.symptomatic + counts.dead > 0) {
+      attention.push({ block: id, kind: 'ganoderma', label: t('block.kopAtGano', { at }) });
+    } else if (block.beetles >= BEETLES_WORTH_A_LINE) {
+      attention.push({ block: id, kind: 'beetle', label: t('block.kopAtBeetles', { at }) });
+    }
+  }
+
+  let ofBlocks = 0;
+
+  for (const block of state.blocks.values())
+    if (block.owned && block.phase === 'planted' && block.species === 'palm') ofBlocks += 1;
+
+  const auto = state.kopdes?.autoHarvest ?? false;
+
+  return {
+    level,
+    range: kopdesRange(level),
+    atMax: level >= ECONOMY.kopdesMaxLevel,
+    shopItems: Object.keys(ITEM_PRICES).length,
+    price: formatRp(e.tbsPrice),
+    trend: e.tbsPrice > earlier * 1.01 ? 'up' : e.tbsPrice < earlier * 0.99 ? 'down' : 'flat',
+    soldKg: formatTonnes(e.soldKgYear),
+    soldRp: formatRpCompact(e.soldRpYear),
+    blocksInRange: ids.length,
+    yours,
+    land: (['bearing', 'immature', 'forest', 'bare'] as LandKind[]).map((key) => ({
+      key,
+      hectares: hectares[key],
+    })),
+    crew:
+      ofBlocks > 0
+        ? {
+            onAuto: auto ? onAuto : 0,
+            ofBlocks,
+            nextRound: soonest === null ? null : t('block.kopNextRound', { n: soonest }),
+            perRound: auto ? HARVEST.autoSurchargePerRound * onAuto : 0,
+            unpicked,
+          }
+        : null,
+    stock: STOCK_SHOWN.map((item) => ({
+      item,
+      label: t(`block.kopItem_${item}`),
+      icon: STOCK_ICON[item],
+      count: state.inventory[item],
+    })),
+    attention: attention.slice(0, ATTENTION_SHOWN),
+  };
 }
 
 /** The stand card's crest: what the stand mostly looks like from outside. */
@@ -1160,10 +1342,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
           )
         : phaseLabel(block.phase, block.clearProgress, block.burning, block.fireIntensity),
     tiles,
-    kopdes:
-      block.phase === 'kopdes' && kopdes
-        ? { level: kopdes.level, range: kopdesRange(kopdes.level) }
-        : null,
+    kopdes: block.phase === 'kopdes' && kopdes ? kopdesView(sim, kopdes.level) : null,
     palms: palmsView,
     pests,
     burn,

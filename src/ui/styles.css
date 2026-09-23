@@ -388,6 +388,77 @@ canvas {
     }
   }
 
+  /* The Kopdes panel: a status report for everything this Kopdes serves. */
+  .kop-price {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    border-radius: 16px;
+    border: 2px solid var(--gold-edge);
+    background: linear-gradient(180deg, #fff6d9, var(--gold));
+    padding: 0.55rem 0.75rem;
+  }
+
+  .kop-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 14px;
+    background: var(--pill-muted);
+    padding: 0.45rem 0.6rem;
+  }
+
+  .kop-swatch {
+    flex: none;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 4px;
+    background: var(--swatch, var(--ink-3));
+  }
+
+  .kop-stock {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border-radius: 999px;
+    border: 2px solid var(--card-shadow);
+    background: #fffdf7;
+    padding: 0.28rem 0.7rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+  }
+
+  /* An empty shelf is the one worth reading, so it is the one that is loud. */
+  .kop-stock[data-zero] {
+    border-color: #e9a898;
+    background: #fdeae6;
+    color: var(--red-edge);
+  }
+
+  .kop-alert {
+    border-radius: 16px;
+    border: 2px solid #f3c6c0;
+    background: #fdeceb;
+    padding: 0.6rem;
+  }
+
+  .kop-alert-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    border-radius: 12px;
+    border: 2px solid #f3c6c0;
+    background: #fffdf7;
+    padding: 0.4rem 0.6rem;
+    font-weight: 800;
+    text-align: left;
+  }
+
+  .kop-alert-row:hover {
+    border-color: var(--coral-edge);
+  }
+
   /* The stand card: what is planted, how far along, and what it owes. */
   .stand {
     border-radius: 16px;

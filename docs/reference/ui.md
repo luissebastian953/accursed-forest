@@ -214,6 +214,27 @@ under both and Fertilize spanning the width below.
 - The footer finds Harvest by test-id and pulls it out of `major`. A block
   with no Kopdes in range has no toggle, so `major` renders as a plain column.
 
+## `src/ui/svelte/block/BlockPanel.svelte` (the Kopdes report)
+
+On the Kopdes block the panel stops being a list of buttons and becomes a
+status report for everything this Kopdes serves (GDD 8 panel 19a): Open shop
+as the one action, today's TBS price with its ten-day trend beside the year's
+sales, the land in range broken into bearing, immature, forest and bare, what
+the harvest crew covers and what is ripe and unpicked, the shelves, and a list
+of blocks in range that need attention.
+
+### Notes
+
+- The level and the range move into the header badge, and the block's own
+  facts (title, elevation, moisture) shrink from a two-column grid to one row
+  of three, because on this block they are the least interesting thing on it.
+- The auto-harvest toggle is gone from here. The crew card reports what the
+  crew is doing; the switch belongs in the shop, which is the one place that
+  already charges for it, and on the palm blocks it actually picks.
+- A row in `Needs attention` calls `handlers.focus`, which is wired in
+  `App.ts` to the same `select` plus `focusBlock` pair the news panel and the
+  HUD pins use. The block panel had no way to change the selection before.
+
 ## `src/ui/svelte/block/SlotCell.svelte`
 
 One square of the palm lattice, with the bubble that explains it (GDD 8 panel

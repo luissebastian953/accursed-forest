@@ -307,6 +307,19 @@ export const MIGRATIONS: readonly Migration[] = [
       }
     },
   },
+  {
+    // The Kopdes panel reports the year's sales. An older save starts the
+    // count at zero and fills it over the year it is loaded into.
+    from: 18,
+    up(save) {
+      const head = save.manifest['head'] as { economy?: Record<string, unknown> } | undefined;
+      const economy = head?.economy;
+
+      if (!economy) return;
+      economy['soldKgYear'] ??= 0;
+      economy['soldRpYear'] ??= 0;
+    },
+  },
 ];
 
 /**

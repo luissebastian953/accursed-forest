@@ -24,6 +24,8 @@ export function economy(ctx: SimContext): void {
 
     earn(state, revenue, 'sale', `${compact(kilograms)} kg TBS @ ${e.tbsPrice}`);
     e.soldKgTotal += kilograms;
+    e.soldKgYear += kilograms;
+    e.soldRpYear += revenue;
     e.tbsPending = 0;
     events.push({ type: 'TbsSold', kilograms, price: e.tbsPrice, revenue });
   }

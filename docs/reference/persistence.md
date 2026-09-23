@@ -50,6 +50,11 @@ than this build knows is refused with a clear error, never half-read.
   from the ledger, which is capped, so the rebuilt profit is a floor rather
   than the true figure. The last burn comes from the command log, and the
   chronicle is seeded from the warnings in the news.
+- `MIGRATIONS`, the step from schema 18 (the Kopdes report): `soldKgYear` and
+  `soldRpYear` start at zero on an old save and fill over the year it is loaded
+  into. The panel is a report, so a year that reads low for one year is the
+  honest answer rather than a number invented from the ledger, which is a ring
+  buffer too short to cover a year anyway.
 - `MIGRATIONS`, the step from schema 12 (redemption): nothing in an old save
   changes. The bump exists so that a build that has never heard of the
   redemption ending refuses the save, rather than choking on it when it reads
