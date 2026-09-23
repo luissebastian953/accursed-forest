@@ -42,6 +42,7 @@ Panels fall into four groups by where they live:
 ```mermaid
 graph TD
   subgraph chrome["Always on screen"]
+    p0b["Panel 0: disclaimer band"]
     p1a["Panel 1: top bar readouts"]
     p2["Panel 2: time controls"]
     p3["Panels 3 and 8: news ticker"]
@@ -57,6 +58,7 @@ graph TD
   end
 
   subgraph interrupt["Interrupts the player"]
+    p0a["Panel 0: disclaimer modal"]
     p1b["Panel 1: title screen"]
     p4["Panel 4: controls help"]
     p16["Panel 16: menu"]
@@ -76,6 +78,43 @@ graph TD
 
 Toasts (panel 17) sit outside all four: they are the one notice that asks
 nothing of the player and goes away on its own.
+
+## GDD 8 panel 0: the disclaimer, its gate and its band
+
+Two pieces of the same thing, and the only part of the interface that is not
+about the estate at all. The game invents a district, a co-operative and a
+row of named officials, and it lets the player burn forest for money; both
+of those want saying out loud rather than leaving to be inferred.
+
+**The gate** (`src/ui/svelte/disclaimer/DisclaimerModal.svelte`,
+`disclaimerState.svelte.ts`, `data-testid="disclaimer-modal"`) is the first
+thing a first-time visitor sees, before the title screen and over the same
+pulled-back estate, so accepting it does not move the backdrop. A yellow
+warning band carries the `police-warning` icon and the heading; under it sit
+the lead and three cards: nobody in the game is real, none of it is advice,
+and clearing land is a choice the game prices rather than one it recommends.
+`disclaimer-accept` is the only way out. There is no backdrop click and no
+Escape binding, which is the one place the interface deliberately refuses the
+player a shortcut: a gate that closes by accident has not been read.
+
+Acceptance is remembered in `localStorage` under `sawit:disclaimer`, against a
+version, so the gate is passed once per browser rather than once per visit,
+and changing the wording can put it back in front of everyone. A browser with
+storage turned off sees it every time, which is the safe way to fail. The
+`?seed` and `?fresh` URLs skip the title screen and the gate together, which
+is how the browser suite reaches the estate; `landing.spec.ts` covers the
+gate itself, on the path a real visitor takes.
+
+**The band** (`Marquee.svelte`, `marqueeState.svelte.ts`,
+`data-testid="disclaimer-marquee"`) owns the very top edge of the page, above
+the top bar rather than over it: `--marquee-h` is a fixed height that the bar
+and the block panel's aside both start below, so the band costs the canvas
+nothing and needs no measuring. It scrolls one sentence saying that the
+forests outside the game do not grow back on a timer, and asking for
+reboisasi, which is a thing to say in a game that pays the player to clear
+them. The whole band is a button that reopens the gate, so the disclaimer
+stays reachable after it has been accepted. Under
+`prefers-reduced-motion` the scroll stops and the line simply centres.
 
 ## GDD 8 panel 1: the title screen and the top bar
 
@@ -333,6 +372,27 @@ capped at `CHRONICLE.cap` entries). `WON` in `App.ts` (`clean`, `dirty`,
 `epilogue-new-estate`; a loss instead offers a rewind to any of the last
 few year-starts still snapshotted (`epilogue-rewind-${year}`), since losses
 have no sandbox, only the rewind.
+
+**It is the one panel with no way out but a decision.** There is no close
+button, no backdrop click and no Escape binding (`App.ts`'s `escape()` returns
+early while it is open), and it sits at `z-[65]`, above the disclaimer band, so
+the only live controls on the screen are its own two buttons. The run is over;
+the player says how it continues rather than dismissing the fact.
+
+**A certificate won over burned ground is told so.** Where the ending is
+`clean` or `dirty` and `run.stats.burns` is above zero, the verdict line gains
+a bold tail (`epilogue.arsonistLead`, `epilogue.arsonistShout`) and a red note
+card (`epilogue-arsonist`) goes in above the President's. It is the one place
+the game addresses the player rather than the estate, and it is deliberately
+not shown for `redemption`: that ending is already the answer for its fires,
+and scolding it would contradict what the game just said.
+
+**The forest wins are lit.** `reboisasi` and `redemption` share the gold band
+(`FOREST_BAND`) and carry `.epilogue-glow`, a gold halo that breathes on a
+slow cycle and holds still under `prefers-reduced-motion`. The 3D bloom in
+`render/Glow.ts` cannot reach a DOM panel, so the glow is CSS. The certificate
+wins keep the quieter `WIN_BAND` they always had: the game's best ending
+should not look like its most common one.
 
 ## GDD 8 panel 16: the menu
 

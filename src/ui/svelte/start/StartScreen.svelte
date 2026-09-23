@@ -78,7 +78,13 @@
     data-testid="start-screen"
     data-mode={v.save ? 'continue' : 'start'}
   >
-    <div class="absolute right-4 top-3 flex gap-1.5" role="group" aria-label={t('start.language')}>
+    <!-- Clear of the disclaimer band, which sits above every panel. -->
+    <div
+      class="absolute right-4 flex gap-1.5"
+      style="top: calc(var(--marquee-h, 0px) + 0.75rem)"
+      role="group"
+      aria-label={t('start.language')}
+    >
       {#each LOCALES as code (code)}
         <button
           class="btn {locale() === code

@@ -3,6 +3,11 @@ import { expect, test } from '@playwright/test';
 /** A CI runner renders in software: it reaches a ripe round in minutes, not seconds. */
 const SLOW = process.env['CI'] ? 4 : 1;
 
+// The spike is about what the renderer draws, so it skips the disclaimer gate.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('sawit:disclaimer', '1'));
+});
+
 test.describe('art spike', () => {
   test('boots on the WebGL fallback and draws a non-trivial scene', async ({ page }) => {
     const errors: string[] = [];

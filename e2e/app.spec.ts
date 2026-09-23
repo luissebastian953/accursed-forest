@@ -5,6 +5,12 @@ const SLOW = process.env['CI'] ? 4 : 1;
 
 const URL = '/play.html?webgl&seed=42&fresh&turbo&debug';
 
+// These tests are about the estate, not the gate in front of it, so they arrive
+// as a visitor who has already read it. `landing.spec.ts` covers the gate itself.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('sawit:disclaimer', '1'));
+});
+
 /** What `?debug` exposes on window; only the parts the suite touches. */
 interface DebugWindow {
   __sawit: {

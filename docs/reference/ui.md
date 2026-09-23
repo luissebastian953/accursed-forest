@@ -41,6 +41,24 @@ Tokens first, then the handful of component classes every panel builds
 from. The 3D palette lives in `render/materials/palette.ts`; the game
 colours below mirror it so the HUD and the world stay in step (GDD 6.1).
 
+### Notes
+
+- `--marquee-h`: the disclaimer band owns the top edge, so the top bar and
+  the block panel's aside both start at this offset rather than at zero. It
+  is a fixed height rather than a measured one, which keeps the band out of
+  the layout path entirely: no observer, no JavaScript, and nothing to get
+  out of step on a resize. `--panel-top`, which the controls-help popover
+  hangs from, is measured off the bar's own rect and so follows for free.
+- `.epilogue-glow`: the forest endings' gold halo (GDD 8 panel 15). It is CSS
+  because `render/Glow.ts`'s bloom is a pass over the 3D scene and cannot
+  reach a DOM panel. The keyframes restate the card's own `0 4px 0` lip in
+  both stops, so the pressed edge every other card has is not dropped for the
+  duration of the animation.
+- `.marquee-track`: the loop is a single `translateX(-50%)` over two copies
+  of the same sentence. Under `prefers-reduced-motion` the animation stops
+  and the second copy is hidden, leaving one centred line, because scrolling
+  words are unreadable to exactly the people that query is asking for.
+
 ## `src/ui/svelte/authority/AuthorityCards.svelte`
 
 The paperwork itself (GDD 8 panel 17b): one card at a time, with the date the
@@ -214,6 +232,39 @@ CSS loop can turn on a half translation with no seam, and the pair is marked
 `aria-hidden` with the words carried once in an `sr-only` label beside it, so
 a screen reader hears the sentence once rather than twice. The whole band is
 a button: it reopens the disclaimer, which is how the gate stays reachable
+
+## `src/ui/svelte/endings/CertificatePanel.svelte`
+
+The win condition, spelled out (design kit 7a). A gold band at the top, the
+five conditions as rows with a bar each, and a footer that says what
+meeting them is worth. Each row shows how far along it is, so a condition
+that is nearly met does not look the same as one that has not started.
+
+## `src/ui/svelte/endings/Epilogue.svelte`
+
+The epilogue's markup (GDD 3.8, GDD 8 panel 15): the ending's own colours from
+`LOOK`, the numbers that tell the truth about the run, and the chronicle as a
+chain of headlines. The rewind buttons belong to a loss, sandbox to a
+certificate or the fade.
+
+### Notes
+
+- `z-[65]`: above the disclaimer band (`z-[60]`), which is otherwise the top
+  layer of the page. With no close button, no backdrop handler and `escape()`
+  returning early while it is open, that leaves the two footer buttons as the
+  only live controls on the screen, which is the intent: the run is over and
+  the player chooses how it continues.
+- `arsonist`: gates both the bold tail on the verdict line and the
+  `epilogue-arsonist` card. It is `certified && stats.burns > 0`, so it reads
+  the burns the player lit rather than `blocksBurned`, which a wildfire can
+  raise without the player striking a match. `redemption` is excluded on
+  purpose; see GDD 8 panel 15.
+- `forestWin`: the only thing `.epilogue-glow` keys off. Kept separate from
+  `win` because the certificate endings deliberately do not get it.
+
+## `src/ui/svelte/endings/YearEndCard.svelte`
+
+The year that just closed (GDD 8 panel 18), as a small card at the right: what
 after it has been accepted.
 
 ## `src/ui/svelte/disclaimer/disclaimerState.svelte.ts`

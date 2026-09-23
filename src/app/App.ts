@@ -76,6 +76,11 @@ import type { BlockId, Command } from '@sim/types';
 import { formatKg, formatRp } from '@ui/format';
 import { AuthorityCards, type CardKind } from '@ui/svelte/authority/authorityCardsState.svelte.ts';
 import { BlockPanel } from '@ui/svelte/block/blockPanelState.svelte.ts';
+import {
+  DisclaimerModal,
+  disclaimerAccepted,
+} from '@ui/svelte/disclaimer/disclaimerState.svelte.ts';
+import { Marquee } from '@ui/svelte/disclaimer/marqueeState.svelte.ts';
 import { CertificatePanel, YearEndCard } from '@ui/svelte/endings/certificateState.svelte.ts';
 import { Epilogue } from '@ui/svelte/endings/epilogueState.svelte.ts';
 import { HudMarkers, type HudMarker } from '@ui/svelte/hud/hudMarkersState.svelte.ts';
@@ -127,7 +132,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   const aside = document.createElement('aside');
 
   aside.className =
-    'aside aside-hidden absolute bottom-0 right-0 top-0 z-10 flex flex-col overflow-hidden border-l-2 border-[#f2e0b0] bg-[#fff6e0]';
+    'aside aside-hidden absolute bottom-0 right-0 z-10 flex flex-col overflow-hidden border-l-2 border-[#f2e0b0] bg-[#fff6e0]';
+  aside.style.top = 'var(--marquee-h, 0px)';
   root.append(stage, aside);
 
   // ── Sound ───────────────────────────────────────────────────────────────
@@ -2079,13 +2085,11 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     welcome();
   }
 
-  if (titleScreen) {
-    time.set(0);
-    rig.setZoom(0.62);
-    // Nothing but the estate behind the title: the bar and the ticker slide off.
-    hud.setHidden(true);
-    ticker.setHidden(true);
-    select(null);
+  const disclaimer = new DisclaimerModal(root, { accept: () => openTitle() });
+  const marquee = new Marquee(root, { open: () => disclaimer.show() });
+
+  /** The title card, raised once the disclaimer is out of the way. */
+  function openTitle(): void {
     startScreen.show({
       estateCode: sim.world.estateCode,
       estateName: sim.state.estateName,
@@ -2095,6 +2099,18 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         backend: handle.backend === 'webgpu' ? 'WebGPU' : 'WebGL 2',
       }),
     });
+  }
+
+  if (titleScreen) {
+    time.set(0);
+    rig.setZoom(0.62);
+    // Nothing but the estate behind the title: the bar and the ticker slide off.
+    hud.setHidden(true);
+    ticker.setHidden(true);
+    select(null);
+    // The same backdrop carries the disclaimer, so accepting it does not jump.
+    if (disclaimerAccepted()) openTitle();
+    else disclaimer.show();
   } else {
     // Straight into play: a dev or test URL that names a world, or a run that
     // is already over and reopens on its epilogue.
@@ -2131,6 +2147,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     cards.dispose();
     epilogue.dispose();
     startScreen.dispose();
+    disclaimer.dispose();
+    marquee.dispose();
     certificate.dispose();
     help.dispose();
     yearEnd.dispose();

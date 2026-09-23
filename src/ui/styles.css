@@ -39,6 +39,9 @@
   --gold: #ffe9a8;
   --gold-2: #f4b731;
   --gold-edge: #d99a1a;
+
+  /* The disclaimer band owns the top edge; the bar and the aside start under it. */
+  --marquee-h: 1.75rem;
 }
 
 html,
@@ -486,6 +489,110 @@ canvas {
   .chrome-right {
     right: var(--chrome-right, 0px);
     transition: right 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  /* The forest endings, lit: the card keeps its pressed lip and gains a gold
+     halo, since the bloom in the 3D pass cannot reach a DOM panel. */
+  .epilogue-glow {
+    box-shadow:
+      0 4px 0 var(--card-shadow),
+      0 0 0 4px rgb(244 183 49 / 0.5),
+      0 0 60px 14px rgb(255 213 74 / 0.45),
+      0 10px 24px rgb(74 51 32 / 0.25);
+    animation: epilogue-glow 2.8s ease-in-out infinite;
+  }
+
+  @keyframes epilogue-glow {
+    0%,
+    100% {
+      box-shadow:
+        0 4px 0 var(--card-shadow),
+        0 0 0 4px rgb(244 183 49 / 0.5),
+        0 0 60px 14px rgb(255 213 74 / 0.45),
+        0 10px 24px rgb(74 51 32 / 0.25);
+    }
+    50% {
+      box-shadow:
+        0 4px 0 var(--card-shadow),
+        0 0 0 4px rgb(244 183 49 / 0.75),
+        0 0 84px 22px rgb(255 213 74 / 0.62),
+        0 10px 24px rgb(74 51 32 / 0.25);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .epilogue-glow {
+      animation: none;
+    }
+  }
+
+  /* ── The disclaimer band and its modal ─────────────────────────────── */
+  .marquee {
+    height: var(--marquee-h);
+    background: linear-gradient(180deg, var(--gold), var(--gold-2));
+    border-bottom: 2px solid var(--gold-edge);
+    overflow: hidden;
+  }
+
+  .marquee-btn {
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .marquee-track {
+    display: inline-flex;
+    align-items: center;
+    height: 100%;
+    animation: marquee 46s linear infinite;
+  }
+
+  .marquee-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding-right: 3rem;
+    color: #6b4708;
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  .disclaimer-head {
+    background: linear-gradient(180deg, var(--gold), var(--gold-2));
+    border-bottom: 2px solid var(--gold-edge);
+  }
+
+  /* Scrolling words cannot be read by someone who asked for stillness, so the
+     track parks and the first copy is centred instead. */
+  @media (prefers-reduced-motion: reduce) {
+    .marquee-track {
+      animation: none;
+      justify-content: center;
+      width: 100%;
+    }
+    .marquee-item:last-child {
+      display: none;
+    }
+    .marquee-item {
+      padding-right: 0;
+      white-space: normal;
+      text-align: center;
+    }
   }
 
   /* The HUD and the ticker slide off their edges under the title screens. */
