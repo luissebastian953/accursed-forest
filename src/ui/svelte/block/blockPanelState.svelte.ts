@@ -28,7 +28,7 @@ import { clearPlantationCost, palmsStanding } from '@sim/commands/clearPlantatio
 import { seedlingItem, seedlingsNeeded } from '@sim/commands/plantBlock';
 import { reforestCost, saplingShortfall } from '@sim/commands/reforestBlock';
 import { settleCost, settleListening, settleable } from '@sim/commands/settleInvestigation';
-import { kopdesUpgradeCost } from '@sim/commands/upgradeKopdes';
+import { kopdesMaturedNeeded, kopdesUpgradeCost } from '@sim/commands/upgradeKopdes';
 import { EventSink } from '@sim/events';
 import { isFuel, isWildfire } from '@sim/fire';
 import type { Sim } from '@sim/index';
@@ -38,6 +38,7 @@ import { coverCropEstablished, forestCoverAround, landslideChance } from '@sim/l
 import { isBearing, isYoung, slotStage } from '@sim/palms';
 import { hasWon } from '@sim/run';
 import { neighbourIds, readBlock } from '@sim/state';
+import { matureHectares } from '@sim/systems/endings';
 import { growthMultiplier } from '@sim/systems/growth';
 import { daysUntilRipe, harvestCapKg, harvestableKg } from '@sim/systems/harvest';
 import { beetleCapacity, ganodermaCounts, pestPressure, plantableSlots } from '@sim/systems/pest';
@@ -120,6 +121,21 @@ export interface BlockView {
   title: string;
   phase: string;
   tiles: TileView[];
+  /**
+   * The upgrade, gated by bearing blocks and then by cash (GDD 8 panel 21a).
+   * `null` at the highest level, where there is nothing left to buy.
+   */
+  upgrade: {
+    matured: number;
+    needed: number;
+    cost: number;
+    cash: number;
+    rejection: string | null;
+    nextLevel: number;
+    nextRange: number;
+    range: number;
+    command: Command;
+  } | null;
   /** Everything this Kopdes serves, as a status report (GDD 8 panel 19a). */
   kopdes: {
     level: number;
@@ -507,6 +523,28 @@ function landKind(state: SimState, block: Readonly<Block>): LandKind {
   return 'bare';
 }
 
+/** What the next Kopdes level asks for, and which of the two gates is shut. */
+function upgradeView(sim: Sim, level: number): BlockView['upgrade'] {
+  const { state } = sim;
+  const cost = kopdesUpgradeCost(level);
+
+  if (cost === null) return null;
+
+  const command: Command = { type: 'UpgradeKopdes' };
+
+  return {
+    matured: matureHectares(state),
+    needed: kopdesMaturedNeeded(level),
+    cost,
+    cash: state.economy.cash,
+    rejection: sim.validate(command)?.reason ?? null,
+    nextLevel: level + 1,
+    nextRange: kopdesRange(level + 1),
+    range: kopdesRange(level),
+    command,
+  };
+}
+
 /** The status report the Kopdes panel is (GDD 8 panel 19a). */
 function kopdesView(sim: Sim, level: number): NonNullable<BlockView['kopdes']> {
   const { state, world } = sim;
@@ -820,16 +858,8 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
         );
         break;
 
-      case 'kopdes': {
-        const cost = kopdesUpgradeCost(state.kopdes?.level ?? 1);
-
-        actions.push(
-          action(t('block.upgradeKopdes'), { type: 'UpgradeKopdes' }, 'action-UpgradeKopdes', {
-            ...(cost !== null ? { cost } : {}),
-          }),
-        );
+      case 'kopdes':
         break;
-      }
 
       case 'clearing':
         break;
@@ -1342,6 +1372,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
           )
         : phaseLabel(block.phase, block.clearProgress, block.burning, block.fireIntensity),
     tiles,
+    upgrade: block.phase === 'kopdes' && kopdes ? upgradeView(sim, kopdes.level) : null,
     kopdes: block.phase === 'kopdes' && kopdes ? kopdesView(sim, kopdes.level) : null,
     palms: palmsView,
     pests,

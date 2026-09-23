@@ -98,7 +98,13 @@ export const DRAINAGE_COST = 4_000_000;
  * Kopdes level `i` to `i + 1` (GDD 3.3); index 0 is unused, building is separate. Steep on
  * purpose: each step is earned out of the crop, not the opening balance.
  */
-export const KOPDES_UPGRADE_COST: readonly number[] = [0, 90_000_000, 260_000_000, 650_000_000];
+export const KOPDES_UPGRADE_COST: readonly number[] = [0, 90_000_000, 420_000_000, 1_200_000_000];
+
+/**
+ * Blocks of bearing palms the estate must already work before the Kopdes will
+ * grow, indexed by the level it is on (GDD 3.3). Money alone no longer does it.
+ */
+export const KOPDES_UPGRADE_MATURED: readonly number[] = [0, 3, 6, 12, 20];
 
 export const HARVEST = {
   /** A harvest crew's wages per block per round. */

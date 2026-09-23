@@ -9,11 +9,18 @@ import {
   HARVEST_ROTATION_DAYS,
   YIELD_CURVE,
 } from '@sim/balance/growth.ts';
-import { ECONOMY, HARVEST, ITEM_PRICES, KOPDES_UPGRADE_COST } from '@sim/balance/prices.ts';
+import {
+  ECONOMY,
+  HARVEST,
+  ITEM_PRICES,
+  KOPDES_UPGRADE_COST,
+  KOPDES_UPGRADE_MATURED,
+} from '@sim/balance/prices.ts';
 import { SLOTS_PER_BLOCK } from '@sim/balance/world.ts';
 import { createSim, type Sim } from '@sim/index.ts';
 import { distanceToKopdes, inKopdesRange, kopdesRange } from '@sim/kopdes.ts';
-import { isBearing, slotStage } from '@sim/palms.ts';
+import { createPalmArrays, isBearing, plantSlots, slotStage } from '@sim/palms.ts';
+import { writeBlock } from '@sim/state.ts';
 import { harvestCapKg, harvestableKg } from '@sim/systems/harvest.ts';
 import { tbsMeanFactor } from '@sim/systems/society.ts';
 import type { BlockId } from '@sim/types.ts';
@@ -126,18 +133,48 @@ describe('Kopdes shop (GDD 3.3)', () => {
   });
 });
 
+/** Stand `n` blocks of bearing palms, which is what a Kopdes upgrade asks for. */
+function standBearing(sim: Sim, n: number): void {
+  const { state, world } = sim;
+  let made = 0;
+
+  for (let id = 0; id < world.width * world.height && made < n; id++) {
+    if (state.kopdes && id === state.kopdes.blockId) continue;
+
+    const block = world.blockById(id);
+
+    if (!BIOMES[block.biome].clearable) continue;
+
+    const owned = writeBlock(state, world, id);
+
+    owned.owned = true;
+    owned.phase = 'planted';
+    owned.species = 'palm';
+    owned.clearProgress = 1;
+
+    const palms = createPalmArrays();
+
+    plantSlots(palms, SLOTS_PER_BLOCK, 0);
+    palms.growth.fill(3000);
+    state.palms.set(id, palms);
+    made += 1;
+  }
+}
+
 describe('Kopdes upgrades (GDD 3.3)', () => {
   it('extends the range each level and stops at the max', () => {
     const sim = createSim(42);
 
     sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
-    sim.state.economy.cash = 1_000_000_000;
+    sim.state.economy.cash = 5_000_000_000;
 
     expect(kopdesRange(1)).toBe(ECONOMY.kopdesRange);
 
     for (let level = 1; level < ECONOMY.kopdesMaxLevel; level++) {
       const cash = sim.state.economy.cash;
 
+      // Each level asks for more bearing blocks before it will take the money.
+      standBearing(sim, KOPDES_UPGRADE_MATURED[level]!);
       expect(sim.dispatch({ type: 'UpgradeKopdes' })).toEqual({ ok: true });
       expect(sim.state.kopdes!.level).toBe(level + 1);
       expect(cash - sim.state.economy.cash).toBe(KOPDES_UPGRADE_COST[level]);
@@ -145,6 +182,25 @@ describe('Kopdes upgrades (GDD 3.3)', () => {
     }
 
     expect(sim.dispatch({ type: 'UpgradeKopdes' })).toMatchObject({ ok: false, code: 'maxLevel' });
+  });
+
+  it('asks for bearing palms before it asks for money', () => {
+    const sim = createSim(42);
+
+    sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
+    sim.state.economy.cash = 5_000_000_000;
+
+    // Cash alone buys nothing: the estate has to be working first.
+    expect(sim.validate({ type: 'UpgradeKopdes' })).toMatchObject({ code: 'wrongPhase' });
+    standBearing(sim, KOPDES_UPGRADE_MATURED[1]! - 1);
+    expect(sim.validate({ type: 'UpgradeKopdes' })).toMatchObject({ code: 'wrongPhase' });
+
+    standBearing(sim, KOPDES_UPGRADE_MATURED[1]!);
+    expect(sim.validate({ type: 'UpgradeKopdes' })).toBeNull();
+
+    // With the crop in place, cash is the remaining gate.
+    sim.state.economy.cash = 1;
+    expect(sim.validate({ type: 'UpgradeKopdes' })).toMatchObject({ code: 'noCash' });
   });
 
   it('range is Manhattan distance from the Kopdes block', () => {

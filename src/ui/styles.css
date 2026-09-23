@@ -388,6 +388,31 @@ canvas {
     }
   }
 
+  /* The upgrade's crop gate: one segment per block, or one bar past six. */
+  .grow-bar {
+    display: flex;
+    flex: 1;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .grow-seg {
+    flex: 1;
+    height: 0.55rem;
+    border-radius: 999px;
+    background: #ddcba0;
+    overflow: hidden;
+  }
+
+  .grow-seg::before {
+    content: '';
+    display: block;
+    height: 100%;
+    width: calc(var(--seg, 0) * 100%);
+    border-radius: 999px;
+    background: linear-gradient(180deg, #62b34d, #3f8a34);
+  }
+
   /* The Kopdes panel: a status report for everything this Kopdes serves. */
   .kop-price {
     display: flex;

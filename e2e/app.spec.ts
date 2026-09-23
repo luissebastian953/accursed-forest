@@ -33,22 +33,18 @@ interface DebugWindow {
           insolventFor: number;
           years: { conditionsMet: number }[];
         };
-        blocks: Map<
-          number,
-          {
-            id: number;
-            owned: boolean;
-            phase: string;
-            slope: boolean;
-            landslideAt: number;
-            landslidePalms: number;
-          }
-        >;
+        blocks: Map<number, Record<string, unknown>>;
+        palms: Map<number, Record<string, unknown>>;
+        inventory: Record<string, number>;
         weather: {
           activeEvents: { id: string; startedAt: number; endsAt: number; blocks?: number[] }[];
         };
       };
-      world: { toXY: (id: number) => [number, number] };
+      world: {
+        toXY: (id: number) => [number, number];
+        toId: (x: number, y: number) => number;
+        blockById: (id: number) => Record<string, unknown>;
+      };
     };
     // Siblings of `sim` on the hook, not members of the sim it returns.
     gpu: () => { triangles: number };
@@ -533,10 +529,47 @@ test.describe('Sawit Simulator', () => {
     await tid(page, 'action-PlaceKopdes').click();
     // The clock has to run: events reach the renderer on a tick, so a paused
     // estate would not hear about the upgrade until it started again.
+    // The Kopdes grows on a working estate, so it wants bearing blocks as well
+    // as money before it will take the upgrade (GDD 3.3).
     await page.evaluate(() => {
-      (window as unknown as DebugWindow).__sawit.sim().state.economy.cash = 1e12;
+      const { state, world } = (window as unknown as DebugWindow).__sawit.sim();
+
+      state.economy.cash = 1e12;
+
+      const [kx, ky] = world.toXY(state.worldGen.kopdesBlock);
+      let made = 0;
+
+      for (let dy = -2; dy <= 2 && made < 3; dy++) {
+        for (let dx = -2; dx <= 2 && made < 3; dx++) {
+          const id = world.toId(kx + dx, ky + dy);
+
+          if (id === state.worldGen.kopdesBlock) continue;
+
+          const block = state.blocks.get(id) ?? world.blockById(id);
+
+          if (block.biome === 'river') continue;
+          block.owned = true;
+          block.phase = 'planted';
+          block.species = 'palm';
+          state.blocks.set(id, block);
+
+          const slots = 144;
+
+          state.palms.set(id, {
+            plantedAt: new Int32Array(slots).fill(0),
+            growth: new Float32Array(slots).fill(3000),
+            health: new Uint8Array(slots).fill(255),
+            ganoderma: new Uint8Array(slots),
+            yieldAcc: new Float32Array(slots),
+            ganodermaSince: new Int32Array(slots).fill(-1),
+            trenched: new Uint8Array(slots),
+          });
+          made += 1;
+        }
+      }
     });
     await page.waitForTimeout(600);
+    await selectCentreBlock(page);
 
     const glints = () =>
       page.evaluate(() => (window as unknown as DebugWindow).__sawit.effects().sparkleBurst);
@@ -548,7 +581,7 @@ test.describe('Sawit Simulator', () => {
     // moment, not a state the building sits in.
     await expect.poll(glints, { timeout: 5000 * SLOW }).toBeGreaterThan(0);
     await expect.poll(glints, { timeout: 5000 * SLOW }).toBe(0);
-    await expect(tid(page, 'block-panel')).toContainText('Level 2');
+    await expect(tid(page, 'kopdes-level')).toContainText('Level 2');
   });
 
   test('the Kopdes can buy the authorities off, when they are buyable', async ({ page }) => {

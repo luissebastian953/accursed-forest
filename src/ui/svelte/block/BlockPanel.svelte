@@ -16,6 +16,19 @@
   const SLOT_COLUMNS = 12;
   const HARVEST_ID = 'action-HarvestBlock';
 
+  // One segment per block up to six, then one bar: past six they are hairlines.
+  const GROW_SEGMENTS = 6;
+
+  /** How full each segment of the crop bar is, 0..1, left to right. */
+  function growSegments(matured: number, needed: number): number[] {
+    const count = Math.max(1, Math.min(needed, GROW_SEGMENTS));
+    const per = needed / count;
+
+    return Array.from({ length: count }, (_unused, i) =>
+      Math.max(0, Math.min(1, (matured - i * per) / per)),
+    );
+  }
+
   const LAND_SWATCH: Record<string, string> = {
     bearing: '#3faa4c',
     immature: '#a7d178',
@@ -628,6 +641,72 @@
             {#if auto && !picking}
               <AutoHarvestToggle on={auto.on} toggle={() => panel.act(auto.command)} />
             {/if}
+          </footer>
+        {/if}
+
+        <!--
+          The Kopdes grows on a working estate, not on cash (GDD 8 panel 21a):
+          the bar is the crop, and the label names whichever gate is still shut.
+        -->
+        {#if v.upgrade}
+          {@const u = v.upgrade}
+          {@const short = Math.max(0, u.needed - u.matured)}
+          {@const ready = u.rejection === null}
+          <footer
+            class="border-t-2 border-dashed border-[#f2e0b0] p-4"
+            data-testid="kopdes-upgrade"
+          >
+            <div class="mb-2 flex items-center gap-2">
+              <span class="grow-bar" aria-hidden="true">
+                {#each growSegments(u.matured, u.needed) as fill, i (i)}
+                  <span class="grow-seg" style="--seg: {fill}"></span>
+                {/each}
+              </span>
+              <span class="num shrink-0 text-xs font-extrabold" data-testid="kopdes-matured">
+                {t('block.upMatured', { n: Math.min(u.matured, u.needed), of: u.needed })}
+                {#if short === 0}<span class="text-[#3f8a34]">✓</span>{/if}
+              </span>
+            </div>
+
+            <button
+              class="btn btn-lg w-full justify-between {ready ? 'btn-green' : ''}"
+              disabled={!ready}
+              data-testid="action-UpgradeKopdes"
+              onclick={() => panel.act(u.command)}
+            >
+              <span>{t('block.upgradeKopdes')}</span>
+              <span
+                class="num rounded-lg px-1.5 py-0.5 text-xs {ready
+                  ? 'bg-black/15'
+                  : u.cash < u.cost
+                    ? 'bg-white/80 text-[#c94a30]'
+                    : 'bg-white/80'}"
+              >
+                {formatRp(u.cost)}
+              </span>
+            </button>
+
+            <div class="mt-1.5 px-1 text-xs leading-snug font-extrabold">
+              {#if ready}
+                <span class="text-[#3f8a34]" data-testid="kopdes-upgrade-note">
+                  {t('block.upReady', {
+                    n: u.nextLevel,
+                    from: u.range,
+                    to: u.nextRange,
+                  })}
+                </span>
+              {:else if u.matured === 0}
+                <span data-testid="kopdes-upgrade-note">{t('block.upNone', { n: u.needed })}</span>
+              {:else if short > 0}
+                <span class="text-[#c94a30]" data-testid="kopdes-upgrade-note">
+                  {t('block.upShort', { n: short })}
+                </span>
+              {:else}
+                <span class="text-[#c94a30]" data-testid="kopdes-upgrade-note">
+                  {t('block.upPoor', { need: formatRp(u.cost), have: formatRp(u.cash) })}
+                </span>
+              {/if}
+            </div>
           </footer>
         {/if}
 

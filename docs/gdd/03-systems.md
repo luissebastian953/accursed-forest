@@ -191,14 +191,24 @@ blocks:
 
     kopdesRange(level) = ECONOMY.kopdesRange (3) + (level − 1) × ECONOMY.kopdesRangePerLevel (2)
 
-| Level | Range (blocks) | Upgrade cost (to next level) |
-| ----- | -------------- | ---------------------------- |
-| 1     | 3              | Rp 90,000,000                |
-| 2     | 5              | Rp 260,000,000               |
-| 3     | 7              | Rp 650,000,000               |
-| 4     | 9              | max level                    |
+| Level | Range (blocks) | Bearing blocks needed | Upgrade cost (to next level) |
+| ----- | -------------- | --------------------- | ---------------------------- |
+| 1     | 3              | 3                     | Rp 90,000,000                |
+| 2     | 5              | 6                     | Rp 420,000,000               |
+| 3     | 7              | 12                    | Rp 1,200,000,000             |
+| 4     | 9              | 20                    | max level                    |
 
-(`KOPDES_UPGRADE_COST`, `ECONOMY.kopdesMaxLevel` 4.) A block outside range
+(`KOPDES_UPGRADE_COST`, `KOPDES_UPGRADE_MATURED`, `ECONOMY.kopdesMaxLevel` 4.)
+
+**The Kopdes grows on a working estate, not on cash.** `UpgradeKopdes` asks
+first for blocks of bearing palms and only then for money, counted by
+`matureHectares(state)`, the same measure the certificate uses: a block counts
+once `CERTIFICATE.matureShare` of what is planted on it is bearing. Cash alone
+buys nothing, which is what stops an opening balance or one lucky price spike
+from skipping the middle of the game. The level 4 row is carried for the same
+reason the others are, though nothing upgrades from it while 4 is the cap.
+
+A block outside range
 refuses `HarvestBlock` outright, naming the distance and the range in the
 rejection. The ladder climbs steeply on purpose: level 3 is also what
 unlocks the payroll (`WORKERS_FROM_LEVEL`) and the 50x clock

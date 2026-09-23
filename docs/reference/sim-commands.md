@@ -184,6 +184,16 @@ a kit from the Kopdes applied to one block for a window of days.
 UpgradeKopdes (GDD 3.3): each level extends the range within which TBS can be
 sold same-day. Level-ups add a wing to the building (render, M1b+).
 
+### Notes
+
+- The gate is bearing blocks first, cash second, and the order matters: the
+  rejection the greyed button carries should name the thing the player can do
+  something about today, and a player short of both is short of the crop for
+  far longer than they are short of the money.
+- `kopdesMaturedNeeded()` is indexed by the level the Kopdes is **on**, not the
+  one it is going to, so `KOPDES_UPGRADE_MATURED[1]` is what level 1 asks for.
+  The level 4 entry is carried and unreachable while 4 is the cap.
+
 ## `src/sim/commands/workers.ts`
 
 HireWorker / DismissWorker: the Kopdes puts people on the payroll. A hired
