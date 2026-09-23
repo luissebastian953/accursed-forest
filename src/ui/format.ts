@@ -1,3 +1,4 @@
+import { compact } from '@shared/compact';
 import { GROWTH } from '@sim/balance/growth';
 
 import { t } from '../i18n/index.ts';
@@ -7,6 +8,11 @@ const kilos = new Intl.NumberFormat('en', { maximumFractionDigits: 0 });
 
 export function formatRp(amount: number): string {
   return `Rp ${rupiah.format(Math.round(amount))}`;
+}
+
+/** Rupiah for a narrow column: Rp 536.4M rather than Rp 536.364.555. */
+export function formatRpCompact(amount: number): string {
+  return `Rp ${compact(amount)}`;
 }
 
 export function formatKg(kilograms: number): string {

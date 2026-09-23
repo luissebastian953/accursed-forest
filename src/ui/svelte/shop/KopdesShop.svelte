@@ -2,7 +2,7 @@
   import { WORKERS_FROM_LEVEL } from '@sim/balance/mobs';
 
   import { t } from '../../../i18n/index.ts';
-  import { formatDate, formatKg, formatRp } from '../../format.ts';
+  import { formatDate, formatKg, formatRp, formatRpCompact } from '../../format.ts';
   import Icon from '../base/Icon.svelte';
   import Phone from '../base/Phone.svelte';
   import PhoneHeader from '../base/PhoneHeader.svelte';
@@ -194,7 +194,7 @@
                 <li class="flex justify-between gap-2 py-0.5">
                   <span class="muted">{formatDate(sale.tick)}</span>
                   <span class="muted">{sale.note}</span>
-                  <span class="num">{formatRp(sale.amount)}</span>
+                  <span class="num">{formatRpCompact(sale.amount)}</span>
                 </li>
               {/each}
             </ul>

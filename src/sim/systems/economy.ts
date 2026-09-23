@@ -1,3 +1,4 @@
+import { compact } from '@shared/compact';
 import { clamp } from '@shared/math';
 
 import { OPERATING_BAN } from '../balance/endings.ts';
@@ -21,7 +22,7 @@ export function economy(ctx: SimContext): void {
     const kilograms = e.tbsPending;
     const revenue = Math.round(kilograms * e.tbsPrice);
 
-    earn(state, revenue, 'sale', `${Math.round(kilograms)} kg TBS @ ${e.tbsPrice}`);
+    earn(state, revenue, 'sale', `${compact(kilograms)} kg TBS @ ${e.tbsPrice}`);
     e.soldKgTotal += kilograms;
     e.tbsPending = 0;
     events.push({ type: 'TbsSold', kilograms, price: e.tbsPrice, revenue });

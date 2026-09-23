@@ -26,6 +26,17 @@ suffix, and `formatPercent` rounds a 0..1 fraction to the nearest whole
 percent. The sim itself never rounds or localises a number; that happens
 once, here, on the way to the screen.
 
+**Where a column is narrow, a number is shortened rather than wrapped.**
+`compact()` in `src/shared/compact.ts` reads 4,000 as 4K and steps again at
+every thousand to a trillion, with one decimal only where it carries
+information. It is in `shared/` rather than `ui/` because the sim writes a
+few player-facing strings of its own, the ledger's sale note among them, and
+both sides should shorten a number the same way. `formatRpCompact` is the
+rupiah form. It is used where the figure is being scanned rather than acted
+on, the recent-sales list first of all, where a full rupiah total and a full
+kilogram count wrapped onto three lines each; a price the player is about to
+pay stays exact.
+
 How fast a tick arrives is a separate concern from what a tick is, and lives
 in `src/app/timeControl.ts`: `TICKS_PER_SECOND` maps each `Speed` (0, 1, 10, 50) to ticks per real second, so 1x is a day every five seconds and 50x is
 ten days a second. `TimeControl` is also where the world clock's pause lives:
