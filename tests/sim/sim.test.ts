@@ -286,7 +286,7 @@ describe('commands (GDD 4.2)', () => {
     const result = sim.dispatch({ type: 'PlantBlock', block, species: 'palm' });
 
     expect(result).toMatchObject({ ok: false, code: 'noInventory' });
-    expect((result as { reason: string }).reason).toMatch(/Kopdes/);
+    expect((result as { reason: string }).reason).toMatch(/Workshop/);
   });
 
   it('every command in the union has a handler', () => {

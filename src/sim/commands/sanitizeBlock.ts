@@ -21,7 +21,7 @@ export const sanitizeBlock: CommandHandler<SanitizeBlock> = {
     if (block.debris <= 0) return reject('wrongPhase', 'No debris to clear here.');
 
     if (state.inventory.sanitationCrew < 1) {
-      return reject('noInventory', 'No sanitation crew on hand; hire one at the Kopdes.');
+      return reject('noInventory', 'No sanitation crew on hand; hire one at the Workshop.');
     }
 
     return null;

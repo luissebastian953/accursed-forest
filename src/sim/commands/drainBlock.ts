@@ -19,7 +19,8 @@ export const drainBlock: CommandHandler<DrainBlock> = {
     if (!block.owned) return reject('notOwned', 'You do not own this block.');
     if (block.burning) return reject('burning', 'Wait for the fire to go out.');
     if (block.drained) return reject('occupied', 'Already drained.');
-    if (block.phase === 'kopdes') return reject('wrongPhase', 'The Kopdes does not need drainage.');
+    if (block.phase === 'kopdes')
+      return reject('wrongPhase', 'The Workshop does not need drainage.');
 
     if (state.economy.cash < DRAINAGE_COST) {
       return reject('noCash', `Drainage costs Rp ${DRAINAGE_COST.toLocaleString('id-ID')}.`);

@@ -3,7 +3,7 @@
   "conditionHectares": "Hectares bearing fruit",
   "conditionNoBurn": "No burn-to-clear",
   "conditionForest": "Forest on the slopes",
-  "conditionKopdes": "Kopdes at its highest level",
+  "conditionKopdes": "Workshop at its highest level",
   "valueOf": "{value} of {target}",
   "hectaresOf": "{value} of {target} ha",
   "yearsClean": "{target}+ years clean",

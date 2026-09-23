@@ -163,7 +163,7 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'block-phase')).toHaveText('Cleared');
     // No stock yet: planting is disabled with the sim's own reason.
     await expect(tid(page, 'action-PlantBlock-palm')).toBeDisabled();
-    await expect(tid(page, 'block-panel')).toContainText('Buy them at the Kopdes');
+    await expect(tid(page, 'block-panel')).toContainText('Buy them at the Workshop');
     await expect(tid(page, 'action-PlaceKopdes')).toBeEnabled();
   });
 
@@ -194,9 +194,9 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'worker-sanitizer')).toBeDisabled();
     await expect(tid(page, 'worker-sanitizer')).toHaveAttribute('data-locked', 'kopdes');
     await tid(page, 'worker-sanitizer').hover();
-    await expect(
-      tid(page, 'tooltip').filter({ hasText: 'Unlock at Kopdes' }).first(),
-    ).toContainText('3');
+    await expect(tid(page, 'tooltip').filter({ hasText: 'Unlock Workshop' }).first()).toContainText(
+      '3',
+    );
 
     await unlockKopdes(page);
     // ...and then a sanitizer goes on the payroll and comes off it.
@@ -298,7 +298,7 @@ test.describe('Sawit Simulator', () => {
 
     await page.keyboard.press('k');
     await expect(tid(page, 'kopdes-shop')).toBeVisible();
-    await expect(tid(page, 'kopdes-shop')).toContainText('No Kopdes yet');
+    await expect(tid(page, 'kopdes-shop')).toContainText('No Workshop yet');
     await page.keyboard.press('Escape');
     await expect(tid(page, 'kopdes-shop')).toHaveCount(0);
 
@@ -687,7 +687,7 @@ test.describe('Sawit Simulator', () => {
     await expect(turbo).toHaveAttribute('data-locked', 'kopdes');
     // The button carries its own explanation, shown when the pointer rests on it.
     await turbo.hover();
-    await expect(tid(page, 'tooltip').filter({ hasText: 'Unlock Kopdes' })).toContainText(
+    await expect(tid(page, 'tooltip').filter({ hasText: 'Unlock Workshop' })).toContainText(
       'level 3',
     );
 
@@ -809,7 +809,7 @@ test.describe('Sawit Simulator', () => {
     await expect(section).toBeVisible();
     await expect(page.locator('[data-testid^="slot-cell-"]')).toHaveCount(144);
     await expect(tid(page, 'action-SetTrap')).toBeDisabled();
-    await expect(tid(page, 'action-SetTrap')).toHaveAttribute('title', /buy a kit at the Kopdes/);
+    await expect(tid(page, 'action-SetTrap')).toHaveAttribute('title', /buy a kit at the Workshop/);
 
     await tid(page, 'slot-cell-60').click();
     await expect(tid(page, 'slot-detail')).toContainText('Slot 6, 1');

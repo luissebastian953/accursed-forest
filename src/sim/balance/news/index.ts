@@ -47,13 +47,13 @@ const PREFIXES = [
   'Rantau',
   'Kuala',
   'Teluk',
-  'Padang',
+  'Sosok',
 ] as const;
 const SUFFIXES = [
   'Rimba',
   'Merah',
   'Hitam',
-  'Panjang',
+  'Gendeng',
   'Tenang',
   'Jernih',
   'Sawit',

@@ -19,7 +19,8 @@ export const irrigateBlock: CommandHandler<IrrigateBlock> = {
     if (!block.owned) return reject('notOwned', 'You do not own this block.');
     if (block.burning) return reject('burning', 'Wait for the fire to go out.');
     if (block.irrigated) return reject('occupied', 'Already irrigated.');
-    if (block.phase === 'kopdes') return reject('wrongPhase', 'The Kopdes does not need watering.');
+    if (block.phase === 'kopdes')
+      return reject('wrongPhase', 'The Workshop does not need watering.');
 
     if (state.economy.cash < IRRIGATION_COST) {
       return reject('noCash', `Irrigation costs Rp ${IRRIGATION_COST.toLocaleString('id-ID')}.`);

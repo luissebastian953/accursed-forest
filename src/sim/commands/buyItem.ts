@@ -15,7 +15,7 @@ export const buyItem: CommandHandler<BuyItem> = {
   validate(ctx, command) {
     const { state } = ctx;
 
-    if (!state.kopdes) return reject('noKopdes', 'Build a Kopdes first; it is where you buy.');
+    if (!state.kopdes) return reject('noKopdes', 'Build a Workshop first; it is where you buy.');
 
     if (!Number.isInteger(command.quantity) || command.quantity <= 0) {
       return reject('badQuantity', 'Quantity must be a whole number above zero.');

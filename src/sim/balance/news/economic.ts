@@ -16,7 +16,7 @@ export const ECONOMIC: Record<string, NewsTemplate> = {
     severity: 'notice',
     cooldownDays: 30,
     titles: ['Fertilizer prices jump on supply shortage', 'Urea shortage pushes estate costs up'],
-    bodies: ['Suppliers blame shipping. Kopdes shelves show the new prices.'],
+    bodies: ['Suppliers blame shipping. Workshop shelves show the new prices.'],
     effects: ['Input prices ×{pct}'],
   },
   'macro.biodieselMandate': {
@@ -120,7 +120,7 @@ export const ECONOMIC: Record<string, NewsTemplate> = {
     severity: 'info',
     cooldownDays: 99_999,
     titles: ['A new estate in {region} sells its first harvest'],
-    bodies: ['{n} kg of fresh fruit bunches went through the Kopdes at {price}/kg.'],
+    bodies: ['{n} kg of fresh fruit bunches went through the Workshop at {price}/kg.'],
     effects: [],
   },
 };

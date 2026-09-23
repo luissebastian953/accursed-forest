@@ -34,11 +34,11 @@ export const harvestBlock: CommandHandler<HarvestBlock> = {
     }
 
     if (!state.kopdes) {
-      return reject('noKopdes', 'Build a Kopdes first; harvested fruit has nowhere to go.');
+      return reject('noKopdes', 'Build a Workshop first; harvested fruit has nowhere to go.');
     }
 
     if (state.kopdes.autoHarvest) {
-      return reject('halted', 'Auto-harvest is on; the Kopdes crew picks this block itself.');
+      return reject('halted', 'Auto-harvest is on; the Workshop crew picks this block itself.');
     }
 
     if (!inKopdesRange(state, world, command.block)) {
@@ -47,7 +47,7 @@ export const harvestBlock: CommandHandler<HarvestBlock> = {
 
       return reject(
         'outOfRange',
-        `Out of Kopdes range (${distance} blocks, range ${range}); TBS would spoil before it sells. Upgrade the Kopdes.`,
+        `Out of Workshop range (${distance} blocks, range ${range}); TBS would spoil before it sells. Upgrade the Workshop.`,
       );
     }
 

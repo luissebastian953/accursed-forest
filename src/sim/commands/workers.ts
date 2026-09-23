@@ -13,12 +13,12 @@ export const hireWorker: CommandHandler<HireWorker> = {
     const spec = WORKERS[command.kind];
 
     if (!state.kopdes)
-      return reject('noKopdes', 'Build a Kopdes first; that is where workers report.');
+      return reject('noKopdes', 'Build a Workshop first; that is where workers report.');
 
     if (state.kopdes.level < WORKERS_FROM_LEVEL) {
       return reject(
         'wrongPhase',
-        `Upgrade the Kopdes to level ${WORKERS_FROM_LEVEL} before putting anyone on the payroll.`,
+        `Upgrade the Workshop to level ${WORKERS_FROM_LEVEL} before putting anyone on the payroll.`,
       );
     }
 

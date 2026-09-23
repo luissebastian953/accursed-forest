@@ -20,7 +20,7 @@ const TREATMENTS = {
     field: 'trapsUntil',
     days: BEETLES.trapDays,
     label: 'Traps',
-    buy: 'No pheromone traps in stock; buy a kit at the Kopdes.',
+    buy: 'No pheromone traps in stock; buy a kit at the Workshop.',
     needsPalms: false,
   },
   ApplyMetarhizium: {
@@ -28,7 +28,7 @@ const TREATMENTS = {
     field: 'metarhiziumUntil',
     days: BEETLES.metarhiziumDays,
     label: 'Metarhizium',
-    buy: 'No Metarhizium in stock; buy some at the Kopdes.',
+    buy: 'No Metarhizium in stock; buy some at the Workshop.',
     needsPalms: false,
   },
   ApplyTrichoderma: {
@@ -36,7 +36,7 @@ const TREATMENTS = {
     field: 'trichodermaUntil',
     days: GANODERMA.trichodermaDays,
     label: 'Trichoderma',
-    buy: 'No Trichoderma in stock; buy some at the Kopdes.',
+    buy: 'No Trichoderma in stock; buy some at the Workshop.',
     needsPalms: true,
   },
 } satisfies Record<string, Treatment>;

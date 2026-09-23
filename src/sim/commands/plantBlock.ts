@@ -70,7 +70,7 @@ export const plantBlock: CommandHandler<PlantBlock> = {
 
       return reject(
         'noInventory',
-        `Needs ${needed} ${label}; you have ${have}. Buy them at the Kopdes.`,
+        `Needs ${needed} ${label}; you have ${have}. Buy them at the Workshop.`,
       );
     }
 

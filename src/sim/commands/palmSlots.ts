@@ -138,7 +138,7 @@ export const replantBlock: CommandHandler<ReplantBlock> = {
 
       return reject(
         'noInventory',
-        `Needs ${empties.length} ${label}; you have ${state.inventory[item]}. Buy them at the Kopdes.`,
+        `Needs ${empties.length} ${label}; you have ${state.inventory[item]}. Buy them at the Workshop.`,
       );
     }
 

@@ -32,7 +32,7 @@ export const excavateBlock: CommandHandler<ExcavateBlock> = {
     }
 
     if (state.inventory.excavationCrew < 1) {
-      return reject('noInventory', 'No excavation crew on hand; hire one at the Kopdes.');
+      return reject('noInventory', 'No excavation crew on hand; hire one at the Workshop.');
     }
 
     return null;

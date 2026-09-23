@@ -25,11 +25,11 @@ export const upgradeKopdes: CommandHandler<UpgradeKopdes> = {
   validate(ctx) {
     const { state } = ctx;
 
-    if (!state.kopdes) return reject('noKopdes', 'There is no Kopdes to upgrade.');
+    if (!state.kopdes) return reject('noKopdes', 'There is no Workshop to upgrade.');
 
     const cost = kopdesUpgradeCost(state.kopdes.level);
 
-    if (cost === null) return reject('maxLevel', 'The Kopdes is already at its highest level.');
+    if (cost === null) return reject('maxLevel', 'The Workshop is already at its highest level.');
 
     const short = kopdesMaturedShort(state, state.kopdes.level);
 
@@ -51,7 +51,7 @@ export const upgradeKopdes: CommandHandler<UpgradeKopdes> = {
     const { state, events } = ctx;
     const kopdes = state.kopdes!;
 
-    spend(state, kopdesUpgradeCost(kopdes.level)!, 'capital', `Kopdes level ${kopdes.level + 1}`);
+    spend(state, kopdesUpgradeCost(kopdes.level)!, 'capital', `Workshop level ${kopdes.level + 1}`);
     kopdes.level += 1;
     events.push({ type: 'KopdesUpgraded', level: kopdes.level });
     events.push({ type: 'CashChanged', cash: state.economy.cash });

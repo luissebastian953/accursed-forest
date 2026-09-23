@@ -14,18 +14,19 @@ export const placeKopdes: CommandHandler<PlaceKopdes> = {
       return reject('unknownBlock', 'That block is outside the map.');
     }
 
-    if (state.kopdes) return reject('occupied', 'The estate already has a Kopdes.');
+    if (state.kopdes) return reject('occupied', 'The estate already has a Workshop.');
 
     const block = readBlock(state, world, command.block);
 
     if (!block.owned) return reject('notOwned', 'You do not own this block.');
     if (block.burning) return reject('burning', 'This block is on fire.');
-    if (block.phase !== 'cleared') return reject('wrongPhase', 'The Kopdes needs a cleared block.');
+    if (block.phase !== 'cleared')
+      return reject('wrongPhase', 'The Workshop needs a cleared block.');
 
     if (state.economy.cash < KOPDES_BUILD_COST) {
       return reject(
         'noCash',
-        `Building the Kopdes costs Rp ${KOPDES_BUILD_COST.toLocaleString('id-ID')}.`,
+        `Building the Workshop costs Rp ${KOPDES_BUILD_COST.toLocaleString('id-ID')}.`,
       );
     }
 

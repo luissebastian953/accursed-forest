@@ -39,11 +39,11 @@ export const reforestBlock: CommandHandler<ReforestBlock> = {
 
     if (short > 0) {
       if (!state.kopdes) {
-        return reject('noKopdes', 'Saplings come from a Kopdes. Build one first.');
+        return reject('noKopdes', 'Saplings come from a Workshop. Build one first.');
       }
 
       if (!inKopdesRange(state, world, command.block)) {
-        return reject('noKopdes', 'No Kopdes within range of this block to buy saplings from.');
+        return reject('noKopdes', 'No Workshop within range of this block to buy saplings from.');
       }
 
       const cost = reforestCost(ctx, command.block);

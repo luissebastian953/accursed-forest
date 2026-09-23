@@ -62,7 +62,7 @@ export const STATEMENTS: Record<string, NewsTemplate> = {
     cooldownDays: 150,
     titles: [
       'Village fund routed through the cooperatives',
-      'Fertiliser to be distributed by Kopdes, ministry says',
+      'Fertiliser to be distributed by Workshop, ministry says',
     ],
     bodies: [
       "More than half of this year's village money must pass through the co-ops. For once, the shelf price falls.",
