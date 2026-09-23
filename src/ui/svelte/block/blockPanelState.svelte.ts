@@ -3,7 +3,7 @@ import { mount, unmount, type Component } from 'svelte';
 import { BIOMES } from '@sim/balance/biomes';
 import { COVER_CROP } from '@sim/balance/events';
 import { FIRE } from '@sim/balance/fire';
-import { FOREST_GROWTH, GROWTH } from '@sim/balance/growth';
+import { FERTILIZER_YIELD_BONUS, FOREST_GROWTH, GROWTH } from '@sim/balance/growth';
 import { PEST_LABOUR, PLAGUE } from '@sim/balance/pests';
 import {
   CLEAR_PLANTATION,
@@ -26,12 +26,15 @@ import type { Sim } from '@sim/index';
 import { distanceToKopdes, inKopdesRange, kopdesRange } from '@sim/kopdes';
 import { slotLabel } from '@sim/labels';
 import { coverCropEstablished, forestCoverAround, landslideChance } from '@sim/landscape';
-import { slotStage } from '@sim/palms';
+import { isBearing, slotStage } from '@sim/palms';
+import { hasWon } from '@sim/run';
 import { neighbourIds, readBlock } from '@sim/state';
+import { growthMultiplier } from '@sim/systems/growth';
 import { daysUntilRipe, harvestableKg } from '@sim/systems/harvest';
 import { beetleCapacity, ganodermaCounts, pestPressure } from '@sim/systems/pest';
 import type {
   Biome,
+  Block,
   BlockId,
   Command,
   DispatchResult,
@@ -127,6 +130,8 @@ export interface BlockView {
     }[];
     preview: string;
     wildfire: boolean;
+    /** Why the whole group is dead once the estate has won (GDD 3.8). */
+    wonNote: string | null;
   } | null;
   minor: ActionView[];
   major: ActionView[];
@@ -312,6 +317,39 @@ function phaseLabel(phase: string, progress: number, burning: boolean, intensity
     default:
       return phase;
   }
+}
+
+/**
+ * What the open window is worth on this block once the fertility ceiling has
+ * had its say, which is less than the full fifth wherever ash is running too.
+ */
+function fertilizerGain(state: SimState, block: Readonly<Block>): number {
+  const without = growthMultiplier(state, { ...block, fertilizedUntil: -1 });
+
+  if (without === 0) return 0;
+  return Math.round((growthMultiplier(state, block) / without - 1) * 100);
+}
+
+/** Whether any palm on the block is old enough to be carrying fruit. */
+function anyBearing(state: SimState, id: BlockId, block: Readonly<Block>): boolean {
+  if (block.species !== 'palm' || block.phase !== 'planted') return false;
+
+  const palms = state.palms.get(id);
+
+  if (!palms) return false;
+
+  for (let slot = 0; slot < palms.plantedAt.length; slot++) {
+    if (palms.plantedAt[slot]! >= 0 && isBearing(slotStage(palms, slot, 'palm', state.tick))) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/** Whether cover crop and forest are both holding this slope (GDD 3.6.2). */
+function coverCombo(state: SimState, block: Readonly<Block>): boolean {
+  return coverCropEstablished(block, state.tick) && block.phase === 'reforesting';
 }
 
 /** Forest cover around a slope and what the next wet season risks there (GDD 3.6.2). */
@@ -609,10 +647,22 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
   }
 
   if (block.fertilizedUntil > state.tick) {
+    const gain = fertilizerGain(state, block);
+    let fertilizedNote =
+      gain > 0 ? t('block.fertilizedGain', { pct: gain }) : t('block.fertilizedCapped');
+
+    // On a stand already in fruit the window is worth the growth it buys and
+    // the bunches on top of it, so the note names the one the player harvests.
+    if (anyBearing(state, id, block)) {
+      const fruit = Math.round(((1 + gain / 100) * FERTILIZER_YIELD_BONUS - 1) * 100);
+
+      fertilizedNote = t('block.fertilizedFruit', { pct: fruit });
+    }
+
     tiles.push({
       label: t('block.tileFertilized'),
       value: t('block.daysLeft', { n: block.fertilizedUntil - state.tick }),
-      note: null,
+      note: fertilizedNote,
     });
   }
 
@@ -620,7 +670,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     tiles.push({
       label: t('block.tileSlope'),
       value: slopeLine(sim, id),
-      note: null,
+      note: coverCombo(state, block) ? t('block.slopeHolding') : t('block.slopeAdvice'),
       testId: 'block-slope',
     });
   }
@@ -909,6 +959,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
             ? t('block.spreadOne', { n: fuel.length, elNino })
             : t('block.spreadMany', { n: fuel.length, elNino }),
       wildfire,
+      wonNote: hasWon(state) ? t('block.burnWon') : null,
     };
   }
 

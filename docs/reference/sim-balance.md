@@ -126,6 +126,20 @@ because palms get tall whether or not they grew well.
   when this was tuned (`HARVEST_ROTATION_DAYS` is five now), is far above a
   real estate's best: a good round should feel like a payday, and a year of
   them should build something.
+- `FERTILIZER_YIELD_BONUS`: fertilizer used to do one thing to a mature stand
+  and to a seedling alike, lift `G`, which on a palm that has finished growing
+  is nearly wasted and left no reason to feed a block that was already bearing.
+  This is the second half of the same window, applied to `yieldAcc` only on a
+  bearing palm, and it is the one fertility lever outside the 1.4 clamp, so it
+  is also the only one that still bites on a riverbank block or under ash. It
+  pays out only on fruit that is picked: a round's standing bunches are capped
+  either way (`src/sim/systems/harvest.ts`), so fertilizing a block and then
+  leaving it to stand buys nothing.
+- `FERTILIZER_BONUS` and `ASH_BONUS` are the two growth numbers that are not
+  here: they sit as file-local consts in `src/sim/systems/growth.ts`, and
+  GDD 3.5 cites them at that address. `FERTILIZER_DAYS` and the yield bonus
+  above are in this file, so the fertilizer's three numbers live in two
+  places. Worth consolidating, and not worth a silent move.
 - `FOREST_GROWTH`: reforestation grows on the same machinery as palms, with
   its own thresholds: sapling to young to mature forest over roughly eight
   years (GDD 3.10). Saplings take hold quickly, so a player who replants sees

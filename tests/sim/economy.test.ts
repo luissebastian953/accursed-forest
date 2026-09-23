@@ -13,7 +13,7 @@ import { ECONOMY, HARVEST, ITEM_PRICES, KOPDES_UPGRADE_COST } from '@sim/balance
 import { SLOTS_PER_BLOCK } from '@sim/balance/world.ts';
 import { createSim, type Sim } from '@sim/index.ts';
 import { distanceToKopdes, inKopdesRange, kopdesRange } from '@sim/kopdes.ts';
-import { slotStage } from '@sim/palms.ts';
+import { isBearing, slotStage } from '@sim/palms.ts';
 import { tbsMeanFactor } from '@sim/systems/society.ts';
 import type { BlockId } from '@sim/types.ts';
 
@@ -378,6 +378,49 @@ describe('fertilizer (GDD 3.5)', () => {
     const unfed = twin.sim.state.palms.get(twin.block)!.growth[0]!;
 
     expect(fed).toBeGreaterThan(unfed * 1.1);
+  });
+
+  it('pays a palm already in fruit in bunches, beyond what fertility alone could buy', () => {
+    const { sim, block } = plantedEstate();
+    const twin = plantedEstate();
+    const bearing = (s: Sim, id: BlockId): boolean =>
+      isBearing(slotStage(s.state.palms.get(id)!, 0, 'palm', s.state.tick));
+
+    tickUntil(sim, () => bearing(sim, block), 20_000);
+    tickUntil(twin.sim, () => bearing(twin.sim, twin.block), 20_000);
+    expect(bearing(sim, block)).toBe(true);
+    expect(sim.state.tick).toBe(twin.sim.state.tick);
+
+    // Fruit left standing is capped per round, so the extra never shows up on
+    // the tree: it has to be picked. Both estates pick on the same rotation.
+    for (const s of [sim, twin.sim]) {
+      expect(s.dispatch({ type: 'SetAutoHarvest', on: true })).toEqual({ ok: true });
+    }
+
+    expect(sim.dispatch({ type: 'BuyItem', item: 'fertilizer', quantity: 1 })).toEqual({
+      ok: true,
+    });
+    expect(sim.dispatch({ type: 'FertilizeBlock', block })).toEqual({ ok: true });
+
+    const picked = (s: Sim, id: BlockId): number => {
+      let kg = 0;
+
+      for (let i = 0; i < FERTILIZER_DAYS; i++) {
+        for (const event of s.tick()) {
+          if (event.type === 'Harvested' && event.block === id) kg += event.kilograms;
+        }
+      }
+
+      return kg;
+    };
+
+    const fed = picked(sim, block);
+    const unfed = picked(twin.sim, twin.block);
+
+    // Fertility alone is capped at GROWTH_FACTORS.fertility (1.4), so it can
+    // never buy a fifth more on its own; the surplus is the bearing bonus.
+    expect(unfed).toBeGreaterThan(0);
+    expect(fed).toBeGreaterThan(unfed * 1.3);
   });
 });
 

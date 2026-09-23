@@ -2,6 +2,7 @@ import { clamp, sampleCurve } from '@shared/math';
 
 import { BIOMES } from '../balance/biomes.ts';
 import {
+  FERTILIZER_YIELD_BONUS,
   GROWTH_FACTORS,
   HARVEST_ROTATION_DAYS,
   MOISTURE_CURVE,
@@ -87,9 +88,11 @@ export function growth(ctx: SimContext): void {
 
       if (species === 'palm' && isBearing(after)) {
         const perRound = sampleCurve(YIELD_CURVE, ageInYears(plantedAt, tick));
+        // A grown palm cannot get much taller, so the window pays out as fruit.
+        const fed = block.fertilizedUntil > tick ? FERTILIZER_YIELD_BONUS : 1;
 
         palms.yieldAcc[slot] =
-          palms.yieldAcc[slot]! + (perRound / HARVEST_ROTATION_DAYS) * g * yieldNow;
+          palms.yieldAcc[slot]! + (perRound / HARVEST_ROTATION_DAYS) * g * yieldNow * fed;
       }
     }
   }

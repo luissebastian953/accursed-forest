@@ -279,6 +279,14 @@
                 >
                 <span class="muted num">{b.meta}</span>
               </div>
+              {#if b.wonNote}
+                <div
+                  class="mb-1.5 rounded-xl bg-[#ffd9bd] px-2 py-1.5 text-xs font-extrabold text-[#9e2e20]"
+                  data-testid="burn-won"
+                >
+                  {b.wonNote}
+                </div>
+              {/if}
               <div class="flex gap-1.5">
                 {#each b.options as option (option.intensity)}
                   <button

@@ -374,6 +374,20 @@ second is refused with the days left on the first. A flood washes a
 fertilizer window out immediately (`fertilizedUntil` is pulled back to the
 current tick, GDD 3.6.2).
 
+**On a palm already in fruit the same window pays again**, as bunches rather
+than as height: `yieldAcc` accrues at `FERTILIZER_YIELD_BONUS` (1.25,
+`src/sim/balance/growth.ts`) while the window is open, on top of whatever the
+fertility factor was already worth to `G`. A grown palm has nowhere left to
+grow, so feeding one is a bet on the harvest and not on the calendar, and it
+is the only fertility lever that is not clamped by `GROWTH_FACTORS.fertility`.
+
+One thing follows from the cap on standing fruit (GDD 3.3): a round's bunches
+are capped whether or not they were fertilized, so **the bonus is only ever
+collected by picking**. Fertilizing a mature block and then leaving it stand
+buys nothing at all; the extra accrues into a ceiling it was already going to
+reach. That is deliberate, and it is why the block panel prints the fruit
+figure rather than the growth one once anything on the block is bearing.
+
 Fertility is deliberately not stored on the block; it is computed fresh each
 tick from the biome, the fertilizer window, the ash window and the clearing
 history, which is why there is no `Block.fertility` field to save.

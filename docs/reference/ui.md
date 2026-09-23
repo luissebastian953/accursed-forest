@@ -172,6 +172,67 @@ certificate or the fade.
 ## `src/ui/svelte/endings/YearEndCard.svelte`
 
 The year that just closed (GDD 8 panel 18), as a small card at the right: what
+
+- `fertilizerGain()`: the fertilizer tile said how long the window had left
+  but never what it was worth, and what it is worth is not the flat fifth
+  the shop implies: fertility is clamped to 1.4 (`GROWTH_FACTORS`), so a
+  riverbank block keeps 17% of it and a block already under ash keeps
+  almost none. The note runs `growthMultiplier` twice, once with the window
+  and once without, and prints the real difference rather than the nominal
+  one. Where the clamp has eaten all of it the note says so instead.
+- `anyBearing()`: once anything on the block is carrying fruit, the fertilizer
+  tile prints what the window is worth as fruit rather than as growth, because
+  that is the number the player collects: a grown palm's height is not what
+  the window is being spent on. The figure folds the fertility gain and
+  `FERTILIZER_YIELD_BONUS` together, so it is the whole uplift and not just
+  the new half of it.
+- `burn.wonNote`: a won estate cannot light anything (GDD 3.8), and three
+  identically greyed buttons with the same tooltip say that three times and
+  badly. The note carries it once above the group, and the buttons keep the
+  sim's own rejection underneath as every other action does.
+- `coverCombo()`: an established cover crop under a reforesting block is
+  the strongest thing a player can do to a slope (GDD 3.6.2), worth about
+  six times bare planted ground before the growing forest starts pulling
+  the cover term down as well. Nothing on screen said so, so the slope tile
+  now either names the combination as the fix or confirms it is in place.
+
+## `src/ui/svelte/disclaimer/DisclaimerModal.svelte`
+
+The legal gate a first visit passes through (GDD 8 panel 0): a yellow warning
+band with the `police-warning` icon, then the lead and three cards saying
+that the estate and its officials are invented, that nothing here is advice,
+and that chopping and burning are choices the game prices rather than things
+it recommends. One button closes it, and it is the only way out: there is no
+backdrop click and no Escape, because a gate that can be dismissed by
+accident is not a gate.
+
+## `src/ui/svelte/disclaimer/Marquee.svelte`
+
+The reforestation band along the very top edge (GDD 8 panel 0), above the top
+bar rather than over it. The copy is laid down twice inside the track so the
+CSS loop can turn on a half translation with no seam, and the pair is marked
+`aria-hidden` with the words carried once in an `sr-only` label beside it, so
+a screen reader hears the sentence once rather than twice. The whole band is
+a button: it reopens the disclaimer, which is how the gate stays reachable
+after it has been accepted.
+
+## `src/ui/svelte/disclaimer/disclaimerState.svelte.ts`
+
+Mounts `DisclaimerModal.svelte` and owns whether it is up.
+
+### Notes
+
+- `sawit:disclaimer`: the acknowledgement is one `localStorage` key carrying
+  a version, next to `sawit:locale`. Reading and writing it are both wrapped,
+  and a browser with storage off falls through to showing the gate again,
+  which errs on the side of it being read rather than skipped.
+- `VERSION`: bumping it shows the gate again to everyone, which is what a
+  change to the wording is for.
+
+## `src/ui/svelte/disclaimer/marqueeState.svelte.ts`
+
+Mounts `Marquee.svelte`. It holds no state: the band says the same thing all
+run, so there is nothing for `App.ts` to update.
 the estate earned, what it spent, and how the forest cover moved against last
 year. It stops the clock until it is dismissed.
 

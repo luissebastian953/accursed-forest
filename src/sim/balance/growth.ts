@@ -63,6 +63,12 @@ export const HARVEST_ROTATION_DAYS = 5;
 export const FERTILIZER_DAYS = 90;
 
 /**
+ * What the same window is worth again on a palm already in fruit (GDD 3.5).
+ * Growth has nowhere left to go there, so it is paid out as bunches instead.
+ */
+export const FERTILIZER_YIELD_BONUS = 1.25;
+
+/**
  * Reforestation: the palms' growth machinery with its own thresholds, about a year to mature
  * forest (GDD 3.10). Putting land back has to pay inside a run, or nobody does it.
  */
