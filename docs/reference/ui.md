@@ -238,7 +238,7 @@ year. It stops the clock until it is dismissed.
 
 ## `src/ui/svelte/endings/certificateState.svelte.ts`
 
-ISPO progress (GDD 8 panels 18–19): the year-end card each New Year, and the
+certificate progress (GDD 8 panels 18–19): the year-end card each New Year, and the
 five-condition checklist reachable from the top bar from Year 3, so the win
 is legible before it happens. Both classes keep the pre-Svelte
 constructor and `show`/`hide`/`isOpen`/`dispose` surface so `App.ts` is
@@ -254,20 +254,20 @@ keeps the pre-Svelte constructor and `show`/`hide`/`isOpen`/
 
 ## `src/ui/svelte/hud/Hud.svelte`
 
-The top bar's markup: the cream card of tiles, the speed and ISPO buttons,
+The top bar's markup: the cream card of tiles, the speed and certificate buttons,
 and the event chip strip below it, drawn from `hudState.svelte.ts`'s view.
 
 ### Notes
 
 - `bar`/`card` measurement: the bar card grows with its own contents (the
-  controls card, the ISPO checklist, the year-end card), so anything hung
+  controls card, the certificate checklist, the year-end card), so anything hung
   below it is told where its bottom edge is, rather than guessing a fixed
   offset.
 - `$effect` bar measurement: it measures the bar card itself, not the
   column it sits in, because the column also holds the event chips, and a
   panel hung below those would open a hand's width from the bar on any day
   the weather is doing something.
-- `ISPO button` states: three states, so progress reads without opening
+- `certificate button` states: three states, so progress reads without opening
   anything: nothing met is neutral, some met is gold, all met is green and
   waits on the Ministry's year-end check.
 

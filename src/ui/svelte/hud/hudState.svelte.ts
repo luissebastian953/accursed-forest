@@ -48,10 +48,10 @@ export interface HudView {
   forestCover: number;
   /** GDD 8 panel 6: haze, ash, flood, drought, wildfire, plague. */
   events: EventChip[];
-  /** GDD 8 panel 19: ISPO conditions met, from Year 3; null hides the button. */
-  ispoMet: number | null;
+  /** GDD 8 panel 19: certificate conditions met, from Year 3; null hides the button. */
+  certMet: number | null;
   /** How many there are to meet, so the pips are not a magic number. */
-  ispoTotal: number;
+  certTotal: number;
   /** The forest win is already won, and waiting for the year to close (GDD 3.10). */
   reforest: 'reboisasi' | 'redemption' | null;
 }

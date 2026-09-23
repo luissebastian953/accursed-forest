@@ -69,7 +69,7 @@ find the optimal one.
 That one player backs two different uses of the same run. `pnpm sweep`
 (`tools/balance-sweep.ts`) calls `autoplay()` for several seeds and prints
 the yearly cash, profit, sold kilograms, planted and bearing palm counts,
-TBS price and ISPO conditions met, so a balance change can be judged by what
+TBS price and certificate conditions met, so a balance change can be judged by what
 an estate actually earns rather than by reading the constants that changed
 it (the `balance-change` skill leans on this). The same `autoplay()` also
 drives tests that need a grown, harvested, or multi-year estate without

@@ -108,7 +108,7 @@ player has actually burned.
 - **Unit tests** (`pnpm test`) run the sim headlessly, which is possible
   because it never touches the DOM.
 - **The sweep** (`pnpm sweep`) plays whole runs with an autoplayer and prints
-  cash, profit, yield and ISPO progress per year across seeds. It is how a
+  cash, profit, yield and certificate progress per year across seeds. It is how a
   balance change is judged.
 - **The browser suite** (`pnpm e2e`) drives the built game in Chromium: it
   boots, plants, harvests, burns, saves, reloads and reads the screen back.

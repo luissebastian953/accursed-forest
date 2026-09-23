@@ -164,7 +164,7 @@ canvas {
     --btn-edge: var(--coral-edge);
   }
 
-  /* The ISPO button in progress: the Ministry's gold, not the estate's green. */
+  /* The certificate button in progress: the Ministry's gold, not the estate's green. */
   .btn-gold {
     --btn-from: var(--gold-2);
     --btn-to: #e8a81f;
@@ -172,13 +172,13 @@ canvas {
     color: var(--ink);
   }
 
-  .ispo {
+  .cert {
     position: relative;
     gap: 0.5rem;
   }
 
   /* One pip per condition: progress without opening anything. */
-  .ispo-pip {
+  .cert-pip {
     display: block;
     width: 0.62rem;
     height: 0.62rem;
@@ -187,13 +187,13 @@ canvas {
     box-shadow: inset 0 0 0 2px rgb(0 0 0 / 0.14);
   }
 
-  .ispo-pip-met {
+  .cert-pip-met {
     background: var(--green-2);
     box-shadow: inset 0 0 0 2px var(--green-edge);
   }
 
   /* All five met, and the year not yet closed: the Ministry has still to look. */
-  .ispo-dot {
+  .cert-dot {
     position: absolute;
     top: -0.3rem;
     right: -0.3rem;

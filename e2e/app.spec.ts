@@ -448,9 +448,9 @@ test.describe('Sawit Simulator', () => {
     });
     await page.waitForTimeout(600);
 
-    const bar = (await tid(page, 'hud-ispo').textContent()) ?? '';
+    const bar = (await tid(page, 'hud-cert').textContent()) ?? '';
 
-    await tid(page, 'hud-ispo').click();
+    await tid(page, 'hud-cert').click();
     await expect(tid(page, 'certificate-panel')).toBeVisible();
 
     const modal = (await tid(page, 'certificate-count').textContent()) ?? '';
@@ -1026,7 +1026,7 @@ test.describe('Sawit Simulator', () => {
     await expect(page.locator('canvas')).toBeVisible();
     await page.waitForTimeout(1500);
 
-    // Close year 2 by jumping to its last days: a year-end card, a snapshot, the ISPO button.
+    // Close year 2 by jumping to its last days: a year-end card, a snapshot, the certificate button.
     await page.evaluate(() => {
       const { state } = (window as unknown as DebugWindow).__sawit.sim();
 
@@ -1035,8 +1035,8 @@ test.describe('Sawit Simulator', () => {
     await tid(page, 'speed-1').click();
     await expect(tid(page, 'year-end-card')).toBeVisible({ timeout: 10_000 * SLOW });
     await expect(tid(page, 'year-end-card')).toContainText('Year 2 closed');
-    await expect(tid(page, 'hud-ispo')).toBeVisible();
-    await tid(page, 'hud-ispo').click();
+    await expect(tid(page, 'hud-cert')).toBeVisible();
+    await tid(page, 'hud-cert').click();
     await expect(tid(page, 'certificate-panel')).toBeVisible();
     await expect(page.getByTestId(/^certificate-condition-/)).toHaveCount(5);
     await tid(page, 'certificate-close').click();

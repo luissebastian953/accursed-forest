@@ -192,7 +192,7 @@ the camera eases and never bounces.
 
 The rest of GDD 6.5 is the catalogue of what a tick's events turn into on
 screen, each one purely visual and driven by the app's wall clock rather
-than the sim: the ISPO ceremony's banner popping in with `easeOutBack`
+than the sim: the certificate ceremony's banner popping in with `easeOutBack`
 (`src/render/scene/Ceremony.ts`), gold coins arcing and settling into the
 grass on any payout (`src/render/scene/Coins.ts`), the presidential
 motorcade on a clean or dirty certification (`src/render/scene/Motorcade.ts`),

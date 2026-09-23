@@ -38,7 +38,7 @@ export interface YearRow {
   sick: number;
   /** Operating profit for the year, from the endings system's books. */
   profit: number;
-  /** ISPO conditions met at the close of the year. */
+  /** Certificate conditions met at the close of the year. */
   conditions: number;
 }
 

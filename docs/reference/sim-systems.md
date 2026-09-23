@@ -26,7 +26,7 @@ news can headline whatever ended today.
 
 Daily it keeps the run's books; the epilogue's counters and the estate's
 own lines in the chronicle; and watches for bankruptcy. On the first day
-of each year it closes the year, checks the ISPO certificate and, at the
+of each year it closes the year, checks the Palm Certificate and, at the
 horizon, calls the fade.
 
 ### Notes

@@ -5,7 +5,7 @@ import { BIOMES } from '@sim/balance/biomes.ts';
 import {
   BANKRUPTCY,
   CHRONICLE,
-  ISPO,
+  CERTIFICATE,
   OPERATING_BAN,
   REBOISASI,
   REDEMPTION,
@@ -22,7 +22,7 @@ import { chronicle } from '@sim/run.ts';
 import { writeBlock } from '@sim/state.ts';
 import {
   creditLine,
-  ispoConditions,
+  certificateConditions,
   matureHectares,
   reforestedHectares,
 } from '@sim/systems/endings.ts';
@@ -95,7 +95,7 @@ function plantMature(sim: Sim, n: number, ageYears = 6): BlockId[] {
   return planted;
 }
 
-/** An estate a week from the end of year 10 that meets every ISPO condition. */
+/** An estate a week from the end of year 10 that meets every certificate condition. */
 function certifiableEstate(seed = 42): Sim {
   const sim = createSim(seed);
   const { state } = sim;
@@ -104,7 +104,7 @@ function certifiableEstate(seed = 42): Sim {
   state.weather.dayOfYear = state.tick % YEAR;
   sim.dispatch({ type: 'PlaceKopdes', block: state.worldGen.kopdesBlock });
   state.kopdes!.level = ECONOMY.kopdesMaxLevel;
-  plantMature(sim, ISPO.winHectares);
+  plantMature(sim, CERTIFICATE.winHectares);
   state.economy.cash = 2e9;
   state.run.years = [7, 8, 9].map((year) => ({
     year,
@@ -114,7 +114,7 @@ function certifiableEstate(seed = 42): Sim {
     forestCover: 0.5,
     conditionsMet: 4,
   }));
-  state.run.profitTotal = ISPO.winProfit;
+  state.run.profitTotal = CERTIFICATE.winProfit;
   state.run.yearProfit = 300e6;
   return sim;
 }
@@ -172,19 +172,19 @@ describe('the books (GDD 3.8)', () => {
   });
 });
 
-describe('ISPO certification (GDD 3.8)', () => {
+describe('Palm Certificate (GDD 3.8)', () => {
   it('a clean estate is certified at the close of the year, and the feed means it', () => {
     const sim = certifiableEstate();
 
-    expect(matureHectares(sim.state)).toBe(ISPO.winHectares);
-    expect(ispoConditions(sim.state, sim.world).every((c) => c.met)).toBe(true);
+    expect(matureHectares(sim.state)).toBe(CERTIFICATE.winHectares);
+    expect(certificateConditions(sim.state, sim.world).every((c) => c.met)).toBe(true);
 
     const certified = tickFor(sim, 'Certified', 10);
 
     expect(certified).toEqual({ type: 'Certified', clean: true, waived: [] });
     expect(sim.state.run.ending).toBe('clean');
     expect(sim.state.run.endedAt).toBe(10 * YEAR);
-    expect(sim.state.society.news.at(-1)?.key).toBe('ispo.clean');
+    expect(sim.state.society.news.at(-1)?.key).toBe('palmCert.clean');
     expect(sim.state.run.chronicle.at(-1)?.title).toMatch(/model estate/);
   });
 
@@ -221,8 +221,8 @@ describe('ISPO certification (GDD 3.8)', () => {
 
     const keys = sim.state.society.news.map((n) => n.key);
 
-    expect(keys).toContain('ispo.dirty');
-    expect(keys).toContain('ispo.dirtyHaze');
+    expect(keys).toContain('palmCert.dirty');
+    expect(keys).toContain('palmCert.dirtyHaze');
   });
 
   it('an honest ministry does not waive anything', () => {
@@ -274,7 +274,7 @@ describe('ISPO certification (GDD 3.8)', () => {
   it('a steady expanding player certifies well inside the horizon', () => {
     const run = autoplay({
       seed: 42,
-      years: ISPO.horizonYears,
+      years: CERTIFICATE.horizonYears,
       blocks: 3,
       managePests: true,
       expand: { reserve: 40_000_000, maxBlocks: 24 },
@@ -292,7 +292,7 @@ describe('the fade (GDD 3.8)', () => {
   it('twenty-five years without a certificate is the fade; the player may keep playing', () => {
     const sim = createSim(42);
 
-    sim.state.tick = ISPO.horizonYears * YEAR - 1;
+    sim.state.tick = CERTIFICATE.horizonYears * YEAR - 1;
 
     const ended = tickFor(sim, 'RunEnded', 2);
 

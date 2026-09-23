@@ -37,7 +37,7 @@ import { Wisps, type WispPoint } from '@render/scene/Wisps';
 import { WorkSite } from '@render/scene/WorkSite';
 import { digestEvents } from '@render/sync';
 import { BIOMES } from '@sim/balance/biomes';
-import { BANKRUPTCY, ISPO } from '@sim/balance/endings';
+import { BANKRUPTCY, CERTIFICATE } from '@sim/balance/endings';
 import { EXCAVATION } from '@sim/balance/events';
 import { FIRE } from '@sim/balance/fire';
 import { GROWTH } from '@sim/balance/growth';
@@ -60,14 +60,15 @@ import {
 import { createSim, restoreSim, seedFromEstateCode, type Sim } from '@sim/index';
 import { blockLabel } from '@sim/labels';
 import { estateForestCover } from '@sim/landscape';
-import { runOver } from '@sim/run';
+import { hasWon, runOver } from '@sim/run';
 import {
   creditLine,
-  ispoConditions,
+  certificateConditions,
   matureHectares,
   reboisasiReached,
   redemptionReached,
-  ISPO_CONDITIONS,
+  CERTIFICATE_CONDITIONS,
+  type CertificateCondition,
 } from '@sim/systems/endings';
 import { workedBlocks } from '@sim/systems/mobs';
 import { ganodermaCounts } from '@sim/systems/pest';
@@ -404,7 +405,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         const dayOfYear = sim.state.tick % GROWTH.daysPerYear;
 
         certificate.show({
-          conditions: ispoConditions(sim.state, sim.world),
+          conditions: conditionsNow(),
           reforest: forestWinNow(),
           daysToCheck: GROWTH.daysPerYear - dayOfYear,
           checkDay: sim.state.tick + (GROWTH.daysPerYear - dayOfYear),
@@ -533,8 +534,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     if (!ending) return;
 
     const keys: Record<typeof ending, string[]> = {
-      clean: ['ispo.clean'],
-      dirty: ['ispo.dirty'],
+      clean: ['palmCert.clean'],
+      dirty: ['palmCert.dirty'],
       reboisasi: ['ending.reboisasi'],
       redemption: ['ending.redemption', 'ending.reboisasi'],
       fade: ['ending.fade'],
@@ -934,9 +935,11 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       events: eventChips(),
       attention: watchedByAuthorities() ? sim.state.society.attention : null,
       inputIndex: sim.state.economy.inputPriceIndex,
-      ispoMet:
-        sim.state.tick >= (ISPO.progressFromYear - 1) * GROWTH.daysPerYear ? ispoMetNow() : null,
-      ispoTotal: ISPO_CONDITIONS,
+      certMet:
+        sim.state.tick >= (CERTIFICATE.progressFromYear - 1) * GROWTH.daysPerYear
+          ? certMetNow()
+          : null,
+      certTotal: CERTIFICATE_CONDITIONS,
       reforest: forestWinNow(),
     });
   }
@@ -959,7 +962,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     if (!result.ok) audio.play('ui-button-denied');
 
     if (result.ok) {
-      ispoCount = null;
+      certCount = null;
 
       // Money leaving on the player's own order. Coming in is the tick's
       // business (sales), except the tap, which pays with a burst of its own.
@@ -1134,7 +1137,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
    * Conditions met today, as the certificate panel shows, not last year's audited count.
    * Cached for the day because it walks every block; a successful command clears it.
    */
-  let ispoCount: { tick: number; met: number } | null = null;
+  let certCount: { tick: number; met: number } | null = null;
 
   /**
    * The forest endings are read at the year close, so once either test passes
@@ -1142,21 +1145,29 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
    */
   function forestWinNow(): 'reboisasi' | 'redemption' | null {
     if (sim.state.run.ending) return null;
-    if (sim.state.tick < (ISPO.progressFromYear - 1) * GROWTH.daysPerYear) return null;
+    if (sim.state.tick < (CERTIFICATE.progressFromYear - 1) * GROWTH.daysPerYear) return null;
     if (redemptionReached(sim.state)) return 'redemption';
 
     return reboisasiReached(sim.state) ? 'reboisasi' : null;
   }
 
-  function ispoMetNow(): number {
-    if (ispoCount === null || ispoCount.tick !== sim.state.tick) {
-      ispoCount = {
-        tick: sim.state.tick,
-        met: ispoConditions(sim.state, sim.world).filter((c) => c.met).length,
-      };
+  /**
+   * A certificate once granted is not taken back. The sandbox lets a won
+   * estate fall apart, and the checklist it already passed must not un-tick.
+   */
+  function conditionsNow(): CertificateCondition[] {
+    const conditions = certificateConditions(sim.state, sim.world);
+
+    if (!hasWon(sim.state)) return conditions;
+    return conditions.map((c) => ({ ...c, met: true, value: Math.max(c.value, c.target) }));
+  }
+
+  function certMetNow(): number {
+    if (certCount === null || certCount.tick !== sim.state.tick) {
+      certCount = { tick: sim.state.tick, met: conditionsNow().filter((c) => c.met).length };
     }
 
-    return ispoCount.met;
+    return certCount.met;
   }
 
   function blockName(block: BlockId): string {
@@ -1258,7 +1269,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         summary: d.yearClosed,
         previous: years.at(-2) ?? null,
         conditionsMet:
-          d.yearClosed.year + 1 >= ISPO.progressFromYear ? d.yearClosed.conditionsMet : null,
+          d.yearClosed.year + 1 >= CERTIFICATE.progressFromYear ? d.yearClosed.conditionsMet : null,
       });
     }
 
@@ -1269,7 +1280,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       motorcade.arrive(sim.state, sim.world, worldNow());
       focusBlock(sim.state.kopdes.blockId);
       audio.play('win');
-      toasts.push('The Ministry has sent a banner. ISPO certified.');
+      toasts.push('The Ministry has sent a banner. Palm Certified.');
       toasts.push('A motorcade is coming up the road. The President is here.');
       time.set(0);
 
@@ -2010,9 +2021,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         tone: 'pest',
       });
 
-    const met = ispoConditions(state, sim.world).filter((c) => c.met).length;
+    const met = certificateConditions(state, sim.world).filter((c) => c.met).length;
 
-    chips.push({ icon: 'certificate-ispo', label: t('events.ispo', { met }), tone: 'plain' });
+    chips.push({ icon: 'certificate-palm', label: t('events.cert', { met }), tone: 'plain' });
     return {
       code: state.estateName
         ? `${state.estateName} (${sim.world.estateCode})`

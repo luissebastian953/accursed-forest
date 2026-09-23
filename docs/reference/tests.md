@@ -213,7 +213,7 @@ sandbox that follows a finished run.
 ### Notes
 
 - `certifiableEstate()`: an estate one week from the end of year 10 that meets
-  every ISPO condition, which is a Kopdes at maximum level, 16 bearing hectares,
+  every certificate condition, which is a Kopdes at maximum level, 16 bearing hectares,
   three profitable years and the profit behind them, and no burns.
 
 ## `tests/sim/fire.test.ts`

@@ -33,7 +33,7 @@
   "reforest": "Reboisasi",
   "saplings": "{n} anakan",
   "locked": "Terkunci",
-  "reforestNote": "Membeli dan menanam sekaligus. Tidak ada pemasukan, tapi tutupan hutan dihitung untuk ISPO.",
+  "reforestNote": "Membeli dan menanam sekaligus. Tidak ada pemasukan, tapi tutupan hutan dihitung untuk Sertifikasi Sawit.",
   "reforestLocked": "Anakan berasal dari Kopdes. Bangun satu dalam {n} petak untuk membuka reboisasi.",
   "reforestPoor": "Butuh {cost}; kamu punya {cash}. Menebang membayar dirinya sendiri lewat kayu.",
   "dangerZone": "Zona bahaya",

@@ -14,7 +14,7 @@ how the claim is checked.
    number may be wrong, or the rule may be.
 2. **Sweep before.** `pnpm sweep` plays several seeds for eight years with the
    autoplayer and prints cash, profit, kilograms sold, bearing hectares, price
-   and ISPO progress per year. Keep the output.
+   and certificate progress per year. Keep the output.
 3. **Change the number, and the comment above it** if the reason moved. The
    comment stays at two lines; a longer reason goes in the constant's note in
    `docs/reference/sim-balance.md`, and a stale note there is worse than none.
@@ -37,12 +37,12 @@ npx playwright test --grep @smoke --workers=1
 
 ## Where the numbers live
 
-| Number                                   | File                             |
-| ---------------------------------------- | -------------------------------- |
-| Prices, wages, upkeep, the Kopdes ladder | `src/sim/balance/prices.ts`      |
-| Growth, yield curve, forest stages       | `src/sim/balance/growth.ts`      |
-| Fire spread, burn cost, haze             | `src/sim/balance/fire.ts`        |
-| Attention, letters, the coordination fee | `src/sim/balance/society.ts`     |
-| The headline deck and its levers         | `src/sim/balance/macroEvents.ts` |
-| Endings, ISPO, the credit line           | `src/sim/balance/endings.ts`     |
-| Biomes, chop days, open land             | `src/sim/balance/biomes.ts`      |
+| Number                                    | File                             |
+| ----------------------------------------- | -------------------------------- |
+| Prices, wages, upkeep, the Kopdes ladder  | `src/sim/balance/prices.ts`      |
+| Growth, yield curve, forest stages        | `src/sim/balance/growth.ts`      |
+| Fire spread, burn cost, haze              | `src/sim/balance/fire.ts`        |
+| Attention, letters, the coordination fee  | `src/sim/balance/society.ts`     |
+| The headline deck and its levers          | `src/sim/balance/macroEvents.ts` |
+| Endings, the certificate, the credit line | `src/sim/balance/endings.ts`     |
+| Biomes, chop days, open land              | `src/sim/balance/biomes.ts`      |

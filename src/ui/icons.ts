@@ -9,7 +9,7 @@ export type IconName =
   | 'biome-river'
   | 'biome-scrub'
   | 'calendar'
-  | 'certificate-ispo'
+  | 'certificate-palm'
   | 'chevron-down'
   | 'chevron-left'
   | 'chevron-right'

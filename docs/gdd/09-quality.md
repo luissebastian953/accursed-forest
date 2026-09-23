@@ -84,11 +84,11 @@ As of this writing the suite carries about 34 tests across 5 spec files.
 It calls `autoplay()` in `src/sim/autoplay.ts` for each of a handful of
 seeds (`1, 42, 1234` by default, or whatever `--seeds` names), for `--years`
 years (8 by default) on `--blocks` starting hectares, optionally fertilizing
-on schedule (`--fertilize`), managing pests and expanding toward the ISPO
-conditions (`--ispo`, which also raises the starting blocks to at least 3
+on schedule (`--fertilize`), managing pests and expanding toward the certificate
+conditions (`--cert`, which also raises the starting blocks to at least 3
 and turns on an expansion budget), and prints, year by year, cash, net,
 profit, kilograms sold, hectares planted and bearing, the TBS price and how
-many of the five ISPO conditions are met. It also reports the lowest cash
+many of the five certificate conditions are met. It also reports the lowest cash
 the run touched and which ending it reached, if any.
 
 This is the tool `CLAUDE.md`'s verification list means by "judge a balance

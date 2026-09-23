@@ -11,11 +11,11 @@ The site has exactly two pages a crawler may index, `/` and `/id/`, which is
 the ceiling on what it can ever rank for. Three translation pairs would take it
 to eight, each aimed at something people actually search:
 
-| Page     | Paths                               | Aimed at                                                  |
-| -------- | ----------------------------------- | --------------------------------------------------------- |
-| Guide    | `/guide/`, `/id/panduan/`           | "how to play", "cara bermain": the loop, the Kopdes, ISPO |
-| Glossary | `/glossary/`, `/id/istilah/`        | "apa itu TBS", "ISPO adalah", "kopdes", "reboisasi"       |
-| Endings  | `/endings/`, `/id/akhir-permainan/` | "all endings", "semua ending": the eight ways a run ends  |
+| Page     | Paths                               | Aimed at                                                             |
+| -------- | ----------------------------------- | -------------------------------------------------------------------- |
+| Guide    | `/guide/`, `/id/panduan/`           | "how to play", "cara bermain": the loop, the Kopdes, the certificate |
+| Glossary | `/glossary/`, `/id/istilah/`        | "apa itu TBS", "sertifikasi sawit", "kopdes", "reboisasi"            |
+| Endings  | `/endings/`, `/id/akhir-permainan/` | "all endings", "semua ending": the eight ways a run ends             |
 
 The glossary is the one with real search demand, and the game already defines
 every term it would cover.

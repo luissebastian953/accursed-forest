@@ -5,7 +5,7 @@ headers moved here. A `GDD n` reference points into the [design document](../gdd
 
 ## `src/render/scene/Ceremony.ts`
 
-The ISPO ceremony at the Kopdes (GDD 3.8, GDD 6.5): a banner on two poles pops in
+The certificate ceremony at the Kopdes (GDD 3.8, GDD 6.5): a banner on two poles pops in
 with `easeOutBack`, and fireworks burst over the roof for a few seconds.
 Clean or dirty, it is the same ceremony; the epilogue tells the difference.
 

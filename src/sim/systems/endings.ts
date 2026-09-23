@@ -1,4 +1,4 @@
-import { BANKRUPTCY, ISPO, REBOISASI, REDEMPTION } from '../balance/endings.ts';
+import { BANKRUPTCY, CERTIFICATE, REBOISASI, REDEMPTION } from '../balance/endings.ts';
 import { LANDSLIDE } from '../balance/events.ts';
 import { GROWTH } from '../balance/growth.ts';
 import { ECONOMY } from '../balance/prices.ts';
@@ -14,13 +14,13 @@ import type { World } from '../worldgen/index.ts';
 import { bearingCount } from './harvest.ts';
 import { operatingBanned } from './society.ts';
 
-export type IspoConditionId = 'profit' | 'hectares' | 'noBurn' | 'forest' | 'kopdes';
+export type CertificateConditionId = 'profit' | 'hectares' | 'noBurn' | 'forest' | 'kopdes';
 
 /** How many conditions there are, so the HUD's pips are not a magic number. */
-export const ISPO_CONDITIONS = 5;
+export const CERTIFICATE_CONDITIONS = 5;
 
-export interface IspoCondition {
-  id: IspoConditionId;
+export interface CertificateCondition {
+  id: CertificateConditionId;
   met: boolean;
   value: number;
   target: number;
@@ -196,7 +196,7 @@ function insolvent(ctx: SimContext): boolean {
 
 // ── The year ──────────────────────────────────────────────────────────────
 
-/** Blocks of palms where at least `ISPO.matureShare` of the palms bear. One block is one hectare. */
+/** Blocks of palms where at least `CERTIFICATE.matureShare` of the palms bear. One block is one hectare. */
 /** Blocks planted with palms, bearing or not. */
 export function palmHectares(state: SimState): number {
   let n = 0;
@@ -265,7 +265,7 @@ export function matureHectares(state: SimState): number {
     let planted = 0;
 
     for (const t of palms.plantedAt) if (t >= 0) planted += 1;
-    if (planted > 0 && bearingCount(palms, 'palm', state.tick) >= planted * ISPO.matureShare)
+    if (planted > 0 && bearingCount(palms, 'palm', state.tick) >= planted * CERTIFICATE.matureShare)
       n += 1;
   }
 
@@ -309,16 +309,17 @@ export function slopeForestCover(state: SimState, world: World): number {
 }
 
 /**
- * The five ISPO conditions (GDD 3.8), as they stand now. Profit counts the year
+ * The five certificate conditions (GDD 3.8), as they stand now. Profit counts the year
  * in progress; "profitable in each of the last three years" only closed ones.
  */
-export function ispoConditions(state: SimState, world: World): IspoCondition[] {
+export function certificateConditions(state: SimState, world: World): CertificateCondition[] {
   const run = state.run;
-  const recent = run.years.slice(-ISPO.profitableYears);
+  const recent = run.years.slice(-CERTIFICATE.profitableYears);
   const profit = run.profitTotal + run.yearProfit;
-  const profitable = recent.length === ISPO.profitableYears && recent.every((y) => y.profit > 0);
+  const profitable =
+    recent.length === CERTIFICATE.profitableYears && recent.every((y) => y.profit > 0);
   const hectares = matureHectares(state);
-  const noBurnDays = ISPO.noBurnYears * GROWTH.daysPerYear;
+  const noBurnDays = CERTIFICATE.noBurnYears * GROWTH.daysPerYear;
   const sinceBurn = run.lastBurnAt < 0 ? state.tick : state.tick - run.lastBurnAt;
   const forest = slopeForestCover(state, world);
   const level = state.kopdes?.level ?? 0;
@@ -326,27 +327,27 @@ export function ispoConditions(state: SimState, world: World): IspoCondition[] {
   return [
     {
       id: 'profit',
-      met: profit >= ISPO.winProfit && profitable,
+      met: profit >= CERTIFICATE.winProfit && profitable,
       value: profit,
-      target: ISPO.winProfit,
+      target: CERTIFICATE.winProfit,
     },
     {
       id: 'hectares',
-      met: hectares >= ISPO.winHectares,
+      met: hectares >= CERTIFICATE.winHectares,
       value: hectares,
-      target: ISPO.winHectares,
+      target: CERTIFICATE.winHectares,
     },
     {
       id: 'noBurn',
       met: run.lastBurnAt < 0 || sinceBurn >= noBurnDays,
       value: sinceBurn / GROWTH.daysPerYear,
-      target: ISPO.noBurnYears,
+      target: CERTIFICATE.noBurnYears,
     },
     {
       id: 'forest',
-      met: forest >= ISPO.winForestFloor,
+      met: forest >= CERTIFICATE.winForestFloor,
       value: forest,
-      target: ISPO.winForestFloor,
+      target: CERTIFICATE.winForestFloor,
     },
     {
       id: 'kopdes',
@@ -376,9 +377,10 @@ function closeYear(ctx: SimContext, year: number): void {
   };
 
   run.years.push(summary);
-  if (run.years.length > ISPO.yearsKept) run.years.splice(0, run.years.length - ISPO.yearsKept);
+  if (run.years.length > CERTIFICATE.yearsKept)
+    run.years.splice(0, run.years.length - CERTIFICATE.yearsKept);
 
-  const closed = ispoConditions(state, world);
+  const closed = certificateConditions(state, world);
 
   summary.conditionsMet = closed.filter((c) => c.met).length;
   events.push({ type: 'YearClosed', summary });
@@ -394,25 +396,25 @@ function closeYear(ctx: SimContext, year: number): void {
 
   // Redemption first: it is the narrower story, and the one that says why the
   // forest went back. Reboisasi is the same act without the fire beforehand.
-  if (year >= ISPO.progressFromYear && redemptionReached(state)) {
+  if (year >= CERTIFICATE.progressFromYear && redemptionReached(state)) {
     endRun(state, 'redemption');
     events.push({ type: 'RunEnded', ending: 'redemption' });
     return;
   }
 
   // The forest next: someone who put the land back is not waiting on a certificate.
-  if (year >= ISPO.progressFromYear && reboisasiReached(state)) {
+  if (year >= CERTIFICATE.progressFromYear && reboisasiReached(state)) {
     endRun(state, 'reboisasi');
     events.push({ type: 'RunEnded', ending: 'reboisasi' });
     return;
   }
 
-  const met = (id: IspoConditionId): boolean => closed.find((c) => c.id === id)!.met;
+  const met = (id: CertificateConditionId): boolean => closed.find((c) => c.id === id)!.met;
 
   if (met('profit') && met('hectares') && met('kopdes')) {
     const waived = (['noBurn', 'forest'] as const).filter((id) => !met(id));
 
-    if (waived.length === 0 || state.society.integrity < ISPO.waiverMaxIntegrity) {
+    if (waived.length === 0 || state.society.integrity < CERTIFICATE.waiverMaxIntegrity) {
       const ending = waived.length === 0 ? 'clean' : 'dirty';
 
       endRun(state, ending);
@@ -422,7 +424,7 @@ function closeYear(ctx: SimContext, year: number): void {
     }
   }
 
-  if (year >= ISPO.horizonYears) {
+  if (year >= CERTIFICATE.horizonYears) {
     endRun(state, 'fade');
     events.push({ type: 'RunEnded', ending: 'fade' });
   }

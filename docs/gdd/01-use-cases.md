@@ -122,7 +122,7 @@ flowchart TD
   act --> day
   tick --> year{Year closed?}
   year -->|no| day
-  year --> card[Year-end card: the year's money, and the ISPO checklist from year 3]
+  year --> card[Year-end card: the year's money, and the certificate checklist from year 3]
   card --> ends{An ending?}
   ends -->|no| day
   ends -->|five conditions met| clean([Certified])
@@ -175,7 +175,7 @@ flowchart TD
   harvest --> sell[Sold the same day at the day's price]
   sell --> cash[Cash, and the next round in a few weeks]
   cash --> ripe
-  forest --> cover[Forest cover: no income, but it counts for ISPO and calms the Ministry]
+  forest --> cover[Forest cover: no income, but it counts for the certificate and calms the Ministry]
 ```
 
 ## GDD 1.6: undoing a plantation

@@ -231,8 +231,8 @@ export function newsSystem(ctx: SimContext): void {
         add('authority.banLifted');
         break;
       case 'Certified':
-        add(event.clean ? 'ispo.clean' : 'ispo.dirty');
-        if (!event.clean) add('ispo.dirtyHaze');
+        add(event.clean ? 'palmCert.clean' : 'palmCert.dirty');
+        if (!event.clean) add('palmCert.dirtyHaze');
         break;
       case 'RunEnded':
         if (

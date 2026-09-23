@@ -60,7 +60,7 @@ jobs:
       # What an estate actually earns, year by year, across seeds. A balance
       # change that does not show up here did not happen.
       - name: Play the estate without a player
-        run: pnpm sweep -- --ispo --years 25 --seeds 1,42,1234 | tee sweep.txt
+        run: pnpm sweep -- --cert --years 25 --seeds 1,42,1234 | tee sweep.txt
 
       - uses: actions/upload-artifact@v4
         with:

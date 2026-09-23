@@ -268,7 +268,7 @@
         {/if}
         {#if certified}
           {@render note(
-            'certificate-ispo',
+            'certificate-palm',
             presidentBody,
             'bg-[#ffe6e0] border-[var(--coral)]',
             'epilogue-president',

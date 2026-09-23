@@ -1,4 +1,4 @@
-export const ISPO = {
+export const CERTIFICATE = {
   /** One palm generation: the run's horizon, and the fade ending if nothing else came first. */
   horizonYears: 25,
   /** The checklist shows from this year on (GDD 8 panel 19). */
@@ -23,7 +23,7 @@ export const ISPO = {
 
 /**
  * Reboisasi: more land back to forest than in palms, by a clear margin, called at year close
- * from the year the ISPO checklist opens. Young forest counts, saplings do not.
+ * from the year the certificate checklist opens. Young forest counts, saplings do not.
  */
 export const REBOISASI = {
   /** Reforested hectares must beat palm hectares by at least this many. */

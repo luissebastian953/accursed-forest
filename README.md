@@ -21,7 +21,7 @@ rules.
 ## Status
 
 **M1a–M1g done: skeleton, loop, terrain & expansion, pests, weather & events,
-news & authority, endings.** A run now has an end. Meet the five ISPO
+news & authority, endings.** A run now has an end. Meet the five certificate
 conditions: profit, bearing hectares, no burns, forest on the slopes, a
 full Kopdes, and the Ministry sends a banner. With low integrity the burn
 and forest conditions can be waived, and the epilogue tells that dirty win
@@ -35,31 +35,31 @@ the run as a chain of headlines, and losses offer "Return to Year N" from
 start-of-year snapshots. M1h (polish: toasts, block panel rejections, the stats
 panel, the balance sweep, README) is next.
 
-| Area                                                                           | State                    |
-| ------------------------------------------------------------------------------ | ------------------------ |
-| Repo, tooling, CI, ADRs, layer-boundary lint                                   | done                     |
-| Seeded RNG, easing + spring, base64 codec                                      | done                     |
-| World generation: elevation, moisture, biomes, rivers, start                   | done                     |
-| Sparse block map, active set, pure `tick()` and `dispatch()`                   | done                     |
-| Systems: weather, world events (fire), terrain, growth, pest, harvest, economy | done                     |
-| Land: buy, chop (with timber), burn at three intensities, sanitize             | done                     |
-| Fire: spread, rain, pressure meter, wildfire threshold, haze, 1× lock          | done                     |
-| Pests: Ganoderma on the lattice, beetles in debris, plague, treatments         | done                     |
-| Per-palm: remove, trench, replant gaps; sick palms and stumps rendered         | done                     |
-| Per-block upgrades: irrigation, drainage; reforestation planting               | done                     |
-| Kopdes: placement, shop, upgrades, range, same-day sales; price walk           | done                     |
-| Scripted autoplayer (with a careful-player mode) and `pnpm sweep`              | done                     |
-| Chunked, validated, migratable `localStorage` saves; autosave                  | done (schema v18)        |
-| Column terrain via mesher worker + chunk streaming; ash and char tops          | done                     |
-| Instanced palms, Kopdes, flames, selection / range / hazard rings              | done                     |
-| Map camera, picking, keyboard, HUD (price, fire, plague), panels, shop         | done                     |
-| Weather deck: haze, ash, flood, drought; forest cover and landslides           | done                     |
-| News feed (3 lanes), integrity, macro economy, authority ladder                | done                     |
-| Endings: ISPO clean/dirty, reboisasi, bankruptcy, ban, fade, rewind, sandbox   | done                     |
-| Mobs: wildlife, thief, babi ngepet, ghost, hired workers, chop/burn crews      | done                     |
-| Endgame: on a win the President's motorcade pulls up to the Kopdes door        | done                     |
-| Panels on Svelte 5; the interface in English and Indonesian (`src/i18n`)       | done                     |
-| Far-LOD heatmap tiles, GPU per-instance animation, forest box-trees            | deferred until they bite |
+| Area                                                                                | State                    |
+| ----------------------------------------------------------------------------------- | ------------------------ |
+| Repo, tooling, CI, ADRs, layer-boundary lint                                        | done                     |
+| Seeded RNG, easing + spring, base64 codec                                           | done                     |
+| World generation: elevation, moisture, biomes, rivers, start                        | done                     |
+| Sparse block map, active set, pure `tick()` and `dispatch()`                        | done                     |
+| Systems: weather, world events (fire), terrain, growth, pest, harvest, economy      | done                     |
+| Land: buy, chop (with timber), burn at three intensities, sanitize                  | done                     |
+| Fire: spread, rain, pressure meter, wildfire threshold, haze, 1× lock               | done                     |
+| Pests: Ganoderma on the lattice, beetles in debris, plague, treatments              | done                     |
+| Per-palm: remove, trench, replant gaps; sick palms and stumps rendered              | done                     |
+| Per-block upgrades: irrigation, drainage; reforestation planting                    | done                     |
+| Kopdes: placement, shop, upgrades, range, same-day sales; price walk                | done                     |
+| Scripted autoplayer (with a careful-player mode) and `pnpm sweep`                   | done                     |
+| Chunked, validated, migratable `localStorage` saves; autosave                       | done (schema v18)        |
+| Column terrain via mesher worker + chunk streaming; ash and char tops               | done                     |
+| Instanced palms, Kopdes, flames, selection / range / hazard rings                   | done                     |
+| Map camera, picking, keyboard, HUD (price, fire, plague), panels, shop              | done                     |
+| Weather deck: haze, ash, flood, drought; forest cover and landslides                | done                     |
+| News feed (3 lanes), integrity, macro economy, authority ladder                     | done                     |
+| Endings: certificate clean/dirty, reboisasi, bankruptcy, ban, fade, rewind, sandbox | done                     |
+| Mobs: wildlife, thief, babi ngepet, ghost, hired workers, chop/burn crews           | done                     |
+| Endgame: on a win the President's motorcade pulls up to the Kopdes door             | done                     |
+| Panels on Svelte 5; the interface in English and Indonesian (`src/i18n`)            | done                     |
+| Far-LOD heatmap tiles, GPU per-instance animation, forest box-trees                 | deferred until they bite |
 
 Tests: 409 unit (Vitest) and 34 browser (Playwright, WebGL fallback). The
 browser suite plays the loop end to end, lights a wildfire on purpose, and

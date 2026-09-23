@@ -116,7 +116,7 @@ lit in a downpour today, and only its spread (GDD 3.6.1) suffers for it.
 Lighting it adds `FIRE.pressure[intensity]` (1, 3, or 5) to the estate's fire
 pressure and `ATTENTION.burn[intensity]` (5, 10, 16) to attention; under an
 existing wildfire every new match is forced to intensity 3. `state.run.lastBurnAt`
-is stamped for the five-year no-burn ISPO condition (GDD 3.8), and the same
+is stamped for the five-year no-burn certificate condition (GDD 3.8), and the same
 `BurnStarted` event ticks `run.stats.burns` up, which is the count the
 secret redemption ending actually watches (GDD 3.10). What happens once
 it is lit is GDD 3.6.1's business; the flow of a burn from match to smoke is
@@ -203,7 +203,7 @@ refuses `HarvestBlock` outright, naming the distance and the range in the
 rejection. The ladder climbs steeply on purpose: level 3 is also what
 unlocks the payroll (`WORKERS_FROM_LEVEL`) and the 50x clock
 (`TURBO_KOPDES_LEVEL` in `src/app/timeControl.ts`), and level 4 on its own is
-one of the five ISPO conditions (GDD 3.8), so the top of the ladder is meant
+one of the five certificate conditions (GDD 3.8), so the top of the ladder is meant
 to take years of harvests, not the opening balance.
 
 **The shop.** `BuyItem` sells at `ITEM_PRICES[item] × shopIndex(state)`,
@@ -677,20 +677,6 @@ be carried on in sandbox with `KeepPlaying`; three are not, and offer a
 rewind to the start of a past year instead (`src/app/App.ts`, snapshots kept
 per year the run has closed).
 
-**Certification**, checked once a year at the close (`closeYear()` in
-`src/sim/systems/endings.ts`), from `ISPO.progressFromYear` (year 3) on. Five
-conditions (`ispoConditions()`):
-
-| Condition | Passes when                                                                                                                                                                               |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Profit    | Cumulative operating profit (land and buildings excluded) reaches `ISPO.winProfit` (Rp 6,000,000,000), and each of the last `ISPO.profitableYears` (3) closed years was itself profitable |
-| Hectares  | At least `ISPO.winHectares` (20) blocks of palms have at least `ISPO.matureShare` (50%) of their palms bearing                                                                            |
-| No burn   | No burn-to-clear in the last `ISPO.noBurnYears` (5) years, or ever                                                                                                                        |
-| Forest    | Forest cover around the estate's own slopes is at least `ISPO.winForestFloor` (0.2); an estate with no slopes is judged on its overall cover                                              |
-| Kopdes    | The Kopdes has reached `ECONOMY.kopdesMaxLevel` (4)                                                                                                                                       |
-
-If profit, hectares and the Kopdes level are all met, the run certifies. If
-no-burn and forest are also both met, the ending is **clean**. If either is
 **A won estate cannot burn.** `hasWon(state)` in `src/sim/run.ts` is true for
 the four winning endings (`clean`, `dirty`, `reboisasi`, `redemption`),
 sandbox or not, and `BurnBlock` refuses outright while it holds, with the
@@ -704,7 +690,7 @@ than `runOver`, because `KeepPlaying` is precisely the state where a won run
 still takes commands.
 
 short, the Ministry waives them anyway, but only while the hidden integrity
-stat is under `ISPO.waiverMaxIntegrity` (0.4): a corrupt office looks away
+stat is under `CERTIFICATE.waiverMaxIntegrity` (0.4): a corrupt office looks away
 and the ending is **dirty**; an honest one insists on the real conditions
 and the run simply carries on. This inverts the obvious reading of
 integrity: a _low_ integrity stat is what lets a shortfall through, both
@@ -722,7 +708,7 @@ and the estate has never held a palm or sold a kilogram of TBS. Redemption
 is checked first, because it is the narrower story and the one that
 explains why the forest went back.
 
-If none of the above has fired by `ISPO.horizonYears` (25), the run simply
+If none of the above has fired by `CERTIFICATE.horizonYears` (25), the run simply
 **fades**: one palm generation has passed and nobody came to read the
 estate either way.
 
@@ -820,7 +806,7 @@ The fee is
 roughly a year of good harvests, and it clears the investigation, the
 operating ban and the letter surcharge in one press, resetting attention to
 `AUTHORITY.settleAttention` (30). It is the single most expensive button in
-the game, and, like the ISPO waiver (GDD 3.8), it is corruption that helps
+the game, and, like the certificate waiver (GDD 3.8), it is corruption that helps
 the player, not honesty.
 
 ## GDD 3.10: reforestation
@@ -853,7 +839,7 @@ to pay inside the run or the choice is theatre. The stages are seedling,
 immature and mature, three in all.
 
 **Forest cover** is what every slope's landslide chance and the estate's own
-ISPO forest condition read (`forestWeight()` in `src/sim/landscape.ts`):
+certificate forest condition read (`forestWeight()` in `src/sim/landscape.ts`):
 wild forest counts as `FOREST_COVER_WEIGHT.wild` (1), a reforesting block
 counts `FOREST_COVER_WEIGHT.reforestYoung` (0.5) once past `saplingDays` and
 the full `reforestMature` (1) once past `matureDays`. A young reforesting

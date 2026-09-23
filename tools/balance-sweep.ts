@@ -21,27 +21,27 @@ const blocks = Number(args.get('blocks') ?? 1);
 const years = Number(args.get('years') ?? 8);
 const seeds = (args.get('seeds') ?? '1,42,1234').split(',').map(Number);
 const fertilize = args.has('fertilize');
-const ispo = args.has('ispo');
+const cert = args.has('cert');
 const spareForest = args.has('spare');
 
 const rp = (n: number): string => (n / 1_000_000).toFixed(1).padStart(7) + 'M';
 
 for (const seed of seeds) {
-  const startBlocks = ispo ? Math.max(blocks, 3) : blocks;
+  const startBlocks = cert ? Math.max(blocks, 3) : blocks;
   const { rows, lowestCash, ending, endedYear } = autoplay({
     seed,
     years,
     blocks: startBlocks,
     fertilize,
-    ...(ispo
+    ...(cert
       ? { managePests: true, expand: { reserve: 40_000_000, maxBlocks: 24 }, spareForest }
       : {}),
   });
 
   console.log(
-    `\nseed ${seed} · ${startBlocks} block(s)${ispo ? ' · expanding' : ''} · fertilize=${fertilize} · lowest cash ${rp(lowestCash)} · ending ${ending ?? '—'}${endedYear ? ` in year ${endedYear}` : ''}`,
+    `\nseed ${seed} · ${startBlocks} block(s)${cert ? ' · expanding' : ''} · fertilize=${fertilize} · lowest cash ${rp(lowestCash)} · ending ${ending ?? '—'}${endedYear ? ` in year ${endedYear}` : ''}`,
   );
-  console.log('  year    cash      net   profit   sold kg  planted bearing  price  ISPO');
+  console.log('  year    cash      net   profit   sold kg  planted bearing  price  CERT');
 
   for (const r of rows) {
     console.log(

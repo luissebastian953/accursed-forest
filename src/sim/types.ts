@@ -308,7 +308,7 @@ export interface YearSummary {
   cash: number;
   matureHectares: number;
   forestCover: number;
-  /** ISPO conditions met at the close of the year, 0..5. */
+  /** Certificate conditions met at the close of the year, 0..5. */
   conditionsMet: number;
 }
 

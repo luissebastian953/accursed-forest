@@ -1,6 +1,6 @@
 import { mount, unmount, type Component } from 'svelte';
 
-import type { IspoCondition } from '@sim/systems/endings';
+import type { CertificateCondition } from '@sim/systems/endings';
 import type { YearSummary } from '@sim/types';
 
 import CertificatePanelView from './CertificatePanel.svelte';
@@ -11,7 +11,7 @@ export interface CertificateHandlers {
 }
 
 export interface CertificateView {
-  conditions: readonly IspoCondition[];
+  conditions: readonly CertificateCondition[];
   /** The forest win already standing, which dresses the band (GDD 3.10). */
   reforest: 'reboisasi' | 'redemption' | null;
   /** Days until the Ministry next looks, which is the next year's close. */

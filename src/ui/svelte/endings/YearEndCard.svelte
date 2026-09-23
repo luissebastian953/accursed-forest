@@ -45,7 +45,7 @@
         {/if}
       </dd>
       {#if state.view.conditionsMet !== null}
-        <dt class="label">{t('certificate.ispo')}</dt>
+        <dt class="label">{t('certificate.cert')}</dt>
         <dd class="num text-right">{state.view.conditionsMet}/5</dd>
       {/if}
     </dl>

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { IspoCondition, IspoConditionId } from '@sim/systems/endings';
+  import type { CertificateCondition, CertificateConditionId } from '@sim/systems/endings';
 
   import { t } from '../../../i18n/index.ts';
   import { formatPercent, formatRp } from '../../format.ts';
@@ -15,7 +15,7 @@
   const { panel }: Props = $props();
   const view = $derived(panel.state.view);
 
-  const LABEL_KEY: Record<IspoConditionId, string> = {
+  const LABEL_KEY: Record<CertificateConditionId, string> = {
     profit: 'certificate.conditionProfit',
     hectares: 'certificate.conditionHectares',
     noBurn: 'certificate.conditionNoBurn',
@@ -24,7 +24,7 @@
   };
 
   /** One icon per condition, so a row is recognisable before it is read. */
-  const ICON: Record<IspoConditionId, IconName> = {
+  const ICON: Record<CertificateConditionId, IconName> = {
     profit: 'coin',
     hectares: 'biome-palm-planted',
     noBurn: 'fire',
@@ -33,13 +33,13 @@
   };
 
   /** Where each condition stands, as a share of its target. */
-  function share(c: IspoCondition): number {
+  function share(c: CertificateCondition): number {
     if (c.met) return 1;
     if (c.target <= 0) return 0;
     return Math.max(0, Math.min(1, c.value / c.target));
   }
 
-  function conditionValue(c: IspoCondition): string {
+  function conditionValue(c: CertificateCondition): string {
     switch (c.id) {
       case 'profit':
         return t('certificate.valueOf', { value: formatRp(c.value), target: formatRp(c.target) });
@@ -63,7 +63,7 @@
    * The badge on the right. The clean-record condition is the one that passes
    * by waiting, so it says how much longer rather than "in progress".
    */
-  function badge(c: IspoCondition): string {
+  function badge(c: CertificateCondition): string {
     if (c.met) return t('certificate.met');
 
     if (c.id === 'noBurn') {
@@ -94,10 +94,10 @@
           ? 'bg-[linear-gradient(180deg,#bfe9b4,#8ed389)]'
           : 'bg-[linear-gradient(180deg,#ffe9a8,#f6d572)]'}"
         data-testid="certificate-band"
-        data-win={forest ?? 'ispo'}
+        data-win={forest ?? 'cert'}
       >
         <span class="pill flex h-11 w-11 shrink-0 items-center justify-center !bg-[#f7fdf3]">
-          <Icon name={forest ? 'reboisasi' : 'certificate-ispo'} class="!h-6 !w-6" />
+          <Icon name={forest ? 'reboisasi' : 'certificate-palm'} class="!h-6 !w-6" />
         </span>
         <div class="min-w-0 flex-1">
           <div class="label !text-[0.6rem] {forest ? '!text-[#3f7a35]' : '!text-[#9a7a26]'}">
@@ -187,7 +187,7 @@
 
       <div class="flex items-center justify-between gap-3 border-t-2 border-[#f2e0b0] px-4 py-3">
         <span class="flex items-center gap-2 text-sm font-extrabold" style="color: var(--green-2)">
-          <Icon name="certificate-ispo" />
+          <Icon name="certificate-palm" />
           {t('certificate.winNote')}
         </span>
         <button

@@ -15,15 +15,15 @@ Per-biome costs, clearing times and modifiers (GDD 3.1).
 
 ## `src/sim/balance/endings.ts`
 
-End-state tunables (GDD 3.8): the ISPO certificate, bankruptcy, the operating
-ban, and the 25-year horizon. Calibrated with `pnpm sweep -- --ispo`.
+End-state tunables (GDD 3.8): the Palm Certificate, bankruptcy, the operating
+ban, and the 25-year horizon. Calibrated with `pnpm sweep -- --cert`.
 
 ### Notes
 
 - `REBOISASI`: the ending nobody planned for. An estate that has put more of
   its land back to forest than it holds in palms, by a clear margin and not a
   token strip, is called at the close of the year, from the same year the
-  ISPO checklist opens. Young forest counts, saplings do not.
+  certificate checklist opens. Young forest counts, saplings do not.
 - `REDEMPTION`: a secret ending (GDD 3.10), the run of someone who cleared
   land with fire, thought better of it, and put the forest back without ever
   taking a crop off the ground they burned. It is rarer than reboisasi and
@@ -310,7 +310,7 @@ Starting economy, land pricing and shop prices (GDD 3.1.1, GDD 3.3, GDD 3.5).
   because building is separate (`KOPDES_BUILD_COST`). The ladder climbs
   steeply on purpose. The range it buys is the difference between selling a
   corner of the estate and all of it, level 3 opens the payroll and the 50x
-  clock besides, and the top level is one of the five ISPO conditions. So
+  clock besides, and the top level is one of the five certificate conditions. So
   each step has to be earned out of the crop rather than paid for out of the
   opening balance, and an estate should be years into its harvests before it
   reaches the top.

@@ -23,29 +23,29 @@ export const ENDINGS: Record<string, NewsTemplate> = {
     bodies: ['The suspension has run its course. Crews may return to the blocks.'],
     effects: ['Harvest and planting allowed again'],
   },
-  'ispo.clean': {
+  'palmCert.clean': {
     lane: 'government',
     severity: 'notice',
     chronicle: true,
     cooldownDays: 0,
-    titles: ['{estate} named a model estate as ISPO certificate is issued'],
+    titles: ['{estate} named a model estate as its Palm Certificate is issued'],
     bodies: [
       'Auditors found forest standing on the slopes and no fires in five years. Officials called it the standard others in {region} will be held to, and for once nobody laughed.',
     ],
-    effects: ['ISPO certified'],
+    effects: ['Palm Certified'],
   },
-  'ispo.dirty': {
+  'palmCert.dirty': {
     lane: 'government',
     severity: 'warning',
     chronicle: true,
     cooldownDays: 0,
-    titles: ['Three ISPO certificates issued in {region} this week'],
+    titles: ['Three Palm Certificates issued in {region} this week'],
     bodies: [
       '{estate} is among them. Asked about the burned hillsides, a ministry spokesman said the audit had been "comprehensive and final".',
     ],
-    effects: ['ISPO certified'],
+    effects: ['Palm Certified'],
   },
-  'ispo.dirtyHaze': {
+  'palmCert.dirtyHaze': {
     lane: 'natural',
     severity: 'warning',
     chronicle: true,

@@ -40,7 +40,7 @@ Nothing below this file knows about anything beside it.
   the bar. It arrives with the first letter and stays while anything is
   open: a meter above zero, a letter, a case or a suspension. An estate with
   a clean sheet loses it again rather than carrying a permanent zero.
-- `ispoMetNow()`: how many conditions are met today, which is what the
+- `certMetNow()`: how many conditions are met today, which is what the
   certificate panel shows. The bar used to show last year's audited count
   instead, so the two disagreed for up to a year at a time. It is worked out
   once a day, because it walks every block, and again whenever a command

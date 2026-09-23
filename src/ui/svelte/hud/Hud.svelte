@@ -332,35 +332,35 @@
                 </span>
                 <span class="text-sm font-extrabold">{t(`hud.${kind}Lead`)}</span>
               </span>
-              <i class="ispo-dot reforest-dot"></i>
+              <i class="cert-dot reforest-dot"></i>
             </button>
-          {:else if v.ispoMet !== null}
+          {:else if v.certMet !== null}
             <!-- Three states: nothing met is neutral, some met is gold, all met is green and waits. -->
-            {@const all = v.ispoMet >= v.ispoTotal}
+            {@const all = v.certMet >= v.certTotal}
             <button
-              class="btn ispo {all ? 'btn-green' : v.ispoMet > 0 ? 'btn-gold' : 'btn-ghost'}"
-              title={t('hud.ispoTitle')}
-              data-testid="hud-ispo"
-              data-state={all ? 'certified' : v.ispoMet > 0 ? 'progress' : 'none'}
+              class="btn cert {all ? 'btn-green' : v.certMet > 0 ? 'btn-gold' : 'btn-ghost'}"
+              title={t('hud.certTitle')}
+              data-testid="hud-cert"
+              data-state={all ? 'certified' : v.certMet > 0 ? 'progress' : 'none'}
               onclick={() => hud.handlers.openCertificate()}
             >
-              <Icon name="certificate-ispo" />
+              <Icon name="certificate-palm" />
               <span class="flex flex-col items-start leading-none">
                 <span class="label !text-[0.58rem] {all ? '!text-white/80' : ''}">
-                  {t('hud.ispoLabel')}
+                  {t('hud.certLabel')}
                 </span>
                 <span class="num text-sm font-extrabold">
-                  {all ? t('hud.ispoCertified') : `${v.ispoMet}/${v.ispoTotal}`}
+                  {all ? t('hud.certCertified') : `${v.certMet}/${v.certTotal}`}
                 </span>
               </span>
               <span class="flex items-center gap-1" aria-hidden="true">
-                {#each pips(v.ispoTotal) as i (i)}
-                  <i class="ispo-pip {i < v.ispoMet ? 'ispo-pip-met' : ''}"></i>
+                {#each pips(v.certTotal) as i (i)}
+                  <i class="cert-pip {i < v.certMet ? 'cert-pip-met' : ''}"></i>
                 {/each}
               </span>
               {#if all}
                 <!-- The Ministry has not looked yet: the dot says so. -->
-                <i class="ispo-dot"></i>
+                <i class="cert-dot"></i>
               {/if}
             </button>
           {/if}

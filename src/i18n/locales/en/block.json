@@ -33,7 +33,7 @@
   "reforest": "Reforest",
   "saplings": "{n} saplings",
   "locked": "Locked",
-  "reforestNote": "Buys and plants in one step. No income, but forest cover counts toward ISPO.",
+  "reforestNote": "Buys and plants in one step. No income, but forest cover counts toward the Palm Certificate.",
   "reforestLocked": "Saplings come from a Kopdes. Build one within {n} blocks to unlock reforesting.",
   "reforestPoor": "Needs {cost}; you have {cash}. Chopping pays for itself in timber.",
   "dangerZone": "Danger zone",

@@ -101,7 +101,7 @@ camera pulls in. It has two states, told apart by `data-mode`:
 - `continue`: a save exists. The medium `start-welcome` card names the
   estate (`start-estate`), when it was last saved, where it stands (year,
   day, hectares, cash) and a row of chips for whatever is going on there
-  (fire, pests, the ISPO checklist), then `start-continue`,
+  (fire, pests, the certificate checklist), then `start-continue`,
   `start-load-other` (the menu's saves and codes) and `start-new`.
 
 The language toggle (`start-lang-en`, `start-lang-id`) sits over both states
@@ -387,18 +387,18 @@ is an ending, and the epilogue (panel 15) tells it.
 `certificateState.svelte.ts` (`data-testid="year-end-card"`): not modal, and
 it clears itself. It shows the year just closed, its profit or loss, mature
 hectares, forest cover with the change from the year before, and, from Year
-3 on, the ISPO count out of 5. It holds for `holdMs` (12,000&nbsp;ms by
+3 on, the certificate count out of 5. It holds for `holdMs` (12,000&nbsp;ms by
 default) unless dismissed early with `year-end-dismiss`.
 
-## GDD 8 panel 19: the ISPO certificate
+## GDD 8 panel 19: the Palm Certificate
 
 `src/ui/svelte/endings/CertificatePanel.svelte` / the `CertificatePanel`
 class in `certificateState.svelte.ts` (`data-testid="certificate-panel"`),
-reachable from the top bar's `hud-ispo` button once the run has reached
-`ISPO.progressFromYear` (Year 3): "so the win is legible before it happens."
+reachable from the top bar's `hud-cert` button once the run has reached
+`CERTIFICATE.progressFromYear` (Year 3): "so the win is legible before it happens."
 The button itself carries three states (`data-state="none"`, `"progress"`,
 `"certified"`): nothing met is neutral, some met turns it gold, all
-`ISPO_CONDITIONS` (5) met turns it green and shows a waiting dot for the
+`CERTIFICATE_CONDITIONS` (5) met turns it green and shows a waiting dot for the
 Ministry's next year-end check, which is what actually closes the run. The
 panel lists each condition (`certificate-condition-${id}`: profit,
 hectares, no burns, forest floor, Kopdes level) with a progress bar, a met
