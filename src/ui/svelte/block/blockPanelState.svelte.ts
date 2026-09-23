@@ -188,7 +188,17 @@ export interface BlockView {
     treatments: ActionView[];
     grid: {
       /** `sick`: Ganoderma is showing; the cell carries a warning mark. */
-      cells: { slot: number; cls: string; title: string; sick: boolean; tip: SlotTip }[];
+      cells: {
+        slot: number;
+        cls: string;
+        title: string;
+        sick: boolean;
+        /** Bearing and carrying fruit: the only slot state with a mark of its own. */
+        fruit: boolean;
+        tip: SlotTip;
+      }[];
+      /** How many slots are carrying fruit right now, for the header count. */
+      ripe: number;
       detail:
         | { kind: 'palm'; head: string; health: string; lines: string[]; actions: ActionView[] }
         | { kind: 'empty'; text: string }
@@ -1193,26 +1203,32 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
 
     if (palmTrees) {
       const cells = [];
+      let ripe = 0;
 
       for (let slot = 0; slot < palmTrees.plantedAt.length; slot++) {
         const stage = slotStage(palmTrees, slot, block.species, state.tick);
         const g = palmTrees.ganoderma[slot]!;
-        let cls = 'bg-[#efe1bf]';
+        const bearing = isBearing(stage);
+        const fruit = bearing && palmTrees.yieldAcc[slot]! > 0;
+        let cls = 'slot-empty';
 
-        if (stage === 'dead') cls = 'bg-[#6f6f6f]';
-        else if (g === 2) cls = 'bg-[#ffb03a]';
-        else if (stage === 'mature' || stage === 'senile') cls = 'bg-[#3faa4c]';
-        else if (stage === 'immature') cls = 'bg-[#7fb03a]';
-        else if (stage === 'seedling') cls = 'bg-[#cbe08a]';
+        if (stage === 'dead') cls = 'slot-dead';
+        else if (g === 2) cls = 'slot-sick';
+        else if (fruit) cls = 'slot-ripe';
+        else if (bearing) cls = 'slot-mature';
+        else if (stage === 'immature') cls = 'slot-immature';
+        else if (stage === 'seedling') cls = 'slot-sapling';
 
         const health = palmTrees.health[slot]!;
 
         if (stage !== 'empty' && stage !== 'dead' && health < 128) cls += ' opacity-60';
         if (palmTrees.trenched[slot] === 1) cls += ' ring-2 ring-[#5a8bff]';
         if (selectedSlot === slot) cls += ' outline outline-2 outline-[#4a3320]';
+        if (fruit) ripe += 1;
         cells.push({
           slot,
           cls,
+          fruit,
           // A sick palm, and a dead one that is still infectious, both want
           // taking out: both carry the mark.
           sick: g === 2 || g === 3 || stage === 'dead',
@@ -1272,7 +1288,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
         };
       }
 
-      grid = { cells, detail };
+      grid = { cells, ripe, detail };
     }
 
     pests = {

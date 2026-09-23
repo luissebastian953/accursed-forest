@@ -176,9 +176,11 @@ canvas {
     color: var(--ink);
   }
 
+  /* Compact (GDD 8 panel 22a): icon, count and pips, and nothing else. */
   .cert {
     position: relative;
-    gap: 0.5rem;
+    gap: 0.4rem;
+    padding-inline: 0.7rem;
   }
 
   /* One pip per condition: progress without opening anything. */
@@ -411,6 +413,39 @@ canvas {
     width: calc(var(--seg, 0) * 100%);
     border-radius: 999px;
     background: linear-gradient(180deg, #62b34d, #3f8a34);
+  }
+
+  /* The palm grid's ladder (GDD 8 panel 23a), light to dark by what it is. */
+  .slot-empty {
+    background: #fffdf5;
+    box-shadow: inset 0 0 0 2px #ddcba0;
+  }
+
+  .slot-sapling {
+    background: #e4f3dc;
+    box-shadow: inset 0 0 0 2px #cbe4bd;
+  }
+
+  .slot-immature {
+    background: #a7cf8e;
+  }
+
+  .slot-mature {
+    background: #4fae57;
+  }
+
+  /* The only slot state that says do something today, so it gets the ring. */
+  .slot-ripe {
+    background: #3d9a4a;
+    box-shadow: inset 0 0 0 2px #24632d;
+  }
+
+  .slot-sick {
+    background: #f2a13c;
+  }
+
+  .slot-dead {
+    background: #3d2f26;
   }
 
   /* The Kopdes panel: a status report for everything this Kopdes serves. */
@@ -650,11 +685,16 @@ canvas {
     position: relative;
     display: flex;
     align-items: center;
-    gap: 0.55rem;
+    gap: 0.45rem;
     background: var(--pill);
     border: 2px solid transparent;
-    border-radius: 14px;
-    padding: 0.35rem 0.8rem;
+    border-radius: 12px;
+    padding: 0.25rem 0.6rem;
+  }
+
+  .hud-tile .icon {
+    width: 1.1rem;
+    height: 1.1rem;
   }
 
   .hud-tile-gold {
@@ -670,7 +710,7 @@ canvas {
   }
 
   .hud-value {
-    font-size: 1.05rem;
+    font-size: 0.95rem;
     font-weight: 800;
     line-height: 1.1;
     font-variant-numeric: tabular-nums;

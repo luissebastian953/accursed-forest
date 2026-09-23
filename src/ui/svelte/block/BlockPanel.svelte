@@ -438,7 +438,17 @@
 
               {#if p.grid}
                 <div class="mt-2">
-                  <div class="label mb-1">{t('block.bySlot')}</div>
+                  <div class="mb-1 flex items-baseline justify-between gap-2">
+                    <span class="label">{t('block.bySlot')}</span>
+                    {#if p.grid.ripe > 0}
+                      <span
+                        class="flex items-center gap-1 font-extrabold text-[#c94a30]"
+                        data-testid="slot-ripe-count"
+                      >
+                        <Icon name="tbs-fruit" />{t('block.slotsRipe', { n: p.grid.ripe })}
+                      </span>
+                    {/if}
+                  </div>
                   <div class="grid grid-cols-12 gap-1" data-testid="slot-grid">
                     {#each p.grid.cells as cell, i (cell.slot)}
                       <SlotCell

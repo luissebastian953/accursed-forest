@@ -184,11 +184,11 @@
     {/snippet}
 
     <div
-      class="card pointer-events-auto flex flex-col items-start gap-2 px-5 py-3"
+      class="card pointer-events-auto flex flex-col items-start gap-1.5 px-3.5 py-2"
       data-testid="hud"
       bind:this={card}
     >
-      <div class="flex flex-wrap items-center justify-start gap-2.5">
+      <div class="flex flex-wrap items-center justify-start gap-2">
         {@render tile({
           icon: 'coin',
           label: inDebt ? t('hud.cashDebt') : t('hud.cash'),
@@ -338,32 +338,43 @@
           {:else if v.certMet !== null}
             <!-- Three states: nothing met is neutral, some met is gold, all met is green and waits. -->
             {@const all = v.certMet >= v.certTotal}
-            <button
-              class="btn cert {all ? 'btn-green' : v.certMet > 0 ? 'btn-gold' : 'btn-ghost'}"
-              title={t('hud.certTitle')}
-              data-testid="hud-cert"
-              data-state={all ? 'certified' : v.certMet > 0 ? 'progress' : 'none'}
-              onclick={() => hud.handlers.openCertificate()}
-            >
-              <Icon name="certificate-palm" />
-              <span class="flex flex-col items-start leading-none">
-                <span class="label !text-[0.58rem] {all ? '!text-white/80' : ''}">
-                  {t('hud.certLabel')}
-                </span>
-                <span class="num text-sm font-extrabold">
-                  {all ? t('hud.certCertified') : `${v.certMet}/${v.certTotal}`}
+            <!--
+              The count and the pips are the whole button (GDD 8 panel 22a);
+              the sentence they stand for is a tooltip away.
+            -->
+            {#snippet certTip()}
+              <span class="block px-0.5 text-left">
+                <span class="label block leading-none">{t('hud.certLabel')}</span>
+                <span class="tip-head block text-[0.82rem]" data-tone="deep">
+                  {all ? t('hud.certCertified') : t('hud.certTitle')}
                 </span>
               </span>
-              <span class="flex items-center gap-1" aria-hidden="true">
-                {#each pips(v.certTotal) as i (i)}
-                  <i class="cert-pip {i < v.certMet ? 'cert-pip-met' : ''}"></i>
-                {/each}
-              </span>
-              {#if all}
-                <!-- The Ministry has not looked yet: the dot says so. -->
-                <i class="cert-dot"></i>
-              {/if}
-            </button>
+            {/snippet}
+            <Tooltip body={certTip} tone="deep" withArrow placement="bottom">
+              <button
+                class="btn cert {all ? 'btn-green' : v.certMet > 0 ? 'btn-gold' : 'btn-ghost'}"
+                aria-label={all ? t('hud.certCertified') : t('hud.certTitle')}
+                data-testid="hud-cert"
+                data-state={all ? 'certified' : v.certMet > 0 ? 'progress' : 'none'}
+                onclick={() => hud.handlers.openCertificate()}
+              >
+                <Icon name="certificate-palm" />
+                <span class="num text-sm font-extrabold">{v.certMet}/{v.certTotal}</span>
+                {#if all}
+                  <span class="text-sm font-extrabold" aria-hidden="true">✓</span>
+                {:else}
+                  <span class="flex items-center gap-1" aria-hidden="true">
+                    {#each pips(v.certTotal) as i (i)}
+                      <i class="cert-pip {i < v.certMet ? 'cert-pip-met' : ''}"></i>
+                    {/each}
+                  </span>
+                {/if}
+                {#if all}
+                  <!-- The Ministry has not looked yet: the dot says so. -->
+                  <i class="cert-dot"></i>
+                {/if}
+              </button>
+            </Tooltip>
           {/if}
 
           <button

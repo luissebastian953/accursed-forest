@@ -9,6 +9,7 @@
     cls: string;
     title: string;
     sick: boolean;
+    fruit: boolean;
     tip: SlotTip;
     /** Place in the twelve-wide lattice, so edge bubbles stay inside the panel. */
     row: number;
@@ -17,7 +18,7 @@
     pick(): void;
   }
 
-  const { slot, cls, title, sick, tip, row, column, columns, pick }: Props = $props();
+  const { slot, cls, title, sick, fruit, tip, row, column, columns, pick }: Props = $props();
   const align = $derived(column < 2 ? 'start' : column >= columns - 2 ? 'end' : 'center');
   // The panel scrolls, and the top row has nothing above it to hang a bubble in.
   const placement = $derived(row === 0 ? 'bottom' : 'top');
@@ -50,7 +51,14 @@
     onclick={pick}
   >
     {#if sick}
-      <span class="text-[11px] font-black leading-none text-[#7a2a12]" aria-hidden="true">!</span>
+      <span
+        class="text-[11px] font-black leading-none {cls.includes('slot-dead')
+          ? 'text-[#f2d9b0]'
+          : 'text-[#7a2a12]'}"
+        aria-hidden="true">!</span
+      >
+    {:else if fruit}
+      <Icon name="tbs-fruit" class="h-3 w-3" />
     {/if}
   </button>
 </Tooltip>

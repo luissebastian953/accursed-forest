@@ -213,5 +213,6 @@
   "deadStump": "Tunggul mati; masih menular sampai dicabut.",
   "trenched": "Diparit: akar terputus.",
   "slotEmpty": "Slot {at} kosong; Tanam sulam mengisinya.",
-  "bySlot": "Sawit per slot; klik salah satu"
+  "bySlot": "Sawit per slot; klik salah satu",
+  "slotsRipe": "{n} matang"
 }

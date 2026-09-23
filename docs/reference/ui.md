@@ -246,6 +246,10 @@ fact that the gap can be replanted.
 
 ### Notes
 
+- The ladder of slot colours lives in `styles.css` as `.slot-*`, light to dark
+  by what is standing there (GDD 8 panel 23a). A bearing slot carrying fruit is
+  the only one with a mark of its own, because it is the only one that says do
+  something today; the header counts them.
 - The lattice is twelve wide, so the two columns at each end anchor their
   bubble to their own edge instead of centring it: centred, they would push
   the panel's scroller sideways.
