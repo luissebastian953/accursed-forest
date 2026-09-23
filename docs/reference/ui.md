@@ -96,6 +96,14 @@ stands between the HUD and the ticker, on the left.
   stays put and the screen turns dense. The screen content zooms with the
   frame's width instead: 1 at the 360px the layout was drawn for, never
   below 0.7 or above 1.1.
+- Anchored by its bottom, not its top. It used to hang from `--panel-top`
+  with `bottom` set as well, which over-constrains an absolutely positioned
+  box: once `min-height` beat the space available, `bottom` was the rule the
+  browser dropped, and the handset grew off the foot of the screen. At 110%
+  browser zoom that put 87px of it past the edge. It now takes its height
+  from the space under the bar and stands on `bottom`, so a window too short
+  for the minimum loses the top of the frame behind the HUD instead of losing
+  the home bar off the bottom. `app.spec.ts` checks three window heights.
 
 ## `src/ui/svelte/base/PhoneHeader.svelte`
 

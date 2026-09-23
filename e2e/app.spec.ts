@@ -1111,4 +1111,24 @@ test.describe('Sawit Simulator', () => {
 
     expect(errors).toEqual([]);
   });
+
+  // Browser zoom shrinks the viewport, and the handset used to be anchored by
+  // its top with a minimum height, so it grew off the bottom of the screen.
+  test('the handset stands on the bottom edge however short the window is', async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('sawit:disclaimer', '1'));
+
+    for (const height of [720, 800, 1000]) {
+      await page.setViewportSize({ width: 1280, height });
+      await page.goto(URL);
+      await expect(page.locator('canvas')).toBeVisible();
+      await expect(tid(page, 'hud-cash')).toContainText('Rp');
+      await page.keyboard.press('n');
+      await expect(tid(page, 'news-panel')).toBeVisible();
+
+      const box = (await tid(page, 'news-panel').boundingBox())!;
+
+      expect(box.y + box.height, `${height}px tall`).toBeLessThanOrEqual(height);
+      expect(box.height, `${height}px tall`).toBeGreaterThan(400);
+    }
+  });
 });

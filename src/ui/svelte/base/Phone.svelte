@@ -18,8 +18,8 @@
   const FRAME_TOP_URL = `${import.meta.env.BASE_URL}ui/phone-frame-top.svg`;
 
   /**
-   * The frame hangs from the bar's own bottom edge and fills the height below
-   * it; the screen zooms with the frame's width, 0.7 to 1.35 of a 360px layout.
+   * The frame stands on the bottom edge and reaches up toward the bar; the
+   * screen zooms with the frame's width, 0.7 to 1.35 of a 360px layout.
    */
   const REFERENCE_WIDTH = 360;
   let frame = $state<HTMLElement | null>(null);
@@ -46,7 +46,7 @@
      back at you, so the UI press sound stops at this boundary. -->
 <div
   class="@container absolute bottom-6 left-3 z-20 aspect-[480/920] max-h-[1400px] min-h-[620px] max-w-[calc(100vw-1.5rem)]"
-  style="top: var(--panel-top, 12.5rem)"
+  style="height: calc(100% - var(--panel-top, 12.5rem) - 1.5rem)"
   data-testid={testId}
   data-phone="true"
   bind:this={frame}
