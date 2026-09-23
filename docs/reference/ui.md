@@ -202,9 +202,11 @@ under both and Fertilize spanning the width below.
 - The bar's segments take their fill from a `--seg` custom property rather
   than from a width class, so the partial one animates with the rest and the
   three stay the same size whatever the stage.
-- A treatment button the block actually needs carries `data-urgent` and pulses.
-  The halo is a pseudo-element, so it keeps pulsing on a button that is greyed
-  out: an answer you cannot afford yet still has to be seen.
+- A treatment button carries `data-urgent` and pulses whenever the block has
+  the problem it answers: beetles, visible Ganoderma, or gaps to replant. The
+  halo is a pseudo-element, so it keeps pulsing on a button that is greyed out,
+  whether the reason is no stock, no money or a dose already running. What the
+  ring reports is the state of the block, not whether the button can be pressed.
 - The footer finds Harvest by test-id and pulls it out of `major`. A block
   with no Kopdes in range has no toggle, so `major` renders as a plain column.
 

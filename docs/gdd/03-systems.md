@@ -712,7 +712,7 @@ per year the run has closed).
 **A won estate cannot burn.** `hasWon(state)` in `src/sim/run.ts` is true for
 the four winning endings (`clean`, `dirty`, `reboisasi`, `redemption`),
 sandbox or not, and `BurnBlock` refuses outright while it holds, with the
-reason the greyed buttons carry: "You already won. Why would you destroy it?"
+reason the greyed buttons carry: "You already won. Why would you need to burn?"
 The block panel's burn card names it once above the whole group rather than
 three times over (GDD 8 panel 9). Every other command still works, so the
 sandbox stays a place to build in; it is fire specifically that a finished

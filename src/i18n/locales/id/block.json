@@ -99,7 +99,7 @@
   "slopeHolding": "Tanaman penutup di bawah hutan muda: lereng ini kira-kira enam kali lebih aman daripada lahan tanam yang gundul.",
   "slopeAdvice": "Tanaman penutup di bawah penanaman hutan paling kuat menahan lereng; sawit di atasnya tiga kali lebih mudah longsor daripada lahan liar.",
   "burn": "Bakar",
-  "burnWon": "Kamu sudah menang. Untuk apa merusaknya?",
+  "burnWon": "Kamu sudah menang. Untuk apa membakar lagi?",
   "burnMeta": "{cost}, tekanan {pressure} / {threshold}",
   "intensityLow": "Kecil",
   "intensityMedium": "Sedang",

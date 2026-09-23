@@ -99,7 +99,7 @@
   "slopeHolding": "Cover crop under young forest: this slope is held about six times better than bare planted ground.",
   "slopeAdvice": "A cover crop under forest planting holds a slope best; palms on it slide three times more readily than wild ground.",
   "burn": "Burn",
-  "burnWon": "You already won. Why would you destroy it?",
+  "burnWon": "You already won. Why would you need to burn?",
   "burnMeta": "{cost}, pressure {pressure} / {threshold}",
   "intensityLow": "Low",
   "intensityMedium": "Medium",

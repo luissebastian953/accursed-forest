@@ -12,7 +12,7 @@ import { reject, type CommandHandler } from './handler.ts';
 type BurnBlock = Extract<Command, { type: 'BurnBlock' }>;
 
 /** Shown on every greyed Burn button once the estate has won (GDD 3.8). */
-export const WON_NO_BURN = 'You already won. Why would you destroy it?';
+export const WON_NO_BURN = 'You already won. Why would you need to burn?';
 
 export const burnBlock: CommandHandler<BurnBlock> = {
   validate(ctx, command) {

@@ -931,7 +931,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     treatments.push(
       action(t('block.setTraps'), { type: 'SetTrap', block: id }, 'action-SetTrap', {
         minor: true,
-        urgent: beetles && block.trapsUntil <= tick,
+        urgent: beetles,
       }),
       action(
         t('block.metarhizium'),
@@ -939,7 +939,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
         'action-ApplyMetarhizium',
         {
           minor: true,
-          urgent: beetles && block.metarhiziumUntil <= tick,
+          urgent: beetles,
         },
       ),
     );
@@ -952,7 +952,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
           'action-ApplyTrichoderma',
           {
             minor: true,
-            urgent: fungus && block.trichodermaUntil <= tick,
+            urgent: fungus,
           },
         ),
         action(t('block.replantGaps'), { type: 'ReplantBlock', block: id }, 'action-ReplantBlock', {
