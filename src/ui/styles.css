@@ -339,6 +339,11 @@ canvas {
     --chip-edge: var(--blue-edge);
   }
 
+  .chip-coral {
+    --chip-bg: var(--coral);
+    --chip-edge: var(--coral-edge);
+  }
+
   .chip-cream {
     background: var(--pill);
     color: var(--ink);

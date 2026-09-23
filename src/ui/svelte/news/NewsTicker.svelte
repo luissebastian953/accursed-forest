@@ -22,10 +22,18 @@
     data-testid="news-ticker"
     onclick={() => handlers.open()}
   >
-    <span class="chip chip-cream shrink-0"><Icon name="news" /> {t('newsTicker.badge')}</span>
-    {#if state.unread > 0}
-      <span class="chip chip-pest num shrink-0" data-testid="news-unread">{state.unread}</span>
-    {/if}
+    <!-- One badge: the word and the count read as a single thing to press,
+         where two chips side by side read as two. -->
+    <span class="chip chip-coral shrink-0">
+      <Icon name="news" />
+      {t('newsTicker.badge')}
+      {#if state.unread > 0}
+        <span
+          class="num ml-0.5 rounded-full bg-white px-1.5 text-[0.72rem] text-[var(--coral-edge)]"
+          data-testid="news-unread">{state.unread}</span
+        >
+      {/if}
+    </span>
     {#each state.items as item, i (item.tick + item.title)}
       <span class="flex min-w-0 items-center gap-1.5 {i > 0 ? 'hidden md:flex' : ''}">
         <span class="h-2 w-2 shrink-0 rounded-full {LANE_TONE[item.lane]}"></span>
