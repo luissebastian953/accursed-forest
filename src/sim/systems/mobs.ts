@@ -465,7 +465,7 @@ function step(ctx: SimContext, mob: Mob, rng: RngState): void {
     case 'sanitizer':
       return stepSanitizer(ctx, mob, rng);
     case 'plantDoctor':
-      return stepDoctor(ctx, mob, rng);
+      return stepDoctor(ctx, mob);
     case 'security':
       return stepSecurity(ctx, mob, rng);
     case 'ghost':
@@ -992,12 +992,12 @@ function stepSanitizer(ctx: SimContext, mob: Mob, rng: RngState): void {
   }
 }
 
-function stepDoctor(ctx: SimContext, mob: Mob, rng: RngState): void {
+function stepDoctor(ctx: SimContext, mob: Mob): void {
   const { state, world, events } = ctx;
 
   if (mob.target === null) {
     let bestId: BlockId | null = null;
-    let bestSick = 0;
+    let bestScore = 0;
 
     for (const [id, palms] of state.palms) {
       const block = state.blocks.get(id);
@@ -1007,8 +1007,16 @@ function stepDoctor(ctx: SimContext, mob: Mob, rng: RngState): void {
       const counts = ganodermaCounts(palms);
       const sick = counts.symptomatic + counts.dead;
 
-      if (sick > bestSick) {
-        bestSick = sick;
+      if (sick === 0) continue;
+
+      // Sick palms per day of walking: the worst block on the far side of the
+      // estate is worth less than a bad one underfoot (GDD 3.4).
+      const [bx, bz] = centre(world, id);
+      const away = Math.hypot(bx - mob.x, bz - mob.z) / WORKERS.plantDoctor.speed;
+      const score = sick / (WORKER_JOBS.doctorTravelDays + away);
+
+      if (score > bestScore) {
+        bestScore = score;
         bestId = id;
       }
     }
@@ -1053,7 +1061,9 @@ function stepDoctor(ctx: SimContext, mob: Mob, rng: RngState): void {
 
   const counts = ganodermaCounts(palms);
 
-  if (counts.symptomatic + counts.dead === 0 || chance(rng, 0.05)) mob.target = null;
+  // It leaves when the block is clean, not on a coin flip: wandering off a
+  // block it is halfway through spends the day walking instead of cutting.
+  if (counts.symptomatic + counts.dead === 0) mob.target = null;
 }
 
 function stepSecurity(ctx: SimContext, mob: Mob, rng: RngState): void {

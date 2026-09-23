@@ -100,6 +100,12 @@ and pick the next thing when the current one runs out.
   burn commands call it the moment the order is given, so the crew is on the
   block before the next day's tick; at five seconds a day, waiting for the tick
   read as a delay.
+- `stepDoctor()`: it chooses a block by sick palms per day of walking rather
+  than by the raw count, and leaves only when the block is clean. Both changes
+  are about the same thing, which is that walking treats nothing: the old rule
+  sent it to the worst block anywhere, then rolled a 5% chance each day to
+  abandon whatever it was halfway through, so on a wide estate it spent most
+  of its life in transit and the infection outran it.
 - `useItem()`: the one place a mob spends money on anything but its own wage.
   A worker takes what it needs from `state.inventory` and, finding the shelf
   empty, buys a single unit at `itemPrice(item, shopIndex(state))`, the same

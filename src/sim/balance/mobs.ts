@@ -174,6 +174,11 @@ export const WORKER_JOBS = {
   sanitizePerDay: 12,
   /** A plant doctor removes this many sick palms a day on the block it is treating. */
   removalsPerDay: 2,
+  /**
+   * Days of work a visit is worth when weighing a block against the walk to
+   * it. Higher, and the doctor ignores the distance and crosses the estate.
+   */
+  doctorTravelDays: 6,
   /** Workers on every block being chopped or burned. */
   crewSize: 4,
   /** Blocks per day a crew shifts between work spots on its block. */

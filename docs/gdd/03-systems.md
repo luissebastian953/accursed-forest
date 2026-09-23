@@ -251,6 +251,15 @@ alternative to the player's own clicking: a sanitation worker never
 sanitizes as fast as a stocked crew applied by hand, but it never forgets
 either.
 
+**A worker picks the job it can reach.** One doctor cannot outrun Ganoderma
+across twenty blocks by always walking to the worst one: at
+`WORKERS.plantDoctor.speed` the estate is days wide, and a doctor that keeps
+crossing it treats nothing on the way. It scores each sick block as sick palms
+per day of walking, `sick / (WORKER_JOBS.doctorTravelDays + days away)`, and
+stays on a block until that block is clean. On a twenty-block estate starting
+at 800 sick palms, that is the difference between holding at about 20 and
+losing ground past 1,500.
+
 **A worker buys its own supplies.** The wage buys labour, not materials, so a
 job that needs a thing from the shop takes it from `state.inventory` and, if
 the shelf is empty, buys a single unit at the price the player would pay that
