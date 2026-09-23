@@ -1,6 +1,7 @@
 import { clamp } from '@shared/math';
 
 import { BIOMES } from '../balance/biomes.ts';
+import { FERTILIZER_DAYS } from '../balance/growth.ts';
 import {
   BABI_NGEPET,
   BEHAVIOUR,
@@ -17,12 +18,14 @@ import {
   WORKER_JOBS,
   type WorkerKind,
 } from '../balance/mobs.ts';
+import { BEETLES, GANODERMA } from '../balance/pests.ts';
+import { itemPrice } from '../commands/buyItem.ts';
 import { isWildfire } from '../fire.ts';
-import { wageFactor, wildlifeQuiet } from '../macro.ts';
-import { isBearing, slotStage } from '../palms.ts';
+import { shopIndex, wageFactor, wildlifeQuiet } from '../macro.ts';
+import { clearSlot, isBearing, plantSlot, slotStage } from '../palms.ts';
 import { chance, forkRng, nextFloat, nextInt, pickWeighted, type RngState } from '../rng.ts';
 import { readBlock, spend, writeBlock, type SimContext } from '../state.ts';
-import type { Block, BlockId, Mob, MobIntent, MobSpecies, SimState } from '../types.ts';
+import type { Block, BlockId, ItemId, Mob, MobIntent, MobSpecies, SimState } from '../types.ts';
 import type { World } from '../worldgen/index.ts';
 
 import { ganodermaCounts } from './pest.ts';
@@ -922,6 +925,26 @@ function idleAtKopdes(ctx: SimContext, mob: Mob): void {
   mob.intent = 'idle';
 }
 
+/**
+ * One from stock, or bought at the Kopdes price when the shelf is empty.
+ * False means the estate could not pay, and the caller skips that job today.
+ */
+function useItem(ctx: SimContext, item: ItemId): boolean {
+  const { state, events } = ctx;
+
+  if (state.inventory[item] > 0) {
+    state.inventory[item] -= 1;
+    return true;
+  }
+
+  const cost = itemPrice(item, shopIndex(state));
+
+  if (state.economy.cash < cost) return false;
+  spend(state, cost, 'purchase', `auto: ${item}`);
+  events.push({ type: 'ItemBought', item, quantity: 1 });
+  return true;
+}
+
 function stepSanitizer(ctx: SimContext, mob: Mob, rng: RngState): void {
   const { state, world, events } = ctx;
 
@@ -951,6 +974,18 @@ function stepSanitizer(ctx: SimContext, mob: Mob, rng: RngState): void {
   block.debris = Math.max(0, block.debris - WORKER_JOBS.sanitizePerDay);
   events.push({ type: 'BlockSanitized', block: block.id, debris: block.debris });
   events.push({ type: 'BlockChanged', block: block.id });
+
+  if (block.trapsUntil <= state.tick && useItem(ctx, 'pheromoneTrap')) {
+    block.trapsUntil = state.tick + BEETLES.trapDays;
+    events.push({ type: 'TrapSet', block: block.id });
+  }
+
+  const growing = block.phase === 'planted' || block.phase === 'reforesting';
+
+  if (growing && block.fertilizedUntil <= state.tick && useItem(ctx, 'fertilizer')) {
+    block.fertilizedUntil = state.tick + FERTILIZER_DAYS;
+    events.push({ type: 'BlockFertilized', block: block.id });
+  }
 
   if (block.debris <= 0 || (block.debris < WORKER_JOBS.sanitizeAbove && chance(rng, 0.5))) {
     mob.target = null;
@@ -1003,20 +1038,16 @@ function stepDoctor(ctx: SimContext, mob: Mob, rng: RngState): void {
     slot++
   ) {
     if (palms.plantedAt[slot]! < 0 || palms.ganoderma[slot]! < 2) continue;
-    palms.plantedAt[slot] = -1;
-    palms.growth[slot] = 0;
-    palms.health[slot] = 0;
-    palms.ganoderma[slot] = 0;
-    palms.ganodermaSince[slot] = -1;
-    palms.yieldAcc[slot] = 0;
+    clearSlot(palms, slot);
     events.push({ type: 'PalmRemoved', block: mob.target, slot });
     removed += 1;
+    // The removal's own redraw covers the seedling that takes its place, so
+    // filling the gap needs no second event and raises no toast.
+    if (useItem(ctx, 'bibit')) plantSlot(palms, slot, state.tick);
   }
 
-  if (block.trichodermaUntil <= state.tick) {
-    const from = state.tick;
-
-    writeBlock(state, world, mob.target).trichodermaUntil = from + 120;
+  if (block.trichodermaUntil <= state.tick && useItem(ctx, 'trichoderma')) {
+    writeBlock(state, world, mob.target).trichodermaUntil = state.tick + GANODERMA.trichodermaDays;
     events.push({ type: 'BlockTreated', block: mob.target, treatment: 'trichoderma' });
   }
 

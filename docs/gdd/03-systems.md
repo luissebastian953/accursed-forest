@@ -240,16 +240,32 @@ could never work off.
 estate, paid `wagePerDay × wageFactor(state)` every day until `DismissWorker`
 takes it off again (`WORKERS` in `src/sim/balance/mobs.ts`):
 
-| Worker            | Wage/day     | Hire fee      | Does                                              |
-| ----------------- | ------------ | ------------- | ------------------------------------------------- |
-| Sanitation worker | Rp 350,000   | Rp 2,000,000  | Clears the messiest block, 12 debris a day        |
-| Plant doctor      | Rp 1,400,000 | Rp 15,000,000 | Removes 2 sick palms a day and doses Trichoderma  |
-| Security guard    | Rp 900,000   | Rp 8,000,000  | Patrols from the Kopdes; thieves mostly stay away |
+| Worker            | Wage/day     | Hire fee      | Does                                                                  |
+| ----------------- | ------------ | ------------- | --------------------------------------------------------------------- |
+| Sanitation worker | Rp 350,000   | Rp 2,000,000  | Clears the messiest block, 12 debris a day; sets traps and fertilizes |
+| Plant doctor      | Rp 1,400,000 | Rp 15,000,000 | Removes 2 sick palms a day, replants the gaps, doses Trichoderma      |
+| Security guard    | Rp 900,000   | Rp 8,000,000  | Patrols from the Kopdes; thieves mostly stay away                     |
 
 Only one of each kind can be on the payroll at a time. This is the estate's
 alternative to the player's own clicking: a sanitation worker never
 sanitizes as fast as a stocked crew applied by hand, but it never forgets
 either.
+
+**A worker buys its own supplies.** The wage buys labour, not materials, so a
+job that needs a thing from the shop takes it from `state.inventory` and, if
+the shelf is empty, buys a single unit at the price the player would pay that
+day (`useItem()` in `src/sim/systems/mobs.ts`). The doctor buys `trichoderma`
+to dose a block and `bibit` to fill the gap behind each palm it pulls; the
+sanitation worker buys a `pheromoneTrap` where the window has lapsed, and a
+`fertilizer` on anything growing. It never borrows to do it: short of cash the
+worker skips that job for the day and does the labour it can. Only the
+item-backed jobs stop, so an estate in the red still gets its debris cleared
+and its sick palms pulled.
+
+That makes the payroll cost more than its wage line, and deliberately: the
+plant doctor's Trichoderma used to be free, which made a hired doctor strictly
+better than the same treatment bought by hand. The fertilizer habit is the
+expensive one, at `ITEM_PRICES.fertilizer` per block per `FERTILIZER_DAYS`.
 
 ## GDD 3.4: pests
 

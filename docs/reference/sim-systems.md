@@ -92,6 +92,28 @@ and pick the next thing when the current one runs out.
   burn commands call it the moment the order is given, so the crew is on the
   block before the next day's tick; at five seconds a day, waiting for the tick
   read as a delay.
+- `useItem()`: the one place a mob spends money on anything but its own wage.
+  A worker takes what it needs from `state.inventory` and, finding the shelf
+  empty, buys a single unit at `itemPrice(item, shopIndex(state))`, the same
+  price the shop would charge the player that day. It never goes into debt for
+  one: short of cash it returns false and the worker skips that job today,
+  which is the opposite of `payWages()`, whose whole point is that the payroll
+  is owed whether or not it can be met. Only the item-backed jobs are skipped;
+  clearing debris and pulling sick palms are labour the wage already bought.
+  No Kopdes check is needed because the payroll itself is gated behind one
+  (`WORKERS_FROM_LEVEL`), so a worker on the estate implies a shop to buy from.
+- `stepDoctor()`: the doctor used to hand itself a 120-day Trichoderma window
+  free, with the number written in rather than taken from
+  `GANODERMA.trichodermaDays`, and without touching stock. It now pays for the
+  dose like anyone else. It also buys `bibit` to fill the gaps it makes, one
+  per palm it pulls; the removal's own `PalmRemoved` redraw covers the seedling
+  that takes the slot, so the refill raises no second event and no toast, which
+  a daily `BlockReplanted` would.
+- `stepSanitizer()`: clearing debris stays free labour. On top of it the
+  sanitizer now sets a `pheromoneTrap` where the window has lapsed and, on a
+  planted or reforesting block, applies a `fertilizer`. The fertilizer is the
+  expensive habit: at `ITEM_PRICES.fertilizer` it is the largest recurring cost
+  a worker can incur, once per block per `FERTILIZER_DAYS`.
 
 ## `src/sim/systems/news.ts`
 
