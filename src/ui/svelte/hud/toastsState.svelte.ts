@@ -21,7 +21,7 @@ export const TONE: Record<ToastKind, string> = {
 };
 
 /** How many notices sit on screen at once; more than this and the oldest goes. */
-const AT_ONCE = 3;
+const AT_ONCE = 2;
 
 const state = $state<{ items: ToastItem[] }>({ items: [] });
 
