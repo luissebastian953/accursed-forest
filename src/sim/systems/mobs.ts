@@ -999,6 +999,11 @@ function stepSanitizer(ctx: SimContext, mob: Mob, rng: RngState): void {
     events.push({ type: 'TrapSet', block: block.id });
   }
 
+  if (block.beetles > 0 && block.metarhiziumUntil <= state.tick && useItem(ctx, 'metarhizium')) {
+    block.metarhiziumUntil = state.tick + BEETLES.metarhiziumDays;
+    events.push({ type: 'BlockTreated', block: block.id, treatment: 'metarhizium' });
+  }
+
   const growing = block.phase === 'planted' || block.phase === 'reforesting';
 
   if (growing && block.fertilizedUntil <= state.tick && useItem(ctx, 'fertilizer')) {
@@ -1076,6 +1081,11 @@ function stepDoctor(ctx: SimContext, mob: Mob): void {
   if (block.trichodermaUntil <= state.tick && useItem(ctx, 'trichoderma')) {
     writeBlock(state, world, mob.target).trichodermaUntil = state.tick + GANODERMA.trichodermaDays;
     events.push({ type: 'BlockTreated', block: mob.target, treatment: 'trichoderma' });
+  }
+
+  if (block.beetles > 0 && block.metarhiziumUntil <= state.tick && useItem(ctx, 'metarhizium')) {
+    writeBlock(state, world, mob.target).metarhiziumUntil = state.tick + BEETLES.metarhiziumDays;
+    events.push({ type: 'BlockTreated', block: mob.target, treatment: 'metarhizium' });
   }
 
   const counts = ganodermaCounts(palms);

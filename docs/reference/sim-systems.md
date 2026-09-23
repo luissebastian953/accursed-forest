@@ -116,6 +116,9 @@ and pick the next thing when the current one runs out.
   sent it to the worst block anywhere, then rolled a 5% chance each day to
   abandon whatever it was halfway through, so on a wide estate it spent most
   of its life in transit and the infection outran it.
+- Between them the payroll reaches every treatment the shop sells for a block:
+  traps, Metarhizium, Trichoderma, fertilizer and the seedlings behind a pulled
+  palm. Only the security guard buys nothing, having nothing to apply.
 - `useItem()`: the one place a mob spends money on anything but its own wage.
   A worker takes what it needs from `state.inventory` and, finding the shelf
   empty, buys a single unit at `itemPrice(item, shopIndex(state))`, the same

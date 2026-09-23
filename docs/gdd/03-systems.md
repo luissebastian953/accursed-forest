@@ -276,7 +276,10 @@ the shelf is empty, buys a single unit at the price the player would pay that
 day (`useItem()` in `src/sim/systems/mobs.ts`). The doctor buys `trichoderma`
 to dose a block and `bibit` to fill the gap behind each palm it pulls; the
 sanitation worker buys a `pheromoneTrap` where the window has lapsed, and a
-`fertilizer` on anything growing. It never borrows to do it: short of cash the
+`fertilizer` on anything growing. Both buy `metarhizium` on a block that has
+beetles and no dose running, which is the one treatment neither of them used
+to reach for: the sanitizer stands on the debris the beetles breed in, and the
+doctor on the plantation they bore into. It never borrows to do it: short of cash the
 worker skips that job for the day and does the labour it can. Only the
 item-backed jobs stop, so an estate in the red still gets its debris cleared
 and its sick palms pulled.

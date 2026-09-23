@@ -529,8 +529,8 @@ test.describe('Sawit Simulator', () => {
     await tid(page, 'action-PlaceKopdes').click();
     // The clock has to run: events reach the renderer on a tick, so a paused
     // estate would not hear about the upgrade until it started again.
-    // The Kopdes grows on a working estate, so it wants bearing blocks as well
-    // as money before it will take the upgrade (GDD 3.3).
+
+    // The Kopdes wants bearing blocks as well as money now (GDD 3.3).
     await page.evaluate(() => {
       const { state, world } = (window as unknown as DebugWindow).__sawit.sim();
 

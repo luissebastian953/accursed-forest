@@ -513,6 +513,56 @@ describe('the babi ngepet (mobs)', () => {
 });
 
 describe('workers (mobs)', () => {
+  it('a hired crew doses Metarhizium where beetles are breeding', () => {
+    const sim = createSim(42);
+    const { state, world } = sim;
+
+    sim.dispatch({ type: 'PlaceKopdes', block: state.worldGen.kopdesBlock });
+    state.kopdes!.level = WORKERS_FROM_LEVEL;
+    state.economy.cash = 1e12;
+
+    let made = 0;
+
+    for (let id = 0; id < world.width * world.height && made < 6; id++) {
+      if (id === state.kopdes!.blockId) continue;
+      if (!BIOMES[world.blockById(id).biome].clearable) continue;
+
+      const block = writeBlock(state, world, id);
+
+      block.owned = true;
+      block.phase = 'planted';
+      block.species = 'palm';
+      block.clearProgress = 1;
+      block.debris = 60;
+      block.beetles = 40;
+
+      const palms = createPalmArrays();
+
+      plantSlots(palms, SLOTS_PER_BLOCK, 0);
+      palms.growth.fill(3000);
+      palms.ganoderma[2] = 2;
+      palms.ganodermaSince[2] = 0;
+      state.palms.set(id, palms);
+      made += 1;
+    }
+
+    expect(sim.dispatch({ type: 'HireWorker', kind: 'sanitizer' })).toEqual({ ok: true });
+    expect(sim.dispatch({ type: 'HireWorker', kind: 'plantDoctor' })).toEqual({ ok: true });
+
+    const treated = new Set<string>();
+
+    for (let i = 0; i < 400; i++) {
+      for (const e of sim.tick()) {
+        if (e.type === 'BlockTreated') treated.add(e.treatment);
+        if (e.type === 'TrapSet') treated.add('traps');
+      }
+    }
+
+    expect(treated.has('metarhizium')).toBe(true);
+    expect(treated.has('trichoderma')).toBe(true);
+    expect(treated.has('traps')).toBe(true);
+  });
+
   it('hiring costs a fee and a daily wage; dismissing stops the wage', () => {
     const sim = createSim(42);
 
