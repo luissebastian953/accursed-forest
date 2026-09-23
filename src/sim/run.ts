@@ -6,6 +6,17 @@ export function runOver(state: SimState): boolean {
   return state.run.ending !== undefined && !state.run.sandbox;
 }
 
+/** The four endings that are a win (GDD 3.8), sandbox or not. */
+const WINS: ReadonlySet<Ending> = new Set<Ending>(['clean', 'dirty', 'reboisasi', 'redemption']);
+
+/**
+ * Whether the estate has already won, including after `KeepPlaying`, which is
+ * the only state in which a won run still takes commands.
+ */
+export function hasWon(state: SimState): boolean {
+  return state.run.ending !== undefined && WINS.has(state.run.ending);
+}
+
 export function endRun(state: SimState, ending: Ending): void {
   state.run.endedAt = state.tick;
   state.run.ending = ending;

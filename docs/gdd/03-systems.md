@@ -677,6 +677,18 @@ conditions (`ispoConditions()`):
 
 If profit, hectares and the Kopdes level are all met, the run certifies. If
 no-burn and forest are also both met, the ending is **clean**. If either is
+**A won estate cannot burn.** `hasWon(state)` in `src/sim/run.ts` is true for
+the four winning endings (`clean`, `dirty`, `reboisasi`, `redemption`),
+sandbox or not, and `BurnBlock` refuses outright while it holds, with the
+reason the greyed buttons carry: "You already won. Why would you destroy it?"
+The block panel's burn card names it once above the whole group rather than
+three times over (GDD 8 panel 9). Every other command still works, so the
+sandbox stays a place to build in; it is fire specifically that a finished
+estate has no more use for, and offering it is the game inviting the player to
+undo the point it just made. This is the only rule that reads `hasWon` rather
+than `runOver`, because `KeepPlaying` is precisely the state where a won run
+still takes commands.
+
 short, the Ministry waives them anyway, but only while the hidden integrity
 stat is under `ISPO.waiverMaxIntegrity` (0.4): a corrupt office looks away
 and the ending is **dirty**; an honest one insists on the real conditions

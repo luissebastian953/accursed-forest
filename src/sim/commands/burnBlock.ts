@@ -1,5 +1,6 @@
 import { FIRE } from '../balance/fire.ts';
 import { ignite, isFuel, isWildfire, startWildfire } from '../fire.ts';
+import { hasWon } from '../run.ts';
 import { readBlock, spend } from '../state.ts';
 import { staffBlock } from '../systems/mobs.ts';
 import { operatingBanReason, operatingBanned, underInvestigation } from '../systems/society.ts';
@@ -9,6 +10,9 @@ import { investigationReason } from './chopBlock.ts';
 import { reject, type CommandHandler } from './handler.ts';
 
 type BurnBlock = Extract<Command, { type: 'BurnBlock' }>;
+
+/** Shown on every greyed Burn button once the estate has won (GDD 3.8). */
+export const WON_NO_BURN = 'You already won. Why would you destroy it?';
 
 export const burnBlock: CommandHandler<BurnBlock> = {
   validate(ctx, command) {
@@ -21,6 +25,8 @@ export const burnBlock: CommandHandler<BurnBlock> = {
     const block = readBlock(state, world, command.block);
 
     if (!block.owned) return reject('notOwned', 'You do not own this block.');
+    // A won estate keeps its fire; the sandbox is for building, not razing.
+    if (hasWon(state)) return reject('halted', WON_NO_BURN);
 
     if (block.bannedUntil > state.tick) {
       return reject('banned', `Clearing is banned here until day ${block.bannedUntil}.`);

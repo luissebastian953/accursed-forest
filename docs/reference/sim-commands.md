@@ -7,8 +7,17 @@ headers moved here. A `GDD n` reference points into the [design document](../gdd
 
 BurnBlock (GDD 3.1.1): the tempting way to clear. Nearly free, fast, and it
 spreads. Each burn adds its intensity's pressure; past the wildfire
-threshold the fire stops being yours. The game never forbids it; it makes
-the consequences legible.
+threshold the fire stops being yours. The game mostly does not forbid it; it
+makes the consequences legible.
+
+### Notes
+
+- `WON_NO_BURN`: the one case where the game does forbid it outright (GDD
+  3.8). A won estate, sandbox or not, cannot light anything: the reason is
+  exported because the block panel prints it once above the intensity buttons
+  as well as on each greyed button. The check is `hasWon(state)`, not
+  `runOver(state)` — under `KeepPlaying` the run is won and still accepting
+  commands, which is exactly the case this exists for.
 
 ## `src/sim/commands/buyBlock.ts`
 

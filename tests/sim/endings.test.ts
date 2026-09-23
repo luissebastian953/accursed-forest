@@ -13,6 +13,7 @@ import {
 import { FOREST_GROWTH, GROWTH } from '@sim/balance/growth.ts';
 import { ECONOMY, ITEM_PRICES } from '@sim/balance/prices.ts';
 import { SLOTS_PER_BLOCK } from '@sim/balance/world.ts';
+import { WON_NO_BURN } from '@sim/commands/burnBlock.ts';
 import type { SimEvent } from '@sim/events.ts';
 import { createSim, type Sim } from '@sim/index.ts';
 import { distanceToKopdes, inKopdesRange } from '@sim/kopdes.ts';
@@ -185,6 +186,26 @@ describe('ISPO certification (GDD 3.8)', () => {
     expect(sim.state.run.endedAt).toBe(10 * YEAR);
     expect(sim.state.society.news.at(-1)?.key).toBe('ispo.clean');
     expect(sim.state.run.chronicle.at(-1)?.title).toMatch(/model estate/);
+  });
+
+  it('a won estate cannot burn, in the sandbox or out of it (GDD 3.8)', () => {
+    const sim = certifiableEstate();
+    const block = [...sim.state.blocks.values()].find((b) => b.owned && b.phase === 'wild')!.id;
+
+    // Burning is on the table right up to the moment the Ministry says yes.
+    expect(sim.validate({ type: 'BurnBlock', block, intensity: 1 })?.code).not.toBe('halted');
+    tickFor(sim, 'Certified', 10);
+    expect(sim.state.run.ending).toBe('clean');
+
+    // Playing on is the one way a won run still takes commands, and the fire
+    // stays off the table there too.
+    expect(sim.dispatch({ type: 'KeepPlaying' })).toEqual({ ok: true });
+    expect(sim.state.run.sandbox).toBe(true);
+    expect(sim.dispatch({ type: 'BurnBlock', block, intensity: 3 })).toMatchObject({
+      ok: false,
+      code: 'halted',
+      reason: WON_NO_BURN,
+    });
   });
 
   it('with low integrity the burn and forest conditions are waived: a dirty win, told plainly', () => {
