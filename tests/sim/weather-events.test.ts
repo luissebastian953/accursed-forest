@@ -13,6 +13,7 @@ import {
 import { GROWTH } from '@sim/balance/growth.ts';
 import { SKY } from '@sim/balance/seasons.ts';
 import { SLOTS_PER_BLOCK } from '@sim/balance/world.ts';
+import { SPOIL_FIRST } from '@sim/commands/excavateBlock.ts';
 import { EventSink } from '@sim/events.ts';
 import { ASH_EVENT, DROUGHT_EVENT, FLOOD_EVENT, HAZE_EVENT, activeEvent } from '@sim/fire.ts';
 import { createSim, type Sim } from '@sim/index.ts';
@@ -27,7 +28,7 @@ import { slotStage } from '@sim/palms.ts';
 import { writeBlock } from '@sim/state.ts';
 import { workedBlocks } from '@sim/systems/mobs.ts';
 import { skyFor } from '@sim/systems/weather.ts';
-import type { BlockId } from '@sim/types.ts';
+import type { BlockId, Command } from '@sim/types.ts';
 
 function ownedWild(sim: Sim): BlockId[] {
   const out: BlockId[] = [];
@@ -566,15 +567,29 @@ describe('landslides (GDD 3.6.2)', () => {
     slide(state, sim.world, new EventSink(), wild!.id);
     expect(state.blocks.get(wild!.id)!.landslideAt).toBeGreaterThanOrEqual(0);
 
-    // Under spoil, neither: the slide comes off the hectare first.
-    expect(sim.validate({ type: 'ChopBlock', block: wild!.id })).toMatchObject({
-      code: 'wrongPhase',
-      reason: 'Dig the slide out before clearing this block.',
-    });
-    expect(sim.validate({ type: 'BurnBlock', block: wild!.id, intensity: 1 })).toMatchObject({
-      code: 'wrongPhase',
-      reason: 'Dig the slide out before burning this block.',
-    });
+    // Under spoil, nothing but the digger: every other order on the hectare
+    // is refused with the same reason, whatever it was going to do.
+    const refused = [
+      { type: 'ChopBlock', block: wild!.id },
+      { type: 'BurnBlock', block: wild!.id, intensity: 1 },
+      { type: 'PlantBlock', block: wild!.id, species: 'palm' },
+      { type: 'ReforestBlock', block: wild!.id },
+      { type: 'CoverCropBlock', block: wild!.id },
+      { type: 'SanitizeBlock', block: wild!.id },
+      { type: 'SetTrap', block: wild!.id },
+      { type: 'ApplyMetarhizium', block: wild!.id },
+      { type: 'IrrigateBlock', block: wild!.id },
+      { type: 'DrainBlock', block: wild!.id },
+      { type: 'HarvestBlock', block: wild!.id },
+      { type: 'FertilizeBlock', block: wild!.id },
+    ] as const satisfies readonly Command[];
+
+    for (const command of refused) {
+      expect(sim.validate(command), command.type).toMatchObject({
+        code: 'wrongPhase',
+        reason: SPOIL_FIRST,
+      });
+    }
 
     sim.dispatch({ type: 'PlaceKopdes', block: state.worldGen.kopdesBlock });
     expect(sim.dispatch({ type: 'BuyItem', item: 'excavationCrew', quantity: 1 })).toEqual({

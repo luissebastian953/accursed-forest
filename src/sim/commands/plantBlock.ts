@@ -61,11 +61,6 @@ export const plantBlock: CommandHandler<PlantBlock> = {
       );
     }
 
-    // Nothing takes root in spoil: the slide comes off the hectare first.
-    if (block.landslideAt >= 0) {
-      return reject('wrongPhase', 'Dig the slide out before planting anything here.');
-    }
-
     const item = seedlingItem(command.species);
     const needed = seedlingsNeeded(block.biome);
     const have = state.inventory[item];

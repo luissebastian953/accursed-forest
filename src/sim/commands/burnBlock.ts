@@ -36,11 +36,6 @@ export const burnBlock: CommandHandler<BurnBlock> = {
     if (underInvestigation(state)) return reject('banned', investigationReason(state));
     if (block.burning) return reject('burning', 'This block is already burning.');
 
-    // Spoil does not burn, and a crew would be lighting it standing in mud.
-    if (block.landslideAt >= 0) {
-      return reject('wrongPhase', 'Dig the slide out before burning this block.');
-    }
-
     if (!isFuel(block, false)) {
       return reject(
         'noFuel',

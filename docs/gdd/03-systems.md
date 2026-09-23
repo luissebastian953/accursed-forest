@@ -581,6 +581,13 @@ all gone and the hectare is ground again rather than waiting out the rot.
 The alternative, free but slow, is to leave the spoil and simply plant
 through it once nature clears the debris on its own schedule (GDD 3.1),
 which takes seasons rather than days.
+**A buried hectare takes nothing but the digger.** While `landslideAt` is
+set, `Sim.validate` refuses every command that names the block except
+`ExcavateBlock`, with one reason on all of them: spoil is not ground you can
+plant, burn, sanitize, irrigate or sow a cover crop on, and offering those
+while the slide sits there invited the player to spend on work that could not
+land. The check is central rather than repeated in each handler, so a command
+added later cannot quietly work on a block that is under a metre of hillside.
 
 ## GDD 3.7: news, the macro deck, and what a headline may do
 

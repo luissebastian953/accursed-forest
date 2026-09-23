@@ -7,6 +7,12 @@ import { reject, type CommandHandler } from './handler.ts';
 
 type ExcavateBlock = Extract<Command, { type: 'ExcavateBlock' }>;
 
+/**
+ * Shown on everything a buried hectare refuses, which is everything but the
+ * digger (GDD 3.6.2). The check itself is central, in `Sim.validate`.
+ */
+export const SPOIL_FIRST = 'Dig the slide out first; nothing else works on this hectare.';
+
 export const excavateBlock: CommandHandler<ExcavateBlock> = {
   validate(ctx, command): Rejection | null {
     const { state, world } = ctx;
