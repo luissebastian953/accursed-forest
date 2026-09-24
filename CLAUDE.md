@@ -75,12 +75,13 @@ npx vitest run                      # the unit suite, every change
 npx playwright test --grep @smoke   # the smoke suite, every change
 ```
 
-Before a commit, all of:
+Before a commit, all of, **in this order**: the typecheck comes first
+because it is the cheapest and CI runs both projects, and `e2e/` reads types
+from `src/`. The full procedure, with the reasons, is the `verify` skill.
 
 ```
+pnpm typecheck && npx tsc -p tsconfig.node.json --noEmit
 npx eslint src tests e2e
-npx tsc --noEmit && npx tsc -p tsconfig.node.json --noEmit
-npx svelte-check --threshold error
 npx vitest run
 npx playwright test --grep @smoke --workers=1
 ```
@@ -103,5 +104,6 @@ The hooks run lint-staged and commitlint; a rejected commit prints why.
 
 ## Skills
 
-Repeatable procedures live in `.claude/skills/`: a balance change, a new
-command, a new headline. Use them rather than reconstructing the steps.
+Repeatable procedures live in `.claude/skills/`: verifying a change, a
+balance change, a new command, a new headline. Use them rather than
+reconstructing the steps.
