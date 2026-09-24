@@ -1,6 +1,9 @@
 {
   "workshop": "Toko Kopdes",
   "workshopDetail": "Petak {at}, tingkat {level}",
+  "firstStepEyebrow": "Langkah pertama",
+  "firstStep": "Bangun Kopdes di sini!",
+  "firstStepDetail": "Klik petak yang sudah dibuka ini untuk membangunnya.",
   "ganoderma": "Ganoderma",
   "ganodermaDetail": "{sick} dari {total} sawit, menyebar",
   "ganodermaHeld": "{sick} dari {total} sawit, diobati",

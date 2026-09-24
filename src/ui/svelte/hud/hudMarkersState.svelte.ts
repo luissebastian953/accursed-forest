@@ -4,11 +4,12 @@ import type { BlockId } from '@sim/types';
 
 import HudMarkersView from './HudMarkers.svelte';
 
-export type HudMarkerKind = 'workshop' | 'ganoderma' | 'beetle' | 'landslide';
+export type HudMarkerKind = 'workshop' | 'firstStep' | 'ganoderma' | 'beetle' | 'landslide';
 
 /** The pin art and the colour its label pill borrows, by kind. */
 export const MARKER_LOOK: Record<HudMarkerKind, { pin: string; ring: string }> = {
   workshop: { pin: `${import.meta.env.BASE_URL}hud/hud-pin-workshop.svg`, ring: '#7a6440' },
+  firstStep: { pin: `${import.meta.env.BASE_URL}hud/hud-pin-workshop.svg`, ring: '#c94a30' },
   ganoderma: { pin: `${import.meta.env.BASE_URL}hud/hud-pin-ganoderma.svg`, ring: '#6b3a8a' },
   beetle: { pin: `${import.meta.env.BASE_URL}hud/hud-pin-beetle.svg`, ring: '#9e2e20' },
   landslide: { pin: `${import.meta.env.BASE_URL}hud/hud-pin-landslide.svg`, ring: '#9c4a24' },
@@ -25,6 +26,9 @@ export interface HudMarker {
   label: string;
   detail: string;
   alert: boolean;
+  /** A caption over the label, and a card that stays open without the pointer. */
+  eyebrow?: string;
+  pinned?: boolean;
 }
 
 export interface HudMarkerHandlers {

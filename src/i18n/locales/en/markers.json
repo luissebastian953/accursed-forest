@@ -1,6 +1,9 @@
 {
   "workshop": "Workshop",
   "workshopDetail": "Block {at}, level {level}",
+  "firstStepEyebrow": "First step",
+  "firstStep": "Place Workshop (Kopdes) here!",
+  "firstStepDetail": "Click this cleared block to build it.",
   "ganoderma": "Ganoderma",
   "ganodermaDetail": "{sick} of {total} palms, spreading",
   "ganodermaHeld": "{sick} of {total} palms, treated",

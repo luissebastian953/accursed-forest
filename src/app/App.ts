@@ -1552,6 +1552,24 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       });
     };
 
+    // No Workshop yet: the first step stands on the cleared block, card open.
+    if (!state.kopdes) {
+      pin(
+        state.worldGen.kopdesBlock,
+        'firstStep',
+        t('markers.firstStep'),
+        t('markers.firstStepDetail'),
+        false,
+      );
+
+      const first = hudMarkerItems.at(-1);
+
+      if (first?.kind === 'firstStep') {
+        first.eyebrow = t('markers.firstStepEyebrow');
+        first.pinned = true;
+      }
+    }
+
     if (state.kopdes) {
       pin(
         state.kopdes.blockId,
@@ -1618,9 +1636,11 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
     // The Kopdes always keeps its pin, and so does a landslide: it is one
     // block's whole crop. The pest ones give way to the worst of them.
-    const kept = hudMarkerItems.filter((m) => m.kind === 'workshop' || m.kind === 'landslide');
+    const keep = (m: HudMarker) =>
+      m.kind === 'workshop' || m.kind === 'firstStep' || m.kind === 'landslide';
+    const kept = hudMarkerItems.filter(keep);
     const pests = hudMarkerItems
-      .filter((m) => m.kind !== 'workshop' && m.kind !== 'landslide')
+      .filter((m) => !keep(m))
       .sort((a, b) => Number(b.alert) - Number(a.alert))
       .slice(0, MAX_PEST_PINS);
 
@@ -2084,6 +2104,9 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     const now = performance.now();
 
     if (sim.state.kopdes) focusBlock(sim.state.kopdes.blockId);
+    // A fresh estate opens with the cursor already on the block that wants
+    // the Workshop, so the first click has somewhere to go.
+    else ring.show(sim.state, sim.world, sim.state.worldGen.kopdesBlock, now);
     rig.zoomTo(1.5, now, START_FADE_MS + 900);
     time.set(1);
     welcome();

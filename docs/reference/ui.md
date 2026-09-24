@@ -474,6 +474,19 @@ slope has given way under it.
 The App projects the world positions each frame and hands them over; the
 markers themselves know nothing about the camera.
 
+### Notes
+
+- `firstStep` is the one kind whose card stays open (GDD 8 panel 20a): while
+  there is no Workshop, the pre-cleared block carries the pin with the
+  caption, the headline and the sub, so a first visit is never a blank map
+  with nothing to click. It borrows the workshop pin and the coral ring, and
+  `App.ts` shows the selection ring on the same block when the run begins.
+  The pin is a button like the others: clicking it selects the block, which is
+  the same thing clicking the land would do, so the e2e helper that clicks the
+  screen centre lands on it and still gets the panel.
+- `pinned` and `eyebrow` on `HudMarker` are what carry that; every other kind
+  keeps its card as a hover pill.
+
 ## `src/ui/svelte/hud/hudState.svelte.ts`
 
 Top bar and time controls (GDD 8 panels 1–2, 5–8), in the cartoon kit: one

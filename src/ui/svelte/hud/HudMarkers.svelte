@@ -19,6 +19,8 @@
       label={marker.label}
       detail={marker.detail}
       alert={marker.alert}
+      eyebrow={marker.eyebrow}
+      pinned={marker.pinned}
       onClick={() => markers.handlers.select(marker.block)}
     />
   {/each}

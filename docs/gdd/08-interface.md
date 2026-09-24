@@ -284,6 +284,15 @@ offers (chop, plant, fertilize, harvest, irrigate, drain, cover-crop,
 upgrade, all sharing the `action-${Command}` test-id convention); and the
 danger zone (panel 13a). A block that is not owned shows only `action-BuyBlock`.
 
+## GDD 8 panel 20a: the first load
+
+A fresh estate opens on the pre-cleared block with the selection ring already
+on it and a pin over it whose card stays open: the caption, the headline
+"Place Workshop (Kopdes) here!" and the sub "Click this cleared block to build
+it." The pin goes the moment the Workshop is placed, and the ring behaves as
+the cursor it always is. Nothing else on a first load asks for attention
+until this is done, so the one thing to click is the one thing marked.
+
 ## GDD 8 panel 10: the per-palm slot grid
 
 Inside the pest card, a clickable 12×12 grid (`slot-grid`, one
