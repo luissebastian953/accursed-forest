@@ -11,6 +11,16 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('sawit:disclaimer', '1'));
 });
 
+/** A block as the suite sees it: the fields it reads, typed; anything it writes is free. */
+type DebugBlock = {
+  id: number;
+  owned: boolean;
+  phase: string;
+  slope: boolean;
+  landslideAt: number;
+  landslidePalms: number;
+} & Record<string, unknown>;
+
 /** What `?debug` exposes on window; only the parts the suite touches. */
 interface DebugWindow {
   __sawit: {
@@ -33,7 +43,7 @@ interface DebugWindow {
           insolventFor: number;
           years: { conditionsMet: number }[];
         };
-        blocks: Map<number, Record<string, unknown>>;
+        blocks: Map<number, DebugBlock>;
         palms: Map<number, Record<string, unknown>>;
         inventory: Record<string, number>;
         weather: {
@@ -43,7 +53,7 @@ interface DebugWindow {
       world: {
         toXY: (id: number) => [number, number];
         toId: (x: number, y: number) => number;
-        blockById: (id: number) => Record<string, unknown>;
+        blockById: (id: number) => DebugBlock;
       };
     };
     // Siblings of `sim` on the hook, not members of the sim it returns.
