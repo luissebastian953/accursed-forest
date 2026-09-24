@@ -165,6 +165,13 @@ on the bar the moment it changes anything. Forest cover is
 bar": every owned block, plus everything within the landslide cover radius
 of one, not just the estate's own footprint.
 
+## GDD 8 panel 1a: the certificate button (kit 22a)
+
+`hud-cert` is the count and the pips, nothing else: cream at nothing met,
+gold in progress, green with a tick at all five, when the pips collapse into
+the count and the gold dot still says the Ministry has not looked yet. The
+sentence they stand for is a tooltip away.
+
 ## GDD 8 panel 2: time controls
 
 The pause/1×/10×/50× group in the top bar (`speed-0`, `speed-1`, `speed-10`,
@@ -272,7 +279,7 @@ at an ordinary three-day wet streak, so the number reads stably).
 Below the tiles, whichever of these apply to the block appear as their own
 sections: a Kopdes card with `action-OpenShop`, the auto-harvest toggle
 (`toggle-auto-harvest`) and, only with something to settle, the coordination
-fee (`action-SettleInvestigation`, GDD 3.9); a Kopdes report (`kopdes-report`, panel 19a) on the Kopdes block; a stand card (`stand-card`, panel 17a) naming
+fee (`action-SettleInvestigation`, GDD 3.9); a Kopdes report (`kopdes-report`, panel 9d) on the Kopdes block; a stand card (`stand-card`, panel 9b) naming
 the stage the stand is mostly in, a three-segment progress bar, and either
 `growth-progress` or, once fruit is on the trees, `harvest-info` with
 `harvest-note`; a pest card
@@ -292,6 +299,64 @@ on it and a pin over it whose card stays open: the caption, the headline
 it." The pin goes the moment the Workshop is placed, and the ring behaves as
 the cursor it always is. Nothing else on a first load asks for attention
 until this is done, so the one thing to click is the one thing marked.
+
+## GDD 8 panel 9a: the slot tooltip (kit 16a)
+
+`src/ui/svelte/block/SlotCell.svelte` on `src/ui/svelte/base/Tooltip.svelte`:
+every square in the slot lattice carries a cream card in place of the grey
+system tooltip, after 200 ms under the pointer. Slot number as the caption,
+the state as the headline in its own colour, and the one figure that state
+gives the player to act on: months until it bears, kilograms ripe on it, days
+until Ganoderma kills it untreated, or that the gap can be replanted. The two
+columns at each end anchor the card to their own edge and the top row hangs
+it below, so nothing is clipped by the panel's scroller.
+
+## GDD 8 panel 9b: the stand card (kit 17a)
+
+`BlockPanel.svelte` (`stand-card`): the block's plantation in one read. An
+eyebrow naming the stage most of the stand is in, a crest, the count, a
+three-segment bar for the three growth stages, the figure that stage is
+counting (`growth-progress` before bearing, `harvest-info` after, with the
+`MAX` chip when the trees carry all they can), and one line of what to expect
+next (`harvest-note`). The per-stage breakdown is behind the chip as a
+tooltip. Stage three wears the thick green edge whether or not there is fruit
+today; ripeness is the coral pill's job.
+
+## GDD 8 panel 9c: harvest and the crew share a row (kit 18a)
+
+The footer puts Harvest and the auto-harvest toggle side by side, because who
+picks and whether to pick are one question, with the reason under both and
+Fertilize spanning the width below. An eyebrow says which state the row is in:
+auto on, auto off, or auto off and ripe.
+
+## GDD 8 panel 9d: the Kopdes report (kit 19a)
+
+On the Kopdes block the panel becomes a status report (`kopdes-report`) for
+everything this Kopdes serves: Open shop as the one action, today's TBS price
+with its ten-day trend beside the year's sales, the land in range split into
+bearing, immature, forest and bare, what the harvest crew covers and what is
+ripe and unpicked, the shelves, and a list of blocks in range that need
+attention, each a row that selects and focuses that block. The level and
+range move into the header badge (`kopdes-level`), the block's own facts
+shrink to one row, and the auto-harvest switch lives in the shop and on the
+palm blocks, where it is acted on rather than read.
+
+## GDD 8 panel 9e: the upgrade card (kit 21a)
+
+`kopdes-upgrade`: the Kopdes grows on a working estate, not on cash (GDD
+3.3). The bar is the crop, one segment per bearing block up to six and one
+bar past that, and the label under the button names whichever gate is still
+shut: expand the estate, N more to mature, the money you are short, or the
+level and range you are about to buy. The button is green only when the sim
+would accept the command.
+
+## GDD 8 panel 9f: the palm grid's ladder (kit 23a)
+
+The slot lattice's colours run light to dark by what is standing: empty,
+sapling, immature, mature, ripe. A bearing slot carrying fruit is the only one
+with a mark of its own, because it is the only one that says do something
+today, and the header counts them (`slot-ripe-count`). Sick is orange with a
+mark, dead is dark with a light one.
 
 ## GDD 8 panel 10: the per-palm slot grid
 
@@ -421,7 +486,7 @@ nothing saved), the sound toggle (`menu-sound`) and the language buttons
 colour change with the stakes: a quiet grey question ("start a new estate?")
 with a run in play, the coral call to action with nothing to lose.
 
-## GDD 8 panel 16a: starting a new estate
+## GDD 8 panel 9a: starting a new estate
 
 The menu's second step (`openNew()`, `data-step="new"`): a name box
 (`menu-name`), a seed box (`menu-seed`) whose preview (`menu-code-preview`)

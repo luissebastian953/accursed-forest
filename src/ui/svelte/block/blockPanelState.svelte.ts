@@ -122,7 +122,7 @@ export interface BlockView {
   phase: string;
   tiles: TileView[];
   /**
-   * The upgrade, gated by bearing blocks and then by cash (GDD 8 panel 21a).
+   * The upgrade, gated by bearing blocks and then by cash (GDD 8 panel 9e).
    * `null` at the highest level, where there is nothing left to buy.
    */
   upgrade: {
@@ -136,7 +136,7 @@ export interface BlockView {
     range: number;
     command: Command;
   } | null;
-  /** Everything this Kopdes serves, as a status report (GDD 8 panel 19a). */
+  /** Everything this Kopdes serves, as a status report (GDD 8 panel 9d). */
   kopdes: {
     level: number;
     range: number;
@@ -555,7 +555,7 @@ function upgradeView(sim: Sim, level: number): BlockView['upgrade'] {
   };
 }
 
-/** The status report the Kopdes panel is (GDD 8 panel 19a). */
+/** The status report the Kopdes panel is (GDD 8 panel 9d). */
 function kopdesView(sim: Sim, level: number): NonNullable<BlockView['kopdes']> {
   const { state, world } = sim;
   const e = state.economy;

@@ -176,7 +176,7 @@ canvas {
     color: var(--ink);
   }
 
-  /* Compact (GDD 8 panel 22a): icon, count and pips, and nothing else. */
+  /* Compact (GDD 8 panel 1a): icon, count and pips, and nothing else. */
   .cert {
     position: relative;
     gap: 0.4rem;
@@ -415,7 +415,7 @@ canvas {
     background: linear-gradient(180deg, #62b34d, #3f8a34);
   }
 
-  /* The palm grid's ladder (GDD 8 panel 23a), light to dark by what it is. */
+  /* The palm grid's ladder (GDD 8 panel 9f), light to dark by what it is. */
   .slot-empty {
     background: #fffdf5;
     box-shadow: inset 0 0 0 2px #ddcba0;

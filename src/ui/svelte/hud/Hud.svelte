@@ -339,7 +339,7 @@
             <!-- Three states: nothing met is neutral, some met is gold, all met is green and waits. -->
             {@const all = v.certMet >= v.certTotal}
             <!--
-              The count and the pips are the whole button (GDD 8 panel 22a);
+              The count and the pips are the whole button (GDD 8 panel 1a);
               the sentence they stand for is a tooltip away.
             -->
             {#snippet certTip()}

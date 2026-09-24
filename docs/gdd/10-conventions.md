@@ -88,3 +88,10 @@ scripting one by hand tick by tick. Because both read off the same scripted
 player, a change that breaks a test's assumptions about a "sensible player"
 is a change that would also move the sweep's numbers, and the two are never
 quietly telling different stories about what the game rewards.
+
+## Naming across locales
+
+English says Workshop, Indonesian says Kopdes, and the code says `kopdes`
+everywhere the player cannot see it. A borrowed word in the English build
+(bibit, reboisasi in the marquee) is a bug unless it is glossed where it is
+introduced; the landing page's "Workshop (Kopdes)" is the pattern.

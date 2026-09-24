@@ -39,9 +39,13 @@ flat, and the contrast is the point.
 
 ## Before you commit
 
-The unit suite and the smoke suite run on every change, this one included:
+The gate runs on every change, this one included, in the order the `verify`
+skill gives and for the reasons it gives: the typecheck first, both projects,
+then lint, the unit suite, and the smoke suite.
 
 ```
+pnpm typecheck && npx tsc -p tsconfig.node.json --noEmit
+npx eslint src tests e2e
 npx vitest run
 npx playwright test --grep @smoke --workers=1
 ```

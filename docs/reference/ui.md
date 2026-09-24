@@ -187,13 +187,13 @@ burn options, and the open land and danger zone footers, drawn from
 
 ## `src/ui/svelte/block/BlockPanel.svelte` (stand card and footer)
 
-The stand card (GDD 8 panel 17a) is the block's plantation in one read: an
+The stand card (GDD 8 panel 9b) is the block's plantation in one read: an
 eyebrow naming the stage most of the stand is in, a crest, the count, a
 three-segment bar for the three growth stages, the figure that stage is
 counting, and one line of what to expect next. The per-stage breakdown that
 used to sit on the card face is behind the chip on the right, as a tooltip.
 
-The footer (panel 18a) puts Harvest and the auto-harvest toggle in one row,
+The footer (panel 9c) puts Harvest and the auto-harvest toggle in one row,
 because who picks and whether to pick are the same question, with the reason
 under both and Fertilize spanning the width below.
 
@@ -217,7 +217,7 @@ under both and Fertilize spanning the width below.
 ## `src/ui/svelte/block/BlockPanel.svelte` (the Kopdes report)
 
 On the Kopdes block the panel stops being a list of buttons and becomes a
-status report for everything this Kopdes serves (GDD 8 panel 19a): Open shop
+status report for everything this Kopdes serves (GDD 8 panel 9d): Open shop
 as the one action, today's TBS price with its ten-day trend beside the year's
 sales, the land in range broken into bearing, immature, forest and bare, what
 the harvest crew covers and what is ripe and unpicked, the shelves, and a list
@@ -247,7 +247,7 @@ fact that the gap can be replanted.
 ### Notes
 
 - The ladder of slot colours lives in `styles.css` as `.slot-*`, light to dark
-  by what is standing there (GDD 8 panel 23a). A bearing slot carrying fruit is
+  by what is standing there (GDD 8 panel 9f). A bearing slot carrying fruit is
   the only one with a mark of its own, because it is the only one that says do
   something today; the header counts them.
 - The lattice is twelve wide, so the two columns at each end anchor their
@@ -605,7 +605,7 @@ The menu (GDD 8 panel 16): save, load, a new estate, and the language.
 `toggle`/`show`/`hide`/`update`/`isOpen`/`dispose` surface so `App.ts` is
 unchanged; the view reads `state` and calls back into the class.
 
-Starting a new estate takes two steps (GDD 8 panel 16a). A save is replaced
+Starting a new estate takes two steps (GDD 8 panel 9a). A save is replaced
 the moment a new world begins, so the boxes that describe one are kept off
 the menu's face: the first step is a single button, the second is the form.
 Anything that dismisses the menu puts it back on the first step, so nobody

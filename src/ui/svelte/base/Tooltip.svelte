@@ -128,7 +128,7 @@
     stroke-linejoin: round;
   }
 
-  /* The bubble waits out a passing pointer, then fades in (GDD 8 panel 16a). */
+  /* The bubble waits out a passing pointer, then fades in (GDD 8 panel 9a). */
   .tip-wrap:hover .tip,
   .tip-wrap:hover .tip-arrow {
     opacity: 1;

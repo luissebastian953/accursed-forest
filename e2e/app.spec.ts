@@ -187,7 +187,7 @@ test.describe('Sawit Simulator', () => {
     // Place the Kopdes and stock up.
     await selectCentreBlock(page);
     await tid(page, 'action-PlaceKopdes').click();
-    // On a Kopdes the panel turns into its status report (GDD 8 panel 19a),
+    // On a Kopdes the panel turns into its status report (GDD 8 panel 9d),
     // so the level badge stands where the phase label does elsewhere.
     await expect(tid(page, 'kopdes-level')).toContainText('Level 1');
     await expect(tid(page, 'kopdes-report')).toBeVisible();

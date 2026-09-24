@@ -612,7 +612,7 @@
           {@const rest = picking ? v.major.filter((a) => a !== picking) : v.major}
           <footer class="flex flex-col gap-2 border-t-2 border-dashed border-[#f2e0b0] p-4">
             <!-- Picking and who does the picking are one question, so they
-                 share a row and the reason sits under both (GDD 8 panel 18a). -->
+                 share a row and the reason sits under both (GDD 8 panel 9c). -->
             {#if auto && picking}
               <div class="label">
                 {auto.on
@@ -655,7 +655,7 @@
         {/if}
 
         <!--
-          The Kopdes grows on a working estate, not on cash (GDD 8 panel 21a):
+          The Kopdes grows on a working estate, not on cash (GDD 8 panel 9e):
           the bar is the crop, and the label names whichever gate is still shut.
         -->
         {#if v.upgrade}

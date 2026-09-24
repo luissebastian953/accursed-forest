@@ -35,7 +35,7 @@ slabs that drift over the estate (`src/render/scene/Clouds.ts`), rain is
 streaks whose thickness follows the day's rain (`src/render/scene/Rain.ts`),
 and the river is drawn as a smooth, meandering channel rather than the block
 staircase the simulation actually reasons about
-(`src/render/scene/riverChannel.ts`).
+(`src/sim/worldgen/riverChannel.ts`, in the simulation because the mobs have to agree with it).
 
 Two facts about that palette are easy to get wrong, and both are stated
 outright rather than left to be discovered by squinting at a colour picker:
