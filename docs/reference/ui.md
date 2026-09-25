@@ -686,6 +686,12 @@ and, when the target is gone, Show me. The finishing card is here too.
   and the camera pans under a block. One `getBoundingClientRect` a frame on
   one element is cheap, and the state is only written when a value moves by
   half a pixel, so the DOM is not re-rendered for a still target.
+- `reveal()`: a target below the fold is brought up by scrolling the panel
+  or the phone screen it sits in, and nothing else. `scrollIntoView` was
+  tried first and scrolled the page sideways while the aside was still
+  sliding in, which the eye read as the aside snapping into place with no
+  transition. It waits until the target has held still for three frames,
+  so the slide is over before anything is measured.
 - The scrim is an SVG rect under a luminance mask with the target cut out of
   it, blurred a little for a control and a lot for a block, which is what
   makes the land read as lit rather than as a hole. The whole SVG is

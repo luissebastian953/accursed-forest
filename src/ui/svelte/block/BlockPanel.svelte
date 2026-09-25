@@ -154,7 +154,9 @@
             </span>
             <span class="num font-extrabold" data-testid="clearing-pct">{c.pct}%</span>
           </div>
-          <span class="gauge mt-2 w-full" aria-hidden="true"><i style="width: {c.pct}%"></i></span>
+          <span class="gauge mt-2 block w-full" aria-hidden="true">
+            <i style="width: {c.pct}%"></i>
+          </span>
           <div class="muted mt-1.5 text-xs">
             {t('block.clearingMeta', { crew: c.crew, days: c.days })}
           </div>
@@ -872,6 +874,17 @@
     background: #fffdf5;
     padding: 0.7rem;
     box-shadow: 0 3px 0 #e2d2a8;
+  }
+
+  /* Progress lands once a day, in steps; the fill glides between them. */
+  .clearing :global(.gauge > i) {
+    transition: width 700ms ease-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .clearing :global(.gauge > i) {
+      transition: none;
+    }
   }
 
   .chevron {

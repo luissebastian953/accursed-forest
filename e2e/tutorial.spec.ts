@@ -52,9 +52,18 @@ test.describe('the first-time walkthrough (GDD 8 panel 24a)', () => {
     await expect(tid(page, 'hud-marker').filter({ hasText: 'First step' })).toBeVisible();
     await clickCentre(page);
 
-    // 2. The button, with the card over it.
+    // 2. The button, with the card over it. Revealing the button must scroll the
+    // panel, never the page: a page dragged sideways is an aside that never slid.
     await step(page, 2);
     await expect(tid(page, 'tutorial-card')).toContainText('Build your Workshop');
+    await page.waitForTimeout(600);
+    expect(
+      await page.evaluate(() =>
+        [document.documentElement, document.body, document.querySelector('#app')!].map(
+          (el) => el.scrollLeft,
+        ),
+      ),
+    ).toEqual([0, 0, 0]);
     await tid(page, 'action-PlaceKopdes').click();
 
     // 3. The chop: the walkthrough has already opened the neighbour it chose.
@@ -66,6 +75,12 @@ test.describe('the first-time walkthrough (GDD 8 panel 24a)', () => {
     // 4. The crew, reported on the card; the clock runs on its own.
     await step(page, 4);
     await expect(tid(page, 'clearing-card')).toBeVisible();
+
+    // The progress bar is a bar: a hair high and the card's full width.
+    const gauge = (await tid(page, 'clearing-card').locator('.gauge').boundingBox())!;
+
+    expect(gauge.height).toBeLessThan(16);
+    expect(gauge.width).toBeGreaterThan(200);
     await expect(tid(page, 'tutorial-card')).toContainText('Workers are clearing');
 
     // 5 and 6. Stock and plant, once the land is bare.

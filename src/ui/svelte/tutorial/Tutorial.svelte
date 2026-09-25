@@ -55,6 +55,26 @@
       b !== null &&
       a.every((p, i) => Math.abs(p[0] - b[i]![0]) < 0.5 && Math.abs(p[1] - b[i]![1]) < 0.5));
 
+  /**
+   * Scroll only the panel or the phone screen the target sits in. `scrollIntoView`
+   * would also drag the page sideways after an aside still sliding in.
+   */
+  function reveal(el: Element): void {
+    let scroller = el.parentElement;
+
+    while (scroller && !/(auto|scroll)/.test(getComputedStyle(scroller).overflowY)) {
+      scroller = scroller.parentElement;
+    }
+
+    if (!scroller) return;
+
+    const p = scroller.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+
+    if (r.top < p.top + EDGE) scroller.scrollTop -= p.top + EDGE - r.top;
+    else if (r.bottom > p.bottom - EDGE) scroller.scrollTop += r.bottom - (p.bottom - EDGE);
+  }
+
   // The targets move: the aside slides in, the panel scrolls, the camera pans.
   // So the step's element and block are measured every frame while it is up.
   $effect(() => {
@@ -70,6 +90,7 @@
     }
 
     let scrolled = false;
+    let still = 0;
     let raf = 0;
 
     const measure = (): void => {
@@ -91,9 +112,11 @@
           // Off the edge is the aside still sliding, or a phone that is not up.
           if (b.w > 0 && b.h > 0 && b.x + b.w > EDGE && b.x < rect.width - EDGE) {
             nextBox = b;
+            // Once the target has stood still for a few frames, the slide is over.
+            still = same(box, b) ? still + 1 : 0;
 
-            if (!scrolled) {
-              el.scrollIntoView({ block: 'nearest' });
+            if (!scrolled && still >= 3) {
+              reveal(el);
               scrolled = true;
             }
           }
