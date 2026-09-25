@@ -583,3 +583,33 @@ same neighbours the text names.
 working, filling as the chop, the burn or the excavation dig advances. The
 App projects each worked block's screen position every frame and hands the
 list over; the marker itself never touches the camera.
+
+## GDD 8 panel 24a: the first-time walkthrough
+
+`src/ui/svelte/tutorial/`: seventeen steps that take a first estate from the
+pre-cleared block to the shop's shelves, laid over the game rather than in
+place of it. Nothing is simulated for the player: every estate step waits for
+the real command (`PlaceKopdes`, `ChopBlock`, `BuyItem`, `PlantBlock`) and
+reads the estate to know it happened, so a player who is ahead of the guide
+is passed over rather than sent back. The guide steps (the stand card, the
+palm slots, Harvest, Auto-harvest) and the shop steps (seedlings, fertilizer,
+the sanitation crew, Trichoderma, the bug trap) wait for Next instead.
+
+Three things stand on screen while it runs. A scrim dims everything but the
+step's target, with a pulsing gold ring around a control or a walking dashed
+diamond on a block of land. A coral card with an eyebrow, a headline and a
+line of body sits under a target in the top half of the screen and over one
+in the bottom half, and carries the Next button and its dots on the guide
+steps. A pill at the bottom left names the step (`Step 4 of 17, Workers
+clearing`), draws a progress bar and offers Skip; when the player has closed
+what the step points at, it offers Show me as well, which re-runs the step's
+opening move. The two block steps that borrow the HUD pin's open card (panel
+20a) draw no card of their own.
+
+The walkthrough starts with the first estate a browser plays and not again
+once it has been finished or skipped (`sawit:tutorial`), and never on a URL
+that names its world (`?seed`, `?fresh`) unless `?tutorial` asks for it. The
+finishing card offers Replay, which walks the guide and the shop again on the
+estate as it stands. The block it asks the player to chop is the nearest
+owned wild block to the Workshop, open land first, never water or protected
+forest.

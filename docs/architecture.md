@@ -60,7 +60,7 @@ What each one is for:
 
 `src/ui/svelte/` is one folder per panel, and the folder is the unit that
 changes together: `block/`, `hud/`, `news/`, `authority/`, `shop/`,
-`endings/`, `start/`. Each holds a `<name>State.svelte.ts` module and the
+`endings/`, `start/`, `tutorial/`. Each holds a `<name>State.svelte.ts` module and the
 `<Name>.svelte` files it mounts.
 
 The state module is the panel's public face. `App.ts` imports it and never

@@ -10,6 +10,7 @@ import {
   GROWTH,
   HARVEST_ROTATION_DAYS,
 } from '@sim/balance/growth';
+import { WORKER_JOBS } from '@sim/balance/mobs';
 import { GANODERMA, PEST_LABOUR, PLAGUE } from '@sim/balance/pests';
 import {
   CLEAR_PLANTATION,
@@ -241,6 +242,8 @@ export interface BlockView {
   settle: { cost: number; enabled: boolean; note: string } | null;
   /** A crew has the block: the panel reports, and nothing on it can be pressed. */
   busy: boolean;
+  /** The chop under way, as a card: how far along, and what it will take (GDD 8 panel 24a). */
+  clearing: { pct: number; crew: number; days: number } | null;
   /**
    * The one thing on a planted block that cannot be taken back (GDD 8 panel
    * 13a): felling the lot, priced and named to read as a loss, not a form.
@@ -1403,6 +1406,14 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
       block.burning ||
       block.fellingUntil > state.tick ||
       block.excavateUntil > state.tick,
+    clearing:
+      block.phase === 'clearing' && !block.burning
+        ? {
+            pct: Math.round(block.clearProgress * 100),
+            crew: WORKER_JOBS.crewSize,
+            days: spec.chopDays,
+          }
+        : null,
     autoHarvest:
       kopdes &&
       (block.phase === 'kopdes' || (block.phase === 'planted' && block.species === 'palm'))

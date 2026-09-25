@@ -17,6 +17,7 @@ the panel's public face: `App.ts` imports it and never a component.
 | `shop/`      | The Kopdes shop: stock, prices, the payroll                        |
 | `endings/`   | The year-end card, the certificate and the epilogue                |
 | `start/`     | The title card, the menu and the controls help                     |
+| `tutorial/`  | The first-time walkthrough: the ring, the card and the pill        |
 
 ## `src/ui/format.ts`
 
@@ -184,6 +185,12 @@ burn options, and the open land and danger zone footers, drawn from
   default so it never competes with Harvest or Fertilize. Unfolded, it
   shows the red button; that button only asks, and the card it opens names
   what goes.
+- `clearing-card`: a block under the crew's axes reports the chop as a card
+  (GDD 8 panel 24a): how far along, the crew's size and the days it takes.
+  It sits between the header and the greyed, inert rest of the panel rather
+  than inside it, because it is the one live thing on the block and the
+  walkthrough points at it. The footer under the inert part says the chop is
+  in progress where the open-land buttons would otherwise be.
 
 ## `src/ui/svelte/block/BlockPanel.svelte` (stand card and footer)
 
@@ -457,6 +464,12 @@ words, with a tone per kind (`TONE`). The dismiss control sits on the left,
 where the icon used to be, so a stack of them can be cleared without the
 pointer travelling.
 
+### Notes
+
+- `--tutorial-lift`: the walkthrough's pill stands on the same corner, so the
+  stack's `bottom` adds whatever the pill sets on the document root while it
+  is up, and nothing while it is not.
+
 ## `src/ui/svelte/hud/WorkMarkers.svelte`
 
 The crew's progress ring over a worked block (GDD 8 panel 6): a chop, a burn, a
@@ -554,6 +567,8 @@ view.
   The name now has the line, and the price sits with the stock under it. The
   worker pills read the same way, and the label rows in the sell tab carry a
   gap so a heading cannot touch its note.
+- `shop-row-{item}`: each row carries its item's id, which is what the
+  walkthrough's shop steps anchor to (GDD 8 panel 24a).
 
 ## `src/ui/svelte/shop/kopdesShopState.svelte.ts`
 
@@ -630,6 +645,96 @@ reopens it to find a half-filled form pointed at their estate.
   name, so there is always something to seed from, the seed box when it is
   filled, the name when it is not. A world drawn at random comes from the
   title card instead.
+
+## `src/ui/svelte/tutorial/steps.ts`
+
+The walkthrough's seventeen steps (GDD 8 panel 24a) as a plain table, rune
+free so the unit suite can run it against a headless sim: which block and
+which control each step points at, whether it waits for Next, what it does to
+the interface when it opens (`enter`), and `done`, which reads the estate to
+say the step is behind the player. `pickFieldBlock` chooses the block the
+player is asked to chop; `firstUndone` is the whole advance rule.
+
+### Notes
+
+- `done` on the estate steps reads "this far or further": the chop is done
+  once the block is anything but wild, the seedlings once the shelf holds a
+  block's worth or the block is already planted. So a player who chops
+  before the guide asks, or stocks up at the shop first, is passed over
+  rather than sent back, and Replay from the finishing card lands on the
+  first guide step because everything before it is already true.
+- `element` is a test id. The overlay finds the control by
+  `[data-testid=...]`, which is the one stable name every button already
+  carries; a second attribute for the guide would be a second thing to keep
+  in step with the first.
+- `pickFieldBlock()`: neighbours of the Workshop first, then the shortest
+  chop, then the lowest id, so two loads of the same seed ask for the same
+  block. Water and protected forest are never asked for; nor is anything
+  more than three blocks out, which is the level-one range.
+
+## `src/ui/svelte/tutorial/Tutorial.svelte`
+
+The walkthrough's three pieces (GDD 8 panel 24a): the scrim with its
+spotlight and the pulsing ring, the coral card anchored to the step's target,
+and the pill at the bottom left with the step count, the progress bar, Skip
+and, when the target is gone, Show me. The finishing card is here too.
+
+### Notes
+
+- The target is measured every animation frame while a step is up, not once
+  on entry: the aside slides in over 320ms, the panel and the phone scroll,
+  and the camera pans under a block. One `getBoundingClientRect` a frame on
+  one element is cheap, and the state is only written when a value moves by
+  half a pixel, so the DOM is not re-rendered for a still target.
+- The scrim is an SVG rect under a luminance mask with the target cut out of
+  it, blurred a little for a control and a lot for a block, which is what
+  makes the land read as lit rather than as a hole. The whole SVG is
+  `pointer-events: none`, so the control under the ring is still the thing
+  being clicked; only the card and the pill take the pointer.
+- The ring's ping and the diamond's marching dashes are CSS on SVG shapes
+  with `transform-box: fill-box`, so they scale from their own centre. Both
+  stop under `prefers-reduced-motion`, and the ping goes with them since a
+  still second outline says nothing.
+- The card sits under a target in the top half of the screen and over one in
+  the bottom half, centred on it and kept inside the edges; the arrow moves
+  along the card's edge to stay on the target's centre. Until the card has
+  been measured it is `visibility: hidden` for a frame rather than flashing
+  at the corner.
+- A block step whose words are on the HUD pin (`card: 'pin'`) draws no card,
+  so the first step looks exactly as it did before the walkthrough existed,
+  with the diamond added.
+- `--tutorial-lift` is set on the document root while the walkthrough is
+  active; the toasts read it to climb over the pill.
+
+## `src/ui/svelte/tutorial/tutorialState.svelte.ts`
+
+The walkthrough's state (GDD 8 panel 24a): which step is up, whether the
+finishing card is, and whether the step's target has gone missing. `App.ts`
+constructs it with the handlers it needs (select a block, focus the camera,
+open the shop, nudge a paused clock, project a block to the screen) and calls
+`sync` every UI refresh and after every successful command; the class reads
+the estate through `firstUndone` and moves on by itself. `tutorialDone` is
+the `localStorage` flag a finished or skipped walkthrough leaves behind.
+
+### Notes
+
+- `sync()` is the only clock. The steps never subscribe to anything: the
+  App already refreshes the panels ten times a second and after every
+  command, and the walkthrough reads the same beat, so there is no second
+  event path to keep in step with the first.
+- `enter()` remembers what `sync` last saw of the selection and the shop, and
+  skips a move that is already made. Four guide steps in a row on the same
+  block would otherwise re-select it four times, restarting the selection
+  ring's pop each time.
+- `showMe()` is the way back when the player closes the aside or the phone a
+  step was pointing at: the step's opening move again, and the camera brought
+  to the block if the step has one. The view reports the loss through
+  `setLost`; the pill answers with the button.
+- `replay()` keeps the field block. Starting over would pick a fresh wild one
+  and ask for a second chop, when the point is to read the guide again.
+- `stop()` is not `skip()`: a new estate under way takes the overlay down
+  without writing the flag, so the browser's first finished walkthrough is
+  the one that counts.
 
 ## `src/ui/svelte/start/startScreenState.svelte.ts`
 

@@ -65,6 +65,16 @@ The canvas cannot be read back with `drawImage`: the renderer runs without
 `preserveDrawingBuffer`, so the backbuffer is empty by the time a 2D context
 could copy it. The test asks the renderer what it drew instead.
 
+## `e2e/tutorial.spec.ts`
+
+The first-time walkthrough (GDD 8 panel 24a) in a browser: that it can be
+skipped and stays skipped, that it leads a fresh estate from the pre-cleared
+block through the Workshop, the chop, the seedlings and the planting, the four
+guide cards, the pin back to the Workshop, the shop and its five shelves to the
+finishing card, and that closing what a step points at brings up Show me. It
+arrives on `?tutorial`, since the suite's other URLs name their world and would
+otherwise skip the guide.
+
 ## `e2e/workbench.spec.ts`
 
 The workbench (`workbench.html`): the development page that puts one part of the
@@ -344,3 +354,12 @@ bug and not a retirement.
 The crawl files: that the sitemap lists exactly the indexable pages and never
 the game page, that robots.txt names the sitemap, what an empty or malformed
 `VITE_SITE_URL` does, and the Search Console verification tag.
+
+## `tests/ui/tutorial.test.ts`
+
+The walkthrough's step table against a headless sim (GDD 8 panel 24a): the
+block it asks for is owned, wild, clearable, as near the Workshop as any and
+open land where there is a choice; each estate step reads as done from the
+estate itself and in order, a player ahead of the guide is passed over, the
+guide and shop steps count as two runs, and every step has its words in both
+languages.

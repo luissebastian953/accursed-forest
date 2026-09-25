@@ -27,9 +27,9 @@ named in backticks so a search from the code lands on it.
 | [Simulation: core](sim-core.md)                                     | 14      |
 | [Simulation: systems](sim-systems.md)                               | 11      |
 | [Simulation: world generation](sim-worldgen.md)                     | 6       |
-| [Tests](tests.md)                                                   | 34      |
+| [Tests](tests.md)                                                   | 36      |
 | [Tools](tools.md)                                                   | 2       |
-| [Interface](ui.md)                                                  | 40      |
+| [Interface](ui.md)                                                  | 43      |
 | [Workers](workers.md)                                               | 1       |
 
 The curated overviews are [architecture](../architecture.md) and

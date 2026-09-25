@@ -144,6 +144,23 @@
         </button>
       </header>
 
+      {#if v.clearing}
+        {@const c = v.clearing}
+        <!-- The chop itself, above the greyed rest: it is the one live thing on the block. -->
+        <div class="clearing mx-4 mt-4" data-testid="clearing-card">
+          <div class="flex items-center justify-between gap-2">
+            <span class="flex items-center gap-1.5 font-extrabold">
+              <Icon name="axe-chop" />{t('block.clearingHead')}
+            </span>
+            <span class="num font-extrabold" data-testid="clearing-pct">{c.pct}%</span>
+          </div>
+          <span class="gauge mt-2 w-full" aria-hidden="true"><i style="width: {c.pct}%"></i></span>
+          <div class="muted mt-1.5 text-xs">
+            {t('block.clearingMeta', { crew: c.crew, days: c.days })}
+          </div>
+        </div>
+      {/if}
+
       <!--
         While a crew has the block there is nothing to decide, so the panel
         reports and takes no presses. The close button stays live.
@@ -537,6 +554,14 @@
           {/if}
         </div>
 
+        {#if v.clearing}
+          <footer class="border-t-2 border-dashed border-[#f2e0b0] p-4">
+            <button class="btn btn-ghost btn-lg w-full justify-start" disabled>
+              {t('block.chopInProgress')}
+            </button>
+          </footer>
+        {/if}
+
         {#if v.land}
           {@const land = v.land}
           <!-- Open land's two things to do with it (GDD 8 panel 11a): the crew, or the saplings. -->
@@ -839,6 +864,14 @@
   /* The same pressed-card edge the buttons carry, in the zone's own pink. */
   .danger {
     box-shadow: 0 3px 0 #e6a594;
+  }
+
+  .clearing {
+    border-radius: 16px;
+    border: 2px solid #e0cfa4;
+    background: #fffdf5;
+    padding: 0.7rem;
+    box-shadow: 0 3px 0 #e2d2a8;
   }
 
   .chevron {

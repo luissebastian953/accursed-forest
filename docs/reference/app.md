@@ -68,6 +68,24 @@ Nothing below this file knows about anything beside it.
   any block the pests have got into. Beetles only matter once there are
   enough of them to bore a palm, so a stray one does not plant a pin on the
   map.
+- `tutorialWanted()`: the walkthrough (GDD 8 panel 24a) is for the first
+  estate a browser plays, so it starts from `beginPlay()` and from a new
+  estate made in the menu, and not on a URL that names its world: `?seed`
+  and `?fresh` are the suite's and the developer's, and a guide over every
+  test would break most of them. `?tutorial` asks for it anyway, which is
+  how `e2e/tutorial.spec.ts` gets one.
+- `syncTutorial()`: the walkthrough reads the estate on the same beat the
+  panels do, ten times a second and after every successful command, so a
+  step opens the moment the Workshop is placed rather than up to a tenth of
+  a second later.
+- `projectBlock()`: the four corners of a block's top face on screen, for the
+  walkthrough's diamond, worked out the way the pins are (`syncHudMarkers`)
+  but for corners rather than a centre. Null once any corner is behind the
+  camera, since a quad with a corner behind the eye projects to nonsense.
+- the `visitKopdes` pin: while the walkthrough is on its way back to the
+  Workshop, the Workshop pin borrows the first step's kind, with its open
+  card and coral ring, and the walkthrough's own words. The overlay draws
+  only the diamond for that step, so the two never say the same thing twice.
 - `onFrame()` panel refresh: the panels are DOM, so ten refreshes a second
   (`UI_REFRESH_MS`) is plenty, and it leaves the frame budget to the world.
   Refreshing every frame cost the sim a third of its ticks at 20× on the

@@ -97,6 +97,11 @@ import {
   StartScreen,
   type SaveSummary,
 } from '@ui/svelte/start/startScreenState.svelte.ts';
+import {
+  Tutorial,
+  tutorialDone,
+  type ScreenQuad,
+} from '@ui/svelte/tutorial/tutorialState.svelte.ts';
 
 import { t } from '../i18n/index.ts';
 
@@ -439,6 +444,58 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     },
   });
 
+  // ── The walkthrough (GDD 8 panel 24a) ───────────────────────────────────
+  const tutorial = new Tutorial(root, {
+    select: (block) => select(block),
+    focus: (block) => focusBlock(block),
+    openShop: () => openShop(),
+    closeShop: () => closeShop(),
+    resumeClock: () => {
+      if (time.speed === 0) time.set(1);
+    },
+    project: (block) => projectBlock(block),
+  });
+
+  // A dev or test URL names its world and skips the title, so it skips the guide too, unless asked.
+  const tutorialWanted = (): boolean =>
+    params.has('tutorial') || (!params.has('seed') && !params.has('fresh') && !tutorialDone());
+
+  /** A first estate, in a browser that has not been walked through one, gets the guide. */
+  function maybeStartTutorial(): void {
+    if (!sim.state.kopdes && tutorialWanted()) tutorial.start(sim);
+  }
+
+  function syncTutorial(): void {
+    if (tutorial.active) tutorial.sync(sim, panel.selected, shop.isOpen);
+  }
+
+  const quadPoint = new Vector3();
+
+  /** A block's top face on screen, for the walkthrough's ring; null once it is behind the camera. */
+  function projectBlock(block: BlockId): ScreenQuad | null {
+    const [bx, by] = sim.world.toXY(block);
+    const side = WORLD.blockSide;
+    const width = handle.canvas.clientWidth;
+    const height = handle.canvas.clientHeight;
+    const y = groundAt(bx * side + side / 2, by * side + side / 2) + 0.4;
+    const points: [number, number][] = [];
+
+    rig.camera.updateMatrixWorld();
+
+    for (const [dx, dz] of [
+      [0, 0],
+      [1, 0],
+      [1, 1],
+      [0, 1],
+    ] as const) {
+      quadPoint.set((bx + dx) * side, y, (by + dz) * side).project(rig.camera);
+      if (quadPoint.z > 1) return null;
+      points.push([((quadPoint.x + 1) / 2) * width, ((1 - quadPoint.y) / 2) * height]);
+    }
+
+    return { points };
+  }
+
   // ── News and the authorities ────────────────────────────────────────────
   const readKey = (): string => `accursed-forest:news-read:${sim.world.estateCode}`;
   let newsReadTick = loadReadTick();
@@ -635,6 +692,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       switchSim(freshSim(seed, name));
       // Started from the title card: the estate is made, so go and play it.
       if (startScreen.isOpen) play();
+      else maybeStartTutorial();
     },
     setSound: (on) => setSound(on),
     save: () => {
@@ -1059,6 +1117,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       // still pops in when a paused player clicks a block.
       if (ring.block !== null) ring.show(sim.state, sim.world, ring.block, performance.now());
       refreshHud();
+      syncTutorial();
     } else {
       toasts.push(result.reason, 'warn');
     }
@@ -1095,6 +1154,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   function switchSim(next: Sim): void {
     sim = next;
+    tutorial.stop();
     select(null);
     closeShop();
     scene.remove(chunks.group);
@@ -1570,7 +1630,23 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       }
     }
 
-    if (state.kopdes) {
+    // The walkthrough's way back to the Workshop borrows the first step's open card.
+    if (state.kopdes && tutorial.stepId === 'visitKopdes') {
+      pin(
+        state.kopdes.blockId,
+        'firstStep',
+        t('tutorial.visitKopdesHead'),
+        t('tutorial.visitKopdesBody'),
+        false,
+      );
+
+      const visit = hudMarkerItems.at(-1);
+
+      if (visit?.kind === 'firstStep') {
+        visit.eyebrow = t('tutorial.visitKopdesEyebrow');
+        visit.pinned = true;
+      }
+    } else if (state.kopdes) {
       pin(
         state.kopdes.blockId,
         'workshop',
@@ -1751,6 +1827,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       refreshHud();
       if (panel.selected !== null) panel.refresh();
       if (shop.isOpen) shop.refresh();
+      syncTutorial();
     }
 
     // Bloom only while something glows (fire, coins, glints), and never on a
@@ -1994,6 +2071,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       police,
       motorcade,
       showEpilogue,
+      tutorial,
     };
   }
 
@@ -2110,6 +2188,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     rig.zoomTo(1.5, now, START_FADE_MS + 900);
     time.set(1);
     welcome();
+    maybeStartTutorial();
   }
 
   const disclaimer = new DisclaimerModal(root, { accept: () => beginPlay() });
@@ -2151,6 +2230,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     playing = true;
     refreshMenu();
     if (!slot.exists()) welcome();
+    if (params.has('tutorial')) maybeStartTutorial();
   }
 
   return () => {
@@ -2174,6 +2254,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     clouds.dispose();
     panel.dispose();
     shop.dispose();
+    tutorial.dispose();
     menu.dispose();
     toasts.dispose();
     ticker.dispose();

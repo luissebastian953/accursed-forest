@@ -6,8 +6,10 @@
   const state = toastState();
 </script>
 
+<!-- The walkthrough's pill stands on the same corner, so the stack climbs over it while it is up. -->
 <div
-  class="pointer-events-none absolute bottom-16 left-[30px] z-20 flex flex-col items-start gap-2"
+  class="pointer-events-none absolute left-[30px] z-20 flex flex-col items-start gap-2"
+  style="bottom: calc(4rem + var(--tutorial-lift, 0px))"
 >
   {#each state.items as toast (toast.id)}
     <div

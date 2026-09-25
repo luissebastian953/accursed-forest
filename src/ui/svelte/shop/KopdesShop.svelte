@@ -75,7 +75,7 @@
           </div>
         {/if}
         {#each v.rows as row (row.item)}
-          <div class="pill-muted p-2.5">
+          <div class="pill-muted p-2.5" data-testid={`shop-row-${row.item}`}>
             <div class="flex items-center gap-2">
               <span class="pill flex h-9 w-9 shrink-0 items-center justify-center">
                 <Icon name={row.icon} />
