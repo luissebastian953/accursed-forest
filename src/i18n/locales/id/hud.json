@@ -1,6 +1,6 @@
 {
-  "cash": "Kas",
-  "cashDebt": "Kas, berutang",
+  "cash": "Uang",
+  "cashDebt": "Uang, berutang",
   "cashDebtTitle": "Merah. Bank menarik pinjaman kalau terus begini.",
   "date": "Tanggal",
   "tbsPrice": "Harga TBS",
