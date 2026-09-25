@@ -719,11 +719,13 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     if (newsPanel.isOpen) newsPanel.hide();
     shop.open(sim);
     rangeRing.show(sim.state, sim.world);
+    panel.setShopOpen(true);
   }
 
   function closeShop(): void {
     shop.close();
     rangeRing.hide();
+    panel.setShopOpen(false);
   }
 
   /**

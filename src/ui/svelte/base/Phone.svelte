@@ -45,7 +45,7 @@
 <!-- `data-phone` marks the whole frame: a handset's own screen does not click
      back at you, so the UI press sound stops at this boundary. -->
 <div
-  class="@container absolute bottom-6 left-3 z-20 aspect-[480/920] max-h-[1400px] min-h-[620px] max-w-[calc(100vw-1.5rem)]"
+  class="phone-in @container absolute bottom-6 left-3 z-20 aspect-[480/920] max-h-[1400px] min-h-[620px] max-w-[calc(100vw-1.5rem)]"
   style="height: calc(100% - var(--panel-top, 12.5rem) - 1.5rem)"
   data-testid={testId}
   data-phone="true"
@@ -92,3 +92,27 @@
     alt=""
   />
 </div>
+
+<style>
+  /* The handset comes up from the bottom edge, quickly, like a phone lifted to look at. */
+  .phone-in {
+    animation: phone-in 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  @keyframes phone-in {
+    from {
+      transform: translateY(110%);
+      opacity: 0;
+    }
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .phone-in {
+      animation: none;
+    }
+  }
+</style>

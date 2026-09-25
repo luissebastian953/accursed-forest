@@ -89,6 +89,8 @@ export interface ActionView {
   badge?: string;
   /** The block has this problem right now, so the button asks to be pressed. */
   urgent?: boolean;
+  /** Greyed for an empty shelf: the bubble names the item and points at the shop. */
+  shortOf?: { icon: IconName; label: string };
 }
 
 /** One stat tile in the panel's grid: a label, a value, and an optional note. */
@@ -182,6 +184,8 @@ export interface BlockView {
   pests: {
     plagued: boolean;
     pressure: string;
+    /** A Workshop stands, so the card can offer its shop. */
+    shop: boolean;
     beetles: string;
     ganoderma: string | null;
     windows: string | null;
@@ -501,6 +505,18 @@ const STOCK_ICON: Record<ItemId, IconName> = {
 
 const STOCK_SHOWN: ItemId[] = ['bibit', 'fertilizer', 'pheromoneTrap', 'forestSapling'];
 
+/** What each command takes off the shelf, for the bubble on a button greyed for stock. */
+const ITEM_FOR: Partial<Record<Command['type'], ItemId>> = {
+  SetTrap: 'pheromoneTrap',
+  ApplyMetarhizium: 'metarhizium',
+  ApplyTrichoderma: 'trichoderma',
+  FertilizeBlock: 'fertilizer',
+  SanitizeBlock: 'sanitationCrew',
+  ExcavateBlock: 'excavationCrew',
+  ReplantBlock: 'bibit',
+  PlantBlock: 'bibit',
+};
+
 /** Block ids inside the Kopdes diamond, water excluded: it serves no river. */
 function blocksInRange(state: SimState, world: World, level: number): BlockId[] {
   const kopdes = state.kopdes;
@@ -750,17 +766,25 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     command: Command,
     testId: string,
     extra: Partial<Pick<ActionView, 'cost' | 'icon' | 'badge' | 'minor' | 'urgent'>> = {},
-  ): ActionView => ({
-    label,
-    command,
-    testId,
-    rejection: sim.validate(command)?.reason ?? null,
-    minor: extra.minor ?? false,
-    ...(extra.cost !== undefined ? { cost: extra.cost } : {}),
-    ...(extra.icon !== undefined ? { icon: extra.icon } : {}),
-    ...(extra.badge !== undefined ? { badge: extra.badge } : {}),
-    ...(extra.urgent ? { urgent: true } : {}),
-  });
+  ): ActionView => {
+    const refused = sim.validate(command);
+    let item = refused?.code === 'noInventory' && state.kopdes ? ITEM_FOR[command.type] : undefined;
+
+    if (item === 'bibit' && block.species === 'forest') item = 'forestSapling';
+
+    return {
+      label,
+      command,
+      testId,
+      rejection: refused?.reason ?? null,
+      minor: extra.minor ?? false,
+      ...(extra.cost !== undefined ? { cost: extra.cost } : {}),
+      ...(extra.icon !== undefined ? { icon: extra.icon } : {}),
+      ...(extra.badge !== undefined ? { badge: extra.badge } : {}),
+      ...(extra.urgent ? { urgent: true } : {}),
+      ...(item ? { shortOf: { icon: STOCK_ICON[item], label: t(`shop.item_${item}`) } } : {}),
+    };
+  };
 
   const actions: ActionView[] = [];
   let burnable = false;
@@ -1297,6 +1321,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     pests = {
       plagued: block.plagued,
       pressure: t('block.pressure', { p: pressure.toFixed(2), max: PLAGUE.onAt }),
+      shop: state.kopdes !== null,
       beetles:
         capacity > 0
           ? t('block.beetlesRoom', { n: Math.round(block.beetles), cap: Math.round(capacity) })
@@ -1432,12 +1457,15 @@ export class BlockPanel {
     dangerOpen: boolean;
     /** The danger zone's second step is open: the player has asked once. */
     confirmClear: boolean;
+    /** The shop phone is up, so the buttons that open it have nothing to do. */
+    shopOpen: boolean;
     version: number;
   }>({
     block: null,
     slot: null,
     dangerOpen: false,
     confirmClear: false,
+    shopOpen: false,
     version: 0,
   });
   sim = $state.raw<Sim | null>(null);
@@ -1470,6 +1498,11 @@ export class BlockPanel {
     this.ui.block = block;
     if (block === null) this.handlers.hoverBurn(null);
     this.ui.version++;
+  }
+
+  /** The App says when the shop phone comes and goes. */
+  setShopOpen(open: boolean): void {
+    this.ui.shopOpen = open;
   }
 
   /** Re-render the current selection against current state. */

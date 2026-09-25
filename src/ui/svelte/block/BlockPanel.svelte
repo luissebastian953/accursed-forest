@@ -74,28 +74,45 @@
 {/snippet}
 
 {#snippet actionButton(action: ActionView)}
-  <div class="relative">
-    <button
-      class={action.minor ? 'btn btn-sm btn-ghost' : 'btn btn-lg w-full btn-green'}
-      disabled={action.rejection !== null}
-      title={action.rejection ?? ''}
-      data-testid={action.testId}
-      data-urgent={action.urgent || undefined}
-      onclick={() => panel.act(action.command)}
-    >
-      <span class="flex w-full items-center justify-between gap-2">
-        <span class="flex items-center gap-2">
-          {#if action.icon}<Icon name={action.icon} />{/if}{action.label}
-        </span>
-        {#if action.badge !== undefined}
-          <span class="num rounded-lg bg-black/15 px-1.5 py-0.5 text-xs">{action.badge}</span>
-        {:else if action.cost !== undefined}
-          <span class="num rounded-lg bg-black/15 px-1.5 py-0.5 text-xs"
-            >{formatRp(action.cost)}</span
-          >
-        {/if}
+  {#snippet buyTip()}
+    <span class="flex items-center gap-2 px-0.5 py-0.5 text-left">
+      <span class="tip-badge" data-tone="deep">
+        {#if action.shortOf}<Icon name={action.shortOf.icon} />{/if}
       </span>
-    </button>
+      <span class="tip-head" data-tone="deep">
+        {t('block.buyTipBefore', { item: action.shortOf?.label ?? '' })}
+        <span class="btn btn-sm btn-green mx-0.5 !py-0 align-middle"
+          ><Icon name="kopdes" />{t('block.pestShop')}</span
+        >
+        {t('block.buyTipAfter')}
+      </span>
+    </span>
+  {/snippet}
+  <div class="relative">
+    <!-- An empty shelf is the one refusal with a fix on the same panel, so it gets a bubble. -->
+    <Tooltip {...action.shortOf ? { body: buyTip } : {}} tone="deep" withArrow class="w-full">
+      <button
+        class={action.minor ? 'btn btn-sm btn-ghost w-full' : 'btn btn-lg w-full btn-green'}
+        disabled={action.rejection !== null}
+        title={action.rejection ?? ''}
+        data-testid={action.testId}
+        data-urgent={action.urgent || undefined}
+        onclick={() => panel.act(action.command)}
+      >
+        <span class="flex w-full items-center justify-between gap-2">
+          <span class="flex items-center gap-2">
+            {#if action.icon}<Icon name={action.icon} />{/if}{action.label}
+          </span>
+          {#if action.badge !== undefined}
+            <span class="num rounded-lg bg-black/15 px-1.5 py-0.5 text-xs">{action.badge}</span>
+          {:else if action.cost !== undefined}
+            <span class="num rounded-lg bg-black/15 px-1.5 py-0.5 text-xs"
+              >{formatRp(action.cost)}</span
+            >
+          {/if}
+        </span>
+      </button>
+    </Tooltip>
     {#if action.rejection && !action.minor}
       <div class="mt-0.5 px-1 text-xs font-bold text-[#b85e12]">{action.rejection}</div>
     {/if}
@@ -260,6 +277,7 @@
               <button
                 class="btn btn-lg w-full justify-between btn-coral"
                 data-testid="action-OpenShop"
+                disabled={ui.shopOpen}
                 onclick={() => panel.handlers.openShop()}
               >
                 <span class="flex items-center gap-2">
@@ -479,15 +497,31 @@
               class="mb-3 rounded-2xl border-2 border-[#ffc9bd] bg-[#ffece7] p-2.5 text-xs"
               data-testid="pest-section"
             >
-              <div class="mb-1 flex items-baseline justify-between">
+              <div class="mb-1 flex items-center justify-between">
                 <span class="flex items-center gap-1.5 font-extrabold"
                   ><Icon name="beetle" /> {t('block.pests')}</span
                 >
-                {#if p.plagued}
-                  <span class="chip chip-pest" data-testid="plague-badge">{t('block.plague')}</span>
-                {:else}
-                  <span class="opacity-60">{p.pressure}</span>
-                {/if}
+                <span class="flex items-center gap-2">
+                  {#if p.plagued}
+                    <span class="chip chip-pest" data-testid="plague-badge"
+                      >{t('block.plague')}</span
+                    >
+                  {:else}
+                    <span class="num rounded-xl bg-white/80 px-2 py-0.5 text-[#b0402c]">
+                      {p.pressure}
+                    </span>
+                  {/if}
+                  {#if p.shop}
+                    <button
+                      class="btn btn-sm btn-green"
+                      data-testid="pest-shop"
+                      disabled={ui.shopOpen}
+                      onclick={() => panel.handlers.openShop()}
+                    >
+                      <Icon name="kopdes" />{t('block.pestShop')}
+                    </button>
+                  {/if}
+                </span>
               </div>
               <div class="flex flex-wrap gap-x-3">
                 <span data-testid="pest-beetles">{p.beetles}</span>

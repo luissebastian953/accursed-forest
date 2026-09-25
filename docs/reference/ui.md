@@ -97,6 +97,10 @@ stands between the HUD and the ticker, on the left.
   stays put and the screen turns dense. The screen content zooms with the
   frame's width instead: 1 at the 360px the layout was drawn for, never
   below 0.7 or above 1.1.
+- `phone-in`: the frame slides up from the bottom edge over 320ms when it
+  mounts, and is simply gone when it unmounts. The shop and the news feed
+  both mount it fresh each time they open, so the animation needs no state.
+  Off under `prefers-reduced-motion`.
 - Anchored by its bottom, not its top. It used to hang from `--panel-top`
   with `bottom` set as well, which over-constrains an absolutely positioned
   box: once `min-height` beat the space available, `bottom` was the rule the
@@ -181,6 +185,15 @@ burn options, and the open land and danger zone footers, drawn from
 - `open land footer`: open land's two things to do with it (GDD 8 panel
   11a). The crew is the loud one; the saplings are the quiet one, and
   buying them is folded into the same press.
+- `shopOpen`: the App tells the panel when the shop phone comes and goes,
+  and both buttons that open it (`action-OpenShop`, `pest-shop`) grey out
+  while it is up. Pressing one then did nothing visible but reset the tab.
+- `pest-shop` and the `buyTip` bubble: the pest card's header carries a
+  small Shop button once a Workshop stands, and a treatment greyed for an
+  empty shelf (`shortOf`, the `noInventory` refusal) grows a hover bubble
+  naming the item and the button, in place of the plain title. Every other
+  refusal keeps the title: an empty shelf is the one no with its fix on the
+  same panel.
 - `reforestButton` snippet: the same quiet Reforest button, with its "Or
   plant own forest" eyebrow and its note, on open land under Chop and on a
   cleared block under Plant palms, behind a dashed rule. The cleared block
@@ -292,6 +305,10 @@ text already localized, so a language switch re-derives it too.
   and not a form.
 - `landView()`: open land's two futures (GDD 8 panel 11a), the crew with
   its timber or the saplings.
+- `ITEM_FOR`, `shortOf`: which shelf a command takes from, so a button the
+  sim refused for `noInventory` can say what to buy. Replanting takes
+  seedlings on a palm block and saplings on a forest one, which is the one
+  case the map cannot state and the helper settles by species.
 - `reforestView()`: the saplings, on open land and on a cleared block
   (`forest`) alike. Reforesting buys what the block is short of and plants
   it in one step, so the price shown is the whole price, and the note says

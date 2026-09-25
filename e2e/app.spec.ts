@@ -820,6 +820,12 @@ test.describe('Sawit Simulator', () => {
     await expect(page.locator('[data-testid^="slot-cell-"]')).toHaveCount(144);
     await expect(tid(page, 'action-SetTrap')).toBeDisabled();
     await expect(tid(page, 'action-SetTrap')).toHaveAttribute('title', /buy a kit at the Workshop/);
+    // An empty shelf gets a bubble naming the item and the Shop button beside it.
+    await tid(page, 'action-ApplyTrichoderma').hover();
+    await expect(tid(page, 'tooltip').filter({ hasText: 'Buy Trichoderma' })).toBeVisible();
+    await tid(page, 'pest-shop').click();
+    await expect(tid(page, 'kopdes-shop')).toBeVisible();
+    await page.keyboard.press('Escape');
 
     await tid(page, 'slot-cell-60').click();
     await expect(tid(page, 'slot-detail')).toContainText('Slot 6, 1');
@@ -1170,6 +1176,10 @@ test.describe('Sawit Simulator', () => {
       await expect(tid(page, 'hud-cash')).toContainText('Rp');
       await page.keyboard.press('n');
       await expect(tid(page, 'news-panel')).toBeVisible();
+      // The handset slides up when it opens: measure it once it has landed.
+      await tid(page, 'news-panel').evaluate((el) =>
+        Promise.all(el.getAnimations().map((a) => a.finished)),
+      );
 
       const box = (await tid(page, 'news-panel').boundingBox())!;
 
