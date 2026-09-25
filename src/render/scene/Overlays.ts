@@ -1,6 +1,7 @@
 import { float, min, smoothstep, uniform, uv, vec3 } from 'three/tsl';
 import {
   AdditiveBlending,
+  type BufferGeometry,
   Group,
   Mesh,
   MeshBasicNodeMaterial,
@@ -172,12 +173,12 @@ export class RangeRing {
 
   /** `_material` is the shared palette material; these rings light themselves. */
   constructor(_material?: Material) {
-    // The same flat, self-lit treatment as the selection ring, a shade deeper
-    // and thinner: many of these are on screen at once, showing the estate's edges.
+    // The same flat, self-lit treatment as the selection ring, thinner and a
+    // touch softer: many of these are on screen at once, showing the estate's edges.
     const coreMaterial = new MeshBasicNodeMaterial({ transparent: true, depthWrite: false });
 
-    coreMaterial.colorNode = vec3(0.04, 0.22, 0.92);
-    coreMaterial.opacityNode = float(0.9);
+    coreMaterial.colorNode = vec3(0.3, 1.1, 2.5);
+    coreMaterial.opacityNode = float(0.72);
     this.core = new Mesh(new BoxBuilder().build(), coreMaterial);
 
     const glowMaterial = new MeshBasicNodeMaterial({
@@ -186,8 +187,8 @@ export class RangeRing {
       blending: AdditiveBlending,
     });
 
-    glowMaterial.colorNode = vec3(0.02, 0.11, 0.55);
-    glowMaterial.opacityNode = float(0.26);
+    glowMaterial.colorNode = vec3(0.1, 0.45, 1.2);
+    glowMaterial.opacityNode = float(0.3);
     this.glow = new Mesh(new BoxBuilder().build(), glowMaterial);
     this.glow.position.y = -0.02;
 
@@ -210,9 +211,9 @@ export class RangeRing {
       this.core.geometry.dispose();
       this.glow.geometry.dispose();
       this.core.geometry = buildRangeGeometry(state, world, RANGE_BAR, 0.2);
-      // The glow is the same frame a little wider and a little lower: from
-      // above it reads as a narrow bloom either side of the line.
-      this.glow.geometry = buildRangeGeometry(state, world, RANGE_BAR * 2.4, 0.18);
+      // The glow is the same frame wider and a little lower: from above it
+      // reads as a soft bloom either side of the line.
+      this.glow.geometry = buildRangeGeometry(state, world, RANGE_BAR * 3.2, 0.18);
     }
 
     this.group.visible = true;
@@ -239,7 +240,8 @@ function buildRangeGeometry(state: SimState, world: World, t: number, lift: numb
   const [kx, ky] = world.toXY(kopdes.blockId);
   const b = new BoxBuilder();
   const s = WORLD.blockSide;
-  const h = 0.15;
+  // Flat: a bar with height showed its dark sides, and read as a raised rail.
+  const h = 0.03;
 
   for (let dy = -range; dy <= range; dy++) {
     for (let dx = -range; dx <= range; dx++) {
@@ -272,51 +274,78 @@ function buildRangeGeometry(state: SimState, world: World, t: number, lift: numb
 }
 
 /**
- * The fire-spread preview (GDD 8 panel 22): while hovering a Burn button, the
- * neighbours that could catch are framed in flame orange.
+ * The fire-spread preview (GDD 8 panel 22): while hovering a Burn button, each
+ * neighbour that could catch wears the selection ring's frame and halo, in orange.
  */
 export class HazardRing {
-  readonly mesh: Mesh;
+  readonly group = new Group();
+  private readonly frame: BufferGeometry;
+  private readonly halo: PlaneGeometry;
+  private readonly frameMaterial: MeshBasicNodeMaterial;
+  private readonly haloMaterial: MeshBasicNodeMaterial;
 
-  constructor(material: Material) {
-    this.mesh = new Mesh(new BoxBuilder().build(), material);
-    this.mesh.visible = false;
+  /** `_material` is the shared palette material; the rings light themselves. */
+  constructor(_material?: Material) {
+    this.frameMaterial = new MeshBasicNodeMaterial({ transparent: true, depthWrite: false });
+    this.frameMaterial.colorNode = vec3(2.8, 1.15, 0.22);
+    this.frameMaterial.opacityNode = float(0.85);
+    this.frame = buildSelectionFrame();
+
+    this.haloMaterial = new MeshBasicNodeMaterial({
+      transparent: true,
+      depthWrite: false,
+      blending: AdditiveBlending,
+    });
+    this.haloMaterial.colorNode = vec3(1.35, 0.5, 0.08);
+
+    const p = uv();
+    const edge = min(min(p.x, float(1).sub(p.x)), min(p.y, float(1).sub(p.y)));
+    const band = float(HALO_SPILL / (1 + HALO_SPILL * 2));
+
+    this.haloMaterial.opacityNode = smoothstep(float(0.13), float(0), edge.sub(band).abs()).mul(
+      0.38,
+    );
+
+    const side = WORLD.blockSide * (1 + HALO_SPILL * 2);
+
+    this.halo = new PlaneGeometry(side, side).rotateX(-Math.PI / 2);
+    this.group.visible = false;
   }
 
   show(blocks: readonly BlockId[], state: SimState, world: World): void {
+    this.group.clear();
+
     if (blocks.length === 0) {
-      this.hide();
+      this.group.visible = false;
       return;
     }
 
-    const b = new BoxBuilder();
     const s = WORLD.blockSide;
-    const t = 0.35;
-    const h = 0.25;
 
     for (const id of blocks) {
       const [bx, by] = world.toXY(id);
-      const y = overlayHeight(state, world, id, 0.5);
-      const cx = bx * s + s / 2;
-      const cz = by * s + s / 2;
-      const len = s - 1;
+      const y = overlayHeight(state, world, id, 0.45);
+      const frame = new Mesh(this.frame, this.frameMaterial);
+      const halo = new Mesh(this.halo, this.haloMaterial);
 
-      b.addAABox(cx, y, cz - len / 2 + t / 2, len, h, t, { side: Palette.Fire });
-      b.addAABox(cx, y, cz + len / 2 - t / 2, len, h, t, { side: Palette.Fire });
-      b.addAABox(cx - len / 2 + t / 2, y, cz, t, h, len, { side: Palette.Fire });
-      b.addAABox(cx + len / 2 - t / 2, y, cz, t, h, len, { side: Palette.Fire });
+      frame.position.set(bx * s + s / 2, y, by * s + s / 2);
+      halo.position.set(bx * s + s / 2, y - 0.05, by * s + s / 2);
+      this.group.add(frame, halo);
     }
 
-    this.mesh.geometry.dispose();
-    this.mesh.geometry = b.build();
-    this.mesh.visible = true;
+    this.group.visible = true;
   }
 
   hide(): void {
-    this.mesh.visible = false;
+    this.group.clear();
+    this.group.visible = false;
   }
 
   dispose(): void {
-    this.mesh.geometry.dispose();
+    this.group.clear();
+    this.frame.dispose();
+    this.halo.dispose();
+    this.frameMaterial.dispose();
+    this.haloMaterial.dispose();
   }
 }

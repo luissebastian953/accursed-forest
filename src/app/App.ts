@@ -303,7 +303,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     kopdes.post,
     ring.group,
     rangeRing.group,
-    hazardRing.mesh,
+    hazardRing.group,
     fires.group,
   );
 

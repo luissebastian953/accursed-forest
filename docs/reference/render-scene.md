@@ -148,10 +148,16 @@ they read on any terrain.
 - `RangeRing`: the Kopdes range ring (GDD 8 panel 21) is a thin frame on
   every block the Kopdes can sell for, drawn while the shop is open. It is
   rebuilt when the Kopdes moves or levels up; a few hundred boxes at most.
-- `RangeRing`'s materials: the same flat, self-lit treatment as the
-  selection ring, a shade deeper and a good deal thinner. Many of these are
-  on screen at once, and they are the estate's edges, not the block the
-  player is looking at.
+  The bars are all but flat (`h = 0.03`) and lit the selection ring's bright
+  blue with a wider additive bloom under them: with height they showed
+  their dark palette sides and read as navy rails rather than a glow.
+- `HazardRing`: the fire-spread preview (GDD 8 panel 22) puts the selection
+  ring's own frame and halo on each neighbour that could catch, in flame
+  orange: one frame mesh and one halo plane per block, sharing geometry and
+  unlit materials brighter than white. It was four raised orange bars a block
+  before, which read as four more selection frames rather than as land about
+  to burn; a solid tile was tried next and read as paint. The same shape as
+  the cursor, in the fire's colour, says "these too" without competing.
 
 ## `src/render/scene/Palms.ts`
 
