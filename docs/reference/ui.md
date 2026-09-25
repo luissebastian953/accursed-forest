@@ -181,6 +181,11 @@ burn options, and the open land and danger zone footers, drawn from
 - `open land footer`: open land's two things to do with it (GDD 8 panel
   11a). The crew is the loud one; the saplings are the quiet one, and
   buying them is folded into the same press.
+- `reforestButton` snippet: the same quiet Reforest button, with its "Or
+  plant own forest" eyebrow and its note, on open land under Chop and on a
+  cleared block under Plant palms, behind a dashed rule. The cleared block
+  used to list Reforest as a third green button in the plain action list,
+  where it read as an equal to planting rather than as the other choice.
 - `danger zone footer`: the danger zone (GDD 8 panel 13a) is folded shut by
   default so it never competes with Harvest or Fertilize. Unfolded, it
   shows the red button; that button only asks, and the card it opens names
@@ -286,9 +291,11 @@ text already localized, so a language switch re-derives it too.
   for what it costs beyond the money, so the confirm step reads as a loss
   and not a form.
 - `landView()`: open land's two futures (GDD 8 panel 11a), the crew with
-  its timber or the saplings. Reforesting buys what the block is short of
-  and plants it in one step, so the price shown is the whole price, and
-  the note says why it cannot be paid when it cannot.
+  its timber or the saplings.
+- `reforestView()`: the saplings, on open land and on a cleared block
+  (`forest`) alike. Reforesting buys what the block is short of and plants
+  it in one step, so the price shown is the whole price, and the note says
+  why it cannot be paid when it cannot.
 - `settleView()`: the coordination fee, as the Kopdes offers it (GDD 3.9).
   It appears only with something to settle, and says plainly when the
   district office is too honest to take it, rather than hiding the button.
@@ -440,6 +447,12 @@ and the event chip strip below it, drawn from `hudState.svelte.ts`'s view.
   column it sits in, because the column also holds the event chips, and a
   panel hung below those would open a hand's width from the bar on any day
   the weather is doing something.
+- `transitionend` re-measure: the effect runs the moment the bar is told to
+  slide in, when `getBoundingClientRect` still reports it up off the screen
+  (the transform is part of the rect), and a slide changes no size, so the
+  resize observer never fires. `--panel-top` came out at a few pixels, and
+  the controls popover opened under the disclaimer band. The slide's end
+  publishes the real edge.
 - `certificate button` states: three states, so progress reads without opening
   anything: nothing met is neutral, some met is gold, all met is green and
   waits on the Ministry's year-end check.

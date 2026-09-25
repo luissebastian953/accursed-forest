@@ -5,7 +5,12 @@
   import Tooltip from '../base/Tooltip.svelte';
 
   import AutoHarvestToggle from './AutoHarvestToggle.svelte';
-  import { blockView, type ActionView, type BlockPanel } from './blockPanelState.svelte.ts';
+  import {
+    blockView,
+    type ActionView,
+    type BlockPanel,
+    type ReforestView,
+  } from './blockPanelState.svelte.ts';
   import SlotCell from './SlotCell.svelte';
 
   interface Props {
@@ -94,6 +99,49 @@
     {#if action.rejection && !action.minor}
       <div class="mt-0.5 px-1 text-xs font-bold text-[#b85e12]">{action.rejection}</div>
     {/if}
+  </div>
+{/snippet}
+
+{#snippet reforestButton(reforest: ReforestView)}
+  <div class="flex flex-col gap-2">
+    <div class="label">{t('block.orKeepForest')}</div>
+    <button
+      class="btn btn-lg w-full {reforest.rejection === null
+        ? 'btn-ghost !border-[#8fc98a] !bg-white'
+        : 'btn-ghost'}"
+      disabled={reforest.rejection !== null}
+      title={reforest.rejection ?? ''}
+      data-testid={reforest.testId}
+      onclick={() => panel.act(reforest.command)}
+    >
+      <span class="flex w-full items-center gap-2">
+        <Icon name="shop-sapling" />
+        <span>{reforest.label}</span>
+        <span class="muted min-w-0 flex-1 truncate text-left text-xs">
+          {reforest.detail}
+        </span>
+        {#if reforest.locked}
+          <span class="chip chip-cream flex items-center gap-1 text-xs">
+            <Icon name="lock" />{t('block.locked')}
+          </span>
+        {:else}
+          <span
+            class="num rounded-lg px-1.5 py-0.5 text-xs {reforest.rejection === null
+              ? 'bg-[#e6f4e2] text-[#2f7a2b]'
+              : 'bg-[#ffe6e0] text-[#9e2e20]'}"
+          >
+            {formatRp(reforest.cost ?? 0)}
+          </span>
+        {/if}
+      </span>
+    </button>
+    <div
+      class="px-1 text-xs font-bold leading-snug {reforest.locked || reforest.rejection === null
+        ? 'muted'
+        : 'text-[#9e2e20]'}"
+    >
+      {reforest.note}
+    </div>
   </div>
 {/snippet}
 
@@ -591,49 +639,11 @@
               <div class="px-1 text-xs font-bold text-[#b85e12]">{land.chop.rejection}</div>
             {/if}
 
-            <div class="label mt-1">{t('block.orKeepForest')}</div>
-            <button
-              class="btn btn-lg w-full {land.reforest.rejection === null
-                ? 'btn-ghost !border-[#8fc98a] !bg-white'
-                : 'btn-ghost'}"
-              disabled={land.reforest.rejection !== null}
-              title={land.reforest.rejection ?? ''}
-              data-testid={land.reforest.testId}
-              onclick={() => panel.act(land.reforest.command)}
-            >
-              <span class="flex w-full items-center gap-2">
-                <Icon name="shop-sapling" />
-                <span>{land.reforest.label}</span>
-                <span class="muted min-w-0 flex-1 truncate text-left text-xs">
-                  {land.reforest.detail}
-                </span>
-                {#if land.reforest.locked}
-                  <span class="chip chip-cream flex items-center gap-1 text-xs">
-                    <Icon name="lock" />{t('block.locked')}
-                  </span>
-                {:else}
-                  <span
-                    class="num rounded-lg px-1.5 py-0.5 text-xs {land.reforest.rejection === null
-                      ? 'bg-[#e6f4e2] text-[#2f7a2b]'
-                      : 'bg-[#ffe6e0] text-[#9e2e20]'}"
-                  >
-                    {formatRp(land.reforest.cost ?? 0)}
-                  </span>
-                {/if}
-              </span>
-            </button>
-            <div
-              class="px-1 text-xs font-bold leading-snug {land.reforest.locked ||
-              land.reforest.rejection === null
-                ? 'muted'
-                : 'text-[#9e2e20]'}"
-            >
-              {land.reforest.note}
-            </div>
+            {@render reforestButton(land.reforest)}
           </footer>
         {/if}
 
-        {#if v.major.length > 0 || (v.autoHarvest && !v.kopdes)}
+        {#if v.major.length > 0 || v.forest || (v.autoHarvest && !v.kopdes)}
           {@const auto = v.kopdes ? null : v.autoHarvest}
           {@const picking = auto ? v.major.find((a) => a.testId === HARVEST_ID) : undefined}
           {@const rest = picking ? v.major.filter((a) => a !== picking) : v.major}
@@ -677,6 +687,12 @@
             {/each}
             {#if auto && !picking}
               <AutoHarvestToggle on={auto.on} toggle={() => panel.act(auto.command)} />
+            {/if}
+            {#if v.forest}
+              <!-- A cleared block's other future, under the planting (GDD 8 panel 11a). -->
+              <div class="mt-1 border-t-2 border-dashed border-[#f2e0b0] pt-3">
+                {@render reforestButton(v.forest)}
+              </div>
             {/if}
           </footer>
         {/if}

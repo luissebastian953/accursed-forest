@@ -390,7 +390,9 @@ which buys exactly the saplings the block is short (`saplingShortfall()`)
 and plants them in the same press, so the price shown is the whole price.
 It reads `locked` when there is no Kopdes in range to buy from (a different
 kind of no from being short of cash, which instead reads as
-`reforestPoor`).
+`reforestPoor`). A cleared block gets the same quiet button under Plant
+palms, behind a dashed rule and the eyebrow "Or plant own forest", so the
+other future is offered there too without looking like a second planting.
 
 ## GDD 8 panel 12: the Kopdes shop
 

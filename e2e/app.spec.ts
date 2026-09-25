@@ -929,7 +929,7 @@ test.describe('Sawit Simulator', () => {
     await selectWildNeighbour(page, /Grassfield|Dry scrub/);
     // Open land offers both futures side by side, the crew and the saplings.
     await expect(tid(page, 'block-panel')).toContainText('Clear this block');
-    await expect(tid(page, 'block-panel')).toContainText('Or keep it forest');
+    await expect(tid(page, 'block-panel')).toContainText('Or plant own forest');
     await expect(tid(page, 'action-ChopBlock')).toBeVisible();
 
     // Suspended, with the meter just under the line that summons a letter

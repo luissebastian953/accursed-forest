@@ -99,10 +99,14 @@
 
     observer.observe(element);
     window.addEventListener('resize', publish);
+    // The bar slides in over 420ms: the rect read at the start is up off the
+    // screen, so it is read again once the slide has landed.
+    bar?.addEventListener('transitionend', publish);
 
     return () => {
       observer.disconnect();
       window.removeEventListener('resize', publish);
+      bar?.removeEventListener('transitionend', publish);
     };
   });
 

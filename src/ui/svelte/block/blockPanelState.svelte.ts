@@ -233,8 +233,10 @@ export interface BlockView {
   land: {
     chop: ActionView;
     chopNote: string;
-    reforest: ActionView & { detail: string; locked: boolean; note: string };
+    reforest: ReforestView;
   } | null;
+  /** A cleared block's other future, under the planting: the saplings (GDD 8 panel 11a). */
+  forest: ReforestView | null;
   /**
    * The envelope: what it would cost to make a case and a suspension go away,
    * and why the button is dead when it is.
@@ -292,11 +294,14 @@ function dangerView(sim: Sim, id: BlockId): BlockView['danger'] {
   };
 }
 
+/** The Reforest button as both footers draw it: the whole price, and why it cannot be paid. */
+export type ReforestView = ActionView & { detail: string; locked: boolean; note: string };
+
 /**
- * Open land's two futures (GDD 8 panel 11a): the crew with its timber, or
- * the saplings, reforested in one step at the whole price.
+ * The saplings, reforested in one step at the whole price (GDD 8 panel 11a),
+ * on open land and on a cleared block alike.
  */
-function landView(sim: Sim, id: BlockId, chop: ActionView): BlockView['land'] {
+function reforestView(sim: Sim, id: BlockId): ReforestView {
   const { state, world } = sim;
   const block = readBlock(state, world, id);
   const ctx = { state, world, events: new EventSink() };
@@ -310,27 +315,34 @@ function landView(sim: Sim, id: BlockId, chop: ActionView): BlockView['land'] {
   const poor = !locked && state.economy.cash < cost;
 
   return {
+    label: t('block.reforest'),
+    command,
+    testId: 'action-ReforestBlock',
+    rejection: sim.validate(command)?.reason ?? null,
+    minor: false,
+    cost,
+    icon: 'shop-sapling',
+    detail: t('block.saplings', { n: needed }),
+    locked,
+    note: locked
+      ? t('block.reforestLocked', { n: kopdesRange(state.kopdes?.level ?? 1) })
+      : poor
+        ? t('block.reforestPoor', {
+            cost: formatRp(cost),
+            cash: formatRp(Math.max(0, state.economy.cash)),
+          })
+        : t('block.reforestNote'),
+  };
+}
+
+/** Open land's two futures (GDD 8 panel 11a): the crew with its timber, or the saplings. */
+function landView(sim: Sim, id: BlockId, chop: ActionView): BlockView['land'] {
+  const block = readBlock(sim.state, sim.world, id);
+
+  return {
     chop,
     chopNote: t('block.chopNote', { days: BIOMES[block.biome].chopDays }),
-    reforest: {
-      label: t('block.reforest'),
-      command,
-      testId: 'action-ReforestBlock',
-      rejection: sim.validate(command)?.reason ?? null,
-      minor: false,
-      cost,
-      icon: 'shop-sapling',
-      detail: t('block.saplings', { n: needed }),
-      locked,
-      note: locked
-        ? t('block.reforestLocked', { n: kopdesRange(state.kopdes?.level ?? 1) })
-        : poor
-          ? t('block.reforestPoor', {
-              cost: formatRp(cost),
-              cash: formatRp(Math.max(0, state.economy.cash)),
-            })
-          : t('block.reforestNote'),
-    },
+    reforest: reforestView(sim, id),
   };
 }
 
@@ -810,18 +822,6 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
             ),
           );
         }
-
-        actions.push(
-          action(
-            t('block.reforest'),
-            { type: 'ReforestBlock', block: id },
-            'action-ReforestBlock',
-            {
-              icon: 'shop-sapling',
-              badge: t('block.saplings', { n: needed }),
-            },
-          ),
-        );
 
         if (!state.kopdes) {
           actions.push(
@@ -1399,6 +1399,8 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     minor: actions.filter((a) => a.minor),
     major: actions.filter((a) => !a.minor),
     land,
+    forest:
+      block.phase === 'cleared' && block.owned && !block.burning ? reforestView(sim, id) : null,
     settle: settleView(state, block.phase),
     danger: block.burning ? null : dangerView(sim, id),
     busy:
