@@ -11,7 +11,15 @@ empty the game builds and runs, and ships no third-party script.
 ### Notes
 
 - `VITE_GA_ID`: the Google Analytics 4 measurement id, in the form
-  `G-XXXXXXXXXX`. Left empty, the pages load no analytics script at all.
+  `G-XXXXXXXXXX`. Left empty, the pages load no analytics script at all. Each
+  page's inline snippet installs the `dataLayer` queue and the `gtag` stub
+  synchronously and fetches the library at idle, so the library never sits in
+  the critical path and an event fired before it lands is queued rather than
+  lost. The stub inside the idle callback was the bug: `reportVitals()` runs at
+  the top of `src/main.ts` and reports `TTFB` immediately and `FCP` at first
+  paint, both before a heavy boot goes idle, and `window.gtag?.()` drops a
+  metric silently when the stub is missing. Anything that fires early, the
+  vitals and `change_language`, depends on the queue being there first.
 - `VITE_SITE_URL`: the site's public origin, such as `https://sawitsimulator.com`.
   A production build that should be indexed needs it: it drives the canonical and
   hreflang tags, the absolute Open Graph and JSON-LD URLs, `sitemap.xml`, and the

@@ -741,23 +741,28 @@
       }
     </style>
     <script>
-      // Google Analytics 4, only when VITE_GA_ID is set at build time, and
-      // only once the page is idle so it never sits in the critical path.
+      // Google Analytics 4, only when VITE_GA_ID is set at build time. The queue
+      // is synchronous and the library idle, so an early event is not dropped.
       (function () {
         var id = '%VITE_GA_ID%';
+
         if (!id || id.charAt(0) === '%') return;
+        window.dataLayer = window.dataLayer || [];
+
+        window.gtag = function () {
+          window.dataLayer.push(arguments);
+        };
+
+        window.gtag('js', new Date());
+        window.gtag('config', id, { page_language: 'en' });
+
         var go = function () {
           var s = document.createElement('script');
           s.async = true;
           s.src = 'https://www.googletagmanager.com/gtag/js?id=' + id;
           document.head.appendChild(s);
-          window.dataLayer = window.dataLayer || [];
-          window.gtag = function () {
-            window.dataLayer.push(arguments);
-          };
-          window.gtag('js', new Date());
-          window.gtag('config', id, { page_language: 'en' });
         };
+
         if ('requestIdleCallback' in window) requestIdleCallback(go, { timeout: 4000 });
         else setTimeout(go, 2000);
       })();

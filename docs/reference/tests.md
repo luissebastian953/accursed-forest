@@ -361,6 +361,21 @@ elevation and moisture, the map is a mix rather than all one biome, rivers reach
 the map edge, and riverbank is exactly the strip beside the water. The estate
 code round-trips to the same map, which is what makes a code worth sharing.
 
+## `tests/tools/analytics.test.ts`
+
+The shape of the Google Analytics snippet in all three pages, read from the HTML
+rather than trusted: the queue and the `gtag` stub are installed synchronously,
+the idle callback fetches the library and touches nothing else, and an empty
+measurement id still ships no script.
+
+### Notes
+
+- The stub used to sit inside the idle callback, which dropped every event fired
+  before the library landed. That is `TTFB` and usually `FCP`, both reported from
+  the top of `src/main.ts` while the game is still booting. The failure was
+  silent, because `window.gtag?.()` has nothing to complain to, so the shape is
+  pinned here instead of left to review.
+
 ## `tests/tools/comments.test.ts`
 
 The two-line comment rule from CLAUDE.md, enforced over every tracked file rather

@@ -37,5 +37,9 @@
     }
   },
   "include": ["src", "tests"],
-  "exclude": ["tests/tools/comments.test.ts", "tests/tools/newsKeys.test.ts"]
+  "exclude": [
+    "tests/tools/analytics.test.ts",
+    "tests/tools/comments.test.ts",
+    "tests/tools/newsKeys.test.ts"
+  ]
 }
