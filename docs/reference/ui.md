@@ -28,6 +28,15 @@ Formatting helpers shared by the panels. Sim time is an integer tick (GDD 10.2).
 The cartoon icon set (design kit): flat SVGs served from `public/icons`.
 `Icon.svelte` renders one; `iconUrl` is for CSS backgrounds.
 
+### Notes
+
+- A file goes in with a `viewBox` and no `width` or `height`, so the class on
+  the `<img>` is what sizes it, and with nothing but the drawing inside: an
+  editor's metadata block is bytes every player downloads. A glyph that also
+  goes on a pin is drawn around the origin and copied into `public/hud` at the
+  64 box the pin composes with, which is why `palm-fruit-bunch` has a twin
+  there.
+
 ## `src/ui/newsLane.ts`
 
 The news feed's three lanes (GDD 8 panels 3, 8, 13): a colour and a message
@@ -50,6 +59,12 @@ colours below mirror it so the HUD and the world stay in step (GDD 6.1).
   the layout path entirely: no observer, no JavaScript, and nothing to get
   out of step on a resize. `--panel-top`, which the controls-help popover
   hangs from, is measured off the bar's own rect and so follows for free.
+- `ripple`: the one alert animation, worn by an urgent button, the corner
+  badge and a sick slot. It spreads a filled `box-shadow` rather than scaling
+  the element, because a scale grows a 300px button sideways by ten times what
+  it grows it vertically, which read as a ring stretched horizontally rather
+  than as a pulse. Each user sets `--ripple-hue` and `--ripple-range`, so a
+  slot in a grid of slots ripples 6px where a button ripples 16.
 - `.epilogue-glow`: the forest endings' gold halo (GDD 8 panel 15). It is CSS
   because `render/Glow.ts`'s bloom is a pass over the 3D scene and cannot
   reach a DOM panel. The keyframes restate the card's own `0 4px 0` lip in
@@ -97,10 +112,14 @@ stands between the HUD and the ticker, on the left.
   stays put and the screen turns dense. The screen content zooms with the
   frame's width instead: 1 at the 360px the layout was drawn for, never
   below 0.7 or above 1.1.
-- `phone-in`: the frame slides up from the bottom edge over 320ms when it
-  mounts, and is simply gone when it unmounts. The shop and the news feed
-  both mount it fresh each time they open, so the animation needs no state.
-  Off under `prefers-reduced-motion`.
+- `lift`: the frame comes up from the bottom edge over 320ms and goes back
+  down past it over 240ms, a little quicker on the way out and accelerating
+  rather than easing off. It is a Svelte transition rather than a CSS
+  animation because only a transition delays the unmount long enough to be
+  seen: the shop and the news feed both hold it in an `{#if}`, so closing one
+  would otherwise take the frame off the screen between frames. It asks
+  `prefers-reduced-motion` itself, per run, and takes no time at all if the
+  answer is yes.
 - Anchored by its bottom, not its top. It used to hang from `--panel-top`
   with `bottom` set as well, which over-constrains an absolutely positioned
   box: once `min-height` beat the space available, `bottom` was the rule the
@@ -533,7 +552,7 @@ The pin layer (design kit 6a): a marker over the hectare a thing is
 happening on. The Kopdes carries one so the workshop is findable from
 anywhere; a block carries one when Ganoderma or the beetles have got into
 it, so an infestation is visible without opening every block, or when a
-slope has given way under it.
+slope has given way under it, or when its fruit is ready to pick.
 
 The App projects the world positions each frame and hands them over; the
 markers themselves know nothing about the camera.
@@ -550,6 +569,11 @@ markers themselves know nothing about the camera.
   screen centre lands on it and still gets the panel.
 - `pinned` and `eyebrow` on `HudMarker` are what carry that; every other kind
   keeps its card as a hover pill.
+- `harvest` is the one kind that reports good news, so it is never an alert and
+  wears the green ring rather than a warning colour. Only the heaviest
+  `MAX_HARVEST_PINS` blocks fly it: a ripe estate is every block at once, and a
+  pin on each is a wall. It leaves the moment the fruit is picked, because the
+  block keeps its ripe clock but has nothing left on the tree.
 
 ## `src/ui/svelte/hud/hudState.svelte.ts`
 

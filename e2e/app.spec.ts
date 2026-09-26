@@ -244,10 +244,18 @@ test.describe('Sawit Simulator', () => {
     await tid(page, 'speed-0').click();
     await expect(tid(page, 'action-HarvestBlock')).toBeEnabled();
 
+    // A ripe block flies the fruit pin, and drops it once it is picked.
+    const ripePin = page.locator('[data-testid="hud-marker"][data-kind="harvest"]');
+
+    await expect(ripePin).toBeVisible();
+    await expect(ripePin).toContainText(/ready to harvest/i);
+    await expect(ripePin.locator('img').first()).toHaveAttribute('src', /hud-pin-harvest\.svg/);
+
     const cashBeforeHarvest = await tid(page, 'hud-cash').textContent();
 
     await tid(page, 'action-HarvestBlock').click();
     await expect(tid(page, 'action-HarvestBlock')).toBeDisabled();
+    await expect(ripePin).toHaveCount(0);
     // The rotation is a balance number; the unit tests pin it, this one only
     // asks that the panel says when the next round is.
     await expect(tid(page, 'block-panel')).toContainText(/Next round in \d+ days/);
@@ -1016,17 +1024,18 @@ test.describe('Sawit Simulator', () => {
 
     expect(cashBefore - cashAfter).toBeGreaterThan(10_000_000);
     await unlockTurbo(page);
-
-    // Waited for from before the clock is let go: at 50x the notice has been
-    // and gone by the time the phase can be read.
-    const bare = page
-      .getByTestId('toast')
-      .filter({ hasText: 'bare land' })
-      .waitFor({ state: 'visible', timeout: 20_000 * SLOW });
-
     await tid(page, 'speed-50').click();
     await expect(tid(page, 'block-phase')).toHaveText('Cleared', { timeout: 15_000 * SLOW });
-    await bare;
+
+    // What the crew left, not what it said about it: at 50x the strip is busy
+    // and an unread notice is dropped rather than queued (`toastPolicy.ts`).
+    expect(
+      await page.evaluate(() => {
+        const { state } = (window as unknown as DebugWindow).__sawit.sim();
+
+        return [...state.palms.keys()].length;
+      }),
+    ).toBe(0);
     expect(errors).toEqual([]);
   });
 

@@ -27,6 +27,7 @@ export type IconName =
   | 'lock'
   | 'mill-strike'
   | 'news'
+  | 'palm-fruit-bunch'
   | 'pause'
   | 'play'
   | 'police-warning'

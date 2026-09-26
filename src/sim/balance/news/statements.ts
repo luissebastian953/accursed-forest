@@ -375,7 +375,7 @@ export const STATEMENTS: Record<string, NewsTemplate> = {
   //     'Asked when the next song is coming, Mulyonows answers in Japanese',
   //   ],
   //   bodies: [
-  //     '"Yo shiranai, naze kiku ndesu ka, kono watashi." I do not know. Why ask me? The entire national press corps is now in Japan, and nobody is looking at your estate.',
+  //     '"Yo shiranai, naze kiku desu ka, kono watashi ni?." I do not know. Why ask me? The entire national press corps is now in Japan, and nobody is looking at your estate.',
   //   ],
   //   effects: ['The authorities are distracted'],
   // },

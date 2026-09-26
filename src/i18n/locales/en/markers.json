@@ -4,6 +4,8 @@
   "firstStepEyebrow": "First step",
   "firstStep": "Place Workshop (Kopdes) here!",
   "firstStepDetail": "Click this cleared block to build it.",
+  "harvest": "Ready to harvest",
+  "harvestDetail": "{palms} palms, {fruit} on tree",
   "ganoderma": "Ganoderma",
   "ganodermaDetail": "{sick} of {total} palms, spreading",
   "ganodermaHeld": "{sick} of {total} palms, treated",

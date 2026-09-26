@@ -71,10 +71,11 @@ import {
   CERTIFICATE_CONDITIONS,
   type CertificateCondition,
 } from '@sim/systems/endings';
+import { bearingCount, harvestableKg, isRipe } from '@sim/systems/harvest';
 import { workedBlocks } from '@sim/systems/mobs';
 import { ganodermaCounts } from '@sim/systems/pest';
 import type { BlockId, Command } from '@sim/types';
-import { formatKg, formatRp } from '@ui/format';
+import { formatKg, formatRp, formatTonnes } from '@ui/format';
 import { AuthorityCards, type CardKind } from '@ui/svelte/authority/authorityCardsState.svelte.ts';
 import { BlockPanel } from '@ui/svelte/block/blockPanelState.svelte.ts';
 import {
@@ -1647,6 +1648,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   const BEETLES_WORTH_A_PIN = 12;
   /** An estate in trouble everywhere is not helped by a screen full of pins. */
   const MAX_PEST_PINS = 10;
+  /** Nor is a ripe estate: the heaviest few blocks stand for the rest. */
+  const MAX_HARVEST_PINS = 6;
   const pinPoint = new Vector3();
   const hudMarkerItems: HudMarker[] = [];
 
@@ -1747,10 +1750,18 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       );
     }
 
+    const ripe: { id: BlockId; kg: number; palms: number }[] = [];
+
     for (const [id, palms] of state.palms) {
       const block = state.blocks.get(id);
 
       if (!block?.owned || block.species !== 'palm') continue;
+
+      if (isRipe(block, state.tick)) {
+        const kg = harvestableKg(palms, 'palm', state.tick);
+
+        if (kg > 0) ripe.push({ id, kg, palms: bearingCount(palms, 'palm', state.tick) });
+      }
 
       const counts = ganodermaCounts(palms);
       const sick = counts.symptomatic + counts.dead;
@@ -1784,10 +1795,26 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       }
     }
 
+    // The heaviest blocks first: a pin on every ripe one buries the estate.
+    ripe.sort((a, b) => b.kg - a.kg);
+
+    for (const block of ripe.slice(0, MAX_HARVEST_PINS)) {
+      pin(
+        block.id,
+        'harvest',
+        t('markers.harvest'),
+        t('markers.harvestDetail', { palms: block.palms, fruit: formatTonnes(block.kg) }),
+        false,
+      );
+    }
+
     // The Kopdes always keeps its pin, and so does a landslide: it is one
     // block's whole crop. The pest ones give way to the worst of them.
     const keep = (m: HudMarker) =>
-      m.kind === 'workshop' || m.kind === 'firstStep' || m.kind === 'landslide';
+      m.kind === 'workshop' ||
+      m.kind === 'firstStep' ||
+      m.kind === 'landslide' ||
+      m.kind === 'harvest';
     const kept = hudMarkerItems.filter(keep);
     const pests = hudMarkerItems
       .filter((m) => !keep(m))

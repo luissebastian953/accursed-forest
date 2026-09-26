@@ -4,12 +4,14 @@ import type { BlockId } from '@sim/types';
 
 import HudMarkersView from './HudMarkers.svelte';
 
-export type HudMarkerKind = 'workshop' | 'firstStep' | 'ganoderma' | 'beetle' | 'landslide';
+export type HudMarkerKind =
+  'workshop' | 'firstStep' | 'harvest' | 'ganoderma' | 'beetle' | 'landslide';
 
 /** The pin art and the colour its label pill borrows, by kind. */
 export const MARKER_LOOK: Record<HudMarkerKind, { pin: string; ring: string }> = {
   workshop: { pin: `${import.meta.env.BASE_URL}hud/hud-pin-workshop.svg`, ring: '#7a6440' },
   firstStep: { pin: `${import.meta.env.BASE_URL}hud/hud-pin-workshop.svg`, ring: '#c94a30' },
+  harvest: { pin: `${import.meta.env.BASE_URL}hud/hud-pin-harvest.svg`, ring: '#2f7a2b' },
   ganoderma: { pin: `${import.meta.env.BASE_URL}hud/hud-pin-ganoderma.svg`, ring: '#6b3a8a' },
   beetle: { pin: `${import.meta.env.BASE_URL}hud/hud-pin-beetle.svg`, ring: '#9e2e20' },
   landslide: { pin: `${import.meta.env.BASE_URL}hud/hud-pin-landslide.svg`, ring: '#9c4a24' },
