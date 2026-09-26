@@ -120,6 +120,12 @@ stands between the HUD and the ticker, on the left.
   would otherwise take the frame off the screen between frames. It asks
   `prefers-reduced-motion` itself, per run, and takes no time at all if the
   answer is yes.
+- `lift` is `|global` on both directions, which is the whole reason it plays.
+  A Svelte transition is local by default, and local means it runs only when
+  its own block is added or removed. This one lives on the frame's root inside
+  `Phone`, while the `{#if}` that adds and removes it lives in the shop and
+  the news feed, so without the modifier neither direction ever ran: the
+  handset appeared and vanished between two frames.
 - Anchored by its bottom, not its top. It used to hang from `--panel-top`
   with `bottom` set as well, which over-constrains an absolutely positioned
   box: once `min-height` beat the space available, `bottom` was the rule the
@@ -222,12 +228,22 @@ burn options, and the open land and danger zone footers, drawn from
   default so it never competes with Harvest or Fertilize. Unfolded, it
   shows the red button; that button only asks, and the card it opens names
   what goes.
-- `clearing-card`: a block under the crew's axes reports the chop as a card
-  (GDD 8 panel 24a): how far along, the crew's size and the days it takes.
+- `clearing-card`: a block under the crew reports the job as a card
+  (GDD 8 panel 22b): how far along, the crew's size and the days it takes.
   It sits between the header and the greyed, inert rest of the panel rather
   than inside it, because it is the one live thing on the block and the
-  walkthrough points at it. The footer under the inert part says the chop is
-  in progress where the open-land buttons would otherwise be.
+  walkthrough points at it. `data-kind` says which job: a `chop` reads its
+  progress off `clearProgress`, a `dig` off what is left of `excavateUntil`,
+  and only the chop gets the footer line, because only open land has buttons
+  underneath for it to stand in for. A dig had no card at all before: the
+  panel greyed itself and said nothing about how long the machine would be
+  there.
+- The `hint` (!): a glyph inside a land button that carries the explanation
+  the price cannot. The bubble hangs off the button rather than off the glyph,
+  because the panel clips what leaves it and a bubble anchored to a glyph
+  halfway across the panel opens straight through the left edge. The button's
+  own click handler ignores presses that land on the glyph, so reading what
+  a cover crop does never buys one.
 - `grave-warning`: the haunting's label (GDD 3.11) sits above everything the
   block offers, in solid red rather than the pest card's pink, because it is
   the one thing on the panel that is not about this season: it is what the
@@ -359,6 +375,12 @@ text already localized, so a language switch re-derives it too.
 - `bearing.full`: the fruit tile gains a MAX chip once the block is at
   `harvestCapKg()`. Standing bunches stop accruing there and start rotting, so
   the chip is a prompt to pick rather than a reward for waiting.
+- `ActionView.hint`: what the (!) on a land button explains. Only the cover
+  crop carries one today, because it is the one purchase whose worth is a
+  rule rather than a number on the button: it does nothing for ninety days,
+  then halves the slide chance for three years. The numbers in the copy are
+  interpolated from `COVER_CROP` and `LANDSLIDE`, so the bubble cannot drift
+  from the tables the way a written-out sentence would.
 - `coverCombo()`: an established cover crop under a reforesting block is
   the strongest thing a player can do to a slope (GDD 3.6.2), worth about
   six times bare planted ground before the growing forest starts pulling

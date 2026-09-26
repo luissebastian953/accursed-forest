@@ -586,6 +586,12 @@ working, filling as the chop, the burn or the excavation dig advances. The
 App projects each worked block's screen position every frame and hands the
 list over; the marker itself never touches the camera.
 
+The block panel says the same thing in words. Its work card
+(`data-testid="clearing-card"`, `data-kind` of `chop` or `dig`) sits between
+the header and the greyed rest of the panel while a crew has the block: the
+job's name, a bar, the percentage, and what it will take. A chop reads from
+`clearProgress` and a dig from what is left of `excavateUntil`.
+
 ## GDD 8 panel 24a: the first-time walkthrough
 
 `src/ui/svelte/tutorial/`: seventeen steps that take a first estate from the

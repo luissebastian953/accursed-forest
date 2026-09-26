@@ -23,6 +23,7 @@ export type IconName =
   | 'ganoderma-mushroom'
   | 'harvest-basket'
   | 'haze'
+  | 'info-circle'
   | 'kopdes'
   | 'lock'
   | 'mill-strike'

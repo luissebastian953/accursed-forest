@@ -927,6 +927,28 @@ test.describe('Sawit Simulator', () => {
     await expect(scar).toContainText('Landslide');
     await expect(scar).toContainText('144 palms lost');
 
+    // A slope's cover crop carries an (!) that explains what the money buys.
+    await page.evaluate(() => {
+      const hook = (window as unknown as DebugWindow).__sawit;
+      const { state } = hook.sim();
+      const slope = [...state.blocks.values()].find(
+        (b) => b.owned && b.slope && b.phase !== 'kopdes' && b.landslideAt < 0,
+      )!;
+
+      slope.phase = 'cleared';
+      hook.redrawTerrain([slope.id]);
+      hook.select(slope.id);
+    });
+    await expect(tid(page, 'action-CoverCropBlock')).toBeVisible();
+
+    const hint = tid(page, 'action-CoverCropBlock-hint');
+
+    await expect(hint).toBeVisible();
+    await hint.hover();
+    await expect(
+      tid(page, 'tooltip').filter({ hasText: /chance of sliding by \d+%/ }),
+    ).toBeVisible();
+
     expect(errors).toEqual([]);
   });
 
@@ -1240,6 +1262,11 @@ test.describe('Sawit Simulator', () => {
     await expect(tid(page, 'action-ExcavateBlock')).toBeEnabled();
     await tid(page, 'action-ExcavateBlock').click();
     await expect(tid(page, 'work-marker').first()).toHaveAttribute('data-kind', 'dig');
+
+    // The dig reports itself the way a chop does: a card with a bar on it.
+    await expect(tid(page, 'clearing-card')).toHaveAttribute('data-kind', 'dig');
+    await expect(tid(page, 'clearing-card')).toContainText(/Digging the slide out/i);
+    await expect(tid(page, 'clearing-pct')).toContainText('%');
 
     // Dug out: cleared land, and the red label that says what it was.
     await expect(tid(page, 'speed-50')).toBeEnabled();

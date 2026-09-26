@@ -2,7 +2,7 @@ import { mount, unmount, type Component } from 'svelte';
 
 import { clamp01 } from '@shared/math';
 import { BIOMES } from '@sim/balance/biomes';
-import { COVER_CROP } from '@sim/balance/events';
+import { COVER_CROP, EXCAVATION, LANDSLIDE } from '@sim/balance/events';
 import { FIRE } from '@sim/balance/fire';
 import {
   FERTILIZER_YIELD_BONUS,
@@ -90,6 +90,8 @@ export interface ActionView {
   badge?: string;
   /** The block has this problem right now, so the button asks to be pressed. */
   urgent?: boolean;
+  /** What the (!) beside the button explains: how the thing it buys actually works. */
+  hint?: string;
   /** Greyed for an empty shelf: the bubble names the item and points at the shop. */
   shortOf?: { icon: IconName; label: string };
 }
@@ -254,8 +256,8 @@ export interface BlockView {
    * was, and, once planted, how far the haunting has got.
    */
   haunt: { warning: string; stage: 0 | 1 | 2 | 3; line: string | null; hint: string | null } | null;
-  /** The chop under way, as a card: how far along, and what it will take (GDD 8 panel 24a). */
-  clearing: { pct: number; crew: number; days: number } | null;
+  /** The job under way, as a card: how far along, and what it will take (GDD 8 panel 24a). */
+  clearing: { kind: 'chop' | 'dig'; pct: number; crew: number; days: number } | null;
   /**
    * The one thing on a planted block that cannot be taken back (GDD 8 panel
    * 13a): felling the lot, priced and named to read as a loss, not a form.
@@ -788,7 +790,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     label: string,
     command: Command,
     testId: string,
-    extra: Partial<Pick<ActionView, 'cost' | 'icon' | 'badge' | 'minor' | 'urgent'>> = {},
+    extra: Partial<Pick<ActionView, 'cost' | 'icon' | 'badge' | 'minor' | 'urgent' | 'hint'>> = {},
   ): ActionView => {
     const refused = sim.validate(command);
     let item = refused?.code === 'noInventory' && state.kopdes ? ITEM_FOR[command.type] : undefined;
@@ -805,6 +807,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
       ...(extra.icon !== undefined ? { icon: extra.icon } : {}),
       ...(extra.badge !== undefined ? { badge: extra.badge } : {}),
       ...(extra.urgent ? { urgent: true } : {}),
+      ...(extra.hint !== undefined ? { hint: extra.hint } : {}),
       ...(item ? { shortOf: { icon: STOCK_ICON[item], label: t(`shop.item_${item}`) } } : {}),
     };
   };
@@ -943,7 +946,16 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
             block.coverCropUntil > state.tick ? t('block.coverCropDone') : t('block.coverCrop'),
             { type: 'CoverCropBlock', block: id },
             'action-CoverCropBlock',
-            { cost: COVER_CROP.cost, icon: 'forest-cover', minor: true },
+            {
+              cost: COVER_CROP.cost,
+              icon: 'forest-cover',
+              minor: true,
+              hint: t('block.coverCropHint', {
+                days: COVER_CROP.establishDays,
+                pct: Math.round((1 - LANDSLIDE.coverCropFactor) * 100),
+                years: Math.round(COVER_CROP.days / GROWTH.daysPerYear),
+              }),
+            },
           ),
         );
       }
@@ -1471,11 +1483,21 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     clearing:
       block.phase === 'clearing' && !block.burning
         ? {
+            kind: 'chop',
             pct: Math.round(block.clearProgress * 100),
             crew: WORKER_JOBS.crewSize,
             days: spec.chopDays,
           }
-        : null,
+        : block.excavateUntil > state.tick
+          ? {
+              kind: 'dig',
+              pct: Math.round(
+                clamp01(1 - (block.excavateUntil - state.tick) / EXCAVATION.days) * 100,
+              ),
+              crew: EXCAVATION.crewSize,
+              days: EXCAVATION.days,
+            }
+          : null,
     autoHarvest:
       kopdes &&
       (block.phase === 'kopdes' || (block.phase === 'planted' && block.species === 'palm'))

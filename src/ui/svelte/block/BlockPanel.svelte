@@ -50,23 +50,51 @@
   });
 </script>
 
-{#snippet landButton(action: ActionView)}
-  <div>
-    <button
-      class="btn w-full justify-between !border-2 !border-[#b9d3f5] !bg-none !bg-[#eaf2fd] !text-[var(--ink)] !shadow-[0_3px_0_#b9d3f5] disabled:!border-[#e2d2a8] disabled:!bg-[var(--pill-muted)] disabled:!text-[var(--ink-3)] disabled:!shadow-[0_3px_0_#e2d2a8]"
-      disabled={action.rejection !== null}
-      title={action.rejection ?? ''}
-      data-testid={action.testId}
-      onclick={() => panel.act(action.command)}
-    >
-      <span class="flex items-center gap-2">
-        {#if action.icon}<Icon name={action.icon} />{/if}{action.label}
-      </span>
+{#snippet landPress(action: ActionView)}
+  <button
+    class="btn w-full justify-between !border-2 !border-[#b9d3f5] !bg-none !bg-[#eaf2fd] !text-[var(--ink)] !shadow-[0_3px_0_#b9d3f5] disabled:!border-[#e2d2a8] disabled:!bg-[var(--pill-muted)] disabled:!text-[var(--ink-3)] disabled:!shadow-[0_3px_0_#e2d2a8]"
+    disabled={action.rejection !== null}
+    title={action.rejection ?? ''}
+    data-testid={action.testId}
+    onclick={(event) => {
+      // The (!) rides inside the button, so reading it must not buy anything.
+      if ((event.target as HTMLElement).closest('.hint')) return;
+      panel.act(action.command);
+    }}
+  >
+    <span class="flex min-w-0 items-center gap-2">
+      {#if action.icon}<Icon name={action.icon} />{/if}{action.label}
+    </span>
+    <span class="flex shrink-0 items-center gap-1.5">
       {#if action.cost !== undefined}
         <span class="num rounded-lg bg-white/70 px-1.5 py-0.5 text-xs">{formatRp(action.cost)}</span
         >
       {/if}
-    </button>
+      {#if action.hint}
+        <span class="hint" data-testid="{action.testId}-hint"><Icon name="info-circle" /></span>
+      {/if}
+    </span>
+  </button>
+{/snippet}
+
+{#snippet landButton(action: ActionView)}
+  <div>
+    {#if action.hint}
+      <!-- Anchored to the button's left edge: a bubble hung off the (!) itself
+           opens past the panel, which clips it. -->
+      <Tooltip
+        text={action.hint}
+        placement="top"
+        align="start"
+        tone="deep"
+        withArrow
+        class="w-full"
+      >
+        {@render landPress(action)}
+      </Tooltip>
+    {:else}
+      {@render landPress(action)}
+    {/if}
     {#if action.rejection}
       <div class="mt-0.5 px-1 text-xs font-bold text-[#b85e12]">{action.rejection}</div>
     {/if}
@@ -211,11 +239,13 @@
 
       {#if v.clearing}
         {@const c = v.clearing}
-        <!-- The chop itself, above the greyed rest: it is the one live thing on the block. -->
-        <div class="clearing mx-4 mt-4" data-testid="clearing-card">
+        {@const dig = c.kind === 'dig'}
+        <!-- The job itself, above the greyed rest: it is the one live thing on the block. -->
+        <div class="clearing mx-4 mt-4" data-testid="clearing-card" data-kind={c.kind}>
           <div class="flex items-center justify-between gap-2">
             <span class="flex items-center gap-1.5 font-extrabold">
-              <Icon name="axe-chop" />{t('block.clearingHead')}
+              <Icon name={dig ? 'shop-excavator' : 'axe-chop'} />
+              {dig ? t('block.diggingHead') : t('block.clearingHead')}
             </span>
             <span class="num font-extrabold" data-testid="clearing-pct">{c.pct}%</span>
           </div>
@@ -223,7 +253,9 @@
             <i style="width: {c.pct}%"></i>
           </span>
           <div class="muted mt-1.5 text-xs">
-            {t('block.clearingMeta', { crew: c.crew, days: c.days })}
+            {dig
+              ? t('block.diggingMeta', { crew: c.crew, days: c.days })
+              : t('block.clearingMeta', { crew: c.crew, days: c.days })}
           </div>
         </div>
       {/if}
@@ -655,7 +687,7 @@
           {/if}
         </div>
 
-        {#if v.clearing}
+        {#if v.clearing?.kind === 'chop'}
           <footer class="border-t-2 border-dashed border-[#f2e0b0] p-4">
             <button class="btn btn-ghost btn-lg w-full justify-start" disabled>
               {t('block.chopInProgress')}
@@ -951,6 +983,18 @@
     background: #fffdf5;
     padding: 0.7rem;
     box-shadow: 0 3px 0 #e2d2a8;
+  }
+
+  /* The (!) is an explanation, not an action: no card, no lip, just the glyph. */
+  .hint {
+    display: grid;
+    place-items: center;
+    opacity: 0.75;
+    transition: opacity 120ms ease;
+  }
+
+  .hint:hover {
+    opacity: 1;
   }
 
   /* Progress lands once a day, in steps; the fill glides between them. */

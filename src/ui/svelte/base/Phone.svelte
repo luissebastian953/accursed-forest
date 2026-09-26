@@ -71,8 +71,8 @@
   data-testid={testId}
   data-phone="true"
   bind:this={frame}
-  in:lift={{ duration: 320, easing: cubicOut }}
-  out:lift={{ duration: 240, easing: cubicIn }}
+  in:lift|global={{ duration: 320, easing: cubicOut }}
+  out:lift|global={{ duration: 240, easing: cubicIn }}
 >
   <img class="absolute inset-0 h-full w-full select-none" src={FRAME_URL} alt="" />
 
