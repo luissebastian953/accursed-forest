@@ -18,7 +18,10 @@
     title: string;
     body: string;
     grave: boolean;
+    link?: { href: string; label: string };
   }
+
+  const DYSLEXIA_TEST_URL = 'https://insightfultraits.com/lp/dyslexia-assessment-test-1/';
 
   const points = $derived<Point[]>([
     {
@@ -34,6 +37,13 @@
       grave: false,
     },
     { icon: 'fire', title: t('disclaimer.point3Title'), body: t('disclaimer.point3'), grave: true },
+    {
+      icon: 'eye-attention',
+      title: t('disclaimer.point4Title'),
+      body: t('disclaimer.point4'),
+      grave: false,
+      link: { href: DYSLEXIA_TEST_URL, label: t('disclaimer.point4Link') },
+    },
   ]);
 </script>
 
@@ -70,7 +80,15 @@
               </span>
               <p class="muted text-sm leading-relaxed">
                 <strong class="disclaimer-point-title">{point.title}</strong>
-                {point.body}
+                {point.body}{#if point.link}
+                  <a
+                    class="font-bold text-[#8a5a06] underline decoration-2 underline-offset-2 hover:text-[#5f3d02]"
+                    href={point.link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-testid="disclaimer-point-link">{point.link.label}</a
+                  >.
+                {/if}
               </p>
             </li>
           {/each}

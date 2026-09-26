@@ -345,14 +345,21 @@ text already localized, so a language switch re-derives it too.
 ## `src/ui/svelte/disclaimer/DisclaimerModal.svelte`
 
 The legal gate a first visit passes through (GDD 8 panel 0): a yellow warning
-band with the `police-warning` icon, then the lead and three cards saying
+band with the `police-warning` icon, then the lead and four cards saying
 that the estate and its officials are invented, that nothing here is advice,
-and that chopping and burning are choices the game prices rather than things
-it recommends. Each card carries an icon and runs its title into its body as
+that chopping and burning are choices the game prices rather than things
+it recommends, and that nothing here was ever meant to be accurate. Each card
+carries an icon and runs its title into its body as
 one sentence; the burning one is red, because it is the only point that is
 about the law and about lungs rather than about play. One button closes it,
 and it is the only way out: there is no backdrop click and no Escape, because
 a gate that can be dismissed by accident is not a gate.
+
+The fourth card ends in the interface's only outward link, a joke at the
+expense of anyone who reads the gate and still argues with it. The anchor and
+its classes are built in the component and only its label is a message, so no
+locale file carries markup and Tailwind sees the classes where it scans. It
+opens in a new tab, so a run in progress is never navigated away from.
 
 Beside the button sits a `Don't show this again` tick. Unticked, which is how
 it starts, the acknowledgement lasts the visit; ticked, it is written to
@@ -384,7 +391,9 @@ Mounts `DisclaimerModal.svelte` and owns whether it is up.
   writing it are both wrapped, and a browser with storage off falls through to
   showing the gate again, which errs on the side of it being read.
 - `VERSION`: bumping it shows the gate again to everyone, which is what a
-  change to the wording is for.
+  change to the wording is for. The browser suite seeds the key to skip the
+  gate, so a bump is also an edit to `app`, `landing`, `spike` and `tutorial`
+  in `e2e/`, or every spec behind the gate stalls on it.
 
 ## `src/ui/svelte/disclaimer/marqueeState.svelte.ts`
 

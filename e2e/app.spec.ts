@@ -8,7 +8,7 @@ const URL = '/play.html?webgl&seed=42&fresh&turbo&debug';
 // These tests are about the estate, not the gate in front of it, so they arrive
 // as a visitor who has already read it. `landing.spec.ts` covers the gate itself.
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem('sawit:disclaimer', '1'));
+  await page.addInitScript(() => localStorage.setItem('sawit:disclaimer', '2'));
 });
 
 /** A block as the suite sees it: the fields it reads, typed; anything it writes is free. */
@@ -1167,7 +1167,7 @@ test.describe('Sawit Simulator', () => {
   // Browser zoom shrinks the viewport, and the handset used to be anchored by
   // its top with a minimum height, so it grew off the bottom of the screen.
   test('the handset stands on the bottom edge however short the window is', async ({ page }) => {
-    await page.addInitScript(() => localStorage.setItem('sawit:disclaimer', '1'));
+    await page.addInitScript(() => localStorage.setItem('sawit:disclaimer', '2'));
 
     for (const height of [720, 800, 1000]) {
       await page.setViewportSize({ width: 1280, height });

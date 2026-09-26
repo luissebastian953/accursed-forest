@@ -142,10 +142,18 @@ test.describe('landing page', () => {
     await page.goto('/play.html?webgl');
     await expect(page.getByTestId('start-screen')).toBeVisible({ timeout: 30_000 * SLOW });
     await page.getByTestId('start-game').click();
+
+    // The accuracy point ends in the one link the interface has, and it leaves
+    // a run alone by opening a tab of its own.
+    const link = page.getByTestId('disclaimer-point-link');
+
+    await expect(link).toBeVisible();
+    await expect(link).toHaveAttribute('href', /dyslexia-assessment-test/);
+    await expect(link).toHaveAttribute('target', '_blank');
     await page.getByTestId('disclaimer-hush').check();
     await page.getByTestId('disclaimer-accept').click();
     await expect(page.getByTestId('disclaimer-modal')).toHaveCount(0);
-    expect(await page.evaluate(() => localStorage.getItem('sawit:disclaimer'))).toBe('1');
+    expect(await page.evaluate(() => localStorage.getItem('sawit:disclaimer'))).toBe('2');
 
     await page.reload();
     await expect(page.getByTestId('start-screen')).toBeVisible({ timeout: 30_000 * SLOW });

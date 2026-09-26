@@ -5,7 +5,7 @@ const SLOW = process.env['CI'] ? 4 : 1;
 
 // The spike is about what the renderer draws, so it skips the disclaimer gate.
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem('sawit:disclaimer', '1'));
+  await page.addInitScript(() => localStorage.setItem('sawit:disclaimer', '2'));
 });
 
 test.describe('art spike', () => {

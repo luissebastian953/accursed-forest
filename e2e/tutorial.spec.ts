@@ -7,7 +7,7 @@ const SLOW = process.env['CI'] ? 4 : 1;
 const URL = '/play.html?webgl&seed=42&fresh&turbo&debug&tutorial';
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem('sawit:disclaimer', '1'));
+  await page.addInitScript(() => localStorage.setItem('sawit:disclaimer', '2'));
 });
 
 const tid = (page: Page, id: string) => page.getByTestId(id);

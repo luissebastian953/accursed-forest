@@ -4,7 +4,7 @@ import DisclaimerModalView from './DisclaimerModal.svelte';
 
 const STORAGE_KEY = 'sawit:disclaimer';
 /** Bump when the wording changes enough that a returning player should see it again. */
-const VERSION = '1';
+const VERSION = '2';
 
 export interface DisclaimerHandlers {
   accept(): void;
