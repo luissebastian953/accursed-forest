@@ -9,6 +9,7 @@ import { economy } from './systems/economy.ts';
 import { endings } from './systems/endings.ts';
 import { growth } from './systems/growth.ts';
 import { harvest } from './systems/harvest.ts';
+import { haunting } from './systems/haunting.ts';
 import { mobs } from './systems/mobs.ts';
 import { newsSystem } from './systems/news.ts';
 import { pest } from './systems/pest.ts';
@@ -109,6 +110,7 @@ class SimImpl implements Sim {
     weather(this.ctx);
     worldEvents(this.ctx);
     terrain(this.ctx);
+    haunting(this.ctx);
     growth(this.ctx);
     pest(this.ctx);
     harvest(this.ctx);

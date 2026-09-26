@@ -141,6 +141,12 @@ const TABLE: Partial<Record<Biome, readonly Growth[]>> = {
     { model: m.bush, p: 0.04 },
     { model: m.grassTuft, p: 0.1 },
   ],
+  // A mass grave (GDD 3.11): mounds in rough rows, a dead tree, and not much else grows.
+  grave: [
+    { model: m.graveMound, p: 0.5, scale: [0.85, 1.1] },
+    { model: m.deadTree, p: 0.025, scale: [0.8, 1] },
+    { model: m.grassTuft, p: 0.05 },
+  ],
 };
 
 /** Lands whose trees leave snags behind when they burn, and how many per spot. */
@@ -287,11 +293,13 @@ export function growBlock(builder: BoxBuilder, ctx: PropContext, block: PropBloc
 
   g.spots(SPOTS, true, (x, z) => {
     const shown =
-      block.biome === 'village'
+      block.biome === 'village' || block.biome === 'grave'
         ? block.biome
         : ctx.lookBiome(Math.floor(x), Math.floor(z), block.biome);
-    // Village land does not spill its houses and flowers into its neighbours.
-    const land = shown === 'village' || shown === 'rubber' ? block.biome : shown;
+    // Village land does not spill its houses and flowers into its neighbours,
+    // and a grave keeps its mounds to itself.
+    const land =
+      shown === 'village' || shown === 'rubber' || shown === 'grave' ? block.biome : shown;
     const table = TABLE[land];
 
     if (table) g.roll(table, x, z);

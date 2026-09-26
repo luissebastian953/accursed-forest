@@ -55,6 +55,11 @@ per-cell on demand.
   the rivers, placed after the start site and kept clear of it, so they never
   change where the estate begins. It returns the cells, which become the
   `village` biome.
+- `findGraves()`: the mass graves (GDD 3.11), placed last, after the villages,
+  because they are kept away from them. Like the villages they never move the
+  start site: the site is already chosen by the time this runs. A world where
+  no cell qualifies simply has no grave, which is a legitimate world, the same
+  way a world can have no protected forest.
 
 ## `src/sim/worldgen/index.ts`
 

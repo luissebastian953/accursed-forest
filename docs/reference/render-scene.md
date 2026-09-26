@@ -215,6 +215,26 @@ wash the world toward amber-grey or neutral grey and close the fog in. The
 smoke and ash amounts ease toward their targets, so a haze season settles
 over the estate rather than switching on.
 
+## `src/render/scene/Skulls.ts`
+
+What a burn does to whatever was standing in it (GDD 6.5, GDD 3.11): a
+translucent skull rises from where an animal died, swelling as it climbs,
+swaying, and gone a few seconds later. One instanced mesh on the see-through
+material, stepped on the CPU like the other one-shot effects.
+
+### Notes
+
+- It faces the camera each frame rather than the way the animal was walking:
+  the sockets are the whole point of it, and a skull seen from behind is a
+  pale box. The turn is the camera's yaw, so the skull stays upright and the
+  rig's own facing never enters into it.
+- It is deliberately larger than the animal it came from and climbs well
+  clear of the canopy, because it has to read from the estate camera as the
+  answer to "what did that burn cost", not as a prop lying in the grass.
+- `Bone` is one of the emissive palette slots, so a skull carries the bloom
+  the fire under it already lights; the app keeps the bloom pass on while any
+  are in the air.
+
 ## `src/render/scene/Sparkles.ts`
 
 Sparkles (GDD 6.5): a few glints turning over something worth a click, so a
@@ -291,7 +311,10 @@ Runs in the mesher worker, so it imports nothing that touches the renderer.
 - `warpedBiome()`: the biome whose colour a wild column shows, which is its
   own, or a wild neighbour's when the warped sample point lands there, so
   edges between wild biomes wander instead of following the block grid.
-  Estate blocks stay crisp.
+  Estate blocks stay crisp, and so does a mass grave (GDD 3.11): it is dug to
+  a line, so its earth neither wanders out into the grass nor lets the grass
+  wander in. It is the second biome after the river to be excluded from the
+  warp in both directions.
 
 ## `src/render/scene/chunkProtocol.ts`
 
@@ -307,6 +330,8 @@ Where the scenery grows (GDD 6.1, GDD 6.3). The models live in `render/models/`;
 this file is the ecology; which of them each kind of land carries, and
 how thickly.
 
+- mass grave: mounds of turned earth in rough rows, the odd dead tree, and
+  almost nothing growing (GDD 3.11)
 - forest: rainforest trees, the odd emergent giant hung with vines, fallen
   logs, understory bushes and flowers, a weeping fig or a wood cabin now and then
 - protected forest: the same, denser and older, more giants

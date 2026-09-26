@@ -106,6 +106,10 @@ in `sim/types.ts` is a compile error here rather than a runtime surprise.
       for the events that land once.
   18. Clearing a plantation: a block remembers when the crew felling it will
       finish (`fellingUntil`).
+  19. The Kopdes report: the economy carries the year's sales (`soldKgYear`,
+      `soldRpYear`).
+  20. The haunting: the `grave` biome, the `pocong` species, and a block
+      remembers the day it was planted over a grave (`hauntedSince`).
 
 ## `src/persistence/storage.ts`
 

@@ -31,6 +31,12 @@ years pass in seconds, and `?debug` exposes `window.__sawit`.
   it is folded shut so the red button is not on the panel until asked for, and it
   asks twice. The first press opens the question and the wide button closes it
   without sending a crew.
+- the mass grave (GDD 3.11): the one test that walks a block through every stage
+  it has, because the haunting is a clock and a stage read from the middle of it
+  proves nothing. It takes title to the world's grave through the debug hook
+  rather than buying its way out to it, which would be a quarter of an hour of
+  wall time, and it asserts the label by `data-stage` rather than by its copy, so
+  the wording can be rewritten without the test noticing.
 
 ## `e2e/audio.spec.ts`
 
@@ -85,6 +91,13 @@ The last test is the one worth keeping: switching subjects over and over must
 leave the renderer holding exactly what it held to begin with. That is the whole
 answer to "does this leak", measured rather than assumed.
 
+### Notes
+
+- the dead (GDD 3.11): the pocong, the ghost, the skull and the grave mound are
+  checked to be on the bench and to offer what they can do, because the bench is
+  where they are judged by eye and a subject that fails to build is a blank
+  stage rather than an error anyone would notice.
+
 ## `tests/app/loop.test.ts`
 
 The fixed-step loop (GDD 4.2): 1x is one tick every five seconds and 50x is ten
@@ -113,9 +126,9 @@ continues identically with the RNG position intact, only diverged blocks are
 stored, and a partial save rewrites just the dirty chunks plus the manifest.
 The failure modes are all asserted to fail loudly rather than half-read: a
 missing slot, a newer schema, a corrupt chunk, a chunk that fails validation,
-and a manifest naming a chunk that is gone. Saves from v1, v2, v3 and v4 are
-opened in the current build, and the migration list is checked to cover every
-schema from 1 to current.
+and a manifest naming a chunk that is gone. Saves from v1, v2, v3, v4 and v19
+are opened in the current build, and the migration list is checked to cover
+every schema from 1 to current.
 
 ## `tests/persistence/compatibility.test.ts`
 
@@ -139,10 +152,11 @@ it came from, and never edit one: an edited fixture proves nothing.
 The chunk mesher (GDD 6.3, GDD 6.7): a chunk covers its footprint plus a
 one-column border quantised to half units, planted blocks are terraced flat, a
 half-planted hectare reads as half planted, tops are painted by phase and biome,
-rivers hold water along the smoothed channel, and adjacent chunks meet without a
-wall because border faces are culled against the neighbour. The triangle and
-time budgets are asserted here, and so is the fence, which is grown only where
-the crop meets bare ground.
+a mass grave is turned earth to its own edge with mounds grown on it, rivers
+hold water along the smoothed channel, and adjacent chunks meet without a wall
+because border faces are culled against the neighbour. The triangle and time
+budgets are asserted here, and so is the fence, which is grown only where the
+crop meets bare ground.
 
 ## `tests/render/coins.test.ts`
 
@@ -173,7 +187,10 @@ The crowd: every species is a tree of parts with a body at its root and parents
 before children, the poses move the body the way the role needs (sitting,
 climbing, the babi ngepet rearing up), a walk swings the legs out of phase
 without breaking the rig, and a mob that bolts fades out and does not come back
-(GDD 6.5). Posing 500 mobs must cost well under a frame.
+(GDD 6.5). The dead are checked for what makes them read at all (GDD 3.11): the
+ghost's solid red eyes, the pocong's missing limbs and flaring knot, its hop,
+and that a see-through body puts its solid parts on the solid sheet. Posing 500
+mobs must cost well under a frame.
 
 ## `tests/render/models.test.ts`
 
@@ -265,7 +282,29 @@ The crowd the estate attracts: animals arrive, stay under the cap, keep to the
 land that suits them and move on, living on a repertoire of standing, milling
 about, crossing, circling and sleeping. Climbers take to the trees and the low
 ones never do. The babi ngepet drops its takings and bolts when it is caught,
-whether it is spotted on four legs or two.
+whether it is spotted on four legs or two. An animal standing in a fire dies or
+bolts, nothing wild spawns into one, and the burn crew comes to no harm
+(GDD 3.6.1).
+
+## `tests/sim/haunting.test.ts`
+
+The mass grave and what planting it costs (GDD 3.11): every world has a site or
+two of low unmarked ground outside the free square and away from the villages;
+it is dug out rather than chopped or burned, and comes up as cleared land with
+what the crew found on it; planting it starts the clock, keeps a few of the dead
+on the block and takes a share of its rounds; two years on the haunting spreads
+across the estate and the hired hands halve; four years on the fruit goes
+missing everywhere; and felling the plantation lays them back to rest, after
+which planting it again wakes them from the beginning.
+
+### Notes
+
+- `estateWithGrave()` starts the estate five years in. The stages are backdated
+  by subtracting years from `hauntedSince`, and a clock that started at tick 0
+  would go negative.
+- The fruit tests pick the same block forty times through `pickBlock` directly,
+  rather than playing the years it would take to reach forty rounds: the draw is
+  per day and block, so forty days is forty independent draws of the same rule.
 
 ## `tests/sim/pests.test.ts`
 

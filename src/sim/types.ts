@@ -17,7 +17,8 @@ export type Biome =
   | 'peat'
   | 'rubber'
   | 'village'
-  | 'swamp';
+  | 'swamp'
+  | 'grave';
 
 export type BlockPhase = 'wild' | 'clearing' | 'cleared' | 'planted' | 'reforesting' | 'kopdes';
 
@@ -72,6 +73,8 @@ export interface Block {
   excavateUntil: Tick;
   /** A crew is felling the plantation until this tick, or -1; pays nothing for what comes down. */
   fellingUntil: Tick;
+  /** Tick a dug-out grave was planted over, or -1: the haunting's clock (GDD 3.11). */
+  hauntedSince: Tick;
   /**
    * What is planted here. Meaningless unless `phase` is `planted` or
    * `reforesting`. (GDD 4.4 omits this; GDD 3.10 requires it.)
@@ -224,6 +227,7 @@ export type MobSpecies =
   | 'thief'
   | 'babiNgepet'
   | 'ghost'
+  | 'pocong'
   | 'sanitizer'
   | 'plantDoctor'
   | 'security'

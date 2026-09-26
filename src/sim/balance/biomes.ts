@@ -140,4 +140,16 @@ export const BIOMES: Record<Biome, BiomeSpec> = {
     forSale: true,
     forestCover: false,
   },
+  // A mass grave (GDD 3.11): cheap, because nobody wants it, and never chopped.
+  // An excavation crew digs it out instead, and the soil under it is rich.
+  grave: {
+    chopDays: 0,
+    chopDebris: 0,
+    price: 3_000_000,
+    plantableSlots: SLOTS,
+    fertility: 1.25,
+    clearable: false,
+    forSale: true,
+    forestCover: false,
+  },
 };

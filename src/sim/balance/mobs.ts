@@ -66,6 +66,8 @@ export const HABITS = {
   climber: { idle: 2, sit: 2, pace: 2, wander: 2, sleep: 1, climb: 3, climbJump: 2 },
   /** Pangolins and capybaras: low, slow, and fond of a nap. */
   crawler: { idle: 3, sit: 1, pace: 3, wander: 2, sleep: 3 },
+  /** The dead: they hang about the block they rose from, and never wander off it or sleep. */
+  spectre: { idle: 3, pace: 4, circle: 1 },
 } as const;
 
 export const SPECIES_HABITS: Partial<Record<MobSpecies, keyof typeof HABITS>> = {
@@ -73,6 +75,8 @@ export const SPECIES_HABITS: Partial<Record<MobSpecies, keyof typeof HABITS>> = 
   orangutan: 'climber',
   pangolin: 'crawler',
   capybara: 'crawler',
+  ghost: 'spectre',
+  pocong: 'spectre',
 };
 
 /** Life in the canopy (GDD POC): sitting in a tree, and swinging between two. */
@@ -150,6 +154,16 @@ export const GHOST = {
   stayDays: { min: 3, max: 9 },
   /** Blocks per day; it drifts. */
   speed: 0.06,
+  /** The pocong hops, and covers more ground than the drifting kind. */
+  pocongSpeed: 0.12,
+} as const;
+
+/** What a fire does to whatever was standing in it (GDD 3.6.1). */
+export const BURNED_ALIVE = {
+  /** Each day an animal is on a burning block it dies this often; otherwise it bolts. */
+  killPerDay: 0.35,
+  /** Blocks per day, running from the flames. */
+  fleeSpeed: 1.4,
 } as const;
 
 export type WorkerKind = 'sanitizer' | 'plantDoctor' | 'security';

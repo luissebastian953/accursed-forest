@@ -27,11 +27,14 @@ Every block has a biome, and the biome is what clearing actually costs
 | Riverbank  | 12            | 10          | Rp 14.0M   | 144             | 1.2       | Forest cover; floods first (below)   |
 | River      | not clearable | 0           | 0          | 0               | 0         | Never owned                          |
 | Protected  | not clearable | 0           | 0          | 0               | 0         | Forest cover; not for sale           |
+| Grave      | not clearable | 0           | Rp 3.0M    | 144             | 1.25      | A mass grave: dug out, never chopped |
 
 Peat, rubber and swamp biomes are defined in the same table with their own
 costs and a village land price of Rp 40,000,000, but `worldgen` does not
 place any of them yet, and village land is neither `forSale` nor `clearable`,
-so none of the three is reachable in play today.
+so none of the three is reachable in play today. Grave land is placed, a
+site or two per world, and is the one biome that is for sale but not
+clearable: an excavation crew opens it, and what follows is GDD 3.11.
 
 **Open land** (`BiomeSpec.openLand`, true for grassfield and scrub) has
 nothing standing on it: a forest can be planted straight onto it (GDD 3.2,
@@ -928,3 +931,63 @@ the day it takes.
 respectively; what it is worth to the run itself is two endings, reboisasi
 and the secret redemption, both defined in GDD 3.8 against the same
 `reforestedHectares()` count this section's growth thresholds feed.
+
+## GDD 3.11: the haunting
+
+Every world carries a mass grave or two: `GRAVES` in
+`src/sim/balance/world.ts` places `min` to `max` (1 to 2) sites of `minSize`
+to `maxSize` (1 to 2) blocks each on low open ground (grassfield, scrub or
+forest at elevation `maxElevation` 1 or less), at least `startClearance` (3)
+blocks outside the free square and no further than `startReach` (9) from it,
+and never within `villageClearance` (3) blocks of a village. The biome is
+`grave`: for sale at Rp 3,000,000 because nobody else wants it, `fertility`
+1.25 because of what is in the soil, and never `clearable`. Nothing stands on
+it to chop, and bare earth over the dead is not fuel, so `ChopBlock` and
+`BurnBlock` both refuse it. The one way in is `ExcavateBlock`: the same
+one-shot crew that digs out a landslide (GDD 3.6.2) spends `EXCAVATION.days`
+(6) on the block, and when it is done the hectare is `cleared` with
+`HAUNT.exhumedDebris` (30) of earth and bone on it. The block panel carries a
+red label from then on, whatever is planted there: this was a mass grave.
+
+**Planting over it** (`PlantBlock`, either species) stamps
+`Block.hauntedSince` with the day, and the haunting runs on that clock
+(`src/sim/haunting.ts`, `HAUNT` in `src/sim/balance/haunting.ts`). It has
+three stages, each keeping what the one before it did:
+
+| Stage | From                            | On the grave block                                                                                                                                     | On the estate                                                                                                                    |
+| ----- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | the day it is planted           | `HAUNT.onGrave` (2 to 4) spectres kept on the block, one more arriving at `graveAppearPerDay` (0.25) while it is short; every round picked loses fruit | nothing                                                                                                                          |
+| 2     | `spreadAfterYears` (2) years on | as above                                                                                                                                               | spectres on any owned block, up to `estateCap` (3), arriving at `estateAppearPerDay` (0.06); hired hands at `workerFactor` (0.5) |
+| 3     | `deepenAfterYears` (4) years on | as above                                                                                                                                               | as above, and every round picked anywhere loses fruit                                                                            |
+
+**Fruit going missing** happens in `pickBlock()` (`systems/harvest.ts`),
+before the crew counts the round: with `missingChance` (0.5) a share between
+`missingShare.min` and `max` (10% to 35%) of the kilograms never reaches the
+Kopdes, and `HarvestHaunted` says how much. The draw comes from its own
+stream (`HAUNT_STREAM`, forked per day and block), so the dead never move the
+weather. **Slow hands** are `workerFactor()`: the sanitizer's debris per day,
+the plant doctor's removals per day and all three workers' walking speeds
+are multiplied by it once the estate is at stage 2. **The dead themselves**
+are two mob species, the `ghost` and the `pocong`, raised half and half by
+`spawnHaunting()` in `systems/mobs.ts`; they live on the `spectre` habit
+table (idle, pace, circle: never a wander off the block, never a sleep) and
+fade after `stayDays` (6 to 18), another taking their place.
+
+**It stops when the plantation on the grave comes down.** The haunting
+system (`systems/haunting.ts`, run right after `terrain`) resets
+`hauntedSince` on any haunted block that is no longer `planted` or
+`reforesting`, whether a crew felled it (`ClearPlantation`), a wildfire took
+it or a slide buried it, and raises `HauntingEnded`. The spectres already
+walking fade in their own time and nobody new comes. The label stays, because
+the block was a grave and still is; planting it again wakes them again, from
+stage 1. The same system raises `HauntingStage` on the tick a block crosses
+into stage 2 or 3, which is what the headlines (`estate.haunting`,
+`estate.hauntingDeep`) and the toasts hang off.
+
+**Animals in a fire** belong to GDD 3.6.1 but are tuned beside the dead:
+`BURNED_ALIVE` in `src/sim/balance/mobs.ts`. Each day a wild animal (or the
+babi ngepet) stands on a burning block it dies with `killPerDay` (0.35) and
+otherwise bolts at `fleeSpeed` (1.4 blocks a day); a death is a `MobBurned`
+event, a toast, a headline (`estate.animalBurned`) and, on screen, a
+translucent skull rising from where it stood. Nothing wild spawns onto a
+burning block, and the crew working the fire comes to no harm.

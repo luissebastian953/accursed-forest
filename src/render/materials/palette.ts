@@ -115,6 +115,13 @@ const COLOURS: Partial<Record<number, [Hex, Hex]>> = {
   [Palette.Cloud]: [0xeef4f7, 0xf6f8f6],
   [Palette.CloudTop]: [0xffffff, 0xffffff],
   [Palette.ApeGrey]: [0xb3aab0, 0xc3bbc0],
+
+  // Grave earth sits between peat and dirt: dark, turned, never quite dry.
+  [Palette.GraveEarth]: [0x4a3d31, 0x5b4a3a],
+  [Palette.GhostEye]: [0xff2418, 0xff2c1c],
+  [Palette.Shroud]: [0xb9c0c6, 0xc4cacf],
+  [Palette.Bone]: [0xf0e9d8, 0xf5eedd],
+  [Palette.ShroudFace]: [0x6f6c68, 0x7b7873],
 };
 
 const FALLBACK: [Hex, Hex] = [0xff00ff, 0xff00ff];
@@ -124,6 +131,9 @@ const EMISSION: Partial<Record<number, number>> = {
   [Palette.Coin]: 0.9,
   [Palette.Sparkle]: 1,
   [Palette.FurCapybaraGold]: 0.8,
+  /** The eyes burn on their own, and a skull rising from a fire glows with it. */
+  [Palette.GhostEye]: 1,
+  [Palette.Bone]: 0.6,
 };
 
 function writeHex(data: Uint8Array, offset: number, hex: Hex, emission: number): void {

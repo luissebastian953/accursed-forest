@@ -85,6 +85,39 @@ test.describe('workbench', () => {
     expect(errors).toEqual([]);
   });
 
+  test('the dead are on the bench: the pocong hops, the ghost drifts, the skull rises', async ({
+    page,
+  }) => {
+    const errors = await boot(page);
+
+    // The pocong has no legs to sit on and nothing to climb with; it walks by hopping.
+    await tid(page, 'workbench-filter').fill('pocong');
+    await expect(tid(page, 'workbench-subject')).toHaveCount(1);
+    await subject(page, 'mob:pocong').click();
+    await expect(action(page, 'walk')).toBeEnabled();
+    await action(page, 'walk').click();
+    await page.waitForTimeout(600);
+
+    // Something is drawn: a hop is a body in the air, and the stage is not empty.
+    const painted = await page.locator('canvas').screenshot();
+
+    expect(painted.byteLength).toBeGreaterThan(20_000);
+
+    // The ghost, with its eyes, and the skull effect that a burn raises.
+    await tid(page, 'workbench-filter').fill('');
+    await subject(page, 'mob:ghost').click();
+    await expect(action(page, 'walk')).toBeEnabled();
+    await subject(page, 'fx:skulls').click();
+    await expect(action(page, 'burst')).toBeEnabled();
+    await expect(action(page, 'reset')).toBeEnabled();
+    await action(page, 'burst').click();
+    await action(page, 'reset').click();
+    await subject(page, 'model:graveMound').click();
+    await expect(action(page, 'walk')).toBeDisabled();
+
+    expect(errors).toEqual([]);
+  });
+
   test('changes the backdrop without touching the light on the subject', async ({ page }) => {
     const errors = await boot(page);
     const canvas = page.locator('canvas');

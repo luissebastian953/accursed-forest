@@ -1,4 +1,14 @@
 {
   "golden": "A golden capybara. {amount} for spotting it.",
-  "babiNgepet": "The babi ngepet bolts, and drops {amount}."
+  "babiNgepet": "The babi ngepet bolts, and drops {amount}.",
+  "burned": "You just burned an animal. A {animal} died in the fire on block {block}.",
+  "species_wildBoar": "wild boar",
+  "species_pig": "pig",
+  "species_mouse": "mouse",
+  "species_cow": "cow",
+  "species_monkey": "monkey",
+  "species_orangutan": "orangutan",
+  "species_pangolin": "pangolin",
+  "species_capybara": "capybara",
+  "species_babiNgepet": "babi ngepet"
 }

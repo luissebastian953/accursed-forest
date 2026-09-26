@@ -32,6 +32,8 @@ export interface PartSpec {
   pivot?: 'centre' | 'top' | 'bottom';
   /** Resting rotation, radians. */
   tilt?: [x: number, y: number, z: number];
+  /** Drawn solid even on a see-through body: a ghost's eyes, a pocong's face. */
+  opaque?: boolean;
 }
 
 export interface SpeciesSpec {
@@ -48,6 +50,8 @@ export interface SpeciesSpec {
   cadence: number;
   /** Floats instead of walking, and draws see-through. */
   spectral?: boolean;
+  /** See-through, but barely: a body rather than an apparition. */
+  dense?: boolean;
   /** Stands and walks on two feet. */
   biped?: boolean;
 }

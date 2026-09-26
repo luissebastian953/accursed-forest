@@ -28,7 +28,8 @@ export function isFuel(block: Readonly<Block>, wildfire: boolean): boolean {
 
   switch (block.phase) {
     case 'wild':
-      return block.biome !== 'river' && block.biome !== 'village';
+      // Bare earth over the dead carries no fire (GDD 3.11).
+      return block.biome !== 'river' && block.biome !== 'village' && block.biome !== 'grave';
     case 'cleared':
       return block.debris >= FIRE.debrisFuelMin;
     case 'planted':

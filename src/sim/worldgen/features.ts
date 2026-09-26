@@ -1,5 +1,5 @@
 import { BIOMES } from '../balance/biomes.ts';
-import { PROTECTED, START_SITE, VILLAGES, WORLD } from '../balance/world.ts';
+import { GRAVES, PROTECTED, START_SITE, VILLAGES, WORLD } from '../balance/world.ts';
 import { nextInt, type RngState } from '../rng.ts';
 import type { Biome } from '../types.ts';
 
@@ -313,4 +313,93 @@ export function findVillages(
   }
 
   return villages;
+}
+
+/**
+ * Mass graves (GDD 3.11): a site or two of unmarked low ground, outside the
+ * starting square but within a run's reach, and never beside a village.
+ */
+export function findGraves(
+  input: FeatureInputs,
+  isProtected: (x: number, y: number) => boolean,
+  start: StartSite,
+  villages: ReadonlySet<number>,
+  rng: RngState,
+): Set<number> {
+  const { width, height, biomeAt, elevationAt } = input;
+  const allowed: ReadonlySet<Biome> = new Set(GRAVES.biomes);
+  const near = GRAVES.startClearance;
+  const far = GRAVES.startReach;
+  const inSquare = (x: number, y: number, margin: number): boolean =>
+    x >= start.x - margin &&
+    x < start.x + start.size + margin &&
+    y >= start.y - margin &&
+    y < start.y + start.size + margin;
+  const nearVillage = (x: number, y: number): boolean => {
+    for (const key of villages) {
+      const vx = key % width;
+
+      if (Math.abs(vx - x) + Math.abs((key - vx) / width - y) < GRAVES.villageClearance) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+  const suitable = (x: number, y: number): boolean =>
+    x >= 0 &&
+    y >= 0 &&
+    x < width &&
+    y < height &&
+    allowed.has(biomeAt(x, y)) &&
+    !isProtected(x, y) &&
+    elevationAt(x, y) <= GRAVES.maxElevation &&
+    !inSquare(x, y, near) &&
+    !nearVillage(x, y);
+
+  const candidates: number[] = [];
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (suitable(x, y) && inSquare(x, y, far)) candidates.push(y * width + x);
+    }
+  }
+
+  const graves = new Set<number>();
+  const count = GRAVES.min + nextInt(rng, GRAVES.max - GRAVES.min + 1);
+
+  for (let g = 0; g < count && candidates.length > 0; g++) {
+    const seedKey = candidates.splice(nextInt(rng, candidates.length), 1)[0]!;
+    const sx = seedKey % width;
+    const sy = (seedKey - sx) / width;
+    let tooClose = false;
+
+    for (const key of graves) {
+      const x = key % width;
+
+      if (Math.abs(x - sx) + Math.abs((key - x) / width - sy) < 6) tooClose = true;
+    }
+
+    if (tooClose) continue;
+
+    const size = GRAVES.minSize + nextInt(rng, GRAVES.maxSize - GRAVES.minSize + 1);
+    const cluster = [seedKey];
+
+    for (let i = 0; i < cluster.length && cluster.length < size; i++) {
+      const key = cluster[i]!;
+      const x = key % width;
+      const y = (key - x) / width;
+
+      for (const [dx, dy] of NEIGHBOURS) {
+        const nKey = (y + dy) * width + (x + dx);
+
+        if (cluster.length < size && suitable(x + dx, y + dy) && !cluster.includes(nKey))
+          cluster.push(nKey);
+      }
+    }
+
+    for (const key of cluster) graves.add(key);
+  }
+
+  return graves;
 }

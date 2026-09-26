@@ -1,4 +1,5 @@
 import { abandonedHouse, stiltHouse, woodCabin } from './buildings/houses.ts';
+import { graveMound } from './ground/grave.ts';
 import { fallenLog } from './ground/log.ts';
 import { snappedBranch, spoilHeap } from './ground/spoil.ts';
 import type { Model } from './kit.ts';
@@ -36,6 +37,7 @@ export const MODELS = {
   fallenLog,
   spoilHeap,
   snappedBranch,
+  graveMound,
   stiltHouse,
   woodCabin,
   abandonedHouse,

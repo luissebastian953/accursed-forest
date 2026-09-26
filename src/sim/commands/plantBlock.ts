@@ -96,5 +96,11 @@ export const plantBlock: CommandHandler<PlantBlock> = {
 
     events.push({ type: 'BlockPlanted', block: command.block, species: command.species, count });
     if (command.species === 'forest') creditReforestation(ctx, command.block);
+
+    // Roots go down into a dug-out grave: the haunting's clock starts here (GDD 3.11).
+    if (block.biome === 'grave') {
+      block.hauntedSince = state.tick;
+      events.push({ type: 'HauntingStarted', block: command.block });
+    }
   },
 };

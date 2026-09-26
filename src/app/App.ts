@@ -30,6 +30,7 @@ import { HazardRing, RangeRing, SelectionRing } from '@render/scene/Overlays';
 import { Palms } from '@render/scene/Palms';
 import { Police } from '@render/scene/Police';
 import { Rain } from '@render/scene/Rain';
+import { Skulls } from '@render/scene/Skulls';
 import { Sky } from '@render/scene/Sky';
 import { SparkleBurst, Sparkles, type SparklePoint } from '@render/scene/Sparkles';
 import { TREES_PER_BLOCK, Timber } from '@render/scene/Timber';
@@ -326,14 +327,23 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   spectral.opacity = 0.45;
   spectral.depthWrite = false;
 
+  // A corpse in a shroud is more there than a ghost is (GDD 3.11).
+  const shrouded = createPaletteMaterial(paletteTexture, uniforms).material;
+
+  shrouded.transparent = true;
+  shrouded.opacity = 0.85;
+  shrouded.depthWrite = false;
+
   // The glints live on the see-through material, like the ghost.
   const sparkles = new Sparkles(spectral);
   const sparkleBurst = new SparkleBurst(spectral);
   const wisps = new Wisps(spectral);
+  const skulls = new Skulls(spectral);
   const clouds = new Clouds(spectral);
   const mobField = new MobField({
     material,
     spectralMaterial: spectral,
+    denseMaterial: shrouded,
     bounds: { minX: 0, maxX: 0, minZ: 0, maxZ: 0 },
     groundAt,
   });
@@ -348,6 +358,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     sparkles.mesh,
     sparkleBurst.mesh,
     wisps.mesh,
+    skulls.mesh,
     clouds.mesh,
     police.group,
     ceremony.group,
@@ -1174,6 +1185,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     newsReadTick = Math.min(loadReadTick(), sim.state.tick);
     picker = new Picker(rig.camera, chunks.group, sim.world);
     mobField.clear();
+    skulls.clear();
     mobField.syncSim(sim.state);
     workSite.sync(sim.state, sim.world);
     excavator.sync(sim.state, sim.world, worldNow());
@@ -1426,6 +1438,46 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       );
     }
 
+    // The grave, and what planting over it brings (GDD 3.11).
+    for (const block of d.graveExcavated) {
+      toasts.push(
+        `${blockName(block)} is dug out. The crew found more than earth in it; it is cleared land now, if you want it.`,
+        'warn',
+      );
+    }
+
+    for (const block of d.hauntingStarted) {
+      toasts.push(
+        `Something is wrong on ${blockName(block)}. Figures were seen among the seedlings at dusk.`,
+        'warn',
+      );
+    }
+
+    for (const { block, stage } of d.hauntingStage) {
+      if (stage === 2) {
+        toasts.push(
+          `The haunting has spread past ${blockName(block)}. The dead walk the whole estate, and the hired hands are slower for it.`,
+          'error',
+        );
+      } else if (stage === 3) {
+        toasts.push(
+          `The dead take their share now. Fruit goes missing from every block on the estate.`,
+          'error',
+        );
+      }
+    }
+
+    for (const block of d.hauntingEnded) {
+      toasts.push(`${blockName(block)} is bare again, and the estate is quiet.`);
+    }
+
+    for (const lost of d.hauntedHarvest) {
+      toasts.push(
+        `${formatKg(lost.kilograms)} of fruit from ${blockName(lost.block)} never reached the Workshop. The crew will not say where it went.`,
+        'warn',
+      );
+    }
+
     if (d.ashSettled) toasts.push('The ash has settled. It will feed the soil for a season.');
     if (d.sparks.size > 0) toasts.push('Drought: a spark caught a debris pile.', 'error');
 
@@ -1460,6 +1512,26 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     }
 
     if (d.thiefCaught) toasts.push('Security saw off a fruit thief.');
+
+    // An animal that died in the fire: a skull rises from where it was drawn
+    // standing, and the body shrinks out of the world under it.
+    for (const dead of d.mobsBurned) {
+      const drawn = mobField.positionOf(dead.id);
+      const [bx, by] = sim.world.toXY(dead.block);
+      const x = drawn?.x ?? (bx + 0.5) * WORLD.blockSide;
+      const z = drawn?.z ?? (by + 0.5) * WORLD.blockSide;
+
+      skulls.raise(x, drawn?.y ?? groundAt(x, z), z);
+      mobField.vanish(dead.id);
+      toasts.push(
+        t('mobs.burned', {
+          animal: t(`mobs.species_${dead.species}`),
+          block: blockLabel(sim.world, dead.block),
+        }),
+        'error',
+      );
+    }
+
     mobField.syncSim(sim.state);
     workSite.sync(sim.state, sim.world);
     excavator.sync(sim.state, sim.world, worldNow());
@@ -1817,6 +1889,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     mobField.update(worldDt, time.secondsPerTick);
     coins.update(worldDt);
     sparkleBurst.update(worldDt);
+    skulls.update(worldDt, rig.camera);
     clouds.update(worldDt, rig.camera, visible);
     syncSparkles(worldMs);
     syncWorkMarkers();
@@ -1832,9 +1905,14 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       syncTutorial();
     }
 
-    // Bloom only while something glows (fire, coins, glints), and never on a
-    // machine that has already given up every pixel it had (config.md).
-    const glowing = fires.burning || coins.count > 0 || sparklePoints.length > 0;
+    // Bloom only while something glows (fire, coins, glints, the eyes of the
+    // dead), and never on a machine that has given up every pixel (config.md).
+    const glowing =
+      fires.burning ||
+      coins.count > 0 ||
+      sparklePoints.length > 0 ||
+      skulls.count > 0 ||
+      spectresAbout();
 
     if (glowing && !quality.lean) glow.render();
     else handle.render(scene, rig.camera);
@@ -1872,6 +1950,11 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   const sparklePoints: SparklePoint[] = [];
   const wispPoints: WispPoint[] = [];
+
+  /** Whether any of the dead are walking: their eyes are lit, so the bloom pass runs. */
+  function spectresAbout(): boolean {
+    return sim.state.mobs.some((m) => m.species === 'ghost' || m.species === 'pocong');
+  }
 
   /** One throw of glints over the Kopdes, from the roof and the corners. */
   function cheerKopdes(): void {
@@ -2047,6 +2130,11 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       },
       redrawPalms: () => {
         palmsDirty = true;
+      },
+      // Land the cursor and the camera on a block the suite cannot click from the centre.
+      select: (block: BlockId) => {
+        select(block);
+        focusBlock(block);
       },
       // What the renderer is holding, for watching a long run for leaks. The
       // workbench shows the same numbers with a UI around them.
@@ -2253,6 +2341,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     sparkles.dispose();
     sparkleBurst.dispose();
     wisps.dispose();
+    skulls.dispose();
     clouds.dispose();
     panel.dispose();
     shop.dispose();
@@ -2287,6 +2376,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     timber.dispose();
     mobField.dispose();
     spectral.dispose();
+    shrouded.dispose();
     glow.dispose();
     sky.dispose();
     rig.dispose();

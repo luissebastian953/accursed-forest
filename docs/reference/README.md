@@ -19,15 +19,15 @@ named in backticks so a search from the code lands on it.
 | [Persistence](persistence.md)                                       | 5       |
 | [Rendering: geometry, materials, animation, camera](render-core.md) | 15      |
 | [Rendering: the crowd](render-mobs.md)                              | 3       |
-| [Rendering: models](render-models.md)                               | 18      |
-| [Rendering: the scene](render-scene.md)                             | 22      |
+| [Rendering: models](render-models.md)                               | 19      |
+| [Rendering: the scene](render-scene.md)                             | 23      |
 | [Shared](shared.md)                                                 | 3       |
-| [Simulation: balance tables](sim-balance.md)                        | 19      |
+| [Simulation: balance tables](sim-balance.md)                        | 20      |
 | [Simulation: commands](sim-commands.md)                             | 25      |
-| [Simulation: core](sim-core.md)                                     | 14      |
-| [Simulation: systems](sim-systems.md)                               | 11      |
+| [Simulation: core](sim-core.md)                                     | 15      |
+| [Simulation: systems](sim-systems.md)                               | 12      |
 | [Simulation: world generation](sim-worldgen.md)                     | 6       |
-| [Tests](tests.md)                                                   | 36      |
+| [Tests](tests.md)                                                   | 38      |
 | [Tools](tools.md)                                                   | 2       |
 | [Interface](ui.md)                                                  | 43      |
 | [Workers](workers.md)                                               | 1       |

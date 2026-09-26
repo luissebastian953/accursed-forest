@@ -8,6 +8,13 @@ headers moved here. A `GDD n` reference points into the [design document](../gdd
 Buildings off the estate: a village stilt house (rumah panggung), a wood
 cabin in the trees, and an abandoned house going back to the forest.
 
+## `src/render/models/ground/grave.ts`
+
+A grave mound on a mass grave (GDD 3.11): a heap of turned earth in two
+boxes, the upper one narrower so it reads as a heap and not a slab, with a
+leaning headstone or a weathered stake at its head, and now and then a bone
+the earth did not keep.
+
 ## `src/render/models/ground/log.ts`
 
 A fallen log on the forest floor, with a stump or a fungus shelf now and then.

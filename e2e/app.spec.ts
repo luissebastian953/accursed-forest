@@ -46,6 +46,7 @@ interface DebugWindow {
         blocks: Map<number, DebugBlock>;
         palms: Map<number, Record<string, unknown>>;
         inventory: Record<string, number>;
+        mobs: { species: string }[];
         weather: {
           activeEvents: { id: string; startedAt: number; endsAt: number; blocks?: number[] }[];
         };
@@ -59,6 +60,8 @@ interface DebugWindow {
     // Siblings of `sim` on the hook, not members of the sim it returns.
     gpu: () => { triangles: number };
     effects: () => { sparkleBurst: number };
+    redrawTerrain: (blocks: number[]) => void;
+    select: (block: number) => void;
   };
 }
 
@@ -547,10 +550,12 @@ test.describe('Sawit Simulator', () => {
       state.economy.cash = 1e12;
 
       const [kx, ky] = world.toXY(state.worldGen.kopdesBlock);
+      // What the first step of the ladder asks for (`KOPDES_UPGRADE_MATURED`).
+      const needed = 10;
       let made = 0;
 
-      for (let dy = -2; dy <= 2 && made < 3; dy++) {
-        for (let dx = -2; dx <= 2 && made < 3; dx++) {
+      for (let dy = -2; dy <= 2 && made < needed; dy++) {
+        for (let dx = -2; dx <= 2 && made < needed; dx++) {
           const id = world.toId(kx + dx, ky + dy);
 
           if (id === state.worldGen.kopdesBlock) continue;
@@ -964,6 +969,20 @@ test.describe('Sawit Simulator', () => {
     expect(after.attention).toBeLessThan(20);
     expect(after.left).toBeLessThanOrEqual(50);
 
+    // What is left of the suspension has to run out before the estate can be
+    // worked again: felling is one of the things a ban stops (GDD 3.8).
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() => {
+            const { state } = (window as unknown as DebugWindow).__sawit.sim();
+
+            return state.society.operatingBanUntil - state.tick;
+          }),
+        { timeout: 30_000 * SLOW },
+      )
+      .toBeLessThanOrEqual(0);
+
     // The danger zone (GDD 8 panel 13a) is offered only where something stands,
     // and it asks twice.
     await expect(tid(page, 'danger-zone')).toBeVisible();
@@ -997,9 +1016,17 @@ test.describe('Sawit Simulator', () => {
 
     expect(cashBefore - cashAfter).toBeGreaterThan(10_000_000);
     await unlockTurbo(page);
+
+    // Waited for from before the clock is let go: at 50x the notice has been
+    // and gone by the time the phase can be read.
+    const bare = page
+      .getByTestId('toast')
+      .filter({ hasText: 'bare land' })
+      .waitFor({ state: 'visible', timeout: 20_000 * SLOW });
+
     await tid(page, 'speed-50').click();
     await expect(tid(page, 'block-phase')).toHaveText('Cleared', { timeout: 15_000 * SLOW });
-    await expect(page.getByTestId('toast').filter({ hasText: 'bare land' })).toBeVisible();
+    await bare;
     expect(errors).toEqual([]);
   });
 
@@ -1166,6 +1193,104 @@ test.describe('Sawit Simulator', () => {
 
   // Browser zoom shrinks the viewport, and the handset used to be anchored by
   // its top with a minimum height, so it grew off the bottom of the screen.
+  test('a mass grave: dug out, planted over, haunted, and laid to rest again', async ({ page }) => {
+    test.setTimeout(150_000 * SLOW);
+
+    const errors = await boot(page);
+
+    // Title to the world's grave, a crew on the shelf, and the cursor on the block.
+    const grave = await page.evaluate(() => {
+      const hook = (window as unknown as DebugWindow).__sawit;
+      const { state, world } = hook.sim();
+      let id: number | null = null;
+
+      for (let y = 0; y < 64 && id === null; y++) {
+        for (let x = 0; x < 64; x++) {
+          if (world.blockById(world.toId(x, y))['biome'] === 'grave') {
+            id = world.toId(x, y);
+            break;
+          }
+        }
+      }
+
+      state.blocks.set(id!, { ...world.blockById(id!), owned: true });
+      state.inventory['excavationCrew'] = 1;
+      state.kopdes = { blockId: state.worldGen.kopdesBlock, level: 3, autoHarvest: false };
+      hook.redrawTerrain([id!]);
+      hook.select(id!);
+      return id!;
+    });
+
+    await expect(tid(page, 'block-panel')).toBeVisible();
+    await expect(tid(page, 'block-panel')).toContainText(/mass grave/i);
+    await expect(tid(page, 'block-phase')).toHaveText('Wild');
+    // Nothing to chop, nothing to burn: the one way in is the crew.
+    await expect(tid(page, 'action-ChopBlock')).toHaveCount(0);
+    await expect(tid(page, 'burn-section')).toHaveCount(0);
+    await expect(tid(page, 'grave-warning')).toHaveCount(0);
+    await expect(tid(page, 'action-ExcavateBlock')).toBeEnabled();
+    await tid(page, 'action-ExcavateBlock').click();
+    await expect(tid(page, 'work-marker').first()).toHaveAttribute('data-kind', 'dig');
+
+    // Dug out: cleared land, and the red label that says what it was.
+    await expect(tid(page, 'speed-50')).toBeEnabled();
+    await tid(page, 'speed-50').click();
+    await expect(tid(page, 'block-phase')).toHaveText('Cleared', { timeout: 30_000 * SLOW });
+    await expect(tid(page, 'grave-warning')).toBeVisible();
+    await expect(tid(page, 'grave-warning')).toContainText(/formerly a mass grave/i);
+    await expect(tid(page, 'grave-warning')).toHaveAttribute('data-stage', '0');
+    await expect(tid(page, 'haunt-line')).toHaveCount(0);
+    await tid(page, 'speed-0').click();
+
+    // Planted over: the haunting starts, and the dead come up onto the block.
+    await page.evaluate(() => {
+      (window as unknown as DebugWindow).__sawit.sim().state.inventory['bibit'] = 144;
+    });
+    await expect(tid(page, 'action-PlantBlock-palm')).toBeEnabled();
+    await tid(page, 'action-PlantBlock-palm').click();
+    await expect(tid(page, 'block-phase')).toHaveText('Planted');
+    await expect(tid(page, 'grave-warning')).toHaveAttribute('data-stage', '1');
+    await expect(tid(page, 'haunt-line')).toContainText(/haunted/i);
+
+    // The notice rides the next tick, so it is caught at 1x: at 50x it has
+    // been and gone before the clock can be stopped to look at it.
+    await tid(page, 'speed-1').click();
+    await expect(page.getByTestId('toast').filter({ hasText: /Something is wrong/ })).toBeVisible();
+    await tid(page, 'speed-50').click();
+    await expect
+      .poll(
+        () =>
+          page.evaluate(
+            () =>
+              (window as unknown as DebugWindow).__sawit
+                .sim()
+                .state.mobs.filter((m) => m.species === 'ghost' || m.species === 'pocong').length,
+          ),
+        { timeout: 60_000 * SLOW },
+      )
+      .toBeGreaterThanOrEqual(2);
+    await tid(page, 'speed-0').click();
+
+    // Clearing the plantation lays them to rest; the label stays.
+    await tid(page, 'danger-toggle').click();
+    await tid(page, 'action-ClearPlantation').click();
+    await tid(page, 'action-ClearPlantation-confirm').click();
+    await tid(page, 'speed-50').click();
+    await expect(tid(page, 'block-phase')).toHaveText('Cleared', { timeout: 30_000 * SLOW });
+    await tid(page, 'speed-0').click();
+    await expect(tid(page, 'grave-warning')).toHaveAttribute('data-stage', '0');
+    await expect(tid(page, 'haunt-line')).toHaveCount(0);
+    expect(
+      await page.evaluate(
+        (id) =>
+          (window as unknown as DebugWindow).__sawit.sim().state.blocks.get(id)?.['hauntedSince'],
+        grave,
+      ),
+    ).toBe(-1);
+
+    expect(errors).toEqual([]);
+  });
+
   test('the handset stands on the bottom edge however short the window is', async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem('sawit:disclaimer', '2'));
 

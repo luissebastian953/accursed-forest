@@ -155,4 +155,46 @@ export const NATURAL: Record<string, NewsTemplate> = {
     bodies: ['Expect more rain, more floods on low ground, and more landslides on bare slopes.'],
     effects: ['Wetter wet season', 'Floods and landslides likelier'],
   },
+  'estate.animalBurned': {
+    lane: 'natural',
+    severity: 'warning',
+    chronicle: true,
+    cooldownDays: 20,
+    titles: [
+      'Wildlife burned alive in a land-clearing fire at {estate}',
+      'Animals caught in the flames as {estate} burns its land',
+    ],
+    bodies: [
+      'Whatever was living on {block} did not get out. A conservation group has asked the district for the estate’s burn records.',
+    ],
+    effects: ['Animals killed in the fire'],
+  },
+  'estate.haunting': {
+    lane: 'natural',
+    severity: 'warning',
+    chronicle: true,
+    cooldownDays: 360,
+    titles: [
+      'Workers at {estate} refuse the night shift: "the dead walk the rows"',
+      'Ghost sightings spread across {estate}; palms planted over a mass grave, villagers say',
+    ],
+    bodies: [
+      'The estate planted over an old mass grave at {block}, and now nobody will stay past dusk. Hired hands turn up late and leave early.',
+    ],
+    effects: ['Ghosts across the estate', 'Hired workers at half pace'],
+  },
+  'estate.hauntingDeep': {
+    lane: 'natural',
+    severity: 'critical',
+    chronicle: true,
+    cooldownDays: 360,
+    titles: [
+      'Fruit vanishes from every block at {estate}; crews blame the dead',
+      '{estate} harvests short on every round, and nobody will say where the bunches go',
+    ],
+    bodies: [
+      'Years after the grave at {block} was planted over, whole bunches go missing between the tree and the truck. The crew leaves offerings at the rows and picks less each round.',
+    ],
+    effects: ['Fruit missing from every harvest'],
+  },
 };

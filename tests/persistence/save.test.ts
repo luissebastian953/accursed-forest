@@ -524,6 +524,34 @@ describe('migrations (GDD 7)', () => {
     );
   });
 
+  it('a v19 save (before the haunting) opens with no block planted over a grave', () => {
+    const sim = workedEstate();
+    const storage = memoryStorage();
+
+    slotFor(storage).save(sim.state);
+
+    const key = `${KEY_PREFIX}:save:slot0`;
+    const manifest = JSON.parse(storage.get(key)!) as { schema: number; chunks: string[] };
+
+    manifest.schema = 19;
+    storage.map.set(key, JSON.stringify(manifest));
+
+    for (const chunkKey of manifest.chunks) {
+      const storageKey = `${KEY_PREFIX}:save:slot0:c:${chunkKey}`;
+      const chunk = JSON.parse(decompressFromUTF16(storage.get(storageKey)!)!) as {
+        blocks: Record<string, unknown>[];
+      };
+
+      for (const block of chunk.blocks) delete block['hauntedSince'];
+      storage.map.set(storageKey, compressToUTF16(JSON.stringify(chunk)));
+    }
+
+    const loaded = slotFor(storage).load();
+
+    expect(loaded.blocks.size).toBe(sim.state.blocks.size);
+    for (const block of loaded.blocks.values()) expect(block.hauntedSince).toBe(-1);
+  });
+
   it('a snapshot slot compresses its manifest and still loads', () => {
     const sim = workedEstate();
     const storage = memoryStorage();

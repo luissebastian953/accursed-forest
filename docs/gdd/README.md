@@ -24,6 +24,7 @@ both the rule and every line of code that serves it.
 | 3.8               | Endings: the certificate, bankruptcy, the ban, the horizon        | [03-systems.md](03-systems.md)           |
 | 3.9               | The authorities: attention, letters, investigation, arrest        | [03-systems.md](03-systems.md)           |
 | 3.10              | Reforestation                                                     | [03-systems.md](03-systems.md)           |
+| 3.11              | The haunting: mass graves, the dead, and animals caught in a burn | [03-systems.md](03-systems.md)           |
 | 4.1 to GDD 4.6    | Architecture: the composition root, state, the world              | [04-architecture.md](04-architecture.md) |
 | 5                 | Commands: one file each, the only way the player changes anything | [05-commands.md](05-commands.md)         |
 | 6.1 to GDD 6.9    | Look: palette, terrain, models, animation, sound, picking         | [06-look.md](06-look.md)                 |

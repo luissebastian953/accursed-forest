@@ -181,6 +181,21 @@ export function newsSystem(ctx: SimContext): void {
       case 'ThiefCaught':
         add('estate.thiefCaught');
         break;
+      case 'MobBurned':
+        add('estate.animalBurned', { block: `block ${blockLabel(world, event.block)}` }, [
+          event.block,
+        ]);
+        break;
+      case 'HauntingStage':
+        if (event.stage === 2)
+          add('estate.haunting', { block: `block ${blockLabel(world, event.block)}` }, [
+            event.block,
+          ]);
+        else if (event.stage === 3)
+          add('estate.hauntingDeep', { block: `block ${blockLabel(world, event.block)}` }, [
+            event.block,
+          ]);
+        break;
       case 'CashStolen':
         add('estate.babiNgepet', { cost: `Rp ${rupiah.format(event.amount)}` });
         break;

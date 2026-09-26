@@ -56,6 +56,13 @@ export async function startWorkbench(root: HTMLElement): Promise<() => void> {
   spectral.opacity = 0.45;
   spectral.depthWrite = false;
 
+  // A corpse in a shroud is more there than a ghost is (GDD 3.11).
+  const shrouded = createPaletteMaterial(paletteTexture, uniforms).material;
+
+  shrouded.transparent = true;
+  shrouded.opacity = 0.85;
+  shrouded.depthWrite = false;
+
   // The plinth, drawn once and kept: it is the only thing on the stage that
   // does not change when the subject does.
   const plinthBuilder = new BoxBuilder();
@@ -164,6 +171,7 @@ export async function startWorkbench(root: HTMLElement): Promise<() => void> {
       const built = subject.build({
         material: material as Material,
         spectral: spectral as Material,
+        shrouded: shrouded as Material,
         groundAt: () => 0,
         camera: rig.camera,
         view: STAGE,
@@ -267,6 +275,7 @@ export async function startWorkbench(root: HTMLElement): Promise<() => void> {
     sky.dispose();
     rig.dispose();
     spectral.dispose();
+    shrouded.dispose();
     material.dispose();
     paletteTexture.dispose();
     handle.dispose();

@@ -27,6 +27,8 @@ export interface MobFieldOptions {
   material: Material;
   /** Ghosts need their own, see-through material. */
   spectralMaterial: Material;
+  /** The barely see-through one, for a body rather than an apparition; the spectral one if absent. */
+  denseMaterial?: Material;
   /** Where the POC's wanderers may roam, in world units. */
   bounds: { minX: number; maxX: number; minZ: number; maxZ: number };
   /** Ground height under a point, in world units. */
@@ -294,6 +296,7 @@ export class MobField {
   private readonly orders = new Map<string, ReturnType<typeof partOrder>>();
   private readonly solid: Sheet;
   private readonly spectral: Sheet;
+  private readonly dense: Sheet;
   /** Mobs that have bolted out of sight and must not be drawn again. */
   private readonly fled = new Set<number>();
   private readonly z = zGeometry();
@@ -305,7 +308,14 @@ export class MobField {
   constructor(private readonly options: MobFieldOptions) {
     this.solid = new Sheet(options.material);
     this.spectral = new Sheet(options.spectralMaterial);
-    this.group.add(this.solid.mesh, this.spectral.mesh);
+    this.dense = new Sheet(options.denseMaterial ?? options.spectralMaterial);
+    this.group.add(this.solid.mesh, this.spectral.mesh, this.dense.mesh);
+  }
+
+  /** The sheet a species' see-through parts go on. */
+  private veil(spec: SpeciesSpec): Sheet {
+    if (!spec.spectral) return this.solid;
+    return spec.dense ? this.dense : this.spectral;
   }
 
   get count(): number {
@@ -326,10 +336,10 @@ export class MobField {
     for (const id of again) this.spawn(id);
 
     if (mode === 'nodes') {
-      this.solid.begin();
-      this.solid.end();
-      this.spectral.begin();
-      this.spectral.end();
+      for (const sheet of [this.solid, this.spectral, this.dense]) {
+        sheet.begin();
+        sheet.end();
+      }
     }
   }
 
@@ -380,9 +390,15 @@ export class MobField {
   private attach(mob: Mob): void {
     if (this.mode === 'nodes') {
       const spec = mob.species;
-      const material = spec.spectral ? this.options.spectralMaterial : this.options.material;
+      const veil = spec.dense
+        ? (this.options.denseMaterial ?? this.options.spectralMaterial)
+        : this.options.spectralMaterial;
+      const material = spec.spectral ? veil : this.options.material;
       const parts = this.partsOf(spec);
-      const nodes = parts.map((geometry) => new Mesh(geometry, material) as Object3D);
+      const nodes = parts.map(
+        (geometry, i) =>
+          new Mesh(geometry, spec.parts[i]!.opaque ? this.options.material : material) as Object3D,
+      );
 
       spec.parts.forEach((part, i) => {
         const node = nodes[i]!;
@@ -635,19 +651,29 @@ export class MobField {
     if (this.mode === 'merged') {
       let solid = 0;
       let spectral = 0;
+      let dense = 0;
 
       for (const mob of this.mobs) {
-        const vertices = this.arraysOf(mob.species).reduce((sum, p) => sum + p.vertices, 0);
+        const arrays = this.arraysOf(mob.species);
+        const parts = mob.species.parts;
+        const veiled = mob.species.dense ? 1 : 0;
 
-        if (mob.species.spectral) spectral += vertices;
-        else solid += vertices;
+        // A see-through body may still carry a few solid parts: eyes, a face.
+        for (let i = 0; i < arrays.length; i++) {
+          if (!mob.species.spectral || parts[i]!.opaque) solid += arrays[i]!.vertices;
+          else if (veiled) dense += arrays[i]!.vertices;
+          else spectral += arrays[i]!.vertices;
+        }
+
         if (mob.sleep > 0 || mob.wants.sleep > 0) spectral += this.z.vertices * Z_COUNT;
       }
 
       this.solid.reserve(solid);
       this.spectral.reserve(spectral);
+      this.dense.reserve(dense);
       this.solid.begin();
       this.spectral.begin();
+      this.dense.begin();
     }
 
     for (const mob of this.mobs) {
@@ -760,7 +786,7 @@ export class MobField {
         continue;
       }
 
-      const sheet = mob.species.spectral ? this.spectral : this.solid;
+      const sheet = this.veil(mob.species);
       const order = this.orderOf(mob.species);
       const arrays = this.arraysOf(mob.species);
 
@@ -773,7 +799,7 @@ export class MobField {
 
         if (parent < 0) world.multiplyMatrices(_facing, _local);
         else world.multiplyMatrices(_worlds[parent]!, _local);
-        sheet.append(arrays[i]!, world);
+        (part.opaque ? this.solid : sheet).append(arrays[i]!, world);
       }
 
       if (mob.sleep > 0.5) this.appendZs(mob, y);
@@ -782,6 +808,7 @@ export class MobField {
     if (this.mode === 'merged') {
       this.solid.end();
       this.spectral.end();
+      this.dense.end();
     }
 
     this.lastUpdateMs = performance.now() - started;
@@ -812,5 +839,6 @@ export class MobField {
     this.arrays.clear();
     this.solid.dispose();
     this.spectral.dispose();
+    this.dense.dispose();
   }
 }

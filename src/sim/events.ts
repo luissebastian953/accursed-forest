@@ -53,6 +53,13 @@ export type SimEvent =
   | { type: 'Landslide'; block: BlockId; below: BlockId | null; palmsLost: number }
   | { type: 'ExcavationStarted'; block: BlockId }
   | { type: 'BlockExcavated'; block: BlockId }
+  | { type: 'GraveExcavated'; block: BlockId }
+  | { type: 'HauntingStarted'; block: BlockId }
+  /** A haunted block crossed into a new stage (GDD 3.11): 2 spreads, 3 deepens. */
+  | { type: 'HauntingStage'; block: BlockId; stage: 1 | 2 | 3 }
+  | { type: 'HauntingEnded'; block: BlockId }
+  | { type: 'HarvestHaunted'; block: BlockId; kilograms: number }
+  | { type: 'MobBurned'; id: number; species: MobSpecies; block: BlockId }
   | { type: 'BlockFlooded'; block: BlockId }
   | { type: 'AshSettled'; blocks: number }
   | { type: 'SparkCaught'; block: BlockId }

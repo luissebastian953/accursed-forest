@@ -5,7 +5,7 @@ passes five times a second, which is what makes the ordering below matter.
 
 ## What happens on a tick
 
-`Sim.tick()` in `src/sim/index.ts` runs eleven systems in a fixed order and
+`Sim.tick()` in `src/sim/index.ts` runs twelve systems in a fixed order and
 returns the events they raised.
 
 ```mermaid
@@ -16,7 +16,8 @@ flowchart TD
   active --> weather[weather<br/>rain, sun, the sky]
   weather --> world[worldEvents<br/>flood, drought, haze, landslides]
   world --> terrain[terrain<br/>clearing, burning, felling, excavation]
-  terrain --> growth[growth<br/>palms age and accrue yield]
+  terrain --> haunting[haunting<br/>the grave's clock, the dead going quiet]
+  haunting --> growth[growth<br/>palms age and accrue yield]
   growth --> pest[pest<br/>beetles, Ganoderma]
   pest --> harvest[harvest<br/>ripe blocks, the crew]
   harvest --> economy[economy<br/>sales, upkeep, the price walk]
@@ -31,6 +32,9 @@ The order is not arbitrary:
 
 - **Weather first**, because almost everything downstream reads it: fire
   spread, growth, landslides, the price of fruit.
+- **Haunting right after terrain**, so the tick that fells a plantation on a
+  grave is the tick the dead go quiet, and the harvest below it already
+  reads the new stage.
 - **Harvest before economy**, so fruit picked today is sold at today's price
   rather than tomorrow's.
 - **Society after economy**, so the authority meter sees the burn that

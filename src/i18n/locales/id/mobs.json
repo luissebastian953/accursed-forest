@@ -1,4 +1,14 @@
 {
   "golden": "Kapibara emas. {amount} karena kamu melihatnya.",
-  "babiNgepet": "Babi ngepet kabur dan menjatuhkan {amount}."
+  "babiNgepet": "Babi ngepet kabur dan menjatuhkan {amount}.",
+  "burned": "Kamu baru saja membakar hewan. Seekor {animal} mati terbakar di petak {block}.",
+  "species_wildBoar": "babi hutan",
+  "species_pig": "babi",
+  "species_mouse": "tikus",
+  "species_cow": "sapi",
+  "species_monkey": "monyet",
+  "species_orangutan": "orang utan",
+  "species_pangolin": "trenggiling",
+  "species_capybara": "kapibara",
+  "species_babiNgepet": "babi ngepet"
 }

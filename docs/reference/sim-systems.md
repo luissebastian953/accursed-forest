@@ -77,6 +77,26 @@ manual per block, as GDD 2 says, until auto-harvest arrives as an upgrade.
   was invisible until now, which made a full block look like a saving account
   rather than what it is: fruit going over, and the reason fertilizer's
   bearing bonus (GDD 3.5) pays nothing to a block nobody picks.
+- `pickBlock()`, the missing fruit: the dead take their share (GDD 3.11) after
+  the slots are emptied and before the kilograms are credited, so the yield on
+  the trees is gone either way and only what reaches the Kopdes is short. The
+  wages are paid on the round as picked, not as delivered: the crew did the
+  work.
+
+## `src/sim/systems/haunting.ts`
+
+The haunting's own bookkeeping (GDD 3.11), run right after `terrain`: a
+haunted block that is no longer planted, whether a crew felled it, a wildfire
+took it or a slide buried it, goes quiet, and a block that crossed into a new
+stage since yesterday says so. The stages themselves are computed in
+`sim/haunting.ts`; this system only notices them change.
+
+### Notes
+
+- The stage event is derived, not stored: the stage at `tick` is compared
+  with the stage at `tick - 1`, so a save loaded on the anniversary raises it
+  once and a save loaded a day later never raises it at all, which is the
+  right answer for a headline about a change.
 
 ## `src/sim/systems/mobs.ts`
 
@@ -145,6 +165,26 @@ and pick the next thing when the current one runs out.
   planted or reforesting block, applies a `fertilizer`. The fertilizer is the
   expensive habit: at `ITEM_PRICES.fertilizer` it is the largest recurring cost
   a worker can incur, once per block per `FERTILIZER_DAYS`.
+- `spawnHaunting()`: the dead a planted grave raises (GDD 3.11). Each haunted
+  block keeps a fixed few spectres on it, the count fixed per block by its id
+  so a crowd does not drift up and down, and once the estate is at stage 2 a
+  capped few more turn up on any owned block. They are counted by `target`,
+  which is why the spectres have a habit table of their own
+  (`HABITS.spectre`): a `wander` retargets a mob to the block it roams to, and
+  a ghost that wandered off its grave was counted as missing and replaced,
+  without end.
+- `spawnSpectre()`: half ghosts, half pocong, by a coin from the mob stream.
+- `burnedAlive()`: an animal standing on a burning block dies with
+  `BURNED_ALIVE.killPerDay` or bolts (GDD 3.6.1). It runs after every mob has
+  stepped, so a boar that walked into a fire this morning is in it by the
+  time the roll is made, and the dead are dropped from the list in the same
+  pass that drops the departed, without a `MobLeft`: `MobBurned` is the
+  event, and the renderer raises a skull from it. Only animals burn: the crew
+  working the fire, a thief in the trees and the dead themselves do not.
+- `stepWild()`, the leave at a run: an animal bolting out of a fire moves at
+  `BURNED_ALIVE.fleeSpeed` for as long as the block under it is burning, and
+  drops to a walk once it is out. There is no `fleeing` flag on a mob; the
+  fire under its feet is the flag.
 
 ## `src/sim/systems/news.ts`
 
@@ -223,7 +263,7 @@ since the last one, whose events wait in the same sink.
 ## `src/sim/systems/terrain.ts`
 
 Terrain system (GDD 3.1): clearing and burning progress, timber, debris decay,
-and the crew digging a landslide out (GDD 3.6.2).
+and the crew digging a landslide or a grave out (GDD 3.6.2, GDD 3.11).
 
 ### Notes
 
@@ -231,8 +271,12 @@ and the crew digging a landslide out (GDD 3.6.2).
   until the last day, then come down together, and the block goes back to bare
   land with the debris of the job on it. Nothing is sold: this is the one
   clearing that pays for nothing it brings down.
-- `terrain()` excavation branch: the crew digging a slide out. When they are
-  done the spoil goes, the debris with it, and the scar comes off the map.
+- `terrain()` excavation branch: one crew, two jobs. On a slid hectare the
+  spoil goes, the debris with it, and the scar comes off the map. On an
+  untouched grave the block becomes cleared land carrying
+  `HAUNT.exhumedDebris` of earth and bone, and raises `GraveExcavated` rather
+  than `BlockExcavated` (GDD 3.11). The landslide fields are cleared either
+  way, so a grave on a slope that has also slid needs one crew, not two.
 
 ## `src/sim/systems/weather.ts`
 

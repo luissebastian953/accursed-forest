@@ -32,6 +32,7 @@ import { settleCost, settleListening, settleable } from '@sim/commands/settleInv
 import { kopdesMaturedNeeded, kopdesUpgradeCost } from '@sim/commands/upgradeKopdes';
 import { EventSink } from '@sim/events';
 import { isFuel, isWildfire } from '@sim/fire';
+import { blockHauntStage, hauntedYears, isGrave, wasGrave } from '@sim/haunting';
 import type { Sim } from '@sim/index';
 import { distanceToKopdes, inKopdesRange, kopdesRange } from '@sim/kopdes';
 import { slotLabel } from '@sim/labels';
@@ -248,6 +249,11 @@ export interface BlockView {
   settle: { cost: number; enabled: boolean; note: string } | null;
   /** A crew has the block: the panel reports, and nothing on it can be pressed. */
   busy: boolean;
+  /**
+   * A dug-out mass grave (GDD 3.11): the red label that says what this hectare
+   * was, and, once planted, how far the haunting has got.
+   */
+  haunt: { warning: string; stage: 0 | 1 | 2 | 3; line: string | null; hint: string | null } | null;
   /** The chop under way, as a card: how far along, and what it will take (GDD 8 panel 24a). */
   clearing: { pct: number; crew: number; days: number } | null;
   /**
@@ -371,11 +377,28 @@ function settleView(state: SimState, phase: string): BlockView['settle'] {
   };
 }
 
+/** What the red label on a former grave says, and how far the haunting has got. */
+function hauntView(state: SimState, block: Readonly<Block>): BlockView['haunt'] {
+  if (!wasGrave(block)) return null;
+
+  const stage = blockHauntStage(block, state.tick);
+  const years = Math.max(0, hauntedYears(block, state.tick));
+
+  return {
+    warning: t('block.graveWarning'),
+    stage,
+    line: stage === 0 ? null : t(`block.haunt${stage}`, { n: years }),
+    hint: stage === 0 ? null : t('block.hauntHint'),
+  };
+}
+
 /** Which icon heads the panel: what is on the block, or what it is. */
 function blockIcon(biome: Biome, phase: string): IconName {
   if (phase === 'kopdes') return 'kopdes';
   if (phase === 'reforesting') return 'shop-sapling';
   if (phase === 'planted') return 'biome-palm-planted';
+  // Dug out or not, an unplanted grave is still the grave.
+  if (biome === 'grave') return 'biome-grave';
   if (phase === 'cleared' || phase === 'clearing') return 'biome-forest-cleared';
 
   switch (biome) {
@@ -809,8 +832,19 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
     switch (block.phase) {
       case 'wild':
         // Open land pairs the two ways to take it (see `landView`); the rest
-        // has only one, and the crew does it.
-        if (!spec.openLand) {
+        // has only one, and the crew does it. A grave is dug, never chopped.
+        if (isGrave(block)) {
+          if (block.landslideAt < 0) {
+            actions.push(
+              action(
+                t('block.excavateGrave'),
+                { type: 'ExcavateBlock', block: id },
+                'action-ExcavateBlock',
+                { icon: 'shop-excavator' },
+              ),
+            );
+          }
+        } else if (!spec.openLand) {
           actions.push(
             action(t('block.chop'), { type: 'ChopBlock', block: id }, 'action-ChopBlock', {
               cost: chopCost(block.biome, state),
@@ -1433,6 +1467,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
       block.burning ||
       block.fellingUntil > state.tick ||
       block.excavateUntil > state.tick,
+    haunt: hauntView(state, block),
     clearing:
       block.phase === 'clearing' && !block.burning
         ? {

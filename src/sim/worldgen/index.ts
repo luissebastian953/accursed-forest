@@ -5,7 +5,13 @@ import type { Biome, Block, BlockId, WorldGenParams } from '../types.ts';
 
 import { classifyBiome, type CellTerrain } from './biomes.ts';
 import { NOISE_TAG, createElevationField, type ElevationField } from './elevation.ts';
-import { findProtectedForest, findStartSite, findVillages, type StartSite } from './features.ts';
+import {
+  findGraves,
+  findProtectedForest,
+  findStartSite,
+  findVillages,
+  type StartSite,
+} from './features.ts';
 import { createMoistureField } from './moisture.ts';
 import { traceRivers, type RiverField } from './rivers.ts';
 
@@ -130,6 +136,13 @@ export function createWorld(
     start,
     forkRng(seed, NOISE_TAG.villages),
   );
+  const graveCells = findGraves(
+    featureInputs,
+    isProtected,
+    start,
+    villageCells,
+    forkRng(seed, NOISE_TAG.graves),
+  );
 
   const generatedCache = new Array<GeneratedBlock | undefined>(width * height);
 
@@ -148,7 +161,9 @@ export function createWorld(
       ? 'protected'
       : villageCells.has(key)
         ? 'village'
-        : baseBiomeAt(x, y);
+        : graveCells.has(key)
+          ? 'grave'
+          : baseBiomeAt(x, y);
 
     const block: GeneratedBlock = {
       biome,
@@ -207,6 +222,7 @@ export function createWorld(
       landslidePalms: 0,
       excavateUntil: -1,
       fellingUntil: -1,
+      hauntedSince: -1,
       species: 'palm',
     };
   };

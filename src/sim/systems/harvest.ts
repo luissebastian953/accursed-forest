@@ -3,6 +3,7 @@ import { sampleCurve } from '@shared/math';
 import { HARVEST_ROTATION_DAYS, YIELD_CURVE } from '../balance/growth.ts';
 import { HARVEST } from '../balance/prices.ts';
 import { ASH_EVENT, activeEvent } from '../fire.ts';
+import { missingFruit } from '../haunting.ts';
 import { inKopdesRange } from '../kopdes.ts';
 import { wageFactor } from '../macro.ts';
 import { ageInYears, isBearing, slotStage } from '../palms.ts';
@@ -79,6 +80,14 @@ export function pickBlock(ctx: SimContext, id: BlockId, auto: boolean): number {
     if (!isBearing(slotStage(palms, slot, 'palm', state.tick))) continue;
     kilograms += palms.yieldAcc[slot]!;
     palms.yieldAcc[slot] = 0;
+  }
+
+  // The dead take their share before the crew counts it (GDD 3.11).
+  const missing = missingFruit(state, id, kilograms);
+
+  if (missing > 0) {
+    kilograms -= missing;
+    events.push({ type: 'HarvestHaunted', block: id, kilograms: missing });
   }
 
   block.lastHarvest = state.tick;

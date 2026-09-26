@@ -1,8 +1,10 @@
 import { BIOMES } from '../balance/biomes.ts';
 import { FIRE } from '../balance/fire.ts';
+import { HAUNT } from '../balance/haunting.ts';
 import { DEBRIS } from '../balance/pests.ts';
 import { CLEAR_PLANTATION, TIMBER_VALUE } from '../balance/prices.ts';
 import { finishBurn } from '../fire.ts';
+import { isGrave } from '../haunting.ts';
 import { earn, type SimContext } from '../state.ts';
 
 export function terrain(ctx: SimContext): void {
@@ -77,11 +79,25 @@ export function terrain(ctx: SimContext): void {
     // the scar clears.
     if (block.excavateUntil >= 0) {
       if (state.tick >= block.excavateUntil) {
+        const grave = isGrave(block);
+
         block.excavateUntil = -1;
         block.landslideAt = -1;
         block.landslidePalms = 0;
         block.debris = 0;
-        events.push({ type: 'BlockExcavated', block: block.id });
+
+        if (grave) {
+          // The dead come up with the earth: the hectare is cleared land now,
+          // and what the crew turned up lies on it as debris (GDD 3.11).
+          block.phase = 'cleared';
+          block.clearProgress = 1;
+          block.debris = HAUNT.exhumedDebris;
+          events.push({ type: 'GraveExcavated', block: block.id });
+          events.push({ type: 'BlockCleared', block: block.id });
+        } else {
+          events.push({ type: 'BlockExcavated', block: block.id });
+        }
+
         events.push({ type: 'BlockChanged', block: block.id });
       }
 

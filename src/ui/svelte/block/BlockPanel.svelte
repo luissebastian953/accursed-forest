@@ -261,6 +261,23 @@
             {/each}
           </div>
 
+          {#if v.haunt}
+            {@const h = v.haunt}
+            <!-- The grave's label (GDD 3.11): red, and it stays red however the block is used. -->
+            <div class="haunt" data-testid="grave-warning" data-stage={h.stage}>
+              <div class="flex items-center gap-2 font-extrabold">
+                <Icon name="police-warning" />
+                <span>{h.warning}</span>
+              </div>
+              {#if h.line}
+                <div class="mt-1 text-xs font-bold" data-testid="haunt-line">{h.line}</div>
+              {/if}
+              {#if h.hint}
+                <div class="mt-0.5 text-xs opacity-85">{h.hint}</div>
+              {/if}
+            </div>
+          {/if}
+
           <!-- The water and ground work reads with the tiles it answers to,
                not after the pests at the foot of the panel. -->
           {#if v.minor.length > 0}
@@ -916,6 +933,16 @@
   /* The same pressed-card edge the buttons carry, in the zone's own pink. */
   .danger {
     box-shadow: 0 3px 0 #e6a594;
+  }
+
+  /* The grave's label: solid red, white on it, so it is read before anything else on the block. */
+  .haunt {
+    border-radius: 14px;
+    border: 2px solid var(--red-edge);
+    background: var(--red);
+    color: #fff;
+    padding: 0.6rem 0.75rem;
+    box-shadow: 0 3px 0 var(--red-edge);
   }
 
   .clearing {

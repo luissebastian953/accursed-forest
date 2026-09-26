@@ -2,9 +2,11 @@ import { clamp } from '@shared/math';
 
 import { BIOMES } from '../balance/biomes.ts';
 import { FERTILIZER_DAYS } from '../balance/growth.ts';
+import { HAUNT } from '../balance/haunting.ts';
 import {
   BABI_NGEPET,
   BEHAVIOUR,
+  BURNED_ALIVE,
   CLIMB,
   HABITS,
   SHINY,
@@ -22,6 +24,7 @@ import { BEETLES, GANODERMA } from '../balance/pests.ts';
 import { WORLD } from '../balance/world.ts';
 import { itemPrice } from '../commands/buyItem.ts';
 import { isWildfire } from '../fire.ts';
+import { hauntStage, hauntedBlocks, workerFactor } from '../haunting.ts';
 import { shopIndex, wageFactor, wildlifeQuiet } from '../macro.ts';
 import { clearSlot, isBearing, plantSlot, slotStage } from '../palms.ts';
 import { chance, forkRng, nextFloat, nextInt, pickWeighted, type RngState } from '../rng.ts';
@@ -42,14 +45,19 @@ export function mobs(ctx: SimContext): void {
   spawnWildlife(ctx, rng);
   spawnVisitors(ctx, rng);
   spawnGhost(ctx, rng);
+  spawnHaunting(ctx, rng);
   spawnCrews(ctx, rng);
 
   for (const mob of state.mobs) step(ctx, mob, rng);
+
+  const burned = burnedAlive(ctx, rng);
 
   // Whoever has made it off the edge, or run out of time, goes.
   const staying: Mob[] = [];
 
   for (const mob of state.mobs) {
+    if (burned.has(mob.id)) continue;
+
     const leaving = mob.intent === 'leave';
     const gone = leaving && (atTarget(mob) || state.tick >= mob.until + BEHAVIOUR.leaveGraceDays);
     const faded = !leaving && !mob.hired && mob.species !== 'crew' && state.tick >= mob.until;
@@ -168,7 +176,7 @@ function roamTarget(
     const id = world.toId(x, y);
     const block = readBlock(state, world, id);
 
-    if (block.biome === 'river') continue;
+    if (block.biome === 'river' || block.burning) continue;
     if (onPlanted && block.phase === 'planted') return id;
     if (biomes === null || (block.phase === 'wild' && biomes.includes(block.biome))) return id;
   }
@@ -399,6 +407,104 @@ function spawnGhost(ctx: SimContext, rng: RngState): void {
   pickBehaviour(ctx, ghost, rng, false);
 }
 
+function isSpectre(mob: Mob): boolean {
+  return mob.species === 'ghost' || mob.species === 'pocong';
+}
+
+/** One of the dead, drifting or hopping, on the block it was raised from. */
+function spawnSpectre(ctx: SimContext, rng: RngState, at: BlockId): void {
+  const { state } = ctx;
+  const species: MobSpecies = chance(rng, 0.5) ? 'pocong' : 'ghost';
+  const stay = days(rng, HAUNT.stayDays);
+  const mob = spawn(ctx, species, at, rng, { until: state.tick + stay, target: at });
+
+  pickBehaviour(ctx, mob, rng, false);
+}
+
+/**
+ * The haunting (GDD 3.11): a planted grave keeps a few spectres on it, and
+ * once it has spread they turn up on any block of the estate.
+ */
+function spawnHaunting(ctx: SimContext, rng: RngState): void {
+  const { state } = ctx;
+  const haunted = hauntedBlocks(state);
+
+  if (haunted.length === 0) return;
+
+  const graves = new Set(haunted.map((b) => b.id));
+  const span = HAUNT.onGrave.max - HAUNT.onGrave.min + 1;
+
+  for (const block of haunted) {
+    // How many the grave keeps is fixed per block, so a crowd does not drift up and down.
+    const want = HAUNT.onGrave.min + (block.id % span);
+    let here = 0;
+
+    for (const mob of state.mobs) if (isSpectre(mob) && mob.target === block.id) here += 1;
+    if (here < want && chance(rng, HAUNT.graveAppearPerDay)) spawnSpectre(ctx, rng, block.id);
+  }
+
+  if (hauntStage(state) < 2) return;
+
+  let roaming = 0;
+
+  for (const mob of state.mobs) {
+    if (isSpectre(mob) && (mob.target === null || !graves.has(mob.target))) roaming += 1;
+  }
+
+  if (roaming >= HAUNT.estateCap || !chance(rng, HAUNT.estateAppearPerDay)) return;
+
+  const owned = ownedBlocks(state).filter((id) => !graves.has(id));
+
+  if (owned.length > 0) spawnSpectre(ctx, rng, owned[nextInt(rng, owned.length)]!);
+}
+
+/** The block a mob is standing on, if it is on the map and the estate knows it. */
+function blockUnder(ctx: SimContext, mob: Mob): Block | undefined {
+  const { state, world } = ctx;
+  const bx = Math.floor(mob.x);
+  const bz = Math.floor(mob.z);
+
+  if (!world.inBounds(bx, bz)) return undefined;
+  return state.blocks.get(world.toId(bx, bz));
+}
+
+function isAnimal(mob: Mob): boolean {
+  return (WILD_KINDS as string[]).includes(mob.species) || mob.species === 'babiNgepet';
+}
+
+/**
+ * An animal standing in a fire dies or bolts (GDD 3.6.1). Returns the ids of
+ * the dead; the caller drops them, and the renderer raises a skull for each.
+ */
+function burnedAlive(ctx: SimContext, rng: RngState): Set<number> {
+  const { state, world, events } = ctx;
+  const dead = new Set<number>();
+
+  for (const mob of state.mobs) {
+    if (!isAnimal(mob)) continue;
+
+    const block = blockUnder(ctx, mob);
+
+    if (!block?.burning) continue;
+
+    if (chance(rng, BURNED_ALIVE.killPerDay)) {
+      events.push({ type: 'MobBurned', id: mob.id, species: mob.species, block: block.id });
+      dead.add(mob.id);
+      continue;
+    }
+
+    if (mob.intent === 'leave') continue;
+
+    [mob.tx, mob.tz] = centre(world, edgeNear(ctx, rng, block.id));
+    mob.intent = 'leave';
+    mob.climb = 0;
+    mob.standing = false;
+    mob.until = state.tick;
+  }
+
+  return dead;
+}
+
 /**
  * Keeps every worked block's crew topped up: a spreading wildfire is nobody's
  * job to staff.
@@ -488,6 +594,7 @@ function step(ctx: SimContext, mob: Mob, rng: RngState): void {
     case 'security':
       return stepSecurity(ctx, mob, rng);
     case 'ghost':
+    case 'pocong':
       return stepGhost(ctx, mob, rng);
     default:
       return stepWild(ctx, mob, rng);
@@ -696,7 +803,10 @@ function stepWild(ctx: SimContext, mob: Mob, rng: RngState): void {
   const { state, world } = ctx;
 
   if (mob.intent === 'leave') {
-    walk(ctx, mob, WILDLIFE.wanderSpeed);
+    // Out of a fire at a run; off the estate at a walk.
+    const burning = blockUnder(ctx, mob)?.burning ?? false;
+
+    walk(ctx, mob, burning ? BURNED_ALIVE.fleeSpeed : WILDLIFE.wanderSpeed);
     return;
   }
 
@@ -723,7 +833,9 @@ function stepGhost(ctx: SimContext, mob: Mob, rng: RngState): void {
     paceTarget(mob, rng, BEHAVIOUR.paceRadius * 1.5);
   }
 
-  stepRepertoire(ctx, mob, rng, { pace: GHOST.speed, wander: GHOST.speed * 1.5 }, false);
+  const speed = mob.species === 'pocong' ? GHOST.pocongSpeed : GHOST.speed;
+
+  stepRepertoire(ctx, mob, rng, { pace: speed, wander: speed * 1.5 }, false);
 }
 
 function stepThief(ctx: SimContext, mob: Mob, rng: RngState): void {
@@ -984,13 +1096,16 @@ function stepSanitizer(ctx: SimContext, mob: Mob, rng: RngState): void {
     else idleAtKopdes(ctx, mob);
   }
 
-  walk(ctx, mob, WORKERS.sanitizer.speed);
+  // A haunted estate's hands are slow ones (GDD 3.11).
+  const factor = workerFactor(state);
+
+  walk(ctx, mob, WORKERS.sanitizer.speed * factor);
   if (mob.target === null || !atTarget(mob)) return;
 
   const block = writeBlock(state, world, mob.target);
 
   mob.intent = 'work';
-  block.debris = Math.max(0, block.debris - WORKER_JOBS.sanitizePerDay);
+  block.debris = Math.max(0, block.debris - WORKER_JOBS.sanitizePerDay * factor);
   events.push({ type: 'BlockSanitized', block: block.id, debris: block.debris });
   events.push({ type: 'BlockChanged', block: block.id });
 
@@ -1049,7 +1164,9 @@ function stepDoctor(ctx: SimContext, mob: Mob): void {
     else idleAtKopdes(ctx, mob);
   }
 
-  walk(ctx, mob, WORKERS.plantDoctor.speed);
+  const factor = workerFactor(state);
+
+  walk(ctx, mob, WORKERS.plantDoctor.speed * factor);
   if (mob.target === null || !atTarget(mob)) return;
   mob.intent = 'work';
 
@@ -1062,13 +1179,10 @@ function stepDoctor(ctx: SimContext, mob: Mob): void {
   }
 
   // Pull the visibly sick and the stumps, a few a day, and dose the block.
+  const removals = Math.max(1, Math.round(WORKER_JOBS.removalsPerDay * factor));
   let removed = 0;
 
-  for (
-    let slot = 0;
-    slot < palms.plantedAt.length && removed < WORKER_JOBS.removalsPerDay;
-    slot++
-  ) {
+  for (let slot = 0; slot < palms.plantedAt.length && removed < removals; slot++) {
     if (palms.plantedAt[slot]! < 0 || palms.ganoderma[slot]! < 2) continue;
     clearSlot(palms, slot);
     events.push({ type: 'PalmRemoved', block: mob.target, slot });
@@ -1098,6 +1212,7 @@ function stepDoctor(ctx: SimContext, mob: Mob): void {
 function stepSecurity(ctx: SimContext, mob: Mob, rng: RngState): void {
   const { state, world } = ctx;
   const thief = state.mobs.find((m) => m.species === 'thief' && m.intent !== 'leave');
+  const factor = workerFactor(state);
 
   if (thief) {
     // Head for the thief, at a run.
@@ -1105,7 +1220,7 @@ function stepSecurity(ctx: SimContext, mob: Mob, rng: RngState): void {
     mob.tz = thief.z;
     mob.target = null;
     mob.intent = 'travel';
-    walk(ctx, mob, WORKER_JOBS.chaseSpeed);
+    walk(ctx, mob, WORKER_JOBS.chaseSpeed * factor);
     return;
   }
 
@@ -1134,7 +1249,7 @@ function stepSecurity(ctx: SimContext, mob: Mob, rng: RngState): void {
     }
   }
 
-  walk(ctx, mob, WORKERS.security.speed);
+  walk(ctx, mob, WORKERS.security.speed * factor);
 }
 
 /** The wild kinds, for the renderer and the tests. */

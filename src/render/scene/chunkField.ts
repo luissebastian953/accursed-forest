@@ -82,6 +82,9 @@ function tinted(slot: number, v: number): number {
     case Palette.Sand:
       // Village ground: trodden paths through grass.
       return v > 0.1 ? Palette.GrassLight : v < -0.35 ? Palette.Dirt : slot;
+    case Palette.GraveEarth:
+      // Turned earth over the dead: mottled with drier dirt, nothing green.
+      return v > 0.35 ? Palette.Dirt : v < -0.55 ? Palette.RockDark : slot;
     default:
       return slot;
   }
@@ -236,6 +239,8 @@ function topSlot(
       return Palette.Sand;
     case 'swamp':
       return Palette.WaterShallow;
+    case 'grave':
+      return Palette.GraveEarth;
   }
 }
 
@@ -387,6 +392,9 @@ function warpedBiome(
   biome: Biome,
   look: LandLook,
 ): Biome {
+  // A grave is dug to a line: its earth neither wanders out nor lets grass wander in.
+  if (biome === 'grave') return biome;
+
   const wx = look.warp(gx / EDGE_WARP_SCALE, gz / EDGE_WARP_SCALE) * EDGE_WARP;
   const wz = look.warp(gx / EDGE_WARP_SCALE + 31.7, gz / EDGE_WARP_SCALE - 12.3) * EDGE_WARP;
   const bx = Math.floor((gx + wx) / WORLD.blockSide);
@@ -401,7 +409,7 @@ function warpedBiome(
 
   const sampled = other?.biome ?? world.generated(bx, by).biome;
 
-  return sampled === 'river' ? biome : sampled;
+  return sampled === 'river' || sampled === 'grave' ? biome : sampled;
 }
 
 /** Field + mesh + props in one call; what the worker runs per request. */

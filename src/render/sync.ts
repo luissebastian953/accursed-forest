@@ -1,5 +1,5 @@
 import type { SimEvent } from '@sim/events';
-import type { BlockId, Ending, ItemId, YearSummary } from '@sim/types';
+import type { BlockId, Ending, ItemId, MobSpecies, YearSummary } from '@sim/types';
 
 export interface EventDigest {
   /** Blocks whose terrain look changed: rebuild their chunks. */
@@ -58,6 +58,16 @@ export interface EventDigest {
   thiefCaught: boolean;
   /** Mobs changed this tick: arrivals, departures, workers hired or let go. */
   mobsChanged: boolean;
+  /** Animals that died in a fire this tick, and where: a skull rises from each. */
+  mobsBurned: { id: number; species: MobSpecies; block: BlockId }[];
+  /** A mass grave dug out: cleared land now, and the panel says what it was. */
+  graveExcavated: Set<BlockId>;
+  /** The haunting (GDD 3.11): planted over a grave, spread or deepened, and laid to rest. */
+  hauntingStarted: BlockId[];
+  hauntingStage: { block: BlockId; stage: 1 | 2 | 3 }[];
+  hauntingEnded: BlockId[];
+  /** Fruit the dead took from a round before the crew counted it. */
+  hauntedHarvest: { block: BlockId; kilograms: number }[];
   letter: boolean;
   investigationOpened: boolean;
   investigationEnded: boolean;
@@ -117,6 +127,12 @@ export function digestEvents(events: readonly SimEvent[]): EventDigest {
     cashStolen: 0,
     thiefCaught: false,
     mobsChanged: false,
+    mobsBurned: [],
+    graveExcavated: new Set(),
+    hauntingStarted: [],
+    hauntingStage: [],
+    hauntingEnded: [],
+    hauntedHarvest: [],
     letter: false,
     investigationOpened: false,
     investigationEnded: false,
@@ -291,6 +307,26 @@ export function digestEvents(events: readonly SimEvent[]): EventDigest {
       case 'WorkerHired':
       case 'WorkerDismissed':
         d.mobsChanged = true;
+        break;
+      case 'MobBurned':
+        d.mobsChanged = true;
+        d.mobsBurned.push({ id: event.id, species: event.species, block: event.block });
+        break;
+      case 'GraveExcavated':
+        d.graveExcavated.add(event.block);
+        d.terrainBlocks.add(event.block);
+        break;
+      case 'HauntingStarted':
+        d.hauntingStarted.push(event.block);
+        break;
+      case 'HauntingStage':
+        d.hauntingStage.push({ block: event.block, stage: event.stage });
+        break;
+      case 'HauntingEnded':
+        d.hauntingEnded.push(event.block);
+        break;
+      case 'HarvestHaunted':
+        d.hauntedHarvest.push({ block: event.block, kilograms: event.kilograms });
         break;
       case 'LightningStruck':
         d.lightning.push({ block: event.block, ignited: event.ignited });

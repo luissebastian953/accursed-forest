@@ -109,6 +109,15 @@ export const Palette = {
   CloudTop: 85,
   /** The orangutan's bare face, belly and hands. */
   ApeGrey: 86,
+
+  // The haunting (GDD 3.11): turned earth, the dead, and the eyes that watch from it.
+  GraveEarth: 89,
+  GhostEye: 90,
+  /** The pocong's shroud ties: light grey against the white. */
+  Shroud: 91,
+  Bone: 92,
+  /** The face in the shroud's opening: grey, not black, so it is a face and not a hole. */
+  ShroudFace: 93,
 } as const;
 
 export type PaletteSlot = (typeof Palette)[keyof typeof Palette];

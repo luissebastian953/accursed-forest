@@ -1,4 +1,5 @@
 import { EXCAVATION } from '../balance/events.ts';
+import { isGrave } from '../haunting.ts';
 import { readBlock, writeBlock } from '../state.ts';
 import { staffBlock } from '../systems/mobs.ts';
 import type { Command, Rejection } from '../types.ts';
@@ -25,7 +26,11 @@ export const excavateBlock: CommandHandler<ExcavateBlock> = {
 
     if (!block.owned) return reject('notOwned', 'You do not own this block.');
     if (block.burning) return reject('burning', 'Wait for the fire to go out.');
-    if (block.landslideAt < 0) return reject('wrongPhase', 'Nothing has come down here.');
+
+    // The one crew digs two things: a slide out of a hectare, or the dead out of one (GDD 3.11).
+    if (block.landslideAt < 0 && !isGrave(block)) {
+      return reject('wrongPhase', 'Nothing has come down here.');
+    }
 
     if (block.excavateUntil > state.tick) {
       return reject('occupied', 'The crew is already digging this one out.');

@@ -81,7 +81,7 @@ Twenty-eight commands, in the order the registry lists them:
 | `BuyItem`             | `buyItem.ts`             | Buys stock from the Kopdes shop at `base × inputPriceIndex`.                                           |
 | `BurnBlock`           | `burnBlock.ts`           | Burns a block at low, medium or high intensity; nearly free and fast, but it can spread.               |
 | `SanitizeBlock`       | `sanitizeBlock.ts`       | A sanitation crew from stock clears a block's debris, the real fix for beetles.                        |
-| `ExcavateBlock`       | `excavateBlock.ts`       | A one-shot crew digs out a landslide's spoil and debris so the block is ground again.                  |
+| `ExcavateBlock`       | `excavateBlock.ts`       | A one-shot crew digs out a landslide's spoil, or opens a mass grave, so the block is ground again.     |
 | `IrrigateBlock`       | `irrigateBlock.ts`       | A per-block upgrade that floors dry-season moisture, at a daily water cost thereafter.                 |
 | `DrainBlock`          | `drainBlock.ts`          | A per-block upgrade that flood-proofs a block and caps how waterlogged it can get.                     |
 | `SetTrap`             | `treatments.ts`          | Sets pheromone traps against beetles on one block for a window of days.                                |

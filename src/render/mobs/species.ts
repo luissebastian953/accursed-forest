@@ -234,6 +234,8 @@ function biped(options: {
   /** What the right hand holds: an axe, a flamethrower, or a digger's shovel. */
   tool?: 'axe' | 'flamethrower' | 'shovel';
   spectral?: boolean;
+  /** Two eyes in this slot on the front of the head, drawn solid whatever the body is. */
+  eyes?: number;
 }): SpeciesSpec {
   const skin = options.skin ?? Palette.Skin;
   const h = options.height;
@@ -269,6 +271,22 @@ function biped(options: {
       slot: options.hat,
       role: 'still',
     });
+  }
+
+  if (options.eyes !== undefined) {
+    for (const side of [-1, 1]) {
+      parts.push({
+        name: side < 0 ? 'eyeL' : 'eyeR',
+        parent: 'head',
+        // Just proud of the face, so they never sink into a see-through head,
+        // and big for a face: at estate zoom a small eye is not there at all.
+        at: [side * head * 0.24, head * 0.1, head * 0.5 + 0.02],
+        size: [head * 0.3, head * 0.22, 0.06],
+        slot: options.eyes,
+        role: 'still',
+        opaque: true,
+      });
+    }
   }
 
   for (const side of [-1, 1]) {
@@ -763,8 +781,103 @@ export const SPECIES: Record<string, SpeciesSpec> = {
     height: 1.6,
     speed: 0.5,
     spectral: true,
+    eyes: Palette.GhostEye,
   }),
+  pocong: pocong(),
 };
+
+/**
+ * The pocong: a corpse in its shroud, tied at the feet, the neck and the top
+ * of the head, no arms or legs to walk with, so it hops (GDD 3.11).
+ */
+function pocong(): SpeciesSpec {
+  const body = 0.95;
+  const width = 0.44;
+  const head = 0.36;
+  const knot = 0.1;
+
+  return {
+    id: 'pocong',
+    label: 'Pocong',
+    parts: [
+      {
+        name: 'body',
+        at: [0, 0.2 + body / 2, 0],
+        size: [width, body, width * 0.8],
+        slot: Palette.Ghost,
+        role: 'body',
+      },
+      {
+        name: 'footTie',
+        parent: 'body',
+        at: [0, -body / 2 + 0.07, 0],
+        size: [width + 0.04, 0.1, width * 0.8 + 0.04],
+        slot: Palette.Shroud,
+        role: 'still',
+      },
+      {
+        name: 'neckTie',
+        parent: 'body',
+        at: [0, body / 2 - 0.05, 0],
+        size: [width * 0.7, 0.1, width * 0.6],
+        slot: Palette.Shroud,
+        role: 'still',
+      },
+      {
+        name: 'head',
+        parent: 'body',
+        at: [0, body / 2 + head * 0.5, 0],
+        size: [head, head, head * 0.92],
+        slot: Palette.Ghost,
+        role: 'head',
+      },
+      // The face in the shroud's opening: grey, and drawn solid so it keeps its colour.
+      {
+        name: 'face',
+        parent: 'head',
+        at: [0, -head * 0.04, head * 0.46 + 0.02],
+        size: [head * 0.66, head * 0.7, 0.05],
+        slot: Palette.ShroudFace,
+        role: 'still',
+        opaque: true,
+      },
+      // The knot: the shroud gathered and tied above the head, flaring as it goes up.
+      {
+        name: 'knotA',
+        parent: 'head',
+        at: [0, head / 2 + knot / 2, 0],
+        size: [0.12, knot, 0.12],
+        slot: Palette.Shroud,
+        role: 'still',
+      },
+      {
+        name: 'knotB',
+        parent: 'head',
+        at: [0, head / 2 + knot * 1.5, 0],
+        size: [0.22, knot, 0.22],
+        slot: Palette.Ghost,
+        role: 'still',
+      },
+      {
+        name: 'knotC',
+        parent: 'head',
+        at: [0, head / 2 + knot * 2.5, 0],
+        size: [0.34, knot, 0.34],
+        slot: Palette.Ghost,
+        role: 'still',
+      },
+    ],
+    speed: 0.9,
+    swing: 0,
+    // No legs: the whole body hops when it moves, and hangs in the air when it does not.
+    bob: 0.55,
+    cadence: 1.4,
+    spectral: true,
+    // A corpse in a shroud is more there than a ghost is.
+    dense: true,
+    biped: true,
+  };
+}
 
 export type SpeciesId = keyof typeof SPECIES;
 

@@ -231,6 +231,44 @@ describe('chunk field (GDD 6.3, GDD 6.7)', () => {
     expect(share).toBeLessThan(0.35);
   });
 
+  it('a mass grave is turned earth with mounds on it, and its edge does not wander', () => {
+    const world = createWorld(42);
+    let grave: number | null = null;
+
+    for (let y = 0; y < world.height && grave === null; y++) {
+      for (let x = 0; x < world.width; x++) {
+        if (world.generated(x, y).biome === 'grave') {
+          grave = world.toId(x, y);
+          break;
+        }
+      }
+    }
+
+    expect(grave).not.toBeNull();
+
+    const [cx, cy] = chunkOfBlock(world, grave!);
+    const f = buildChunkField(world, cx, cy, EMPTY);
+    const [bx, by] = world.toXY(grave!);
+    const localX = (bx - cx * WORLD.chunkSide) * WORLD.blockSide + f.inset!;
+    const localZ = (by - cy * WORLD.chunkSide) * WORLD.blockSide + f.inset!;
+
+    for (let z = 0; z < WORLD.blockSide; z++) {
+      for (let x = 0; x < WORLD.blockSide; x++) {
+        const slot = f.topSlots[(localZ + z) * f.size + (localX + x)]!;
+
+        // Nothing green on it: earth, drier earth and stone, to the block's edge.
+        expect([Palette.GraveEarth, Palette.Dirt, Palette.RockDark], `column ${x}, ${z}`).toContain(
+          slot,
+        );
+      }
+    }
+
+    // The mounds are props: the chunk carries more triangles than its bare columns.
+    const arrays = buildChunkArrays(world, cx, cy, EMPTY);
+
+    expect(arrays.triangles).toBeGreaterThan(CHUNK_COLUMNS * CHUNK_COLUMNS * 2);
+  });
+
   it('wild ground is not one flat colour per block', () => {
     const world = createWorld(42);
     const f = buildChunkField(world, 6, 6, EMPTY);

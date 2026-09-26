@@ -49,6 +49,25 @@ Fire mechanics shared by the burn command and the world-events system
 (GDD 3.1.1, GDD 3.6): what counts as fuel, igniting, finishing, extinguishing,
 and the wildfire transition.
 
+## `src/sim/haunting.ts`
+
+The haunting (GDD 3.11), read from the blocks: which hectare is or was a
+grave, how many years a planted one has been haunted and which of the three
+stages that puts the estate in, what the hired hands are worth because of it,
+and how much of a picked round the dead take. Everything here is a pure
+function of state, so the panel, the harvest and the mobs all read the same
+answer.
+
+### Notes
+
+- `hauntStage()`: the estate's stage is the furthest any haunted block has
+  reached. One grave planted years ago is enough to haunt the whole estate,
+  and a second one planted yesterday adds nothing to it.
+- `missingFruit()`: the draw is forked from `HAUNT_STREAM`, the day and the
+  block, not taken from the main stream, so a haunted harvest never moves the
+  weather and a manual pick and an auto pick on the same day lose the same
+  fruit.
+
 ## `src/sim/index.ts`
 
 The simulation's public API (GDD 4.2).
@@ -60,7 +79,7 @@ const events = sim.tick(); // one day; returns what happened
 Pure TypeScript: nothing here knows about Three.js, the DOM or the clock.
 The systems run in a fixed order each tick. The full chain from GDD 4.2 is
 
-weather → worldEvents → terrain → growth → pest → harvest → economy → mobs → society → endings → news
+weather → worldEvents → terrain → haunting → growth → pest → harvest → economy → mobs → society → endings → news
 
 Once the run is over (and not continued in sandbox) the world stops: `tick()`
 does nothing and every command but `KeepPlaying` is refused.
@@ -163,6 +182,11 @@ excepted, see `persistence/`), it does not belong in `SimState`.
 - `Block.fellingUntil`: a crew is felling the plantation until this tick, and
   the block goes back to bare land when they finish; -1 when nobody is. It is
   the one job that pays nothing for what comes down.
+- `Block.hauntedSince`: the day a dug-out grave was planted over, or -1
+  (GDD 3.11). The haunting's three stages are years counted from it, so it is
+  a clock rather than a flag, and the haunting system resets it the day the
+  plantation on the grave comes down. Whether a block was a grave at all is
+  not stored: it is `biome === 'grave'` on a block that is no longer wild.
 - `PalmArrays`: palms for one block, struct-of-arrays over the block's 144
   slots. `fertility` is deliberately absent from `Block` and from here:
   GDD 3.6.1 makes it a function of the fertilizer window, the ash window, the

@@ -36,6 +36,15 @@ Nothing below this file knows about anything beside it.
   loudest thing that can happen and the one the player can least afford to
   tune out, so it sits low and leans on the vignette and the clock lock to
   carry the alarm.
+- `d.mobsBurned`: an animal that died in a fire (GDD 3.6.1). The skull rises
+  from where the mob was being drawn rather than from the block's centre, so
+  it marks the spot the player watched it standing on, and the body is faded
+  out under it in the same pass. The sim has already dropped the mob, so this
+  has to read its drawn position before `syncSim` clears it.
+- `spectresAbout()`: the bloom pass is on while any of the dead are walking,
+  because their eyes are emissive and a ghost with flat red squares for eyes
+  is a different thing from a ghost with lit ones (GDD 3.11). It is a cheap
+  scan of a list that is never long.
 - `watchedByAuthorities()`: whether the attention gauge is worth a place in
   the bar. It arrives with the first letter and stays while anything is
   open: a meter above zero, a letter, a case or a suspension. An estate with
@@ -232,6 +241,10 @@ subject has not implemented, so the gaps are as visible as the behaviour.
   bench there is nothing to be up. A bare trunk appears under it while it
   climbs and goes again after: a whole tree would only hide the thing being
   looked at.
+- `fx:skulls`: the burn's skull (GDD 3.11) is on the bench because it is the
+  one effect that has to be judged against a dark backdrop and at a size, and
+  because raising one on demand beats setting fire to a hectare with a boar
+  on it. `burst` raises another; `reset` clears the air.
 
 ## `src/app/workbench/workbenchState.svelte.ts`
 

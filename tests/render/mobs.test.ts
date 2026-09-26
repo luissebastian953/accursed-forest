@@ -1,6 +1,7 @@
 import { Matrix4, MeshBasicMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 
+import { Palette } from '@render/materials/paletteSlots.ts';
 import { MobField } from '@render/mobs/MobField.ts';
 import { partGeometry, partOrder, pose, triangleCount } from '@render/mobs/rig.ts';
 import { SPECIES, SPECIES_IDS } from '@render/mobs/species.ts';
@@ -35,6 +36,54 @@ describe('mob rig (POC)', () => {
     // The golden one is the capybara in another coat, not another animal.
     expect(SPECIES['shinyCapybara']!.parts.length).toBe(SPECIES['capybara']!.parts.length);
     expect(SPECIES['shinyCapybara']!.parts[0]!.slot).not.toBe(SPECIES['capybara']!.parts[0]!.slot);
+  });
+
+  it('the dead have bodies too: red eyes on the ghost, and a pocong with no arms or legs', () => {
+    const ghost = SPECIES['ghost']!;
+    const eyes = ghost.parts.filter((p) => p.name === 'eyeL' || p.name === 'eyeR');
+
+    expect(ghost.spectral).toBe(true);
+    expect(eyes).toHaveLength(2);
+
+    // The eyes are the one solid thing on a see-through body, and they glow red.
+    for (const eye of eyes) {
+      expect(eye.opaque).toBe(true);
+      expect(eye.slot).toBe(Palette.GhostEye);
+      expect(eye.parent).toBe('head');
+    }
+
+    const pocong = SPECIES['pocong']!;
+    const roles = new Set(pocong.parts.map((p) => p.role));
+
+    expect(pocong.spectral).toBe(true);
+    expect(roles.has('armL') || roles.has('legFL') || roles.has('legBL')).toBe(false);
+    expect(pocong.parts.find((p) => p.name === 'face')?.opaque).toBe(true);
+
+    // The knot above the head flares as it goes up: three tiers, each wider than the last.
+    const knot = ['knotA', 'knotB', 'knotC'].map((n) => pocong.parts.find((p) => p.name === n)!);
+
+    expect(knot[0]!.size[0]).toBeLessThan(knot[1]!.size[0]);
+    expect(knot[1]!.size[0]).toBeLessThan(knot[2]!.size[0]);
+    expect(knot[0]!.at[1]).toBeLessThan(knot[2]!.at[1]);
+    // No legs to swing: the whole body hops instead.
+    expect(pocong.swing).toBe(0);
+    expect(pocong.bob).toBeGreaterThan(SPECIES['ghost']!.bob * 5);
+  });
+
+  it('a hop lifts the whole body on the step, and a drift floats it standing still', () => {
+    const pocong = SPECIES['pocong']!;
+    const body = pocong.parts[0]!;
+    const m = new Matrix4();
+    const heights: number[] = [];
+
+    for (let t = 0; t < 1; t += 0.05) {
+      pose(pocong, body, { time: t, gait: 1, phase: 0 }, m);
+      heights.push(m.elements[13]!);
+    }
+
+    // Moving: it rises and falls by about its bob, never below the ground it rests on.
+    expect(Math.max(...heights) - Math.min(...heights)).toBeGreaterThan(pocong.bob * 0.8);
+    expect(Math.min(...heights)).toBeGreaterThan(0);
   });
 
   it('sitting and climbing move the body: back tips up, and the climber rises', () => {
@@ -177,6 +226,36 @@ describe('a mob that bolts (GDD 6.5)', () => {
     target: null,
     shiny: false,
   };
+
+  it('splits the dead across the sheets: the body veiled, the eyes and face solid', () => {
+    const mobs = field();
+    const [solid, spectral, dense] = mobs.group.children;
+    const ghost = { ...pig, id: 9, species: 'ghost', intent: 'idle' };
+    const pocong = { ...pig, id: 11, species: 'pocong', intent: 'idle' };
+
+    // A ghost: see-through body on the spectral sheet, eyes on the solid one.
+    mobs.syncSim(state([ghost]));
+    mobs.update(0.1, 1);
+    expect(solid?.visible).toBe(true);
+    expect(spectral?.visible).toBe(true);
+    expect(dense?.visible).toBe(false);
+
+    // A pocong is barely see-through, so its body goes on its own sheet.
+    mobs.syncSim(state([pocong]));
+    mobs.update(0.1, 1);
+    mobs.update(1, 1);
+    expect(dense?.visible).toBe(true);
+    expect(spectral?.visible).toBe(false);
+    expect(solid?.visible).toBe(true);
+
+    // A plain animal is all one sheet.
+    mobs.syncSim(state([pig]));
+    mobs.update(0.1, 1);
+    mobs.update(1, 1);
+    expect(solid?.visible).toBe(true);
+    expect(spectral?.visible).toBe(false);
+    expect(dense?.visible).toBe(false);
+  });
 
   it('runs for a moment, fades out, and does not come back', () => {
     const mobs = field();

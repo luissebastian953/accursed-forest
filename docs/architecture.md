@@ -114,7 +114,7 @@ knows that any of those exist.
 ## The save
 
 The estate is one `localStorage` slot plus start-of-year snapshots for the
-rewind. `CURRENT_SCHEMA` is 18, and every bump has a migration that brings an
+rewind. `CURRENT_SCHEMA` is 20, and every bump has a migration that brings an
 older save forward, tested by loading a v1 save and playing it. See
 [ADR 0002](adr/0002-localstorage-save.md).
 
@@ -123,7 +123,8 @@ older save forward, tested by loading a v1 save and playing it. See
 - **The mesher runs in a worker.** Terrain is columns, not a heightmap mesh,
   and a chunk is built off the main thread. See
   [ADR 0003](adr/0003-column-terrain-and-generated-assets.md).
-- **The crowd is CPU-skinned into two draw calls.** One instanced mesh per
+- **The crowd is CPU-skinned into a draw call per material**, two on an
+  ordinary day and three when the dead are about. One instanced mesh per
   species part looked cheaper until three's node renderer compiled a shader
   per instanced object, which stalled for seconds on first sight of each
   species.

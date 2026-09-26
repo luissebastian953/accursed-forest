@@ -17,6 +17,7 @@ export const NOISE_TAG = {
   groundTint: 9,
   groundWarp: 10,
   villages: 11,
+  graves: 12,
 } as const;
 
 export function noiseFor(seed: number, tag: number): (x: number, y: number) => number {

@@ -22,7 +22,7 @@ export const KEY_PREFIX = 'accursed-forest';
  * Bump on any breaking change to the save shape; add a migration alongside.
  * What each schema brought is listed in docs/reference/persistence.md.
  */
-export const CURRENT_SCHEMA = 19;
+export const CURRENT_SCHEMA = 20;
 
 export type SaveErrorCode = 'missing' | 'corrupt' | 'newerSchema' | 'quota';
 
@@ -55,6 +55,7 @@ const BiomeSchema = z.enum([
   'rubber',
   'village',
   'swamp',
+  'grave',
 ]);
 
 const BlockSchema = z.object({
@@ -86,6 +87,7 @@ const BlockSchema = z.object({
   landslidePalms: z.number(),
   excavateUntil: Tick,
   fellingUntil: Tick,
+  hauntedSince: Tick,
   species: z.enum(['palm', 'forest']),
 });
 
@@ -307,6 +309,7 @@ const MobSchema = z.object({
     'thief',
     'babiNgepet',
     'ghost',
+    'pocong',
     'sanitizer',
     'plantDoctor',
     'security',

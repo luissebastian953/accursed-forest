@@ -4,6 +4,7 @@ export type IconName =
   | 'biome-forest-cleared'
   | 'biome-forest-wild'
   | 'biome-grassfield'
+  | 'biome-grave'
   | 'biome-hills'
   | 'biome-palm-planted'
   | 'biome-river'

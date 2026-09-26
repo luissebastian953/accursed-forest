@@ -209,6 +209,10 @@ burn options, and the open land and danger zone footers, drawn from
   than inside it, because it is the one live thing on the block and the
   walkthrough points at it. The footer under the inert part says the chop is
   in progress where the open-land buttons would otherwise be.
+- `grave-warning`: the haunting's label (GDD 3.11) sits above everything the
+  block offers, in solid red rather than the pest card's pink, because it is
+  the one thing on the panel that is not about this season: it is what the
+  hectare is, and it does not go away when the plantation does.
 
 ## `src/ui/svelte/block/BlockPanel.svelte` (stand card and footer)
 
@@ -341,6 +345,14 @@ text already localized, so a language switch re-derives it too.
   six times bare planted ground before the growing forest starts pulling
   the cover term down as well. Nothing on screen said so, so the slope tile
   now either names the combination as the fix or confirms it is in place.
+- `hauntView()`: the red label a dug-out mass grave carries for the rest of
+  the run (GDD 3.11). It says what the hectare was whatever is standing on it,
+  and once something is planted it adds the stage, the years and the one way
+  out. `data-stage` carries the stage to the markup and to the browser suite,
+  which is how a test asserts the haunting without reading the copy.
+- The grave's excavate button: an untouched grave offers `ExcavateBlock` where
+  every other wild block offers `ChopBlock`, because there is nothing standing
+  on it to chop. A grave that has also slid offers the digger once, not twice.
 
 ## `src/ui/svelte/disclaimer/DisclaimerModal.svelte`
 

@@ -90,6 +90,27 @@ export const VILLAGES = {
   biomes: ['grassfield', 'riverbank', 'scrub'] as const,
 } as const;
 
+/**
+ * Mass graves (GDD 3.11): a site or two of unmarked low ground, outside the
+ * free square but within a run's reach, and never beside a village.
+ */
+export const GRAVES = {
+  min: 1,
+  max: 2,
+  /** Blocks per site. */
+  minSize: 1,
+  maxSize: 2,
+  /** Low ground only; the dead were not carried up a hill. */
+  maxElevation: 1,
+  /** At least this many blocks outside the starting square... */
+  startClearance: 3,
+  /** ...and no closer than this to the square, so a run reaches one in its first years. */
+  startReach: 9,
+  /** No village keeps its dead this close. */
+  villageClearance: 3,
+  biomes: ['grassfield', 'scrub', 'forest'] as const,
+} as const;
+
 export const START_SITE = {
   /** Search radius, in blocks, around the map centre. */
   searchRadius: 18,

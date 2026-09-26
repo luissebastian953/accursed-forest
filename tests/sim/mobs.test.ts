@@ -704,6 +704,113 @@ describe('workers (mobs)', () => {
   });
 });
 
+describe('an animal in a fire (mobs, GDD 3.6.1)', () => {
+  /** A boar standing in the middle of `block`, as the sim keeps one. */
+  function boarOn(sim: Sim, block: BlockId): Mob {
+    const { state, world } = sim;
+    const [x, y] = world.toXY(block);
+    const mob: Mob = {
+      id: state.nextMobId++,
+      species: 'wildBoar',
+      x: x + 0.5,
+      z: y + 0.5,
+      tx: x + 0.5,
+      tz: y + 0.5,
+      intent: 'idle',
+      target: block,
+      born: state.tick,
+      until: state.tick + 60,
+      phase: 0.3,
+      standing: false,
+      climb: 0,
+      shiny: false,
+      hired: false,
+      intentUntil: state.tick + 30,
+      ax: x + 0.5,
+      az: y + 0.5,
+      heading: 0,
+    };
+
+    state.mobs.push(mob);
+    return mob;
+  }
+
+  it('dies or bolts: a burning block is no place to stand, and the news says so', () => {
+    const sim = createSim(42);
+    const { state } = sim;
+
+    sim.dispatch({ type: 'PlaceKopdes', block: state.worldGen.kopdesBlock });
+    state.economy.cash = 5e9;
+
+    const block = [...state.blocks.values()].find(
+      (b) => b.owned && b.phase === 'wild' && BIOMES[b.biome].clearable,
+    )!;
+    const herd = Array.from({ length: 6 }, () => boarOn(sim, block.id));
+
+    expect(sim.dispatch({ type: 'BurnBlock', block: block.id, intensity: 1 })).toEqual({
+      ok: true,
+    });
+
+    const dead = new Set<number>();
+    const crewBefore = state.mobs.filter((m) => m.species === 'crew').length;
+
+    for (let i = 0; i < 8 && state.blocks.get(block.id)!.burning; i++) {
+      for (const e of sim.tick()) {
+        if (e.type === 'MobBurned') {
+          expect(e.species).toBe('wildBoar');
+          expect(e.block).toBe(block.id);
+          dead.add(e.id);
+        }
+      }
+
+      // The burn crew works the fire for as long as it burns, and comes to no harm.
+      if (state.blocks.get(block.id)!.burning) {
+        expect(state.mobs.filter((m) => m.species === 'crew').length).toBe(crewBefore);
+      }
+    }
+
+    // Six boars over a week of fire: some die, and the rest have run for it.
+    expect(dead.size).toBeGreaterThan(0);
+    expect(dead.size).toBeLessThan(herd.length);
+
+    for (const boar of herd) {
+      const still = state.mobs.find((m) => m.id === boar.id);
+
+      if (dead.has(boar.id)) {
+        expect(still).toBeUndefined();
+        continue;
+      }
+
+      // A survivor is leaving, and is no longer on the block it was standing on.
+      expect(still?.intent).toBe('leave');
+    }
+
+    expect(state.society.news.some((n) => n.key === 'estate.animalBurned')).toBe(true);
+  });
+
+  it('nothing spawns into a fire', () => {
+    const sim = createSim(42);
+    const { state } = sim;
+
+    sim.dispatch({ type: 'PlaceKopdes', block: state.worldGen.kopdesBlock });
+
+    // Every block on the estate alight: nothing wild arrives anywhere on it.
+    for (const block of state.blocks.values()) {
+      if (block.owned && block.phase === 'wild') {
+        block.burning = true;
+        block.fireIntensity = 1;
+      }
+    }
+
+    for (let i = 0; i < 3; i++) {
+      for (const e of sim.tick()) {
+        if (e.type !== 'MobArrived' || !wildKinds().includes(e.species)) continue;
+        expect(state.blocks.get(e.block)?.burning ?? false).toBe(false);
+      }
+    }
+  });
+});
+
 describe('whose fire the crew works (mobs)', () => {
   it('a burn the player ordered has a crew; lightning and a spread do not', () => {
     const sim = createSim(42);

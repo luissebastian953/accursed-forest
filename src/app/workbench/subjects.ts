@@ -20,6 +20,7 @@ import {
   buildKopdesGeometry,
   type KopdesLevel,
 } from '@render/scene/Kopdes';
+import { Skulls } from '@render/scene/Skulls';
 import { Sparkles } from '@render/scene/Sparkles';
 
 /** The shared vocabulary of things a subject may be able to do. */
@@ -41,6 +42,8 @@ export interface SubjectContext {
   material: Material;
   /** The see-through one, for ghosts, glints and clouds. */
   spectral: Material;
+  /** The barely see-through one, for a body rather than an apparition. */
+  shrouded: Material;
   /** Ground height under a point, which on the bench is always flat. */
   groundAt: (x: number, z: number) => number;
   /** The stage camera, for the few effects that are placed against the view. */
@@ -117,6 +120,7 @@ function mobSubject(id: string): Subject {
       const field = new MobField({
         material: ctx.material,
         spectralMaterial: ctx.spectral,
+        denseMaterial: ctx.shrouded,
         bounds: { minX: -3, maxX: 3, minZ: -3, maxZ: 3 },
         groundAt: ctx.groundAt,
       });
@@ -278,6 +282,27 @@ export const SUBJECTS: readonly Subject[] = [
           reset: () => coins.clear(),
         },
         dispose: () => coins.dispose(),
+      };
+    },
+  },
+  {
+    id: 'fx:skulls',
+    label: 'Skull, burned alive',
+    group: 'Effects',
+    build(ctx) {
+      const skulls = new Skulls(ctx.spectral);
+      const group = new Group();
+
+      group.add(skulls.mesh);
+      skulls.raise(0, 0, 0);
+      return {
+        object: group,
+        update: (dt) => skulls.update(dt, ctx.camera),
+        actions: {
+          burst: () => skulls.raise(0, 0, 0),
+          reset: () => skulls.clear(),
+        },
+        dispose: () => skulls.dispose(),
       };
     },
   },

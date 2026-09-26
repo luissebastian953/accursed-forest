@@ -36,6 +36,12 @@ ChopBlock (GDD 3.1.1): the safe, slow way to clear. Puts a crew on the block;
 behind when it is done, and sells the timber. Chopping forest is noticed
 (GDD 3.9); under a letter it costs half again, under investigation it is banned.
 
+### Notes
+
+- A mass grave is refused by name rather than by `clearable` (GDD 3.11), so
+  the greyed button says what to do instead: nothing stands on it to chop, and
+  an excavation crew digs it out.
+
 ## `src/sim/commands/clearPlantation.ts`
 
 ClearPlantation (GDD 3.1.1, GDD 8 panel 13a): fell a planted or reforesting
@@ -67,13 +73,21 @@ deck (M1e); the moisture ceiling works today.
 
 ## `src/sim/commands/excavateBlock.ts`
 
-Digging out a landslide (GDD 3.6.2): the one-shot crew from the shop, with the
-machine that comes with it. They are on the block for a few days, and when
-they are done the spoil is gone, the debris with it, and the hectare is
-ground again rather than a scar.
+Digging out a landslide (GDD 3.6.2), or opening a mass grave (GDD 3.11): the
+one-shot crew from the shop, with the machine that comes with it. They are on
+the block for a few days, and when they are done the spoil is gone, the
+debris with it, and the hectare is ground again rather than a scar.
 
-The alternative, which costs nothing, is to wait for the debris to rot and
-plant through the spoil. That takes seasons.
+The alternative, on a slide, which costs nothing, is to wait for the debris
+to rot and plant through the spoil. That takes seasons. On a grave there is
+no alternative: nothing stands on it to chop and bare earth will not burn, so
+this command is the only way onto the block at all.
+
+### Notes
+
+- The two jobs share a command because they share a crew, a price and a
+  progress ring; what they leave behind differs, and that is `systems/terrain.ts`.
+  A grave that has also slid is one dig: the slide's fields clear with it.
 
 ## `src/sim/commands/fertilizeBlock.ts`
 
@@ -133,6 +147,14 @@ Required for buying and selling from M1b on.
 PlantBlock (GDD 3.2, GDD 3.10): fill a cleared block with palms or forest saplings
 from stock. Bibit and saplings are bought at the Kopdes (`BuyItem`); the
 block needs one per plantable slot.
+
+### Notes
+
+- `apply()`, the grave: planting a dug-out mass grave, with either species, is
+  what starts the haunting (GDD 3.11). The clock is stamped here rather than
+  in a system because the day the roots go down is the day it begins, and
+  because replanting a block that was laid to rest starts it again from the
+  beginning.
 
 ## `src/sim/commands/reforestBlock.ts`
 

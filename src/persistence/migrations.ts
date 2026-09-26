@@ -320,6 +320,19 @@ export const MIGRATIONS: readonly Migration[] = [
       economy['soldRpYear'] ??= 0;
     },
   },
+  {
+    // The haunting: no block in an older save was planted over a grave.
+    from: 19,
+    up(save) {
+      for (const chunk of save.chunks.values()) {
+        const blocks = chunk['blocks'] as Record<string, unknown>[] | undefined;
+
+        if (!blocks) continue;
+
+        for (const block of blocks) block['hauntedSince'] ??= -1;
+      }
+    },
+  },
 ];
 
 /**

@@ -39,6 +39,18 @@ comparison.
   walk. It is never slower than a creep (15% of the species' pace), and
   faster than the species' pace only when the clock has run ahead of the
   legs. The legs, through the gait, follow the speed it actually moves at.
+- The `opaque` parts: a species is see-through or solid as a whole, except
+  for the parts that say otherwise. A ghost's eyes and a pocong's face go on
+  the solid sheet while the rest of the body goes on a veiled one, which is
+  why the reserve pass counts a mob's parts one at a time rather than adding
+  its whole vertex count to one sheet.
+- The three sheets: solid, spectral and dense, one draw call each and each
+  invisible while empty, so a program is not compiled until something needs
+  it. The dense one exists because a pocong is a corpse in a shroud and a
+  ghost is an apparition: at the spectral material's 0.45 the shroud read as
+  a smudge of the ground behind it. The app hands in a second see-through
+  material at 0.85 for it; without one the field falls back to the spectral
+  material and the pocong simply draws like a ghost.
 
 ## `src/render/mobs/rig.ts`
 
@@ -67,6 +79,10 @@ thief) and work (a two-armed swing at whatever is in front of it).
 - `pose()`, the arms: up a trunk, both arms reach overhead and out round the
   bark; asleep, they tuck in. Sitting, an ape's arms are longer than the drop
   to the ground, so they come forward to rest rather than through it.
+- `PartSpec.opaque`: a part drawn on the solid sheet even on a see-through
+  body, for the two features that have to stay readable against the ground
+  they float over: a ghost's eyes and a pocong's face. The rig only carries
+  the flag; `MobField` is what acts on it.
 
 ## `src/render/mobs/species.ts`
 
@@ -104,3 +120,17 @@ palm slot is 1 and a mature palm stands about 4.
 - `SPECIES.pangolin`: a pale hide under dark armour, and a tail as long as
   the body. The plates carry the dark tone: light plates on a dark body read
   as patches, dark plates on a light body read as scales.
+- `biped()`, `eyes`: two boxes on the front of the head in their own slot,
+  set just proud of the face so they never sink into a see-through one, and
+  marked `opaque` so they are drawn on the solid sheet whatever the body is.
+  The ghost's are `Palette.GhostEye`, which is one of the emissive slots
+  (`palette.ts`), so they carry the bloom and are what the eye finds first at
+  estate zoom, where the body itself is a pale smudge.
+- `pocong()`: a corpse in its shroud (GDD 3.11), tied at the feet, the neck
+  and the top of the head, with a black void for a face. It is written out
+  rather than built from `biped()` because it has none of a biped's parts: no
+  arms, no legs, nothing to swing. `swing` is 0 and `bob` is more than half a
+  unit, so the rig's step, which normally lifts a body a few centimetres, lifts
+  the whole of this one: it hops. The knot above the head is three tiers, each
+  wider than the last, which is what makes the silhouette read as a pocong and
+  not as a pillar.

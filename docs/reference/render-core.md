@@ -159,6 +159,13 @@ young fronds, laterite red-orange soil, dark peat brown, ochre grassfield.
   turns it into an emissive term, which lifts these slots (coin, sparkle,
   golden capybara fur) past the bloom threshold: the gold things glow instead
   of sitting there as flat yellow paint.
+- The haunting's slots (GDD 3.11): `GraveEarth` is turned earth, darker than
+  `Dirt` and never quite dry; `Shroud` is the pocong's ties against its white
+  and `ShroudFace` the grey of the face inside it, which is grey rather than
+  black so it reads as a face and not as a hole in the body; `GhostEye` and
+  `Bone` are emissive, at 1 and 0.6, because a pair of eyes at estate zoom is
+  four pixels and a skull rising out of a fire is competing with the fire.
+  They are the only emissive slots that are not gold.
 
 ## `src/render/materials/paletteMaterial.ts`
 

@@ -12,6 +12,28 @@ Per-biome costs, clearing times and modifiers (GDD 3.1).
 - `BiomeSpec.openLand`: open land is grass and scrub, where there is nothing
   standing to clear. A forest can be planted straight onto it, though palms
   still want the land prepared first.
+- `BIOMES.grave`: a mass grave (GDD 3.11). The one biome that is for sale and
+  not clearable: nothing stands on it to chop, so the only way in is an
+  excavation crew. Cheap because nobody else wants it, and the richest soil
+  in the table, which is the trap.
+
+## `src/sim/balance/haunting.ts`
+
+What planting over a mass grave costs the estate (GDD 3.11): how long the
+haunting takes to spread and then to deepen, how many of the dead each stage
+raises, how much of a round goes missing, and what a hired hand is worth
+once the ghosts are everywhere.
+
+### Notes
+
+- `HAUNT.spreadAfterYears` / `deepenAfterYears` (2 and 4): a palm planted
+  today bears at about three years (GDD 2), so the estate is haunted before
+  the grave block has paid for itself and the fruit starts disappearing about
+  when it would have. The player who planted the cheap hectare in year one
+  finds out in year three what it cost.
+- `HAUNT_STREAM`: the haunting's own stream tag. Every draw the dead make is
+  forked from it, so a run with a grave planted and a run without one see the
+  same weather and the same prices.
 
 ## `src/sim/balance/endings.ts`
 
@@ -193,6 +215,14 @@ reads as purposeful; the renderer spreads each day's walk over the day.
   before it ever reaches the Kopdes, while it is still ambling in as a pig.
   Less falls out of it than `caughtDrop`, but clicking it here costs it the
   raid it came for.
+- `HABITS.spectre`: what the dead do with a day (GDD 3.11). They idle, mill
+  about and circle, and that is all: no sleep, because they do not, and no
+  wander, because a wander retargets a mob to another block and the haunting
+  counts its spectres by the block they belong to.
+- `BURNED_ALIVE`: what a fire does to whatever is standing in it (GDD 3.6.1).
+  `killPerDay` is per day rather than per fire, so a low burn over eight days
+  is deadlier to a sleeping animal than a high one over two, and an animal
+  that notices the fire on its first day usually gets out.
 
 ## `src/sim/balance/news/economic.ts`
 
@@ -391,6 +421,11 @@ Balance lives in data, never as literals inside systems (GDD 4.5).
 
 ### Notes
 
+- `GRAVES`: where the mass graves go (GDD 3.11). `startClearance` keeps them
+  off the doorstep, so the estate is never handed one for free, and
+  `startReach` keeps them inside a few purchases of the square, so a run
+  actually meets one rather than reading about it here. Low ground only, and
+  never beside a village: a kampung buries its dead somewhere it can visit.
 - `START_SITE.forestRing`: standing forest is counted in and around the
   starting square, this many blocks out. The choice between chopping and
   burning needs forest to choose about, and a start on bare grassland looked
