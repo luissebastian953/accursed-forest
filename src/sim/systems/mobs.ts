@@ -99,13 +99,22 @@ function onLand(ctx: SimContext, x: number, z: number): boolean {
   return edge >= WILDLIFE.bankClearance;
 }
 
+/** How far inside the edge a body stands, so the block under it is on the map. */
+const MAP_INSET = 0.05;
+
 /** Move toward the target at `speed` blocks a day, keeping out of the river. */
 function walk(ctx: SimContext, mob: Mob, speed: number): void {
+  const { world } = ctx;
   const dx = mob.tx - mob.x;
   const dz = mob.tz - mob.z;
   const d = Math.hypot(dx, dz);
-  const nx = d <= speed ? mob.tx : mob.x + (dx / d) * speed;
-  const nz = d <= speed ? mob.tz : mob.z + (dz / d) * speed;
+  const sx = d <= speed ? mob.tx : mob.x + (dx / d) * speed;
+  const sz = d <= speed ? mob.tz : mob.z + (dz / d) * speed;
+  // The edge is a wall to everyone but a mob on its way out, and the wall
+  // drags a stranded one back behind it rather than letting it stand there.
+  const out = mob.intent === 'leave';
+  const nx = out ? sx : clamp(sx, MAP_INSET, world.width - MAP_INSET);
+  const nz = out ? sz : clamp(sz, MAP_INSET, world.height - MAP_INSET);
 
   // Already in the water, it walks out: a save from before this rule, or a
   // river that moved under a mob, must not strand anything mid-stream.

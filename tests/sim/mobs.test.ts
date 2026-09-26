@@ -426,6 +426,69 @@ describe('the thief (mobs)', () => {
     expect(wet).toEqual([]);
   });
 
+  it('keeps on the map: only a mob on its way out crosses the edge', () => {
+    const off: string[] = [];
+
+    for (const seed of [1, 42, 1234, 7, 99]) {
+      const sim = createSim(seed);
+
+      sim.state.economy.cash = 1e12;
+      for (let i = 0; i < 60; i++) sim.tick();
+
+      // Pressed into the far corner, pacing: the repertoire aims off the grid
+      // from here, which is how an animal used to walk out on to the water.
+      const corner = sim.state.mobs.filter((m) => m.intent !== 'leave');
+
+      expect(corner.length).toBeGreaterThan(0);
+
+      for (const mob of corner) {
+        mob.x = WORLD.width - 0.3;
+        mob.z = WORLD.height - 0.3;
+        mob.ax = mob.x;
+        mob.az = mob.z;
+        mob.intent = 'pace';
+        mob.intentUntil = sim.state.tick + 1;
+      }
+
+      for (let i = 0; i < 300; i++) {
+        sim.tick();
+
+        for (const mob of sim.state.mobs) {
+          if (mob.intent === 'leave') continue;
+          if (!sim.world.inBounds(Math.floor(mob.x), Math.floor(mob.z)))
+            off.push(`${seed}:${mob.species}@${i} ${mob.intent}`);
+        }
+      }
+    }
+
+    expect(off).toEqual([]);
+  });
+
+  it('walks a stranded mob back on to the map', () => {
+    const sim = createSim(42);
+
+    sim.state.economy.cash = 1e12;
+    for (let i = 0; i < 60; i++) sim.tick();
+
+    const mob = sim.state.mobs.find((m) => m.intent !== 'leave');
+
+    expect(mob).toBeDefined();
+
+    // A save from before the edge was a wall: out past the corner, and pacing.
+    mob!.x = WORLD.width + 3;
+    mob!.z = WORLD.height + 2;
+    mob!.intent = 'pace';
+    mob!.ax = mob!.x;
+    mob!.az = mob!.z;
+    mob!.tx = mob!.x + 1;
+    mob!.tz = mob!.z + 1;
+    mob!.intentUntil = sim.state.tick + 40;
+
+    sim.tick();
+
+    expect(sim.world.inBounds(Math.floor(mob!.x), Math.floor(mob!.z))).toBe(true);
+  });
+
   it('a security guard makes thieves rarer and catches the ones who come', () => {
     const attempts = (guarded: boolean): { arrivals: number; thefts: number; caught: number } => {
       let arrivals = 0;

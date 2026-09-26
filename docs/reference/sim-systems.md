@@ -131,9 +131,17 @@ and pick the next thing when the current one runs out.
   be wet and a `river` block the channel missed is dry. Testing the biome
   instead put animals in the water wherever the two disagreed.
   `WILDLIFE.bankClearance` keeps a body's width of dry ground between the mob
-  and the edge. Off the map counts as ground, so a mob with the `leave` intent
-  can still go, and a mob already in the water walks out, which is what a save
-  from before this rule needs.
+  and the edge. Off the map counts as ground, so a mob already in the water
+  walks out, which is what a save from before this rule needs.
+- `MAP_INSET` in `walk()`: the map edge is a wall, and the step is clamped
+  behind it. `leave` is the one intent exempt, because `startle()` aims a block
+  past the grid and `mobs()` culls whatever reaches it. The clamp is on the
+  step rather than on the targets because `pace`, `circle` and `climbJump` all
+  set a target from the mob's own position plus an offset, so an animal that
+  wandered to the last block could aim past it and walk out on to the water;
+  gating the one function that moves a body covers those three and whatever is
+  added next. Clamping also drags a mob that is already out back on, which a
+  refusal would not: it would have stood there for good.
 - `stepDoctor()`: it chooses a block by sick palms per day of walking rather
   than by the raw count, and leaves only when the block is clean. Both changes
   are about the same thing, which is that walking treats nothing: the old rule
