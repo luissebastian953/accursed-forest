@@ -1,4 +1,6 @@
 export type IconName =
+  | 'arrow-down'
+  | 'arrow-up'
   | 'axe-chop'
   | 'beetle'
   | 'biome-forest-cleared'

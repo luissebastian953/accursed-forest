@@ -1156,6 +1156,10 @@ test.describe('Sawit Simulator', () => {
     await tid(page, 'speed-1').click();
     await expect(tid(page, 'year-end-card')).toBeVisible({ timeout: 10_000 * SLOW });
     await expect(tid(page, 'year-end-card')).toContainText('Year 2 closed');
+    await expect(tid(page, 'year-end-result')).toHaveAttribute('data-profit', /true|false/);
+    await expect(tid(page, 'year-end-continue')).toContainText('On to Year 3');
+    await tid(page, 'year-end-continue').click();
+    await expect(tid(page, 'year-end-card')).toHaveCount(0);
     await expect(tid(page, 'hud-cert')).toBeVisible();
     await tid(page, 'hud-cert').click();
     await expect(tid(page, 'certificate-panel')).toBeVisible();

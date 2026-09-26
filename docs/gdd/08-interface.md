@@ -528,10 +528,18 @@ is an ending, and the epilogue (panel 15) tells it.
 
 `src/ui/svelte/endings/YearEndCard.svelte` / the `YearEndCard` class in
 `certificateState.svelte.ts` (`data-testid="year-end-card"`): not modal, and
-it clears itself. It shows the year just closed, its profit or loss, mature
-hectares, forest cover with the change from the year before, and, from Year
-3 on, the certificate count out of 5. It holds for `holdMs` (12,000&nbsp;ms by
-default) unless dismissed early with `year-end-dismiss`.
+it clears itself. A dark band carries the year on a gold chip, and under it
+the profit or loss sits in a banner tinted for its sign (`year-end-result`,
+`data-profit`), mature hectares and forest cover in a pair of tiles
+(`year-end-bearing`, `year-end-forest`, the second with the change from the
+year before and a bar), and, from Year 3 on, the certificate count out of 5
+over five pips (`year-end-cert`). It holds for `holdMs` (12,000&nbsp;ms by
+default) unless dismissed early with `year-end-dismiss` or with
+`year-end-continue`, the full-width button naming the year ahead.
+
+The clock does not stop for it, so the chip pings: the gold halo is the one
+thing on screen saying a year has turned, and it runs the whole time the card
+is up.
 
 ## GDD 8 panel 19: the Palm Certificate
 

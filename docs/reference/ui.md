@@ -36,6 +36,9 @@ The cartoon icon set (design kit): flat SVGs served from `public/icons`.
   goes on a pin is drawn around the origin and copied into `public/hud` at the
   64 box the pin composes with, which is why `palm-fruit-bunch` has a twin
   there.
+- `arrow-up` / `arrow-down` and `close-x` are stroked white, not the kit's
+  brown: each is only ever drawn on a saturated disc or button, where the
+  brown would disappear.
 
 ## `src/ui/newsLane.ts`
 
@@ -484,9 +487,23 @@ certificate or the fade.
 
 ## `src/ui/svelte/endings/YearEndCard.svelte`
 
-The year that just closed (GDD 8 panel 18), as a small card at the right: what
-the estate earned, what it spent, and how the forest cover moved against last
-year. It stops the clock until it is dismissed.
+The year that just closed (GDD 8 panel 18), as a card at the left: a dark band
+naming the year, the profit or loss as a banner, bearing hectares and forest
+cover as a pair of tiles, and, from Year 3, the certificate count as a row of
+five pips. The clock runs on under it and the card clears itself.
+
+### Notes
+
+- `.year-chip::after`: the gold halo on the year badge, the same `ripple`
+  keyframe the alert badges use (`.ping::before`, `.btn[data-urgent]::after`).
+  The card is not modal and it does not stop the clock, so nothing but the
+  halo says a year has turned; it is the only motion on the card and it stops
+  under `prefers-reduced-motion`.
+- The card is not `overflow-hidden`, which the other panels are: the halo has
+  to spill past the dark band to read as a ping, so the band rounds its own
+  top corners at `16px`, the card's `18px` less its 2px border.
+- `unitHa`: the unit is its own key rather than part of the number's string,
+  because the tile sets the count large and the unit small.
 
 ## `src/ui/svelte/endings/certificateState.svelte.ts`
 
