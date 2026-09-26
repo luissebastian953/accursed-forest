@@ -45,20 +45,11 @@ const PREFIXES = [
   'Tanjung',
   'Muara',
   'Rantau',
-  'Kuala',
+  'Wong',
   'Teluk',
   'Sosok',
 ] as const;
-const SUFFIXES = [
-  'Rimba',
-  'Merah',
-  'Hitam',
-  'Gendeng',
-  'Tenang',
-  'Jernih',
-  'Sawit',
-  'Baru',
-] as const;
+const SUFFIXES = ['Rimba', 'Gila', 'Hitam', 'Gendeng', 'Angker', 'Edan', 'Sawit', 'Baru'] as const;
 
 /** A fictional kabupaten name for this world, fixed by the seed. */
 export function regionName(seed: number): string {
