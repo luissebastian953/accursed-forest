@@ -78,6 +78,44 @@ export const ECONOMIC: Record<string, NewsTemplate> = {
     bodies: ['Buyers cite weak export demand.'],
     effects: ['TBS {price}/kg'],
   },
+  'price.competition': {
+    lane: 'economic',
+    severity: 'notice',
+    cooldownDays: 1,
+    titles: [
+      'Everyone is planting palm this year',
+      'New smallholders crowd into palm across {region}',
+    ],
+    bodies: [
+      'More growers means more fruit at the gate, and a buyer who no longer has to ask nicely. The bigger the Workshop, the bigger the crowd it stands in.',
+    ],
+    effects: ['TBS price {pct} of the opening price'],
+  },
+  'price.neighbours': {
+    lane: 'economic',
+    severity: 'warning',
+    chronicle: true,
+    cooldownDays: 1,
+    titles: [
+      'Neighbouring countries plant palm, and keep their forests',
+      'Exports slip to growers who never cleared a hectare',
+    ],
+    bodies: [
+      'They did it the careful way, with no deforestation to answer for, and the buyers noticed. Palm oil exportation is not working very well from here.',
+    ],
+    effects: ['TBS price {pct} of the opening price'],
+  },
+  'price.collapse': {
+    lane: 'economic',
+    severity: 'critical',
+    chronicle: true,
+    cooldownDays: 1,
+    titles: ['Palm oil is becoming worthless', 'Estates around {region} close one by one'],
+    bodies: [
+      'There is more fruit than anyone wants to buy. The estates that borrowed to grow are the ones shutting their gates first.',
+    ],
+    effects: ['TBS price {pct} of the opening price'],
+  },
   'estate.theft': {
     lane: 'economic',
     severity: 'warning',

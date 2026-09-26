@@ -18,6 +18,10 @@ with the news system (M1f).
   province and buyers pay less, so the mean dips by `HAZE.priceDip` (GDD 3.6).
   Forest cover is worth money under a buyer that checks for it, so the
   estate's forest cover goes into `tbsMeanFactor`.
+- `kopdesTbsShare()`: the Kopdes's own level presses the same mean down, and
+  the clamp with it (GDD 3.3). It lives beside `tbsMeanFactor` rather than in
+  `macro.ts` because it is a standing consequence of what the estate built, not
+  a headline's lever with a duration.
 
 ## `src/sim/systems/endings.ts`
 
@@ -155,6 +159,10 @@ same tick make one headline; a key does not repeat within its cooldown.
   the tick. The words of the news must never change the world's future:
   drawing a phrasing from the main stream shifted every later weather and pest
   roll.
+- `KopdesUpgraded`: the level's headline is published on the tick after the
+  upgrade, because a command's events wait in the queue until the next tick
+  drains it. Its effects line quotes `KOPDES_TBS_SHARE` rather than a number of
+  its own, so the copy cannot drift from the rule (GDD 3.3).
 
 ## `src/sim/systems/pest.ts`
 

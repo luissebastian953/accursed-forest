@@ -13,6 +13,9 @@ pnpm sweep -- --blocks 2 --years 10 --seeds 7,8,9 --fertilize
 pnpm sweep -- --cert --years 25 --seeds 1,42,1234,7,99 # expanding player, endings (GDD 3.8)
 pnpm sweep -- --cert --spare # ...who never chops forest
 
+`--cert` expands to 48 blocks, because the top of the Kopdes ladder asks for 40
+bearing ones and a run that stops short of it never certifies (GDD 3.3).
+
 ## `tools/seo.ts`
 
 What crawlers read about the site besides the pages themselves: the XML

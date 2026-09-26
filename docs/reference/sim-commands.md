@@ -192,7 +192,12 @@ sold same-day. Level-ups add a wing to the building (render, M1b+).
   far longer than they are short of the money.
 - `kopdesMaturedNeeded()` is indexed by the level the Kopdes is **on**, not the
   one it is going to, so `KOPDES_UPGRADE_MATURED[1]` is what level 1 asks for.
-  The level 4 entry is carried and unreachable while 4 is the cap.
+  There is no entry past level 3, because 4 is the cap, and the `?? 0` is what
+  answers for a level that cannot upgrade.
+- The upgrade cuts the price the estate sells into (`KOPDES_TBS_SHARE`, GDD
+  3.3), so `apply` is the moment the market turns. The command says nothing
+  about it: the headline the news publishes next tick is where the player is
+  told, which is how they hear about every other market move.
 
 ## `src/sim/commands/workers.ts`
 

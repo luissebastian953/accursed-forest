@@ -3,6 +3,7 @@ import { clamp } from '@shared/math';
 import { OPERATING_BAN } from '../balance/endings.ts';
 import { GROWTH } from '../balance/growth.ts';
 import { hasHeadline } from '../balance/news/index.ts';
+import { KOPDES_TBS_SHARE } from '../balance/prices.ts';
 import {
   ATTENTION,
   AUTHORITY,
@@ -31,9 +32,15 @@ export function society(ctx: SimContext): void {
 
 // ── Macro economy ─────────────────────────────────────────────────────────
 
+/** What the market pays an estate whose Kopdes has grown this far (GDD 3.3). */
+export function kopdesTbsShare(state: SimState): number {
+  return KOPDES_TBS_SHARE[state.kopdes?.level ?? 0] ?? 1;
+}
+
 /** Multiplier on the TBS price's long-run mean from inflation and the temporary macro events. */
 export function tbsMeanFactor(state: SimState, forestCover = 0): number {
-  let factor = 1 + (state.economy.inputPriceIndex - 1) * MACRO.tbsPassThrough;
+  let factor =
+    (1 + (state.economy.inputPriceIndex - 1) * MACRO.tbsPassThrough) * kopdesTbsShare(state);
 
   for (const event of state.weather.activeEvents) {
     if (!event.id.startsWith(MACRO_PREFIX)) continue;

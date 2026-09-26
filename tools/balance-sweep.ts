@@ -34,7 +34,7 @@ for (const seed of seeds) {
     blocks: startBlocks,
     fertilize,
     ...(cert
-      ? { managePests: true, expand: { reserve: 40_000_000, maxBlocks: 24 }, spareForest }
+      ? { managePests: true, expand: { reserve: 40_000_000, maxBlocks: 48 }, spareForest }
       : {}),
   });
 

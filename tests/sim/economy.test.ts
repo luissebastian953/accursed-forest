@@ -13,6 +13,7 @@ import {
   ECONOMY,
   HARVEST,
   ITEM_PRICES,
+  KOPDES_TBS_SHARE,
   KOPDES_UPGRADE_COST,
   KOPDES_UPGRADE_MATURED,
 } from '@sim/balance/prices.ts';
@@ -22,7 +23,7 @@ import { distanceToKopdes, inKopdesRange, kopdesRange } from '@sim/kopdes.ts';
 import { createPalmArrays, isBearing, plantSlots, slotStage } from '@sim/palms.ts';
 import { writeBlock } from '@sim/state.ts';
 import { harvestCapKg, harvestableKg } from '@sim/systems/harvest.ts';
-import { tbsMeanFactor } from '@sim/systems/society.ts';
+import { kopdesTbsShare, tbsMeanFactor } from '@sim/systems/society.ts';
 import type { BlockId } from '@sim/types.ts';
 
 /** The owned, wild, clearable block nearest the Kopdes; inside its range. */
@@ -201,6 +202,45 @@ describe('Kopdes upgrades (GDD 3.3)', () => {
     // With the crop in place, cash is the remaining gate.
     sim.state.economy.cash = 1;
     expect(sim.validate({ type: 'UpgradeKopdes' })).toMatchObject({ code: 'noCash' });
+  });
+
+  it('every level brings competition, and the market pays less for it', () => {
+    const sim = createSim(42);
+
+    expect(kopdesTbsShare(sim.state)).toBe(1);
+    sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
+    sim.state.economy.cash = 5_000_000_000;
+
+    const shares: number[] = [kopdesTbsShare(sim.state)];
+
+    for (let level = 1; level < ECONOMY.kopdesMaxLevel; level++) {
+      standBearing(sim, KOPDES_UPGRADE_MATURED[level]!);
+      expect(sim.dispatch({ type: 'UpgradeKopdes' })).toEqual({ ok: true });
+      shares.push(kopdesTbsShare(sim.state));
+    }
+
+    expect(shares).toEqual([1, 7 / 8, 1 / 2, 1 / 3]);
+    // The share presses on the mean the price reverts to, and on its band.
+    expect(tbsMeanFactor(sim.state)).toBeCloseTo(KOPDES_TBS_SHARE[ECONOMY.kopdesMaxLevel]!, 9);
+  });
+
+  it('the headline that says why arrives with the level', () => {
+    const sim = createSim(42);
+
+    sim.dispatch({ type: 'PlaceKopdes', block: sim.state.worldGen.kopdesBlock });
+    sim.state.economy.cash = 5_000_000_000;
+    standBearing(sim, KOPDES_UPGRADE_MATURED[1]!);
+    expect(sim.dispatch({ type: 'UpgradeKopdes' })).toEqual({ ok: true });
+    sim.tick();
+
+    const published = sim.state.society.news.map((item) => item.key);
+
+    expect(published).toContain('price.competition');
+
+    const item = sim.state.society.news.find((n) => n.key === 'price.competition')!;
+
+    // The effects line quotes the share itself rather than a number of its own.
+    expect(item.effects.join(' ')).toContain('88%');
   });
 
   it('range is Manhattan distance from the Kopdes block', () => {

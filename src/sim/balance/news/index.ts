@@ -19,6 +19,22 @@ export function macroNewsKey(id: string): string {
 }
 
 /**
+ * The headline each Kopdes level arrives with (GDD 3.3), indexed by the level
+ * reached. Growing the Kopdes is what brings the competition it reports.
+ */
+const KOPDES_NEWS: readonly (string | undefined)[] = [
+  undefined,
+  undefined,
+  'price.competition',
+  'price.neighbours',
+  'price.collapse',
+];
+
+export function kopdesNewsKey(level: number): string | undefined {
+  return KOPDES_NEWS[level];
+}
+
+/**
  * Whether a deck headline still has copy in the news files. Commenting one
  * out is how a headline is retired, so the deck asks before it deals.
  */

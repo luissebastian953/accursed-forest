@@ -272,12 +272,14 @@ describe('Palm Certificate (GDD 3.8)', () => {
   });
 
   it('a steady expanding player certifies well inside the horizon', () => {
+    // The top of the Kopdes ladder is 40 bearing blocks, so a player who stops
+    // at 24 never certifies however well the estate runs (GDD 3.3).
     const run = autoplay({
       seed: 42,
       years: CERTIFICATE.horizonYears,
       blocks: 3,
       managePests: true,
-      expand: { reserve: 40_000_000, maxBlocks: 24 },
+      expand: { reserve: 40_000_000, maxBlocks: 48 },
     });
 
     expect(run.ending === 'clean' || run.ending === 'dirty').toBe(true);

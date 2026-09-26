@@ -196,7 +196,10 @@ reads as purposeful; the renderer spreads each day's walk over the day.
 
 ## `src/sim/balance/news/economic.ts`
 
-Economic lane (GDD 3.7): the price walk and the macro deck.
+Economic lane (GDD 3.7): the price walk and the macro deck. The three
+`price.competition`, `price.neighbours` and `price.collapse` headlines are not
+dealt from the deck: the Kopdes publishes one each time it grows, and they are
+the only place the game says out loud why its fruit is worth less (GDD 3.3).
 
 ## `src/sim/balance/news/endings.ts`
 
@@ -313,6 +316,16 @@ Starting economy, land pricing and shop prices (GDD 3.1.1, GDD 3.3, GDD 3.5).
   each step has to be earned out of the crop rather than paid for out of the
   opening balance, and an estate should be years into its harvests before it
   reaches the top.
+- `KOPDES_UPGRADE_MATURED`: blocks of bearing palms a level asks for before it
+  will take the money (GDD 3.3), indexed by the level standing. 10, 20 and 40:
+  the top of the ladder is a bigger estate than the certificate's own
+  20-hectare condition, so certifying means expanding well past it.
+- `KOPDES_TBS_SHARE`: the share of the opening price the market pays at each
+  level (GDD 3.3), index 0 being no Kopdes. Growing the Kopdes is what brings
+  the growers who bid the price down, so the reward for the last upgrade is
+  range and a third of the price, and the estate that races up the ladder is
+  the one that regrets it. Read once, in `tbsMeanFactor`, which is also what
+  scales the price's clamp, so the fall lands in days.
 
 ## `src/sim/balance/seasons.ts`
 

@@ -104,7 +104,13 @@ export const KOPDES_UPGRADE_COST: readonly number[] = [0, 90_000_000, 420_000_00
  * Blocks of bearing palms the estate must already work before the Kopdes will
  * grow, indexed by the level it is on (GDD 3.3). Money alone no longer does it.
  */
-export const KOPDES_UPGRADE_MATURED: readonly number[] = [0, 3, 6, 12, 20];
+export const KOPDES_UPGRADE_MATURED: readonly number[] = [0, 10, 20, 40];
+
+/**
+ * What the market pays a Kopdes of each level, as a share of the opening price
+ * (GDD 3.3): every level is more competition, and index 0 is no Kopdes at all.
+ */
+export const KOPDES_TBS_SHARE: readonly number[] = [1, 1, 7 / 8, 1 / 2, 1 / 3];
 
 export const HARVEST = {
   /** A harvest crew's wages per block per round. */

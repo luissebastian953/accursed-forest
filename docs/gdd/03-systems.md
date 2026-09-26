@@ -191,22 +191,40 @@ blocks:
 
     kopdesRange(level) = ECONOMY.kopdesRange (3) + (level − 1) × ECONOMY.kopdesRangePerLevel (2)
 
-| Level | Range (blocks) | Bearing blocks needed | Upgrade cost (to next level) |
-| ----- | -------------- | --------------------- | ---------------------------- |
-| 1     | 3              | 3                     | Rp 90,000,000                |
-| 2     | 5              | 6                     | Rp 420,000,000               |
-| 3     | 7              | 12                    | Rp 1,200,000,000             |
-| 4     | 9              | 20                    | max level                    |
+| Level | Range (blocks) | Bearing blocks needed | Upgrade cost (to next level) | Price paid |
+| ----- | -------------- | --------------------- | ---------------------------- | ---------- |
+| 1     | 3              | 10                    | Rp 90,000,000                | full       |
+| 2     | 5              | 20                    | Rp 420,000,000               | 7/8        |
+| 3     | 7              | 40                    | Rp 1,200,000,000             | 1/2        |
+| 4     | 9              | max level             | max level                    | 1/3        |
 
-(`KOPDES_UPGRADE_COST`, `KOPDES_UPGRADE_MATURED`, `ECONOMY.kopdesMaxLevel` 4.)
+(`KOPDES_UPGRADE_COST`, `KOPDES_UPGRADE_MATURED`, `KOPDES_TBS_SHARE`,
+`ECONOMY.kopdesMaxLevel` 4.)
+
+**Every level is more competition.** The price the estate sells into is the
+market price times `KOPDES_TBS_SHARE[level]`, read once in `tbsMeanFactor`,
+which presses on the mean the price walks back to and on the band it is
+clamped into, so the fall arrives within days rather than instantly. Each step
+publishes the headline that says why: `price.competition` at level 2, where
+everyone is planting palm; `price.neighbours` at level 3, where the countries
+next door grow it without clearing forest and the export buyers go to them;
+and `price.collapse` at level 4, where the fruit is worth so little that
+estates begin closing. Growing the Kopdes is therefore a decision rather than
+a reward: range, the payroll and the 50x clock against the price of every
+kilogram after it.
 
 **The Kopdes grows on a working estate, not on cash.** `UpgradeKopdes` asks
 first for blocks of bearing palms and only then for money, counted by
 `matureHectares(state)`, the same measure the certificate uses: a block counts
 once `CERTIFICATE.matureShare` of what is planted on it is bearing. Cash alone
 buys nothing, which is what stops an opening balance or one lucky price spike
-from skipping the middle of the game. The level 4 row is carried for the same
-reason the others are, though nothing upgrades from it while 4 is the cap.
+from skipping the middle of the game. The ladder ends at level 4, so the array
+carries no row for upgrading out of it.
+
+Because the top of the ladder asks for 40 bearing blocks and level 4 is a
+certificate condition, certification now asks for an estate twice the size of
+the certificate's own 20-hectare line, on a price cut to a third. A player who
+stops at 24 blocks runs a profitable estate that never certifies.
 
 A block outside range
 refuses `HarvestBlock` outright, naming the distance and the range in the

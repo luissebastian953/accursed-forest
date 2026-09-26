@@ -2,10 +2,12 @@ import { GROWTH } from '../balance/growth.ts';
 import {
   NEWS,
   NEWS_TEMPLATES,
+  kopdesNewsKey,
   macroNewsKey,
   regionName,
   type NewsTemplate,
 } from '../balance/news/index.ts';
+import { KOPDES_TBS_SHARE } from '../balance/prices.ts';
 import { MACRO } from '../balance/society.ts';
 import { blockLabel } from '../labels.ts';
 import { forestCoverAround } from '../landscape.ts';
@@ -206,6 +208,15 @@ export function newsSystem(ctx: SimContext): void {
         }
 
         break;
+
+      case 'KopdesUpgraded': {
+        const key = kopdesNewsKey(event.level);
+        const share = KOPDES_TBS_SHARE[event.level] ?? 1;
+
+        if (key) add(key, { pct: `${Math.round(share * 100)}%` });
+        break;
+      }
+
       case 'IntegrityScandal':
         add('gov.scandal');
         break;
