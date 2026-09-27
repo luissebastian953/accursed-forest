@@ -59,6 +59,17 @@ The landing page (GDD organic): static HTML that says what the game is, loads
 no engine, and hands off to `play.html`. The game page paints its boot
 shell before the engine arrives and takes it down once the app is up.
 
+### Notes
+
+- The images test holds the page and `SITE_IMAGES` (`tools/seo.ts`) to the same
+  story: anything offered to image search carries a real `alt` and is not hidden
+  from the accessibility tree. It checks that a description exists and is a
+  sentence rather than pinning the words, so the copy stays free to change.
+- The twin test asserts the English page carries `workTranslation` and never
+  `translationOfWork`. Both pages once claimed to be a translation of the other,
+  which cannot be true of either and told Google nothing about which is the
+  original.
+
 ## `e2e/spike.spec.ts`
 
 Smoke test (GDD 10.2): boot the app on the WebGL 2 fallback path, prove the scene

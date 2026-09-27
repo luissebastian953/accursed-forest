@@ -39,6 +39,11 @@ skips the sitemap: a sitemap of relative URLs is invalid, not just weak.
   language alternates (each page lists all of them, itself included, plus
   `x-default`, as Google requires for hreflang in sitemaps), and its images.
   No `changefreq` or `priority`: Google ignores both.
+- `SITE_IMAGES`: the images the sitemap offers to image search, so every one of
+  them is content and owes the page that shows it a real `alt`. The hero used to
+  sit in an `aria-hidden` wrapper with an empty `alt` while this list asked
+  Google to index it, which is the page and the sitemap contradicting each
+  other. `e2e/landing.spec.ts` pins the description on both pages.
 - `renderRobots()`: crawl everything. The game page is not blocked on
   purpose: a blocked page cannot be fetched, so its `noindex` would never be
   seen and a linked URL could still be indexed bare. The sitemap line needs

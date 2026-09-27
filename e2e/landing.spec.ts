@@ -76,10 +76,30 @@ test.describe('landing page', () => {
     }
   });
 
+  test('@smoke describes the images it asks Google to index, on both pages', async ({ page }) => {
+    for (const path of ['/', '/id/']) {
+      await page.goto(path);
+
+      // The hero is in the image sitemap (tools/seo.ts), so the page owes it a description.
+      await expect(page.locator('.backdrop img'), path).toHaveAttribute('alt', /\S.{19,}/);
+      await expect(page.locator('.backdrop'), path).not.toHaveAttribute('aria-hidden', 'true');
+
+      for (const tag of ['meta[property="og:image:alt"]', 'meta[name="twitter:image:alt"]']) {
+        await expect(page.locator(tag), `${path} ${tag}`).toHaveAttribute('content', /\S.{19,}/);
+      }
+    }
+  });
+
   test('@smoke has an Indonesian twin that links both ways and carries its own FAQ schema', async ({
     page,
   }) => {
     await page.goto('/');
+
+    // The English page is the original: it has a translation, it is not one.
+    const enLd = (await page.locator('script[type="application/ld+json"]').textContent()) ?? '';
+
+    expect(enLd).toContain('"workTranslation"');
+    expect(enLd).not.toContain('"translationOfWork"');
     await page.getByRole('link', { name: 'Bahasa Indonesia' }).first().click();
     await expect(page).toHaveURL(/\/id\/$/);
     await expect(page.locator('html')).toHaveAttribute('lang', 'id');
