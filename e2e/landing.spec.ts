@@ -29,7 +29,7 @@ test.describe('landing page', () => {
       'href',
       '/icon-32.png',
     );
-    await expect(page.locator('link[rel="manifest"]')).toHaveAttribute('href', '/site.webmanifest');
+    await expect(page.locator('link[rel="manifest"]')).toHaveAttribute('href', '/manifest.json');
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
       'content',
       /og-1200x630\.png$/,
@@ -69,7 +69,7 @@ test.describe('landing page', () => {
     expect(play.status()).toBe(200);
 
     // The assets the head points at actually exist.
-    for (const path of ['/icon-32.png', '/icon-180.png', '/og-1200x630.png', '/site.webmanifest']) {
+    for (const path of ['/icon-32.png', '/icon-180.png', '/og-1200x630.png', '/manifest.json']) {
       const response = await page.request.get(path);
 
       expect(response.status(), path).toBe(200);

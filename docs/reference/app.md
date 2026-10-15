@@ -168,6 +168,21 @@ on top of it.
   columns: per-column noise carves one-column pits, and the mesher then
   correctly draws their walls, which reads as speckle.
 
+## `src/app/analytics.ts`
+
+The funnel, as Google Analytics 4 events: `game_start`, `tutorial_done`,
+`first_harvest`, `year_closed`, `run_ended` and `share`, each with the active
+locale. Every parameter is an enum or a number, never free text, because an
+estate name is personal data and the events leave the browser. With no `gtag`
+on the page, which is every build without `VITE_GA_ID`, nothing happens.
+
+### Notes
+
+- `track()`: `App.ts` calls it at the moments the audit named as the drop-off
+  questions (does a player start, finish the guide, reach a harvest, close a
+  year, see an ending), and the tutorial reports through a `done` handler so
+  the UI never imports this module.
+
 ## `src/app/loop.ts`
 
 The game loop (GDD 4.2 step 3): fixed-step sim ticks on a wall-clock

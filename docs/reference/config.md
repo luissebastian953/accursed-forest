@@ -34,19 +34,8 @@ empty the game builds and runs, and ships no third-party script.
   EdgeOne Pages and any real host give you. A project host such as GitHub Pages
   serves under `/<repo>/`, and the value is that path segment; the build then
   fixes its own hand-written links to `/play.html` and `/id/`.
-- `VITE_OBFUSCATE` and `VITE_SOURCEMAP`: production builds obfuscate the game's
-  own chunks and ship no source maps. `VITE_OBFUSCATE=0` gives a readable build
-  and `VITE_SOURCEMAP=1` emits maps. Both are for debugging a deployed build,
-  not for shipping.
-
-## `eslint.config.js`
-
-The lint rules, and the layer boundaries that keep the architecture honest.
-`eslint-plugin-boundaries` enforces the rule in GDD 4.1 that arrows point down
-only, so a violation is a lint error rather than a review comment.
-
-### Notes
-
+- `VITE_SOURCEMAP`: production builds ship no source maps; `VITE_SOURCEMAP=1`
+  emits them for debugging a deployed build. Not for shipping.
 - The layer rule (GDD 4.1): `app` may import ui, render, input, persistence, sim
   and shared; `ui` may import sim read-only and shared; `render`, `input`,
   `persistence` and `workers` may import sim read-only and shared; `sim` may
@@ -73,8 +62,8 @@ only, so a violation is a lint error rather than a review comment.
 
 ## `vite.config.ts`
 
-The build: the three pages, the SEO tags and files, the alias map, the chunking,
-and the production obfuscation pass.
+The build: the three pages, the SEO tags and files, the alias map and the
+chunking. Nothing is obfuscated ([ADR 0008](../adr/0008-no-obfuscation.md)).
 
 ### Notes
 
@@ -86,20 +75,6 @@ and the production obfuscation pass.
 - `lastCommitDate()`: a shallow CI checkout may not reach a file's last change,
   so the lookup falls back to the repository's most recent commit, and then to
   the build date.
-- `obfuscate`: production hardening. The game's own chunks are obfuscated on top
-  of minification and no source maps ship; three.js is left alone, being public
-  code and by far the largest chunk. Only the cheap transforms are on: string
-  literals move into an encoded, rotated array and identifiers become hex.
-  Control-flow flattening, dead-code injection, self-defending and debug
-  protection stay off, because they cost frame time in the sim's hot loops and
-  fight the minifier. `VITE_OBFUSCATE=0` turns the pass off. The honest limit is
-  that the browser runs whatever it downloads, so nothing here encrypts the game;
-  it raises the cost of reading and reusing the code.
-- `STRING_ARRAY_CHUNKS`: the string array halves the sim's tick rate, measured at
-  24.8 down to 12.5 days a second at 50x, because every literal in the per-block
-  loops becomes a call and a lookup. It is applied only to the app and UI chunks,
-  where the strings are copy and markup; the sim, the loop and the mesher get the
-  rest of the pass.
 - `resolve.tsconfigPaths`: Vite 8 resolves the `@sim/*` style aliases from
   tsconfig natively, but only for imports made from TypeScript. A `.svelte`
   file's imports go through the plain resolver, so the same map is spelled out in

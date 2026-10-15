@@ -107,6 +107,7 @@ import {
 
 import { t } from '../i18n/index.ts';
 
+import { track } from './analytics.ts';
 import { GameLoop } from './loop.ts';
 import { FIRE_LOCK_SPEED, speedNeedsKopdes, TimeControl, type Speed } from './timeControl.ts';
 
@@ -352,7 +353,11 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   // Pay for the bloom shaders now, behind the boot shell, rather than on the
   // first fire. A machine that never shows one has lost nothing but a frame.
-  void glow.warm().catch(() => undefined);
+  try {
+    glow.warm();
+  } catch {
+    // The pass compiles on the first flame instead.
+  }
 
   scene.add(
     coins.mesh,
@@ -466,6 +471,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       if (time.speed === 0) time.set(1);
     },
     project: (block) => projectBlock(block),
+    done: (how) => track({ name: 'tutorial_done', how }),
   });
 
   // A dev or test URL names its world and skips the title, so it skips the guide too, unless asked.
@@ -602,6 +608,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   });
 
   let epilogueTimer: ReturnType<typeof setTimeout> | null = null;
+  /** One `first_harvest` per estate per page load. */
+  let harvestTracked = false;
 
   function showEpilogue(): void {
     if (epilogueTimer !== null) clearTimeout(epilogueTimer);
@@ -1046,6 +1054,14 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     if (result.ok) {
       certCount = null;
 
+      if (command.type === 'HarvestBlock' && !harvestTracked) {
+        harvestTracked = true;
+        track({
+          name: 'first_harvest',
+          year: Math.floor(sim.state.tick / GROWTH.daysPerYear) + 1,
+        });
+      }
+
       // Money leaving on the player's own order. Coming in is the tick's
       // business (sales), except the tap, which pays with a burst of its own.
       const cashAfter = sim.state.economy.cash;
@@ -1168,6 +1184,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
   function switchSim(next: Sim): void {
     sim = next;
+    harvestTracked = false;
     tutorial.stop();
     select(null);
     closeShop();
@@ -1347,6 +1364,11 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     // The year, and how the run ends (GDD 3.8).
     if (d.yearClosed && !runOver(sim.state)) {
       writeSnapshot(d.yearClosed.year + 1);
+      track({
+        name: 'year_closed',
+        year: d.yearClosed.year,
+        profit_sign: d.yearClosed.profit >= 0 ? 'profit' : 'loss',
+      });
 
       const years = sim.state.run.years;
 
@@ -1355,6 +1377,14 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         previous: years.at(-2) ?? null,
         conditionsMet:
           d.yearClosed.year + 1 >= CERTIFICATE.progressFromYear ? d.yearClosed.conditionsMet : null,
+      });
+    }
+
+    if (d.runEnded) {
+      track({
+        name: 'run_ended',
+        ending: d.runEnded,
+        year: Math.floor(sim.state.tick / GROWTH.daysPerYear) + 1,
       });
     }
 
@@ -2291,6 +2321,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   /** Fade the title out and pull the camera in on the estate; the clock starts with it. */
   function beginPlay(): void {
     playing = true;
+    track({ name: 'game_start', resumed: sim.state.tick > 0 });
     refreshMenu();
     startScreen.dismiss();
     hud.setHidden(false);

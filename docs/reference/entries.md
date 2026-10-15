@@ -5,9 +5,11 @@ headers moved here. A `GDD n` reference points into the [design document](../gdd
 
 ## `src/main.ts`
 
-The game's entry (`play.html`). The engine is a megabyte of three.js, so
-it is loaded on demand behind the boot shell the page painted already;
-the shell comes down once the app has mounted. `index.html` is the static
+The game's entry (`play.html`). The app is a static import, so Vite writes
+`modulepreload` links for it and for three.js into the page and the engine
+downloads in parallel with the first script; the dev pages (`?spike`,
+`?models`, `?mobs`) stay behind dynamic imports. The boot shell the page
+painted comes down once the app has mounted. `index.html` is the static
 landing page and loads none of this.
 
 ## `src/workbench.ts`
