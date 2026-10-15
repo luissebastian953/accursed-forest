@@ -25,11 +25,19 @@ export const upgradeKopdes: CommandHandler<UpgradeKopdes> = {
   validate(ctx) {
     const { state } = ctx;
 
-    if (!state.kopdes) return reject('noKopdes', 'There is no Workshop to upgrade.');
+    if (!state.kopdes) {
+      return reject('noKopdes', 'There is no Workshop to upgrade.', {
+        key: 'rejections.upgrade.noKopdes',
+      });
+    }
 
     const cost = kopdesUpgradeCost(state.kopdes.level);
 
-    if (cost === null) return reject('maxLevel', 'The Workshop is already at its highest level.');
+    if (cost === null) {
+      return reject('maxLevel', 'The Workshop is already at its highest level.', {
+        key: 'rejections.upgrade.maxLevel',
+      });
+    }
 
     const short = kopdesMaturedShort(state, state.kopdes.level);
 
@@ -37,11 +45,18 @@ export const upgradeKopdes: CommandHandler<UpgradeKopdes> = {
       return reject(
         'wrongPhase',
         `${short} more ${short === 1 ? 'block' : 'blocks'} of bearing palms first.`,
+        {
+          key: short === 1 ? 'rejections.upgrade.moreBlock' : 'rejections.upgrade.moreBlocks',
+          vars: { n: short },
+        },
       );
     }
 
     if (state.economy.cash < cost) {
-      return reject('noCash', `The upgrade costs Rp ${cost.toLocaleString('id-ID')}.`);
+      return reject('noCash', `The upgrade costs Rp ${cost.toLocaleString('id-ID')}.`, {
+        key: 'rejections.upgrade.cost',
+        vars: { rp: cost },
+      });
     }
 
     return null;

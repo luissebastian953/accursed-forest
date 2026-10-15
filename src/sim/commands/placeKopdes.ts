@@ -11,22 +11,40 @@ export const placeKopdes: CommandHandler<PlaceKopdes> = {
     const { state, world } = ctx;
 
     if (!world.inBounds(...world.toXY(command.block))) {
-      return reject('unknownBlock', 'That block is outside the map.');
+      return reject('unknownBlock', 'That block is outside the map.', {
+        key: 'rejections.block.outsideMap',
+      });
     }
 
-    if (state.kopdes) return reject('occupied', 'The estate already has a Workshop.');
+    if (state.kopdes) {
+      return reject('occupied', 'The estate already has a Workshop.', {
+        key: 'rejections.kopdes.exists',
+      });
+    }
 
     const block = readBlock(state, world, command.block);
 
-    if (!block.owned) return reject('notOwned', 'You do not own this block.');
-    if (block.burning) return reject('burning', 'This block is on fire.');
-    if (block.phase !== 'cleared')
-      return reject('wrongPhase', 'The Workshop needs a cleared block.');
+    if (!block.owned) {
+      return reject('notOwned', 'You do not own this block.', {
+        key: 'rejections.block.notOwned',
+      });
+    }
+
+    if (block.burning) {
+      return reject('burning', 'This block is on fire.', { key: 'rejections.block.onFire' });
+    }
+
+    if (block.phase !== 'cleared') {
+      return reject('wrongPhase', 'The Workshop needs a cleared block.', {
+        key: 'rejections.kopdes.needsCleared',
+      });
+    }
 
     if (state.economy.cash < KOPDES_BUILD_COST) {
       return reject(
         'noCash',
         `Building the Workshop costs Rp ${KOPDES_BUILD_COST.toLocaleString('id-ID')}.`,
+        { key: 'rejections.kopdes.buildCost', vars: { rp: KOPDES_BUILD_COST } },
       );
     }
 

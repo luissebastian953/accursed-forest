@@ -10,27 +10,44 @@ export const coverCropBlock: CommandHandler<CoverCropBlock> = {
   validate(ctx, command) {
     const { state, world } = ctx;
 
-    if (!world.inBounds(...world.toXY(command.block)))
-      return reject('unknownBlock', 'That block is outside the map.');
+    if (!world.inBounds(...world.toXY(command.block))) {
+      return reject('unknownBlock', 'That block is outside the map.', {
+        key: 'rejections.block.outsideMap',
+      });
+    }
 
     const block = readBlock(state, world, command.block);
 
-    if (!block.owned) return reject('notOwned', 'You do not own this block.');
-    if (block.burning) return reject('burning', 'This block is on fire.');
+    if (!block.owned) {
+      return reject('notOwned', 'You do not own this block.', {
+        key: 'rejections.block.notOwned',
+      });
+    }
+
+    if (block.burning) {
+      return reject('burning', 'This block is on fire.', { key: 'rejections.block.onFire' });
+    }
 
     if (block.phase !== 'planted' && block.phase !== 'cleared') {
-      return reject('wrongPhase', 'Cover crops go between palms or on cleared ground.');
+      return reject('wrongPhase', 'Cover crops go between palms or on cleared ground.', {
+        key: 'rejections.coverCrop.wrongPhase',
+      });
     }
 
     if (block.coverCropUntil > state.tick) {
-      return reject(
-        'occupied',
-        `Cover crop already growing for ${block.coverCropUntil - state.tick} more days.`,
-      );
+      const n = block.coverCropUntil - state.tick;
+
+      return reject('occupied', `Cover crop already growing for ${n} more days.`, {
+        key: 'rejections.coverCrop.growing',
+        vars: { n },
+      });
     }
 
     if (state.economy.cash < COVER_CROP.cost) {
-      return reject('noCash', `Sowing costs Rp ${COVER_CROP.cost.toLocaleString('id-ID')}.`);
+      return reject('noCash', `Sowing costs Rp ${COVER_CROP.cost.toLocaleString('id-ID')}.`, {
+        key: 'rejections.coverCrop.cost',
+        vars: { rp: COVER_CROP.cost },
+      });
     }
 
     return null;

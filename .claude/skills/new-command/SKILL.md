@@ -14,9 +14,12 @@ breaks quietly.
    chunk dirty automatically after a successful dispatch.
 2. **The handler.** `src/sim/commands/<name>.ts`, exporting a
    `CommandHandler` with `validate(ctx, command)` returning
-   `reject(code, reason) | null`, and `apply(ctx, command)`. The reason is
-   shown on the greyed-out button, so write it for the player, in a sentence.
-   Push events; never touch the screen.
+   `reject(code, reason, message) | null`, and `apply(ctx, command)`. The
+   reason is shown on the greyed-out button, so write it for the player, in a
+   sentence; `message` is its key under `rejections.` with the raw variables,
+   and the key goes in both `src/i18n/locales/*/rejections.json` (the unit
+   test `tests/sim/rejections.test.ts` fails otherwise). Push events; never
+   touch the screen.
 3. **Register it** in `src/sim/commands/index.ts`.
 4. **The save.** Add it to `CommandSchema` in `src/persistence/schema.ts`,
    because the command log is persisted and an unknown command fails the

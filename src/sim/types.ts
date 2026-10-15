@@ -476,7 +476,13 @@ export interface CommandRecord {
   command: Command;
 }
 
-/** Why a command was refused. The UI shows `reason` verbatim (GDD 8 copy rules). */
+/** The catalog key and raw variables a rejection sentence is built from. */
+export interface RejectionMessage {
+  key: string;
+  vars?: Record<string, string | number>;
+}
+
+/** Why a command was refused. `reason` is the English sentence; `message` names it for the catalog. */
 export interface Rejection {
   ok: false;
   code:
@@ -502,6 +508,7 @@ export interface Rejection {
     | 'unknownBlock'
     | 'notImplemented';
   reason: string;
+  message?: RejectionMessage;
 }
 
 export interface Accepted {

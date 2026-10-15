@@ -7,27 +7,43 @@ import { reject, type CommandHandler } from './handler.ts';
 type HireWorker = Extract<Command, { type: 'HireWorker' }>;
 type DismissWorker = Extract<Command, { type: 'DismissWorker' }>;
 
+/** One key per kind: the worker's title is a word, so it cannot travel as a variable. */
+const EMPLOYED_KEY: Record<HireWorker['kind'], string> = {
+  sanitizer: 'rejections.worker.employedSanitizer',
+  plantDoctor: 'rejections.worker.employedPlantDoctor',
+  security: 'rejections.worker.employedSecurity',
+};
+
 export const hireWorker: CommandHandler<HireWorker> = {
   validate(ctx, command) {
     const { state } = ctx;
     const spec = WORKERS[command.kind];
 
-    if (!state.kopdes)
-      return reject('noKopdes', 'Build a Workshop first; that is where workers report.');
+    if (!state.kopdes) {
+      return reject('noKopdes', 'Build a Workshop first; that is where workers report.', {
+        key: 'rejections.worker.noKopdes',
+      });
+    }
 
     if (state.kopdes.level < WORKERS_FROM_LEVEL) {
       return reject(
         'wrongPhase',
         `Upgrade the Workshop to level ${WORKERS_FROM_LEVEL} before putting anyone on the payroll.`,
+        { key: 'rejections.worker.level', vars: { level: WORKERS_FROM_LEVEL } },
       );
     }
 
     if (state.mobs.some((m) => m.hired && m.species === command.kind)) {
-      return reject('occupied', `You already employ a ${spec.label.toLowerCase()}.`);
+      return reject('occupied', `You already employ a ${spec.label.toLowerCase()}.`, {
+        key: EMPLOYED_KEY[command.kind],
+      });
     }
 
     if (state.economy.cash < spec.hireFee) {
-      return reject('noCash', `Hiring costs Rp ${spec.hireFee.toLocaleString('id-ID')} up front.`);
+      return reject('noCash', `Hiring costs Rp ${spec.hireFee.toLocaleString('id-ID')} up front.`, {
+        key: 'rejections.worker.hireCost',
+        vars: { rp: spec.hireFee },
+      });
     }
 
     return null;
@@ -77,7 +93,9 @@ export const hireWorker: CommandHandler<HireWorker> = {
 export const dismissWorker: CommandHandler<DismissWorker> = {
   validate(ctx, command) {
     if (!ctx.state.mobs.some((m) => m.hired && m.species === command.kind)) {
-      return reject('wrongPhase', 'Nobody of that kind is on the payroll.');
+      return reject('wrongPhase', 'Nobody of that kind is on the payroll.', {
+        key: 'rejections.worker.nobody',
+      });
     }
 
     return null;

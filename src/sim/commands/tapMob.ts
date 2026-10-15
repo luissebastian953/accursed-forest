@@ -42,8 +42,12 @@ export const tapMob: CommandHandler<TapMob> = {
   validate(ctx, command): Rejection | null {
     const mob = find(ctx, command.mob);
 
-    if (!mob) return reject('wrongPhase', 'It has already gone.');
-    if (!worth(ctx, mob)) return reject('wrongPhase', 'Nothing comes of it.');
+    if (!mob) return reject('wrongPhase', 'It has already gone.', { key: 'rejections.mob.gone' });
+
+    if (!worth(ctx, mob)) {
+      return reject('wrongPhase', 'Nothing comes of it.', { key: 'rejections.mob.nothing' });
+    }
+
     return null;
   },
 

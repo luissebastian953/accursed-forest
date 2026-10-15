@@ -5,13 +5,13 @@ import { readBlock, spend, writeBlock } from '../state.ts';
 import { staffBlock } from '../systems/mobs.ts';
 import {
   clearingCostFactor,
-  operatingBanReason,
+  operatingBanRejection,
   operatingBanned,
   underInvestigation,
 } from '../systems/society.ts';
-import type { Command, SimState } from '../types.ts';
+import type { Command, Rejection, SimState } from '../types.ts';
 
-import { reject, type CommandHandler } from './handler.ts';
+import { dateVars, reject, type CommandHandler } from './handler.ts';
 
 type ChopBlock = Extract<Command, { type: 'ChopBlock' }>;
 
@@ -23,10 +23,14 @@ export function chopCost(biome: keyof typeof BIOMES, state?: SimState): number {
   );
 }
 
-export function investigationReason(state: SimState): string {
-  const until = state.society.investigationUntil;
+export function investigationRejection(state: SimState): Rejection {
+  const { year, day } = dateVars(state.society.investigationUntil);
 
-  return `Under police investigation; no chopping or burning until year ${Math.floor(until / 360) + 1}, day ${(until % 360) + 1}.`;
+  return reject(
+    'banned',
+    `Under police investigation; no chopping or burning until year ${year}, day ${day}.`,
+    { key: 'rejections.ban.investigation', vars: { year, day } },
+  );
 }
 
 export const chopBlock: CommandHandler<ChopBlock> = {
@@ -34,37 +38,60 @@ export const chopBlock: CommandHandler<ChopBlock> = {
     const { state, world } = ctx;
 
     if (!world.inBounds(...world.toXY(command.block))) {
-      return reject('unknownBlock', 'That block is outside the map.');
+      return reject('unknownBlock', 'That block is outside the map.', {
+        key: 'rejections.block.outsideMap',
+      });
     }
 
     const block = readBlock(state, world, command.block);
 
-    if (!block.owned) return reject('notOwned', 'You do not own this block.');
-    if (operatingBanned(state)) return reject('banned', operatingBanReason(state));
-    if (underInvestigation(state)) return reject('banned', investigationReason(state));
-
-    if (block.bannedUntil > state.tick) {
-      return reject('banned', `Clearing is banned here until day ${block.bannedUntil}.`);
+    if (!block.owned) {
+      return reject('notOwned', 'You do not own this block.', {
+        key: 'rejections.block.notOwned',
+      });
     }
 
-    if (block.burning) return reject('burning', 'This block is on fire.');
-    if (block.phase !== 'wild') return reject('wrongPhase', 'Only wild land can be chopped.');
+    if (operatingBanned(state)) return operatingBanRejection(state);
+    if (underInvestigation(state)) return investigationRejection(state);
+
+    if (block.bannedUntil > state.tick) {
+      return reject('banned', `Clearing is banned here until day ${block.bannedUntil}.`, {
+        key: 'rejections.ban.clearingUntilDay',
+        vars: { day: block.bannedUntil },
+      });
+    }
+
+    if (block.burning) {
+      return reject('burning', 'This block is on fire.', { key: 'rejections.block.onFire' });
+    }
+
+    if (block.phase !== 'wild') {
+      return reject('wrongPhase', 'Only wild land can be chopped.', {
+        key: 'rejections.chop.notWild',
+      });
+    }
 
     if (block.biome === 'grave') {
       return reject(
         'wrongPhase',
         'Nothing stands on a grave to chop; an excavation crew digs it out.',
+        { key: 'rejections.chop.grave' },
       );
     }
 
     if (!BIOMES[block.biome].clearable) {
-      return reject('wrongPhase', 'This land cannot be cleared.');
+      return reject('wrongPhase', 'This land cannot be cleared.', {
+        key: 'rejections.chop.notClearable',
+      });
     }
 
     const cost = chopCost(block.biome, state);
 
     if (state.economy.cash < cost) {
-      return reject('noCash', `A crew costs Rp ${cost.toLocaleString('id-ID')} for this block.`);
+      return reject('noCash', `A crew costs Rp ${cost.toLocaleString('id-ID')} for this block.`, {
+        key: 'rejections.chop.crewCost',
+        vars: { rp: cost },
+      });
     }
 
     return null;

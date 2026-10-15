@@ -97,8 +97,27 @@ for `FERTILIZER_DAYS`, which feeds both growth-days and yield through `G`.
 ## `src/sim/commands/handler.ts`
 
 The shape every command file exports (GDD 4.2). `validate` returns a typed
-`Rejection` the UI shows verbatim, or `null` to proceed; `apply` may assume
-validation passed.
+`Rejection`, or `null` to proceed; `apply` may assume validation passed.
+`reject(code, reason, message)` builds the rejection: `reason` is the English
+sentence, `message` the catalog key under `rejections.` and the raw variables
+the sentence was built from. `dateVars(tick)` gives the `{year}` and `{day}` a
+ban prints, counted from one the way the HUD counts them.
+
+### Notes
+
+- `reject()` carries both the English sentence and the key because the two
+  have different readers. Tests and the English panel read `reason`, which
+  stays a plain string so nothing in the sim depends on a catalog; the
+  Indonesian panel reads `message` and formats the variables with its own
+  locale, so a variable is always a raw value (`{rp}` a number, `{year}` and
+  `{day}` numbers, `{n}` a count), never a pre-formatted English fragment.
+  Where English inflects (`day`/`days`, `block`/`blocks`, `seedlings`/
+  `saplings`, the biome in "is not for sale") the sentence gets one key per
+  form, chosen at the call site, so no English word travels in a variable.
+  `tests/sim/rejections.test.ts` holds the two together: every key the sim
+  names exists in both `src/i18n/locales/*/rejections.json`, both ask for the
+  same placeholders, and the English catalog with the variables filled equals
+  `reason`. `rp` and `cash` are the two variables the panel formats as rupiah.
 
 ## `src/sim/commands/harvestBlock.ts`
 

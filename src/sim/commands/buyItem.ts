@@ -15,18 +15,27 @@ export const buyItem: CommandHandler<BuyItem> = {
   validate(ctx, command) {
     const { state } = ctx;
 
-    if (!state.kopdes) return reject('noKopdes', 'Build a Workshop first; it is where you buy.');
+    if (!state.kopdes) {
+      return reject('noKopdes', 'Build a Workshop first; it is where you buy.', {
+        key: 'rejections.shop.noKopdes',
+      });
+    }
 
     if (!Number.isInteger(command.quantity) || command.quantity <= 0) {
-      return reject('badQuantity', 'Quantity must be a whole number above zero.');
+      return reject('badQuantity', 'Quantity must be a whole number above zero.', {
+        key: 'rejections.shop.badQuantity',
+      });
     }
 
     const cost = itemPrice(command.item, shopIndex(state)) * command.quantity;
 
     if (state.economy.cash < cost) {
+      const cash = Math.max(0, state.economy.cash);
+
       return reject(
         'noCash',
-        `That costs Rp ${cost.toLocaleString('id-ID')}; you have Rp ${Math.max(0, state.economy.cash).toLocaleString('id-ID')}.`,
+        `That costs Rp ${cost.toLocaleString('id-ID')}; you have Rp ${cash.toLocaleString('id-ID')}.`,
+        { key: 'rejections.shop.cost', vars: { rp: cost, cash } },
       );
     }
 

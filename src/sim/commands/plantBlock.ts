@@ -1,8 +1,8 @@
 import { BIOMES } from '../balance/biomes.ts';
 import { createPalmArrays, plantSlots } from '../palms.ts';
 import { readBlock, writeBlock } from '../state.ts';
-import { creditReforestation, operatingBanReason, operatingBanned } from '../systems/society.ts';
-import type { Command, ItemId, Species } from '../types.ts';
+import { creditReforestation, operatingBanRejection, operatingBanned } from '../systems/society.ts';
+import type { Command, ItemId, Rejection, Species } from '../types.ts';
 
 import { itemPrice } from './buyItem.ts';
 import { reject, type CommandHandler } from './handler.ts';
@@ -27,24 +27,51 @@ export function plantingCost(
   return seedlingsNeeded(biome) * itemPrice(seedlingItem(species), priceIndex);
 }
 
+/** The stock shortfall a planting or a replanting reports, in the species' own word. */
+export function shortSeedlings(species: Species, needed: number, have: number): Rejection {
+  const forest = species === 'forest';
+  const label = forest ? 'saplings' : 'seedlings';
+
+  return reject(
+    'noInventory',
+    `Needs ${needed} ${label}; you have ${have}. Buy them at the Workshop.`,
+    {
+      key: forest ? 'rejections.plant.needsSaplings' : 'rejections.plant.needsSeedlings',
+      vars: { n: needed, have },
+    },
+  );
+}
+
 export const plantBlock: CommandHandler<PlantBlock> = {
   validate(ctx, command) {
     const { state, world } = ctx;
 
     if (!world.inBounds(...world.toXY(command.block))) {
-      return reject('unknownBlock', 'That block is outside the map.');
+      return reject('unknownBlock', 'That block is outside the map.', {
+        key: 'rejections.block.outsideMap',
+      });
     }
 
     const block = readBlock(state, world, command.block);
 
-    if (!block.owned) return reject('notOwned', 'You do not own this block.');
-    if (block.burning) return reject('burning', 'This block is on fire.');
+    if (!block.owned) {
+      return reject('notOwned', 'You do not own this block.', {
+        key: 'rejections.block.notOwned',
+      });
+    }
+
+    if (block.burning) {
+      return reject('burning', 'This block is on fire.', { key: 'rejections.block.onFire' });
+    }
+
     // Planting forest back is what the ban is asking for.
-    if (command.species === 'palm' && operatingBanned(state))
-      return reject('banned', operatingBanReason(state));
+    if (command.species === 'palm' && operatingBanned(state)) return operatingBanRejection(state);
 
     if (block.bannedUntil > state.tick) {
-      return reject('banned', `Planting is banned here until day ${block.bannedUntil}.`);
+      return reject('banned', `Planting is banned here until day ${block.bannedUntil}.`, {
+        key: 'rejections.ban.plantingUntilDay',
+        vars: { day: block.bannedUntil },
+      });
     }
 
     // Grass and scrub have nothing standing on them, so saplings go straight
@@ -55,24 +82,21 @@ export const plantBlock: CommandHandler<PlantBlock> = {
       BIOMES[block.biome].openLand === true;
 
     if (block.phase !== 'cleared' && !openWild) {
-      return reject(
-        'wrongPhase',
-        block.phase === 'wild' ? 'Clear the block first.' : 'This block is already in use.',
-      );
+      if (block.phase === 'wild') {
+        return reject('wrongPhase', 'Clear the block first.', {
+          key: 'rejections.plant.clearFirst',
+        });
+      }
+
+      return reject('wrongPhase', 'This block is already in use.', {
+        key: 'rejections.plant.inUse',
+      });
     }
 
-    const item = seedlingItem(command.species);
     const needed = seedlingsNeeded(block.biome);
-    const have = state.inventory[item];
+    const have = state.inventory[seedlingItem(command.species)];
 
-    if (have < needed) {
-      const label = command.species === 'forest' ? 'saplings' : 'seedlings';
-
-      return reject(
-        'noInventory',
-        `Needs ${needed} ${label}; you have ${have}. Buy them at the Workshop.`,
-      );
-    }
+    if (have < needed) return shortSeedlings(command.species, needed, have);
 
     return null;
   },

@@ -8,11 +8,18 @@ export const setAutoHarvest: CommandHandler<SetAutoHarvest> = {
   validate(ctx, command) {
     const { state } = ctx;
 
-    if (!state.kopdes)
-      return reject('noKopdes', 'Build a Workshop first; its crew does the picking.');
+    if (!state.kopdes) {
+      return reject('noKopdes', 'Build a Workshop first; its crew does the picking.', {
+        key: 'rejections.autoHarvest.noKopdes',
+      });
+    }
 
     if (state.kopdes.autoHarvest === command.on) {
-      return reject('wrongPhase', command.on ? 'Already on.' : 'Already off.');
+      if (command.on) {
+        return reject('wrongPhase', 'Already on.', { key: 'rejections.autoHarvest.alreadyOn' });
+      }
+
+      return reject('wrongPhase', 'Already off.', { key: 'rejections.autoHarvest.alreadyOff' });
     }
 
     return null;

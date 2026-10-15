@@ -30,17 +30,24 @@ export const settleInvestigation: CommandHandler<SettleInvestigation> = {
     const { state } = ctx;
 
     if (!settleable(state)) {
-      return reject('wrongPhase', 'There is nothing to settle.');
+      return reject('wrongPhase', 'There is nothing to settle.', {
+        key: 'rejections.settle.nothing',
+      });
     }
 
     if (!settleListening(state)) {
-      return reject('wrongPhase', 'Nobody at the district office is taking calls right now.');
+      return reject('wrongPhase', 'Nobody at the district office is taking calls right now.', {
+        key: 'rejections.settle.quiet',
+      });
     }
 
     const cost = settleCost(state);
 
     if (state.economy.cash < cost) {
-      return reject('noCash', `The "coordination fee" is Rp ${cost.toLocaleString('id-ID')}.`);
+      return reject('noCash', `The "coordination fee" is Rp ${cost.toLocaleString('id-ID')}.`, {
+        key: 'rejections.settle.cost',
+        vars: { rp: cost },
+      });
     }
 
     return null;

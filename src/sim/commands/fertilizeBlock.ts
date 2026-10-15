@@ -11,27 +11,42 @@ export const fertilizeBlock: CommandHandler<FertilizeBlock> = {
     const { state, world } = ctx;
 
     if (!world.inBounds(...world.toXY(command.block))) {
-      return reject('unknownBlock', 'That block is outside the map.');
+      return reject('unknownBlock', 'That block is outside the map.', {
+        key: 'rejections.block.outsideMap',
+      });
     }
 
     const block = readBlock(state, world, command.block);
 
-    if (!block.owned) return reject('notOwned', 'You do not own this block.');
-    if (block.burning) return reject('burning', 'This block is on fire.');
+    if (!block.owned) {
+      return reject('notOwned', 'You do not own this block.', {
+        key: 'rejections.block.notOwned',
+      });
+    }
+
+    if (block.burning) {
+      return reject('burning', 'This block is on fire.', { key: 'rejections.block.onFire' });
+    }
 
     if (block.phase !== 'planted' && block.phase !== 'reforesting') {
-      return reject('wrongPhase', 'Only planted blocks take fertilizer.');
+      return reject('wrongPhase', 'Only planted blocks take fertilizer.', {
+        key: 'rejections.fertilize.notPlanted',
+      });
     }
 
     if (block.fertilizedUntil > state.tick) {
-      return reject(
-        'occupied',
-        `Already fertilized for ${block.fertilizedUntil - state.tick} more days.`,
-      );
+      const n = block.fertilizedUntil - state.tick;
+
+      return reject('occupied', `Already fertilized for ${n} more days.`, {
+        key: 'rejections.fertilize.active',
+        vars: { n },
+      });
     }
 
     if (state.inventory.fertilizer < 1) {
-      return reject('noInventory', 'No fertilizer in stock; buy some at the Workshop.');
+      return reject('noInventory', 'No fertilizer in stock; buy some at the Workshop.', {
+        key: 'rejections.fertilize.noStock',
+      });
     }
 
     return null;
