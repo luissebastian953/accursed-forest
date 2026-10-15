@@ -14,17 +14,16 @@ import { forestCoverAround } from '../landscape.ts';
 import { chance, forkRng, pick, type RngState } from '../rng.ts';
 import { chronicle } from '../run.ts';
 import type { SimContext } from '../state.ts';
-import type { BlockId, NewsItem, SimState } from '../types.ts';
+import type { BlockId, NewsItem, NewsVars, SimState } from '../types.ts';
 import { estateCodeFor } from '../worldgen/index.ts';
 
-export interface NewsVars {
-  n?: number;
-  days?: number;
-  pct?: string;
-  price?: string;
-  block?: string;
-  until?: string;
-  cost?: string;
+export type { NewsVars } from '../types.ts';
+
+/** How a renderer turns the raw variables into words: this one is the sim's English. */
+export interface NewsFormats {
+  block(label: string): string;
+  date(tick: number): string;
+  money(amount: number): string;
 }
 
 interface Pending {
@@ -39,20 +38,52 @@ function dateLabel(tick: number): string {
   return `Year ${Math.floor(tick / GROWTH.daysPerYear) + 1}, day ${(tick % GROWTH.daysPerYear) + 1}`;
 }
 
-export function render(text: string, state: SimState, vars: NewsVars): string {
+export const ENGLISH: NewsFormats = {
+  block: (label) => `block ${label}`,
+  date: dateLabel,
+  money: (amount) => `Rp ${rupiah.format(Math.round(amount))}`,
+};
+
+/** Fill a template's placeholders; `seed` names the region and the estate. */
+export function renderWith(
+  text: string,
+  seed: number,
+  vars: NewsVars,
+  formats: NewsFormats,
+  estateWord = 'estate',
+): string {
   const values: Record<string, string> = {
-    region: regionName(state.seed),
-    estate: `estate ${estateCodeFor(state.seed)}`,
+    region: regionName(seed),
+    estate: `${estateWord} ${estateCodeFor(seed)}`,
     n: vars.n === undefined ? '' : rupiah.format(Math.round(vars.n)),
     days: vars.days === undefined ? '' : String(vars.days),
     pct: vars.pct ?? '',
-    price: vars.price ?? '',
-    block: vars.block ?? '',
-    until: vars.until ?? '',
-    cost: vars.cost ?? '',
+    price: vars.price === undefined ? '' : formats.money(vars.price),
+    block: vars.block === undefined ? '' : formats.block(vars.block),
+    until: vars.until === undefined ? '' : formats.date(vars.until),
+    cost: vars.cost === undefined ? '' : formats.money(vars.cost),
   };
 
   return text.replace(/\{(\w+)\}/g, (match, name: string) => values[name] ?? match);
+}
+
+export function render(text: string, state: SimState, vars: NewsVars): string {
+  return renderWith(text, state.seed, vars, ENGLISH);
+}
+
+const VAR_ORDER = ['n', 'days', 'pct', 'price', 'block', 'until', 'cost'] as const;
+
+/** The variables in the order the save schema parses them back, so a round trip is byte-identical. */
+function canonical(vars: NewsVars): NewsVars {
+  const out: NewsVars = {};
+
+  for (const name of VAR_ORDER) {
+    const value = vars[name];
+
+    if (value !== undefined) (out as Record<string, string | number>)[name] = value;
+  }
+
+  return out;
 }
 
 /** A headline that opens on a slot ("{estate} folds…") still starts with a capital. */
@@ -92,14 +123,21 @@ export function publish(
     if (item.key === key && state.tick - item.tick < template.cooldownDays) return null;
   }
 
+  const title = pick(rng, template.titles);
+  const body = pick(rng, template.bodies);
   const item: NewsItem = {
     tick: state.tick,
     key,
     lane: template.lane,
     severity: template.severity,
-    title: capitalise(render(pick(rng, template.titles) ?? key, state, vars)),
-    body: render(pick(rng, template.bodies) ?? '', state, vars),
+    title: capitalise(render(title ?? key, state, vars)),
+    body: render(body ?? '', state, vars),
     effects: template.effects.map((e) => render(e, state, vars)).filter((e) => e.trim().length > 0),
+    pick: {
+      title: Math.max(0, template.titles.indexOf(title ?? '')),
+      body: Math.max(0, template.bodies.indexOf(body ?? '')),
+    },
+    vars: canonical(vars),
   };
 
   if (blocks.length > 0) item.blocks = blocks;
@@ -108,7 +146,14 @@ export function publish(
   if (news.length > NEWS.cap) news.splice(0, news.length - NEWS.cap);
 
   if (template.chronicle ?? (item.severity === 'warning' || item.severity === 'critical')) {
-    chronicle(state, { lane: item.lane, severity: item.severity, title: item.title });
+    chronicle(state, {
+      lane: item.lane,
+      severity: item.severity,
+      title: item.title,
+      key,
+      pick: item.pick!,
+      vars: item.vars as Record<string, string | number>,
+    });
   }
 
   events.push({ type: 'NewsPublished', key, lane: item.lane, severity: item.severity });
@@ -163,41 +208,31 @@ export function newsSystem(ctx: SimContext): void {
         const bare = forestCoverAround(state, world, event.block) < 0.3;
 
         if (bare || event.palmsLost > 0)
-          add(
-            'landslide',
-            { n: event.palmsLost, block: `block ${blockLabel(world, event.block)}` },
-            [event.block],
-          );
+          add('landslide', { n: event.palmsLost, block: blockLabel(world, event.block) }, [
+            event.block,
+          ]);
         break;
       }
 
       case 'HarvestStolen':
-        add(
-          'estate.theft',
-          { n: event.kilograms, block: `block ${blockLabel(world, event.block)}` },
-          [event.block],
-        );
+        add('estate.theft', { n: event.kilograms, block: blockLabel(world, event.block) }, [
+          event.block,
+        ]);
         break;
       case 'ThiefCaught':
         add('estate.thiefCaught');
         break;
       case 'MobBurned':
-        add('estate.animalBurned', { block: `block ${blockLabel(world, event.block)}` }, [
-          event.block,
-        ]);
+        add('estate.animalBurned', { block: blockLabel(world, event.block) }, [event.block]);
         break;
       case 'HauntingStage':
         if (event.stage === 2)
-          add('estate.haunting', { block: `block ${blockLabel(world, event.block)}` }, [
-            event.block,
-          ]);
+          add('estate.haunting', { block: blockLabel(world, event.block) }, [event.block]);
         else if (event.stage === 3)
-          add('estate.hauntingDeep', { block: `block ${blockLabel(world, event.block)}` }, [
-            event.block,
-          ]);
+          add('estate.hauntingDeep', { block: blockLabel(world, event.block) }, [event.block]);
         break;
       case 'CashStolen':
-        add('estate.babiNgepet', { cost: `Rp ${rupiah.format(event.amount)}` });
+        add('estate.babiNgepet', { cost: event.amount });
         break;
       case 'LightningStruck':
         if (event.ignited) add('storm.lightning', {}, [event.block]);
@@ -218,7 +253,7 @@ export function newsSystem(ctx: SimContext): void {
         if (Math.abs(state.economy.soldKgTotal - event.kilograms) < 1e-6) {
           add('estate.firstSale', {
             n: event.kilograms,
-            price: `Rp ${rupiah.format(event.price)}`,
+            price: event.price,
           });
         }
 
@@ -239,10 +274,10 @@ export function newsSystem(ctx: SimContext): void {
         add('authority.letter');
         break;
       case 'InvestigationOpened':
-        add(`authority.investigation.${event.reason}`, { until: dateLabel(event.until) });
+        add(`authority.investigation.${event.reason}`, { until: event.until });
         break;
       case 'InvestigationSettled':
-        add('authority.settled', { cost: `Rp ${rupiah.format(event.cost)}` });
+        add('authority.settled', { cost: event.cost });
         break;
       case 'InvestigationClosed':
         add('authority.closed');
@@ -251,7 +286,7 @@ export function newsSystem(ctx: SimContext): void {
         add('authority.arrested');
         break;
       case 'OperatingBanned':
-        add('authority.operatingBan', { until: dateLabel(event.until) });
+        add('authority.operatingBan', { until: event.until });
         break;
       case 'OperatingBanLifted':
         add('authority.banLifted');
@@ -289,7 +324,7 @@ export function newsSystem(ctx: SimContext): void {
     if (Math.abs(move) >= NEWS.priceMoveHeadline) {
       add(move > 0 ? 'price.surge' : 'price.slump', {
         pct: `${Math.round(Math.abs(move) * 100)}%`,
-        price: `Rp ${rupiah.format(now)}`,
+        price: now,
       });
     }
   }

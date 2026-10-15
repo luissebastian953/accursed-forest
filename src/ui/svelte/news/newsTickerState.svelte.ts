@@ -2,6 +2,9 @@ import { mount, unmount, type Component } from 'svelte';
 
 import type { NewsItem } from '@sim/types';
 
+import { locale } from '../../../i18n/index.ts';
+import { newsText } from '../../newsText.ts';
+
 import NewsTickerView from './NewsTicker.svelte';
 
 export interface TickerHandlers {
@@ -44,9 +47,9 @@ export class NewsTicker {
     state.hidden = hidden;
   }
 
-  update(news: readonly NewsItem[], unread: number): void {
+  update(news: readonly NewsItem[], unread: number, seed: number): void {
     const latest = news.at(-1);
-    const key = `${news.length}:${latest?.tick ?? -1}:${latest?.title ?? ''}:${unread}`;
+    const key = `${news.length}:${latest?.tick ?? -1}:${latest?.title ?? ''}:${unread}:${locale()}`;
 
     if (key === this.lastKey) return;
     this.lastKey = key;
@@ -55,7 +58,7 @@ export class NewsTicker {
       .reverse()
       .map((item, i) => ({
         tick: item.tick,
-        title: item.title,
+        title: newsText(locale(), item, seed).title,
         lane: item.lane,
         testId: i === 0 ? 'news-ticker-latest' : '',
       }));

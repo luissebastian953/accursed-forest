@@ -1,0 +1,15 @@
+{
+  "forestPlanted": "Forest planted back on {blocks}",
+  "kopdesUpgraded": "Kopdes upgraded to level {level}",
+  "forestChopped": "Forest chopped on {blocks}",
+  "burnedToClear": "{blocks} burned to clear",
+  "fireSpreadOne": "Fire spread to {n} block",
+  "fireSpread": "Fire spread to {n} blocks",
+  "fireSpreadNotYoursOne": "Fire spread to {n} block, {notYours} not yours",
+  "fireSpreadNotYours": "Fire spread to {n} blocks, {notYours} not yours",
+  "yearClosedProfit": "Year {year} closed: profit Rp {rp}M, {ha} ha bearing",
+  "yearClosedLoss": "Year {year} closed: loss Rp {rp}M, {ha} ha bearing",
+  "blockOne": "block {labels}",
+  "blockSome": "blocks {labels}",
+  "blockMany": "{n} blocks"
+}

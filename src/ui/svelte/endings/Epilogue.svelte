@@ -5,12 +5,14 @@
   import { GROWTH } from '@sim/balance/growth';
   import type { ChronicleEntry } from '@sim/types';
 
-  import { t } from '../../../i18n/index.ts';
+  import { locale, t } from '../../../i18n/index.ts';
   import { formatDate, formatPercent, formatRp } from '../../format.ts';
   import type { IconName } from '../../icons.ts';
+  import { chronicleTitle, newsText } from '../../newsText.ts';
   import Icon from '../base/Icon.svelte';
 
   import { LOOK, type Epilogue, type EpilogueView } from './epilogueState.svelte.ts';
+  import { buildRunCard } from './runCard.ts';
 
   interface Props {
     epilogue: Epilogue;
@@ -172,6 +174,56 @@
   const rewind = $derived(v ? !win && v.rewindYears.length > 0 : false);
   const oldest = $derived(v ? Math.min(...v.rewindYears) : 0);
   const sponsor = REBOISASI.sponsor;
+
+  const card = $derived(
+    v && look
+      ? buildRunCard(
+          {
+            estateCode: v.estateCode,
+            year: yearsOf(v),
+            ending: v.ending,
+            endingTitle: t(look.title),
+            forestCover: v.forestCover,
+            blocksBurned: v.stats.blocksBurned,
+            forestPlanted: v.stats.forestPlanted,
+            profit: v.profitTotal,
+            shareUrl: v.shareUrl,
+          },
+          t,
+        )
+      : '',
+  );
+  const canShare = $derived(
+    typeof navigator !== 'undefined' && typeof navigator.share === 'function',
+  );
+  let copied = $state(false);
+  let copyFailed = $state(false);
+  let cardBox = $state<HTMLElement | null>(null);
+
+  async function copyCard(): Promise<void> {
+    copyFailed = false;
+
+    try {
+      await navigator.clipboard.writeText(card);
+      copied = true;
+      setTimeout(() => (copied = false), 2000);
+      epilogue.handlers.shared('copy');
+    } catch {
+      // No clipboard: the text is selected so the player can copy it by hand.
+      copyFailed = true;
+
+      if (cardBox) getSelection()?.selectAllChildren(cardBox);
+    }
+  }
+
+  async function shareCard(): Promise<void> {
+    try {
+      await navigator.share({ title: 'Sawit Simulator', text: card });
+      epilogue.handlers.shared('share');
+    } catch {
+      // The sheet was dismissed, or the platform refused: nothing to report.
+    }
+  }
 </script>
 
 <!-- A note card: an icon tile and a line of text. -->
@@ -189,7 +241,8 @@
 {#if v && look}
   {@const years = yearsOf(v)}
   {#snippet headlineBody()}
-    <b>“{v.headline?.title}”</b>; {v.headline?.body}
+    {@const said = v.headline ? newsText(locale(), v.headline, v.seed) : null}
+    <b>“{said?.title}”</b>; {said?.body}
   {/snippet}
   {#snippet reboisasiBody()}
     <div class="text-base font-extrabold leading-snug text-[#2f7a2b]">
@@ -319,6 +372,40 @@
         </div>
 
         <div
+          class="rounded-2xl border-2 border-[var(--green)] bg-[#eef7e4] px-4 py-3"
+          data-testid="epilogue-share"
+        >
+          <div class="label mb-1 !text-[#2f7a2b]">{t('share.title')}</div>
+          <pre
+            class="m-0 whitespace-pre-wrap break-words rounded-xl border-2 border-[var(--card-edge)] bg-[var(--card)] px-3 py-2 font-[inherit] text-xs font-bold leading-relaxed"
+            data-testid="epilogue-share-card"
+            bind:this={cardBox}>{card}</pre>
+          <div class="mt-2 flex flex-wrap items-center gap-2">
+            <button
+              class="btn btn-sm btn-green"
+              type="button"
+              data-testid="epilogue-copy"
+              onclick={() => void copyCard()}
+            >
+              {copied ? t('share.copied') : t('share.copy')}
+            </button>
+            {#if canShare}
+              <button
+                class="btn btn-sm btn-blue"
+                type="button"
+                data-testid="epilogue-share-button"
+                onclick={() => void shareCard()}
+              >
+                {t('share.share')}
+              </button>
+            {/if}
+            <span class="muted text-xs font-bold">
+              {copyFailed ? t('share.copyFailed') : t('share.hint')}
+            </span>
+          </div>
+        </div>
+
+        <div
           class="rounded-2xl border-2 border-[var(--card-edge)] bg-[var(--pill)] shadow-[0_3px_0_var(--card-shadow)]"
           data-testid="epilogue-timeline"
         >
@@ -356,7 +443,7 @@
                       ? 'font-extrabold'
                       : 'font-bold opacity-85'}
                   >
-                    {entry.title}
+                    {chronicleTitle(locale(), entry, v.seed)}
                   </span>
                 </li>
               {/each}

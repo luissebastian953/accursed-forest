@@ -10,6 +10,13 @@ Nothing below this file knows about anything beside it.
 
 ### Notes
 
+- `sharedCode`: `?estate=` is the share link's parameter, kept apart from the
+  `?seed=` dev flag on purpose. The dev flag skips the title and the guide; a
+  friend's link must do neither, so it only fills the seed box on the title
+  screen and in the menu's new-estate form, and the player presses Start.
+  `shareUrlFor()` builds the link the other way, to the landing page in the
+  player's language, because that page is indexable and the game page is not.
+
 - `startApp()` layout: the world fills the root, and the block panel is an
   aside laid over its right edge that slides in with a selection (GDD 8 panel
   9). Laying it over rather than docking it means the canvas never resizes

@@ -154,8 +154,13 @@ screen and the menu switch it; the choice is remembered (`sawit:locale`), and
 the landing pages show a dismissible pointer to their twin instead of
 redirecting. Catalogs are flat JSON per panel in `src/i18n/locales/<locale>/`;
 `t('panel.key', vars)` falls back to English, then to the key. The sim's own
-prose (headlines, chronicle entries, a command's rejection reason) is still
-English: it is part of the sim's event data, not the UI's.
+prose stays English in its event data, because tests and the sweep read it,
+and the interface says it again in the player's language: a headline records
+which template line it drew and its raw variables, and `src/ui/newsText.ts`
+renders the Indonesian from `locales/id/headlines.json`; the chronicle's
+estate lines and the app's toasts go through `chronicle.json` and
+`toasts.json`. A run's epilogue carries a share card: five lines of text and
+emoji with a link to the landing page that opens the same estate.
 
 The interface follows the cartoon UI kit: cream cards with a hard bottom
 edge, inset pills, Baloo 2 (self-hosted), and the 39 flat icons in
@@ -188,7 +193,8 @@ The renderer poses every body part on the CPU and skins the whole crowd into
 one merged mesh per material: two draw calls, no new shaders
 (`src/render/mobs/`); the `?mobs` page measures why.
 
-URL flags: `?webgl` forces the WebGL 2 fallback CI uses; `?seed=42` picks a
+URL flags: `?estate=ABC-DEFG` is a share link: it fills the seed box on the
+title screen and nothing else; `?webgl` forces the WebGL 2 fallback CI uses; `?seed=42` picks a
 world; `?fresh` ignores the save in this browser; `?spike` opens the GDD 6.9 art
 spike instead of the game; `?models` lays out every scenery model (`src/render/models/`); `?mobs` is the mob proof of concept (`src/render/mobs/`), a rigged crowd with a cost readout; `?debug` exposes the running sim as
 `window.__sawit` for the browser suite and for poking at events by hand;

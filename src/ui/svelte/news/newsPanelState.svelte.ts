@@ -20,9 +20,10 @@ export type NewsFilter = NewsItem['lane'] | 'all';
 
 export class NewsPanel {
   readonly ui = $state<{ open: boolean; filter: NewsFilter }>({ open: false, filter: 'all' });
-  feed = $state.raw<{ news: readonly NewsItem[]; status: NewsStatus }>({
+  feed = $state.raw<{ news: readonly NewsItem[]; status: NewsStatus; seed: number }>({
     news: [],
     status: { tick: 0, unread: 0 },
+    seed: 0,
   });
   private readonly target: HTMLElement;
   private readonly instance: ReturnType<Component>;
@@ -40,8 +41,8 @@ export class NewsPanel {
     return this.ui.open;
   }
 
-  show(news: readonly NewsItem[], status: NewsStatus): void {
-    this.feed = { news, status };
+  show(news: readonly NewsItem[], status: NewsStatus, seed: number): void {
+    this.feed = { news, status, seed };
     this.ui.open = true;
   }
 
@@ -50,7 +51,7 @@ export class NewsPanel {
   }
 
   /** Re-render if open and the feed grew or the badge changed. */
-  update(news: readonly NewsItem[], status: NewsStatus): void {
+  update(news: readonly NewsItem[], status: NewsStatus, seed: number): void {
     if (!this.ui.open) return;
 
     const current = this.feed;
@@ -58,10 +59,11 @@ export class NewsPanel {
       news.length === current.news.length &&
       news.at(-1) === current.news.at(-1) &&
       status.unread === current.status.unread &&
-      status.tick === current.status.tick;
+      status.tick === current.status.tick &&
+      seed === current.seed;
 
     if (same) return;
-    this.feed = { news, status };
+    this.feed = { news, status, seed };
   }
 
   dispose(): void {

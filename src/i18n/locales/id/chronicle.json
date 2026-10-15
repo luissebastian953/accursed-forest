@@ -1,0 +1,15 @@
+{
+  "forestPlanted": "Hutan ditanam kembali di {blocks}",
+  "kopdesUpgraded": "Kopdes naik ke level {level}",
+  "forestChopped": "Hutan ditebang di {blocks}",
+  "burnedToClear": "{blocks} dibakar untuk dibuka",
+  "fireSpreadOne": "Api menjalar ke {n} petak",
+  "fireSpread": "Api menjalar ke {n} petak",
+  "fireSpreadNotYoursOne": "Api menjalar ke {n} petak, {notYours} bukan milikmu",
+  "fireSpreadNotYours": "Api menjalar ke {n} petak, {notYours} bukan milikmu",
+  "yearClosedProfit": "Tahun {year} ditutup: laba Rp {rp} juta, {ha} ha berbuah",
+  "yearClosedLoss": "Tahun {year} ditutup: rugi Rp {rp} juta, {ha} ha berbuah",
+  "blockOne": "petak {labels}",
+  "blockSome": "petak {labels}",
+  "blockMany": "{n} petak"
+}

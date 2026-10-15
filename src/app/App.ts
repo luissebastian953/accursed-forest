@@ -105,7 +105,8 @@ import {
   type ScreenQuad,
 } from '@ui/svelte/tutorial/tutorialState.svelte.ts';
 
-import { t } from '../i18n/index.ts';
+import { locale, t } from '../i18n/index.ts';
+import { newsText } from '../ui/newsText.ts';
 
 import { track } from './analytics.ts';
 import { GameLoop } from './loop.ts';
@@ -202,7 +203,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     } catch (error) {
       const message = error instanceof SaveError ? error.message : String(error);
 
-      toasts.push(`Could not load the save: ${message}. Starting a new estate.`, 'error');
+      toasts.push(t('toasts.loadFailed', { message }), 'error');
       return freshSim(randomSeed());
     }
   }
@@ -256,7 +257,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         const oldest = snapshotYears().at(-1);
 
         if (!(error instanceof QuotaError) || oldest === undefined) {
-          toasts.push(`Could not keep a snapshot of Year ${year}: storage is full.`, 'warn');
+          toasts.push(t('toasts.snapshotFull', { year }), 'warn');
           return;
         }
 
@@ -411,7 +412,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       }
 
       saveError = error instanceof Error ? error.message : String(error);
-      toasts.push(`Autosave failed: ${saveError}`, 'error');
+      toasts.push(t('toasts.autosaveFailed', { error: saveError }), 'error');
     },
   });
 
@@ -561,13 +562,13 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     },
     markRead: () => {
       markNewsRead();
-      newsPanel.update(sim.state.society.news, newsStatus());
+      newsPanel.update(sim.state.society.news, newsStatus(), sim.state.seed);
     },
   });
 
   function openNews(): void {
     if (shop.isOpen) closeShop();
-    newsPanel.show(sim.state.society.news, newsStatus());
+    newsPanel.show(sim.state.society.news, newsStatus(), sim.state.seed);
   }
 
   const cards = new AuthorityCards(root, {
@@ -600,12 +601,20 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     keepPlaying: () => {
       if (dispatch({ type: 'KeepPlaying' }).ok) {
         epilogue.hide();
-        toasts.push('Playing on in sandbox. Nothing ends the run from here.');
+        toasts.push(t('toasts.sandbox'));
         time.set(1);
       }
     },
     newEstate: () => switchSim(freshSim(randomSeed())),
+    shared: (method) => track({ name: 'share', method }),
   });
+
+  /** The landing page in the player's language, carrying the estate's code (GDD 4.6). */
+  function shareUrlFor(code: string): string {
+    const site = new URL(import.meta.env.BASE_URL, location.origin).href;
+
+    return `${site}${locale() === 'id' ? 'id/' : ''}?estate=${encodeURIComponent(code)}`;
+  }
 
   let epilogueTimer: ReturnType<typeof setTimeout> | null = null;
   /** One `first_harvest` per estate per page load. */
@@ -646,6 +655,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       insolventFor: state.run.insolventFor,
       chronicle: state.run.chronicle,
       rewindYears: snapshotYears(),
+      shareUrl: shareUrlFor(sim.world.estateCode),
+      seed: state.seed,
     });
     certificate.hide();
     yearEnd.hide();
@@ -660,10 +671,13 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       clearSnapshots(year);
       switchSim(next);
       autosave.saveNow();
-      toasts.push(`Back to the start of Year ${year}. Same seed, same weather ahead.`);
+      toasts.push(t('toasts.rewound', { year }));
     } catch (error) {
       toasts.push(
-        `Could not return to Year ${year}: ${error instanceof Error ? error.message : String(error)}`,
+        t('toasts.rewindFailed', {
+          year,
+          error: error instanceof Error ? error.message : String(error),
+        }),
         'error',
       );
     }
@@ -716,16 +730,16 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     },
     setSound: (on) => setSound(on),
     save: () => {
-      if (autosave.saveNow()) toasts.push('Saved.');
+      if (autosave.saveNow()) toasts.push(t('toasts.saved'));
       refreshMenu();
     },
     load: () => {
       try {
         switchSim(restoreSim(slot.load()));
-        toasts.push('Loaded.');
+        toasts.push(t('toasts.loaded'));
       } catch (error) {
         toasts.push(
-          `Load failed: ${error instanceof Error ? error.message : String(error)}`,
+          t('toasts.loadError', { error: error instanceof Error ? error.message : String(error) }),
           'error',
         );
       }
@@ -1127,8 +1141,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         hazardRing.hide();
         toasts.push(
           isWildfire(sim.state)
-            ? 'Fire pressure over the line; this is a wildfire now.'
-            : `${blockName(command.block)} burning; speed capped at ${FIRE_LOCK_SPEED}×.`,
+            ? t('toasts.burnWildfire')
+            : t('toasts.burning', { block: blockName(command.block), speed: FIRE_LOCK_SPEED }),
           isWildfire(sim.state) ? 'error' : 'warn',
         );
       }
@@ -1273,7 +1287,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
   }
 
   function blockName(block: BlockId): string {
-    return `block ${blockLabel(sim.world, block)}`;
+    return t('toasts.block', { label: blockLabel(sim.world, block) });
   }
 
   function onTick(): void {
@@ -1286,38 +1300,50 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     if (d.kopdesChanged) kopdes.sync(sim.state, sim.world);
 
     if (d.yearPassed !== null)
-      toasts.push(`Year ${d.yearPassed + 1} begins; ${regimeLine(sim.state.weather.regime)}`);
-    for (const block of d.ripeBlocks) toasts.push(`Ripe: ${blockName(block)} is ready to harvest.`);
+      toasts.push(
+        t('toasts.yearBegins', {
+          year: d.yearPassed + 1,
+          regime: regimeLine(sim.state.weather.regime),
+        }),
+      );
+    for (const block of d.ripeBlocks) toasts.push(t('toasts.ripe', { block: blockName(block) }));
     if (d.sold.length > 0 || d.timber.length > 0) audio.play('cash-in');
 
     for (const sale of d.sold) {
       toasts.push(
-        `Sold ${formatKg(sale.kilograms)} of TBS at ${formatRp(sale.price)}/kg: ${formatRp(sale.revenue)}.`,
+        t('toasts.sold', {
+          kg: formatKg(sale.kilograms),
+          price: formatRp(sale.price),
+          rp: formatRp(sale.revenue),
+        }),
       );
     }
 
-    for (const t of d.timber)
-      toasts.push(`Timber from ${blockName(t.block)} sold for ${formatRp(t.revenue)}.`);
+    for (const timber of d.timber) {
+      toasts.push(
+        t('toasts.timberSold', { block: blockName(timber.block), rp: formatRp(timber.revenue) }),
+      );
+    }
 
     if (d.kopdesUpgraded !== null) {
-      toasts.push(`Kopdes upgraded to level ${d.kopdesUpgraded}.`);
+      toasts.push(t('toasts.kopdesUpgraded', { level: d.kopdesUpgraded }));
       if (shop.isOpen) rangeRing.show(sim.state, sim.world);
     }
 
     for (const f of d.fellingStarted) {
       toasts.push(
-        `A crew is felling ${blockName(f.block)}: ${f.palms} trees, ${formatRp(f.cost)} in wages.`,
+        t('toasts.felling', { block: blockName(f.block), n: f.palms, rp: formatRp(f.cost) }),
         'warn',
       );
     }
 
     for (const c of d.plantationCleared) {
-      toasts.push(`${blockName(c.block)} is bare land again. ${c.palms} trees came down.`);
+      toasts.push(t('toasts.cleared', { block: blockName(c.block), n: c.palms }));
     }
 
     if (d.investigationDropped) {
       police.sync(sim.state, sim.world, worldNow());
-      toasts.push('The police file is closed. Nothing on the estate is drawing attention now.');
+      toasts.push(t('toasts.fileClosed'));
     }
 
     if (d.reforestationCredit) {
@@ -1325,41 +1351,43 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
       toasts.push(
         banDaysLeft > 0
-          ? `Reforestation noted. Half the suspicion lifts, and the suspension is down to ${banDaysLeft} days.`
-          : 'Reforestation noted. Half the suspicion against the estate lifts.',
+          ? t('toasts.reforestCreditBan', { days: banDaysLeft })
+          : t('toasts.reforestCredit'),
       );
     }
 
-    if (d.wildfireStarted)
-      toasts.push('Wildfire. The fire is no longer yours; it burns until the rain comes.', 'error');
-    if (d.wildfireEnded) toasts.push('The wildfire is out. The smoke will take a while to clear.');
+    if (d.wildfireStarted) toasts.push(t('toasts.wildfire'), 'error');
+    if (d.wildfireEnded) toasts.push(t('toasts.wildfireOut'));
     // Fire news is aggregated: a wildfire tick can touch dozens of blocks.
     if (d.fireSpread.length === 1)
-      toasts.push(`Fire spread to ${blockName(d.fireSpread[0]!.to)}.`, 'warn');
+      toasts.push(t('toasts.fireSpreadOne', { block: blockName(d.fireSpread[0]!.to) }), 'warn');
     else if (d.fireSpread.length > 1)
-      toasts.push(`Fire spread to ${d.fireSpread.length} blocks.`, 'warn');
+      toasts.push(t('toasts.fireSpread', { n: d.fireSpread.length }), 'warn');
 
     const lostPalms = d.palmsBurned.reduce((sum, p) => sum + p.count, 0);
 
     if (d.palmsBurned.length === 1)
-      toasts.push(`${lostPalms} palms burned on ${blockName(d.palmsBurned[0]!.block)}.`, 'error');
+      toasts.push(
+        t('toasts.palmsBurnedOne', { n: lostPalms, block: blockName(d.palmsBurned[0]!.block) }),
+        'error',
+      );
     else if (d.palmsBurned.length > 1)
-      toasts.push(`${lostPalms} palms burned across ${d.palmsBurned.length} blocks.`, 'error');
+      toasts.push(t('toasts.palmsBurned', { n: lostPalms, blocks: d.palmsBurned.length }), 'error');
     if (d.extinguished.size === 1)
-      toasts.push(`Rain put out the fire on ${blockName([...d.extinguished][0]!)}.`);
-    else if (d.extinguished.size > 1)
-      toasts.push(`Rain put out fires on ${d.extinguished.size} blocks.`);
+      toasts.push(t('toasts.rainOutOne', { block: blockName([...d.extinguished][0]!) }));
+    else if (d.extinguished.size > 1) toasts.push(t('toasts.rainOut', { n: d.extinguished.size }));
 
     const burnedClear = [...d.burnFinished].filter((b) => !d.extinguished.has(b));
 
     if (burnedClear.length === 1)
-      toasts.push(`${blockName(burnedClear[0]!)} burned clear; the ash will feed it for a season.`);
-    else if (burnedClear.length > 1) toasts.push(`${burnedClear.length} blocks burned clear.`);
+      toasts.push(t('toasts.burnedClearOne', { block: blockName(burnedClear[0]!) }));
+    else if (burnedClear.length > 1)
+      toasts.push(t('toasts.burnedClear', { n: burnedClear.length }));
 
     // The authorities.
     if (d.investigationOpened || d.investigationEnded || d.arrested)
       police.sync(sim.state, sim.world, worldNow());
-    if (d.operatingBanLifted) toasts.push('The operating licence is restored. Crews may return.');
+    if (d.operatingBanLifted) toasts.push(t('toasts.banLifted'));
 
     // The year, and how the run ends (GDD 3.8).
     if (d.yearClosed && !runOver(sim.state)) {
@@ -1395,8 +1423,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       motorcade.arrive(sim.state, sim.world, worldNow());
       focusBlock(sim.state.kopdes.blockId);
       audio.play('win');
-      toasts.push('The Ministry has sent a banner. Palm Certified.');
-      toasts.push('A motorcade is coming up the road. The President is here.');
+      toasts.push(t('toasts.certified'));
+      toasts.push(t('toasts.motorcade'));
       time.set(0);
 
       const run = sim;
@@ -1431,7 +1459,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
       if (match)
         toasts.push(
-          `📰 ${match.title}`,
+          `📰 ${newsText(locale(), match, sim.state.seed).title}`,
           item.severity === 'warning' || item.severity === 'critical' ? 'warn' : 'info',
         );
     }
@@ -1463,54 +1491,42 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     for (const slide of d.landslides) {
       toasts.push(
         slide.palmsLost > 0
-          ? `Landslide on ${blockName(slide.block)}; ${slide.palmsLost} palms buried. Bare slopes do not hold in the rains.`
-          : `Landslide on ${blockName(slide.block)}. Bare slopes do not hold in the rains.`,
+          ? t('toasts.landslidePalms', { block: blockName(slide.block), n: slide.palmsLost })
+          : t('toasts.landslide', { block: blockName(slide.block) }),
         'error',
       );
     }
 
     // The grave, and what planting over it brings (GDD 3.11).
     for (const block of d.graveExcavated) {
-      toasts.push(
-        `${blockName(block)} is dug out. The crew found more than earth in it; it is cleared land now, if you want it.`,
-        'warn',
-      );
+      toasts.push(t('toasts.dugOut', { block: blockName(block) }), 'warn');
     }
 
     for (const block of d.hauntingStarted) {
-      toasts.push(
-        `Something is wrong on ${blockName(block)}. Figures were seen among the seedlings at dusk.`,
-        'warn',
-      );
+      toasts.push(t('toasts.hauntingStart', { block: blockName(block) }), 'warn');
     }
 
     for (const { block, stage } of d.hauntingStage) {
       if (stage === 2) {
-        toasts.push(
-          `The haunting has spread past ${blockName(block)}. The dead walk the whole estate, and the hired hands are slower for it.`,
-          'error',
-        );
+        toasts.push(t('toasts.hauntingSpread', { block: blockName(block) }), 'error');
       } else if (stage === 3) {
-        toasts.push(
-          `The dead take their share now. Fruit goes missing from every block on the estate.`,
-          'error',
-        );
+        toasts.push(t('toasts.hauntingDeep'), 'error');
       }
     }
 
     for (const block of d.hauntingEnded) {
-      toasts.push(`${blockName(block)} is bare again, and the estate is quiet.`);
+      toasts.push(t('toasts.quietAgain', { block: blockName(block) }));
     }
 
     for (const lost of d.hauntedHarvest) {
       toasts.push(
-        `${formatKg(lost.kilograms)} of fruit from ${blockName(lost.block)} never reached the Workshop. The crew will not say where it went.`,
+        t('toasts.fruitLost', { kg: formatKg(lost.kilograms), block: blockName(lost.block) }),
         'warn',
       );
     }
 
-    if (d.ashSettled) toasts.push('The ash has settled. It will feed the soil for a season.');
-    if (d.sparks.size > 0) toasts.push('Drought: a spark caught a debris pile.', 'error');
+    if (d.ashSettled) toasts.push(t('toasts.ashSettled'));
+    if (d.sparks.size > 0) toasts.push(t('toasts.spark'), 'error');
 
     for (const bolt of d.lightning) {
       lightning.strike(sim.state, sim.world, bolt.block, worldNow());
@@ -1518,7 +1534,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       thunderFor(bolt.block);
 
       if (bolt.ignited) {
-        toasts.push(`Lightning has set ${blockName(bolt.block)} alight.`, 'error');
+        toasts.push(t('toasts.lightning', { block: blockName(bolt.block) }), 'error');
         chunks.markBlockDirty(bolt.block);
       }
     }
@@ -1530,19 +1546,16 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
     for (const theft of d.stolen) {
       toasts.push(
-        `Thieves took ${formatKg(theft.kilograms)} of fruit from ${blockName(theft.block)}. A security guard would have stopped them.`,
+        t('toasts.theft', { kg: formatKg(theft.kilograms), block: blockName(theft.block) }),
         'error',
       );
     }
 
     if (d.cashStolen > 0) {
-      toasts.push(
-        `${formatRp(d.cashStolen)} is missing from the Kopdes. Staff blame a pig that stood up.`,
-        'error',
-      );
+      toasts.push(t('toasts.cashStolen', { rp: formatRp(d.cashStolen) }), 'error');
     }
 
-    if (d.thiefCaught) toasts.push('Security saw off a fruit thief.');
+    if (d.thiefCaught) toasts.push(t('toasts.thiefCaught'));
 
     // An animal that died in the fire: a skull rises from where it was drawn
     // standing, and the body shrinks out of the world under it.
@@ -1571,20 +1584,23 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
     if (drowned > 0)
       toasts.push(
-        `${drowned} young palm${drowned === 1 ? '' : 's'} drowned in the flood.`,
+        t(drowned === 1 ? 'toasts.drownedOne' : 'toasts.drowned', { n: drowned }),
         'error',
       );
 
     const ashed = d.palmsDied.filter((p) => p.cause === 'ash').length;
 
     if (ashed > 0)
-      toasts.push(`${ashed} young palm${ashed === 1 ? '' : 's'} lost to the ash.`, 'error');
+      toasts.push(t(ashed === 1 ? 'toasts.ashLostOne' : 'toasts.ashLost', { n: ashed }), 'error');
     forestCover = estateForestCover(sim.state, sim.world);
 
     // Pest news, aggregated per tick.
     for (const [block, count] of d.palmSick) {
       toasts.push(
-        `Ganoderma: ${count} palm${count === 1 ? '' : 's'} on ${blockName(block)} turned visibly sick. Remove them before it spreads.`,
+        t(count === 1 ? 'toasts.ganodermaOne' : 'toasts.ganoderma', {
+          n: count,
+          block: blockName(block),
+        }),
         'warn',
       );
     }
@@ -1594,24 +1610,31 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 
     if (byBeetles > 0) {
       toasts.push(
-        `${byBeetles} young palm${byBeetles === 1 ? '' : 's'} killed by beetles; sanitize the debris.`,
+        t(byBeetles === 1 ? 'toasts.beetlesOne' : 'toasts.beetles', { n: byBeetles }),
         'error',
       );
     }
 
     if (byGanoderma > 0) {
       toasts.push(
-        `${byGanoderma} palm${byGanoderma === 1 ? '' : 's'} died of Ganoderma. The stumps are still infectious.`,
+        t(byGanoderma === 1 ? 'toasts.ganodermaDeadOne' : 'toasts.ganodermaDead', {
+          n: byGanoderma,
+        }),
         'error',
       );
     }
 
     for (const block of d.plagueStarted)
-      toasts.push(`Plague on ${blockName(block)}; pests are out of hand there.`, 'error');
+      toasts.push(t('toasts.plague', { block: blockName(block) }), 'error');
     for (const block of d.plagueEnded)
-      toasts.push(`The plague on ${blockName(block)} has been pushed back.`);
+      toasts.push(t('toasts.plagueOver', { block: blockName(block) }));
     for (const r of d.replanted)
-      toasts.push(`${r.count} gap${r.count === 1 ? '' : 's'} replanted on ${blockName(r.block)}.`);
+      toasts.push(
+        t(r.count === 1 ? 'toasts.replantedOne' : 'toasts.replanted', {
+          n: r.count,
+          block: blockName(r.block),
+        }),
+      );
 
     if (
       d.burnStarted.size ||
@@ -1934,8 +1957,8 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
     ceremony.update(worldMs);
     motorcade.update(worldMs);
     excavator.update(worldMs);
-    ticker.update(sim.state.society.news, unreadWarnings());
-    newsPanel.update(sim.state.society.news, newsStatus());
+    ticker.update(sim.state.society.news, unreadWarnings(), sim.state.seed);
+    newsPanel.update(sim.state.society.news, newsStatus(), sim.state.seed);
     fires.update(worldMs);
     sky.update(sim.state.weather, uniforms, atmosphere(), worldDt, worldMs);
     rain.update(worldDt, sim.state.weather.rain, sim.state.weather.sky, visible, running);
@@ -2362,7 +2385,21 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
         backend: handle.backend === 'webgpu' ? 'WebGPU' : 'WebGL 2',
       }),
     });
+
+    if (sharedCode) {
+      startScreen.ui.code = sharedCode;
+      menu.state.code = sharedCode;
+    }
   }
+
+  /** A friend's link names an estate: it fills the seed box, and the player still presses Start. */
+  const sharedCode = ((): string => {
+    const code = (params.get('estate') ?? '').trim().slice(0, 64);
+
+    if (code === '' || seedFromEstateCode(code) === null) return '';
+    track({ name: 'share', method: 'link' });
+    return code.toUpperCase();
+  })();
 
   if (titleScreen) {
     time.set(0);
@@ -2447,37 +2484,37 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
 function regimeLine(regime: 'normal' | 'elNino' | 'laNina'): string {
   switch (regime) {
     case 'elNino':
-      return 'forecasters call an El Niño year. Fires will spread.';
+      return t('toasts.regimeElNino');
     case 'laNina':
-      return 'a La Niña year: expect a wet one.';
+      return t('toasts.regimeLaNina');
     case 'normal':
-      return 'an ordinary year, as far as anyone can tell.';
+      return t('toasts.regimeNormal');
   }
 }
 
 function weatherStartLine(id: string, days: number): string {
   switch (id) {
     case 'haze':
-      return `Haze has drifted over the province; less sun and lower prices for about ${days} days.`;
+      return t('toasts.weatherHaze', { days });
     case 'ash':
-      return `Ash is falling from a distant eruption. Harvest is halted for about ${days} days.`;
+      return t('toasts.weatherAsh', { days });
     case 'flood':
-      return `The river is up. Low ground by the water is flooding for about ${days} days.`;
+      return t('toasts.weatherFlood', { days });
     case 'drought':
-      return 'Drought. Unirrigated land is drying out, and debris piles will catch.';
+      return t('toasts.weatherDrought');
     default:
-      return `${id} has begun.`;
+      return t('toasts.weatherOther', { id });
   }
 }
 
 function weatherEndLine(id: string): string | null {
   switch (id) {
     case 'haze':
-      return 'The haze has cleared.';
+      return t('toasts.hazeCleared');
     case 'flood':
-      return 'The flood water has gone down.';
+      return t('toasts.floodGone');
     case 'drought':
-      return 'The rain has come back. The drought is over.';
+      return t('toasts.droughtOver');
     default:
       return null;
   }

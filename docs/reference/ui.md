@@ -40,6 +40,18 @@ The cartoon icon set (design kit): flat SVGs served from `public/icons`.
   brown: each is only ever drawn on a saturated disc or button, where the
   brown would disappear.
 
+## `src/ui/newsText.ts`
+
+A headline or a chronicle line in the reader's language. English is the sim's
+own text, returned untouched. Indonesian is rendered from
+`locales/id/headlines.json` by the headline's template key and the title and
+body it drew, with the raw variables the sim kept, through the sim's own
+`renderWith` and an Indonesian formatter for blocks, dates and rupiah. Estate
+chronicle lines go through `locales/*/chronicle.json` by key. Anything the
+catalog lacks, and every item from a save older than schema 21, falls back to
+the English the sim wrote. Takes the locale as a parameter so the unit test
+runs without the runes.
+
 ## `src/ui/newsLane.ts`
 
 The news feed's three lanes (GDD 8 panels 3, 8, 13): a colour and a message
@@ -484,6 +496,20 @@ certificate or the fade.
   purpose; see GDD 8 panel 15.
 - `forestWin`: the only thing `.epilogue-glow` keys off. Kept separate from
   `win` because the certificate endings deliberately do not get it.
+- `copyCard()`: the clipboard needs a secure context and a user gesture, and
+  some browsers refuse it inside an embedded frame. When it throws, the card's
+  text is selected instead, so the player can copy it by hand, and the hint
+  says so. `shareCard()` swallows the rejection a dismissed share sheet
+  raises: a player who changed their mind is not an error.
+
+## `src/ui/svelte/endings/runCard.ts`
+
+The run as five lines of text and emoji for a chat or a post: the estate's
+code, the year and the ending's title, forest cover against what burned and
+what was planted back, the operating profit, and the landing page link that
+opens the same estate. It takes `t()` as a parameter rather than importing it,
+so the unit test runs without a locale, and it names no ending in the text,
+only its badge, because the card is read by people who have not played.
 
 ## `src/ui/svelte/endings/YearEndCard.svelte`
 
@@ -642,6 +668,12 @@ The news feed on the phone frame (GDD 8 panel 13): every headline the run has
 seen, filtered by lane, each with its date and the line the player actually
 reads. Lane colours come from `src/ui/newsLane.ts`, shared with the ticker.
 
+### Notes
+
+- `text(item)`: every title, body and effect on the panel goes through
+  `newsText` with the feed's seed, so the panel reads in the active language
+  and follows a switch in the menu.
+
 ## `src/ui/svelte/news/NewsTicker.svelte`
 
 The headline strip along the bar (GDD 8 panel 3): the latest headline, in its
@@ -662,6 +694,11 @@ The news ticker (GDD 8 panels 3 and 8): the latest three headlines along the
 bottom, lane-coloured, with a badge for unread warnings. Click to open the
 full feed. `NewsTicker` keeps the pre-Svelte constructor and
 `update`/`setHidden`/`dispose` surface so `App.ts` is unchanged.
+
+### Notes
+
+- `update(news, unread, seed)`: the change key carries the locale, so a
+  language switch re-renders the three items even when the feed did not move.
 
 ## `src/ui/svelte/shop/KopdesShop.svelte`
 

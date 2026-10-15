@@ -75,6 +75,11 @@ in `sim/types.ts` is a compile error here rather than a runtime surprise.
 
 ### Notes
 
+- Schema 21: `pick` and `vars` on a headline, `key`, `pick` and `vars` on a
+  chronicle line, all optional. `decodeNews` sets them before `blocks` because
+  the sim does, and `stripUndefined` drops the keys zod leaves undefined, so a
+  save round-trips byte for byte. An older item has none of them and keeps its
+  English.
 - `CURRENT_SCHEMA`: bump it on any breaking change to the save shape, and add a
   migration alongside. What each schema brought:
   1. M1a: blocks, palms, economy, weather, society, run, command log.

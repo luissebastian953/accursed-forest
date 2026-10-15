@@ -935,6 +935,13 @@
     </div>
 
     <div class="page">
+      <div class="lang-hint" id="estate-hint" hidden data-testid="estate-hint">
+        <span
+          >Seseorang mengirimimu kebunnya, <b class="num">ABC-DEFG</b>. Mainkan peta yang
+          sama.</span
+        >
+        <a href="/play.html">Mainkan</a>
+      </div>
       <div class="lang-hint" id="lang-hint" hidden>
         <span lang="en">This page is also available in English.</span>
         <a href="/" hreflang="en" lang="en">Open the English version</a>
@@ -1320,6 +1327,22 @@
         } catch (e) {
           /* no storage, no Intl: no hint */
         }
+      })();
+    </script>
+    <script>
+      // A share link names an estate: every Play link carries it into the game.
+      (function () {
+        var code = new URLSearchParams(location.search).get('estate') || '';
+        if (!/^[A-HJ-NP-Z2-9]{3}-?[A-HJ-NP-Z2-9]{4}$/i.test(code)) return;
+        code = code.toUpperCase();
+        if (code.length === 7) code = code.slice(0, 3) + '-' + code.slice(3);
+        var links = document.querySelectorAll('a[href="/play.html"]');
+        for (var i = 0; i < links.length; i++) {
+          links[i].setAttribute('href', '/play.html?estate=' + code);
+        }
+        var hint = document.getElementById('estate-hint');
+        hint.querySelector('b').textContent = code;
+        hint.hidden = false;
       })();
     </script>
   </body>

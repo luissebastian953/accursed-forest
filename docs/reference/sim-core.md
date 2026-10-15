@@ -179,6 +179,9 @@ excepted, see `persistence/`), it does not belong in `SimState`.
 
 ### Notes
 
+- `NewsVars` and `NewsPick`: what a headline needs to be said again in another
+  language. Raw values only: a price is a number, a block is its label, a date
+  is a tick. Whoever renders them formats them.
 - `Block.fellingUntil`: a crew is felling the plantation until this tick, and
   the block goes back to bare land when they finish; -1 when nobody is. It is
   the one job that pays nothing for what comes down.

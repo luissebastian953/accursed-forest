@@ -1,0 +1,16 @@
+{
+  "title": "Bagikan hasil ini",
+  "hint": "Kartunya tidak membocorkan apa pun. Tautannya membuka kebun yang sama untuk siapa pun yang membukanya.",
+  "copy": "Salin kartu",
+  "copied": "Tersalin!",
+  "share": "Bagikan",
+  "copyFailed": "Tidak bisa menyalin. Pilih teksnya dan salin sendiri.",
+  "cardHead": "Sawit Simulator: kebun {code}",
+  "cardEnding": "Tahun {year}, {ending}",
+  "cardForest": "Tutupan hutan {pct}",
+  "cardBurned": "Terbakar {n}",
+  "cardPlanted": "Hutan ditanam kembali {n}",
+  "cardProfit": "Laba operasi {rp}",
+  "cardLoss": "Rugi operasi {rp}",
+  "cardPlay": "Mainkan kebun yang sama: {url}"
+}

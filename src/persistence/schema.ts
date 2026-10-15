@@ -11,6 +11,8 @@ import type {
   CommandRecord,
   LedgerEntry,
   NewsItem,
+  NewsVars,
+  ChronicleEntry,
   PalmArrays,
   RunState,
   SimState,
@@ -22,7 +24,7 @@ export const KEY_PREFIX = 'accursed-forest';
  * Bump on any breaking change to the save shape; add a migration alongside.
  * What each schema brought is listed in docs/reference/persistence.md.
  */
-export const CURRENT_SCHEMA = 20;
+export const CURRENT_SCHEMA = 21;
 
 export type SaveErrorCode = 'missing' | 'corrupt' | 'newerSchema' | 'quota';
 
@@ -139,6 +141,19 @@ const WeatherSchema = z.object({
   activeEvents: z.array(ActiveEventSchema),
 });
 
+const NewsPickSchema = z.object({ title: z.int().nonnegative(), body: z.int().nonnegative() });
+const NewsVarsSchema = z.object({
+  n: z.number().optional(),
+  days: z.number().optional(),
+  pct: z.string().optional(),
+  price: z.number().optional(),
+  block: z.string().optional(),
+  until: z.number().optional(),
+  cost: z.number().optional(),
+});
+/** An estate line's variables are its own; a headline's are `NewsVars`, which this also admits. */
+const ChronicleVarsSchema = z.record(z.string(), z.union([z.string(), z.number()]));
+
 const NewsItemSchema = z.object({
   tick: Tick,
   key: z.string(),
@@ -148,6 +163,8 @@ const NewsItemSchema = z.object({
   body: z.string(),
   effects: z.array(z.string()),
   blocks: z.array(Id).optional(),
+  pick: NewsPickSchema.optional(),
+  vars: NewsVarsSchema.optional(),
 });
 
 const SocietySchema = z.object({
@@ -219,6 +236,9 @@ const ChronicleEntrySchema = z.object({
   lane: z.enum(['natural', 'economic', 'government', 'estate']),
   severity: z.enum(['info', 'notice', 'warning', 'critical']),
   title: z.string(),
+  key: z.string().optional(),
+  pick: NewsPickSchema.optional(),
+  vars: ChronicleVarsSchema.optional(),
 });
 
 const RunSchema = z.object({
@@ -542,8 +562,25 @@ function decodeNews(n: z.infer<typeof NewsItemSchema>): NewsItem {
     effects: n.effects,
   };
 
+  // The sim writes pick and vars before it adds blocks; the round trip keeps that order.
+  if (n.pick !== undefined) out.pick = n.pick;
+  if (n.vars !== undefined) out.vars = stripUndefined(n.vars) as NewsVars;
   if (n.blocks !== undefined) out.blocks = n.blocks;
   return out;
+}
+
+function decodeChronicle(c: z.infer<typeof ChronicleEntrySchema>): ChronicleEntry {
+  const out: ChronicleEntry = { tick: c.tick, lane: c.lane, severity: c.severity, title: c.title };
+
+  if (c.key !== undefined) out.key = c.key;
+  if (c.pick !== undefined) out.pick = c.pick;
+  if (c.vars !== undefined) out.vars = c.vars;
+  return out;
+}
+
+/** zod leaves an absent optional key as `undefined`; the sim never writes one. */
+function stripUndefined<T extends object>(value: T): T {
+  return Object.fromEntries(Object.entries(value).filter(([, v]) => v !== undefined)) as T;
 }
 
 function decodeLedger(e: z.infer<typeof LedgerEntrySchema>): LedgerEntry {
@@ -562,7 +599,7 @@ function decodeRun(r: z.infer<typeof RunSchema>): RunState {
     lastBurnAt: r.lastBurnAt,
     stats: { ...r.stats },
     years: r.years.map((y) => ({ ...y })),
-    chronicle: r.chronicle.map((c) => ({ ...c })),
+    chronicle: r.chronicle.map(decodeChronicle),
     sandbox: r.sandbox,
   };
 

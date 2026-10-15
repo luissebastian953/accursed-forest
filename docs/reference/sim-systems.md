@@ -35,6 +35,10 @@ horizon, calls the fade.
 
 ### Notes
 
+- `key` and `vars` on an estate chronicle line: the English title is written
+  as before, and the key names a message in `locales/*/chronicle.json` so the
+  epilogue can say the line in Indonesian. `labels()` joins block labels with
+  "; " and leaves the word for a block to the reader's language.
 - `creditLine()`: how far into the red the bank lets the estate go before the
   days in the red start counting toward bankruptcy. Palms planted within
   Kopdes range are the collateral. Nothing is lent to an estate without a
@@ -203,6 +207,17 @@ same tick make one headline; a key does not repeat within its cooldown.
 
 ### Notes
 
+- `pick` and `vars` on a `NewsItem`: the sim still writes English into `title`,
+  `body` and `effects`, because tests and the English interface read them, and
+  it records which title and body it drew and the raw variables it filled them
+  with. The interface renders the same headline in Indonesian from those
+  (`src/ui/newsText.ts`), so the sim never learns a second language.
+- `canonical()`: the variables are written in the order the save schema parses
+  them back, because the round-trip test compares the state byte for byte and
+  zod rebuilds an object in schema order, not input order.
+- `renderWith()` and `NewsFormats`: a block, a date and a sum are the three
+  things a language says differently inside a headline, so they are the
+  formatter's three hooks; `ENGLISH` is the sim's own and `render()` uses it.
 - `NEWS_STREAM`: headlines draw from their own stream, forked from the seed and
   the tick. The words of the news must never change the world's future:
   drawing a phrasing from the main stream shifted every later weather and pest
