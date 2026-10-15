@@ -15,7 +15,13 @@ const DATES: Record<string, string> = {
   'index.html': '2026-09-17T16:40:12+07:00',
   'id/index.html': '2026-09-15T09:00:00+07:00',
 };
-const sitemap = renderSitemap(SITE, (page) => DATES[page.file] ?? '2026-10-01T00:00:00+07:00');
+const EXPLAINERS = [
+  '/id/panduan/berapa-lama-sawit-berbuah/',
+  '/id/panduan/kumbang-tanduk-sawit/',
+  '/id/panduan/ganoderma-kelapa-sawit/',
+  '/id/panduan/biaya-replanting-sawit/',
+];
+const sitemap = renderSitemap(SITE, (page) => DATES[page.file] ?? '2026-10-15T12:00:00+07:00');
 
 /** The `<url>` block for one page. */
 function urlBlock(path: string, from = sitemap): string {
@@ -41,7 +47,7 @@ describe('the sitemap', () => {
     expect(pages).toEqual(SITE_PAGES.map((page) => `${SITE}${page.path}`));
     expect(pages).toContain(`${SITE}/`);
     expect(pages).toContain(`${SITE}/id/`);
-    expect(pages).toHaveLength(10);
+    expect(pages).toHaveLength(14);
     expect(sitemap).not.toContain('play.html');
   });
 
@@ -72,8 +78,11 @@ describe('the sitemap', () => {
 
   it('declares alternates only within a group, with x-default on the English page of the group', () => {
     for (const page of SITE_PAGES) {
-      const en = SITE_PAGES.find((p) => p.group === page.group && p.lang === 'en')!;
+      const en = SITE_PAGES.find((p) => p.group === page.group && p.lang === 'en');
       const id = SITE_PAGES.find((p) => p.group === page.group && p.lang === 'id')!;
+
+      // An explainer has no English twin; its own test below covers it.
+      if (!en) continue;
 
       expect(alternates(urlBlock(page.path)), page.path).toEqual({
         en: `${SITE}${en.path}`,
@@ -103,10 +112,47 @@ describe('the sitemap', () => {
     );
   });
 
-  it('lists the screenshot and the share image for image search', () => {
+  it('keeps hreflang inside a group: an explainer is its own x-default, not a twin of the landing page', () => {
+    for (const path of EXPLAINERS) {
+      const block = urlBlock(path);
+      const links = [...block.matchAll(/hreflang="([^"]+)" href="([^"]+)"/g)].map((m) => [
+        m[1],
+        m[2],
+      ]);
+
+      expect(links).toEqual([
+        ['id', `${SITE}${path}`],
+        ['x-default', `${SITE}${path}`],
+      ]);
+      expect(urlBlock('/')).not.toContain(path);
+    }
+  });
+
+  it('points x-default at the page itself when a group has no English page', () => {
+    const odd = renderSitemap(SITE, () => '2026-01-01', [
+      { path: '/id/a/', file: 'a.html', lang: 'id', group: 'a' },
+      { path: '/id/b/', file: 'b.html', lang: 'id', group: 'b' },
+      { path: '/b/', file: 'b-en.html', lang: 'en', group: 'b' },
+    ]);
+    const [a, b] = odd.split('<url>').slice(1);
+
+    expect(a).toContain(`hreflang="x-default" href="${SITE}/id/a/"`);
+    expect(a).not.toContain('/id/b/');
+    expect(b).toContain(`hreflang="en" href="${SITE}/b/"`);
+    expect(b).toContain(`hreflang="x-default" href="${SITE}/b/"`);
+  });
+
+  it('lists the screenshot and the share image only on the pages that show them', () => {
     for (const page of SITE_PAGES) {
+      const block = urlBlock(page.path);
+
+      if (page.images) {
+        expect(block).not.toContain('<image:image>');
+        continue;
+      }
+
       for (const image of SITE_IMAGES) {
-        expect(urlBlock(page.path)).toContain(`<image:loc>${SITE}${image}</image:loc>`);
+        expect(block).toContain(`<image:loc>${SITE}${image}</image:loc>`);
       }
     }
   });

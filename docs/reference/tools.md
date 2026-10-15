@@ -30,19 +30,24 @@ skips the sitemap: a sitemap of relative URLs is invalid, not just weak.
 
 - `SITE_PAGES`: the indexable pages, five translation pairs: the landing page,
   the guide, the glossary, the endings and the accuracy page, each in English
-  and Indonesian. `play.html` is the game behind a `noindex` tag and stays out;
-  a sitemap lists only canonical pages meant for search.
+  and Indonesian, and the Indonesian explainers under `/id/panduan/`, which
+  have no English twin. `play.html` is the game behind a `noindex` tag and
+  stays out; a sitemap lists only canonical pages meant for search.
 - `SitePage.group`: the translation group. hreflang alternates are declared
   only within a group, because without it every page was an alternate of every
   other, which was true of two pages that were translations of each other and
   false the moment a third subject existed: it would have told Google that
   `/id/istilah/` was the Indonesian version of `/guide/`. `x-default` points
-  at the group's page in `DEFAULT_LANG`, English.
+  at the group's page in `DEFAULT_LANG`, English, or at the page itself when
+  the group has no English page.
+- `SitePage.images`: the content images a page shows, when they are not
+  `SITE_IMAGES`. An explainer shows none, so it lists none: an image sitemap
+  entry for an image the page does not carry contradicts the page.
 - `normalizeSiteUrl()`: returns `VITE_SITE_URL` as an origin with no trailing
   slash, or `''` when unset. Anything else fails the build: a wrong canonical
   origin quietly tells Google the pages live somewhere else.
-- `renderSitemap()`: every page with its last-modified date, its group's
-  language alternates (each page lists all of its group, itself included, plus
+- `renderSitemap()`: every page with its last-modified date, its group's set
+  of language alternates (each page lists all of them, itself included, plus
   `x-default`, as Google requires for hreflang in sitemaps), and its images.
   No `changefreq` or `priority`: Google ignores both.
 - `SITE_IMAGES`: the images the sitemap offers to image search, so every one of

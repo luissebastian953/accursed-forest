@@ -5,13 +5,15 @@ export interface SitePage {
   file: string;
   /** hreflang for this page. */
   lang: string;
-  /** The translation group: one subject, one page per language. */
+  /** Pages in one group are translations of each other; hreflang never crosses groups. */
   group: string;
+  /** The content images this page shows, when not `SITE_IMAGES`. */
+  images?: readonly string[];
 }
 
 /**
- * The indexable pages, in translation pairs. `play.html` is `noindex` and stays out: a
- * sitemap lists only canonical pages meant for search.
+ * The indexable pages: five translation pairs, and the Indonesian explainers, which have no
+ * English twin. `play.html` is `noindex` and stays out: a sitemap lists only canonical pages.
  */
 export const SITE_PAGES: readonly SitePage[] = [
   { path: '/', file: 'index.html', lang: 'en', group: 'home' },
@@ -29,6 +31,18 @@ export const SITE_PAGES: readonly SitePage[] = [
   },
   { path: '/accuracy/', file: 'accuracy/index.html', lang: 'en', group: 'accuracy' },
   { path: '/id/akurasi/', file: 'id/akurasi/index.html', lang: 'id', group: 'accuracy' },
+  ...[
+    'berapa-lama-sawit-berbuah',
+    'kumbang-tanduk-sawit',
+    'ganoderma-kelapa-sawit',
+    'biaya-replanting-sawit',
+  ].map((slug) => ({
+    path: `/id/panduan/${slug}/`,
+    file: `id/panduan/${slug}/index.html`,
+    lang: 'id',
+    group: `panduan-${slug}`,
+    images: [],
+  })),
 ];
 
 /** The language whose page a group's `x-default` points at. */
@@ -77,8 +91,8 @@ function escapeXml(value: string): string {
 }
 
 /**
- * One page's hreflang set: its own group, itself included, plus x-default on the group's
- * English page. A page on another subject is never an alternate.
+ * A page's hreflang set: its translations, itself included, plus x-default, which is the
+ * group's English page when there is one and the page itself otherwise.
  */
 function alternatesOf(
   page: SitePage,
@@ -112,7 +126,7 @@ export function renderSitemap(
       ...alternatesOf(page, pages).map(
         (alt) => `    <xhtml:link rel="alternate" hreflang="${alt.lang}" href="${abs(alt.path)}"/>`,
       ),
-      ...images.map(
+      ...(page.images ?? images).map(
         (image) => `    <image:image><image:loc>${abs(image)}</image:loc></image:image>`,
       ),
       '  </url>',
