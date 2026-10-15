@@ -89,6 +89,13 @@ colours below mirror it so the HUD and the world stay in step (GDD 6.1).
   of the same sentence. Under `prefers-reduced-motion` the animation stops
   and the second copy is hidden, leaving one centred line, because scrolling
   words are unreadable to exactly the people that query is asking for.
+- The top bar's phone block (`@media (max-width: 640px)`) sits outside
+  `@layer components`, after it, on purpose. Tailwind's utilities live in a
+  later layer, and a later layer wins over an earlier one whatever the
+  selector's specificity, so a compact `padding` written inside the
+  components layer would lose to the `p-3` and `gap-2` already on the bar.
+  Unlayered rules beat every layer. The block only shrinks and hides; at
+  641px and above nothing in it applies, so the desktop bar is untouched.
 
 ## `src/ui/svelte/authority/AuthorityCards.svelte`
 
@@ -578,6 +585,14 @@ and the event chip strip below it, drawn from `hudState.svelte.ts`'s view.
 - `certificate button` states: three states, so progress reads without opening
   anything: nothing met is neutral, some met is gold, all met is green and
   waits on the Ministry's year-end check.
+- The phone layout (640px and under) is CSS only: the markup carries class
+  hooks (`hud-tiles`, `hud-controls`, `hud-phone-hide`, `hud-speed-word`,
+  `hud-speed-num`) and `styles.css` swaps what shows. The speed buttons and
+  the help button hold both their wordings at once, the full one and the
+  phone one, with one of the two `display: none`, so every `data-testid`
+  stays on the same element and the browser suite finds the same buttons at
+  every width. The sound button's `!px-3` became `.hud-sound` for the same
+  reason: an important utility cannot be narrowed by the phone block.
 
 ## `src/ui/svelte/hud/HudMarker.svelte`
 
@@ -862,6 +877,12 @@ and, when the target is gone, Show me. The finishing card is here too.
   with the diamond added.
 - `--tutorial-lift` is set on the document root while the walkthrough is
   active; the toasts read it to climb over the pill.
+- On a phone (640px and under) the card's top is clamped to `--panel-top`,
+  the bar's bottom edge as `Hud.svelte` publishes it. The bar spans the
+  whole width there, so a card placed under a target near the top of the
+  screen would otherwise open behind it. The value is read off the root's
+  inline style each measured frame, not through `getComputedStyle`, which
+  would force a layout flush for a number the bar already wrote.
 
 ## `src/ui/svelte/tutorial/tutorialState.svelte.ts`
 
