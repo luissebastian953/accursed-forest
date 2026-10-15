@@ -134,11 +134,19 @@ export default defineConfig({
     // Maps only on request: a deployment is debugged with VITE_SOURCEMAP=1.
     sourcemap: process.env['VITE_SOURCEMAP'] === '1',
     rollupOptions: {
-      // Three pages: the static landing page, the game, and the workbench,
-      // a development page that ships but is never indexed or linked.
+      // The indexable pages (tools/seo.ts), the game, and the workbench, a
+      // development page that ships but is never indexed or linked.
       input: {
         index: 'index.html',
         id: 'id/index.html',
+        guide: 'guide/index.html',
+        'id-panduan': 'id/panduan/index.html',
+        glossary: 'glossary/index.html',
+        'id-istilah': 'id/istilah/index.html',
+        endings: 'endings/index.html',
+        'id-akhir-permainan': 'id/akhir-permainan/index.html',
+        accuracy: 'accuracy/index.html',
+        'id-akurasi': 'id/akurasi/index.html',
         play: 'play.html',
         workbench: 'workbench.html',
       },

@@ -6,6 +6,7 @@ import {
   renderSitemap,
   SITE_IMAGES,
   SITE_PAGES,
+  type SitePage,
   verificationMeta,
 } from '../../tools/seo.ts';
 
@@ -14,15 +15,22 @@ const DATES: Record<string, string> = {
   'index.html': '2026-09-17T16:40:12+07:00',
   'id/index.html': '2026-09-15T09:00:00+07:00',
 };
-const sitemap = renderSitemap(SITE, (page) => DATES[page.file]!);
+const sitemap = renderSitemap(SITE, (page) => DATES[page.file] ?? '2026-10-01T00:00:00+07:00');
 
 /** The `<url>` block for one page. */
-function urlBlock(path: string): string {
-  const blocks = sitemap.split('<url>').slice(1);
+function urlBlock(path: string, from = sitemap): string {
+  const blocks = from.split('<url>').slice(1);
   const block = blocks.find((b) => b.includes(`<loc>${SITE}${path}</loc>`));
 
   expect(block, path).toBeDefined();
   return block!;
+}
+
+/** Every hreflang alternate in a `<url>` block, as `lang -> href`. */
+function alternates(block: string): Record<string, string> {
+  return Object.fromEntries(
+    [...block.matchAll(/hreflang="([^"]+)" href="([^"]+)"/g)].map((m) => [m[1], m[2]]),
+  );
 }
 
 describe('the sitemap', () => {
@@ -30,8 +38,21 @@ describe('the sitemap', () => {
     const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
     const pages = locs.filter((loc) => !SITE_IMAGES.some((image) => loc!.endsWith(image)));
 
-    expect(pages).toEqual([`${SITE}/`, `${SITE}/id/`]);
+    expect(pages).toEqual(SITE_PAGES.map((page) => `${SITE}${page.path}`));
+    expect(pages).toContain(`${SITE}/`);
+    expect(pages).toContain(`${SITE}/id/`);
+    expect(pages).toHaveLength(10);
     expect(sitemap).not.toContain('play.html');
+  });
+
+  it('pairs every page with a twin in the other language, and no page is in two groups', () => {
+    for (const page of SITE_PAGES) {
+      const group = SITE_PAGES.filter((p) => p.group === page.group);
+
+      expect(group.map((p) => p.lang).sort(), page.path).toEqual(['en', 'id']);
+    }
+
+    expect(new Set(SITE_PAGES.map((p) => p.path)).size).toBe(SITE_PAGES.length);
   });
 
   it('dates each page by its own last change', () => {
@@ -39,14 +60,47 @@ describe('the sitemap', () => {
     expect(urlBlock('/id/')).toContain('<lastmod>2026-09-15T09:00:00+07:00</lastmod>');
   });
 
-  it('gives every page the full hreflang set: itself, its twin, and x-default', () => {
-    for (const page of SITE_PAGES) {
-      const block = urlBlock(page.path);
+  it('gives the landing pages the full hreflang set: itself, its twin, and x-default', () => {
+    for (const path of ['/', '/id/']) {
+      const block = urlBlock(path);
 
       expect(block).toContain(`hreflang="en" href="${SITE}/"`);
       expect(block).toContain(`hreflang="id" href="${SITE}/id/"`);
       expect(block).toContain(`hreflang="x-default" href="${SITE}/"`);
     }
+  });
+
+  it('declares alternates only within a group, with x-default on the English page of the group', () => {
+    for (const page of SITE_PAGES) {
+      const en = SITE_PAGES.find((p) => p.group === page.group && p.lang === 'en')!;
+      const id = SITE_PAGES.find((p) => p.group === page.group && p.lang === 'id')!;
+
+      expect(alternates(urlBlock(page.path)), page.path).toEqual({
+        en: `${SITE}${en.path}`,
+        id: `${SITE}${id.path}`,
+        'x-default': `${SITE}${en.path}`,
+      });
+    }
+  });
+
+  it('never calls a third subject an alternate of the guide', () => {
+    const pages: SitePage[] = [
+      { path: '/guide/', file: 'g.html', lang: 'en', group: 'guide' },
+      { path: '/id/panduan/', file: 'gi.html', lang: 'id', group: 'guide' },
+      { path: '/glossary/', file: 'l.html', lang: 'en', group: 'glossary' },
+      { path: '/id/istilah/', file: 'li.html', lang: 'id', group: 'glossary' },
+    ];
+    const map = renderSitemap(SITE, () => '2026-01-01', pages);
+    const guide = urlBlock('/guide/', map);
+
+    expect(guide).toContain(`hreflang="id" href="${SITE}/id/panduan/"`);
+    expect(guide).toContain(`hreflang="x-default" href="${SITE}/guide/"`);
+    expect(guide).not.toContain('/id/istilah/');
+    expect(guide).not.toContain('/glossary/');
+    expect(urlBlock('/id/istilah/', map)).not.toContain('/guide/');
+    expect(urlBlock('/id/istilah/', map)).toContain(
+      `hreflang="x-default" href="${SITE}/glossary/"`,
+    );
   });
 
   it('lists the screenshot and the share image for image search', () => {
@@ -67,7 +121,7 @@ describe('the sitemap', () => {
 
   it('escapes what XML cannot hold', () => {
     const odd = renderSitemap(SITE, () => '2026-01-01', [
-      { path: '/?a=1&b=2', file: 'x.html', lang: 'en' },
+      { path: '/?a=1&b=2', file: 'x.html', lang: 'en', group: 'odd' },
     ]);
 
     expect(odd).toContain('<loc>https://sawit.example/?a=1&amp;b=2</loc>');

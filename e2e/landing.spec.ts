@@ -135,6 +135,74 @@ test.describe('landing page', () => {
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   });
 
+  test('the companion pages are real HTML in pairs, each with a heading, a canonical and its twin, and load no engine', async ({
+    page,
+  }) => {
+    // Without an origin the build drops canonical and hreflang (vite.config.ts), on purpose.
+    const origin = (process.env['VITE_SITE_URL'] ?? '').trim().replace(/\/+$/, '');
+    const pairs: [string, string][] = [
+      ['/guide/', '/id/panduan/'],
+      ['/glossary/', '/id/istilah/'],
+      ['/endings/', '/id/akhir-permainan/'],
+      ['/accuracy/', '/id/akurasi/'],
+    ];
+    const scripts: string[] = [];
+
+    page.on('request', (r) => {
+      if (r.resourceType() === 'script') scripts.push(r.url());
+    });
+
+    for (const [en, id] of pairs) {
+      for (const [path, twin, lang] of [
+        [en, id, 'en'],
+        [id, en, 'id'],
+      ] as const) {
+        const response = await page.goto(path);
+
+        expect(response?.status(), path).toBe(200);
+        await expect(page.locator('html'), path).toHaveAttribute('lang', lang);
+        await expect(page.getByRole('heading', { level: 1 }), path).toHaveText(/\S{3,}/);
+        await expect(page.getByTestId('play-link'), path).toBeVisible();
+        await expect(page.locator('meta[name="description"]'), path).toHaveAttribute(
+          'content',
+          /\S.{59,}/,
+        );
+        // Every page links its twin, and the twin links back.
+        await expect(page.locator(`a[href="${twin}"]`).first(), path).toBeVisible();
+
+        const canonical = page.locator('link[rel="canonical"]');
+        const alternates = page.locator('link[rel="alternate"][hreflang]');
+
+        if (origin) {
+          await expect(canonical, path).toHaveAttribute('href', `${origin}${path}`);
+          await expect(alternates.and(page.locator(`[hreflang="${lang}"]`)), path).toHaveAttribute(
+            'href',
+            `${origin}${path}`,
+          );
+          await expect(
+            alternates.and(page.locator(`[hreflang="${lang === 'en' ? 'id' : 'en'}"]`)),
+            path,
+          ).toHaveAttribute('href', `${origin}${twin}`);
+          await expect(
+            alternates.and(page.locator('[hreflang="x-default"]')),
+            path,
+          ).toHaveAttribute('href', `${origin}${en}`);
+        } else {
+          await expect(canonical, path).toHaveCount(0);
+          await expect(alternates, path).toHaveCount(0);
+        }
+
+        const ld = (await page.locator('script[type="application/ld+json"]').textContent()) ?? '';
+
+        expect(ld, path).not.toMatch(/__[A-Z_]+__/);
+        expect(ld, path).toContain(lang === 'en' ? '"workTranslation"' : '"translationOfWork"');
+        expect(ld, path).not.toContain('FAQPage');
+      }
+    }
+
+    expect(scripts.filter((u) => /three|index-|play-/.test(u))).toEqual([]);
+  });
+
   test('@smoke Play opens the game: the boot shell paints first, then comes down', async ({
     page,
   }) => {

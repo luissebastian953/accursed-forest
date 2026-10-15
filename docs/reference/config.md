@@ -62,7 +62,7 @@ empty the game builds and runs, and ships no third-party script.
 
 ## `vite.config.ts`
 
-The build: the three pages, the SEO tags and files, the alias map and the
+The build: the twelve pages, the SEO tags and files, the alias map and the
 chunking. Nothing is obfuscated ([ADR 0008](../adr/0008-no-obfuscation.md)).
 
 ### Notes
@@ -79,7 +79,9 @@ chunking. Nothing is obfuscated ([ADR 0008](../adr/0008-no-obfuscation.md)).
   tsconfig natively, but only for imports made from TypeScript. A `.svelte`
   file's imports go through the plain resolver, so the same map is spelled out in
   `alias` as well.
-- `build.rollupOptions.input`: three pages ship, the static landing page, the
-  game, and the workbench, which is a development page that is never indexed or
-  linked. three.js gets its own long-lived chunk: it changes far less often than
-  the game, and it is what the boot shell waits on.
+- `build.rollupOptions.input`: twelve pages ship: the ten indexable pages in
+  `SITE_PAGES` (`tools/seo.ts`), the game, and the workbench, which is a
+  development page that is never indexed or linked. Every static page links
+  `src/site/site.css`, which Vite bundles and hashes once. three.js gets its own
+  long-lived chunk: it changes far less often than the game, and it is what the
+  boot shell waits on.

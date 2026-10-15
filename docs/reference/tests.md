@@ -69,6 +69,12 @@ shell before the engine arrives and takes it down once the app is up.
   `translationOfWork`. Both pages once claimed to be a translation of the other,
   which cannot be true of either and told Google nothing about which is the
   original.
+- The companion-pages test walks the eight guide, glossary, endings and accuracy
+  pages in their pairs. It asserts the canonical and the hreflang pair only when
+  `VITE_SITE_URL` reached the build, because without an origin the build drops
+  those tags on purpose rather than emit relative ones; it then asserts they are
+  consistently absent. It is not `@smoke`: eight page loads belong in the full
+  suite.
 
 ## `e2e/spike.spec.ts`
 

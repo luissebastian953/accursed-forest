@@ -5,35 +5,6 @@ An item earns a place here by being specific enough to start: what, where, and
 why it matters. Anything already decided against belongs in an
 [ADR](adr/) instead.
 
-## Search: more than two indexable pages
-
-The site has exactly two pages a crawler may index, `/` and `/id/`, which is
-the ceiling on what it can ever rank for. Three translation pairs would take it
-to eight, each aimed at something people actually search:
-
-| Page     | Paths                               | Aimed at                                                             |
-| -------- | ----------------------------------- | -------------------------------------------------------------------- |
-| Guide    | `/guide/`, `/id/panduan/`           | "how to play", "cara bermain": the loop, the Kopdes, the certificate |
-| Glossary | `/glossary/`, `/id/istilah/`        | "apa itu TBS", "sertifikasi sawit", "kopdes", "reboisasi"            |
-| Endings  | `/endings/`, `/id/akhir-permainan/` | "all endings", "semua ending": the eight ways a run ends             |
-
-The glossary is the one with real search demand, and the game already defines
-every term it would cover.
-
-Each page needs its own title, description, JSON-LD and Open Graph, an entry in
-`SITE_PAGES` (`tools/seo.ts`) and in `rollupOptions.input` (`vite.config.ts`),
-and a link from both landing pages.
-
-**One change the plumbing needs first.** `SitePage` has no translation group, so
-hreflang treats every page as an alternate of every other. That is correct for
-two pages that are translations of each other and wrong the moment a third
-subject exists: it would tell Google that `/id/istilah/` is the Indonesian
-version of `/guide/`. Add a group key to `SitePage`, use it in `renderSitemap`,
-and pin it in `tests/tools/seo.test.ts`.
-
-Thin pages are worse than no pages, so each wants 400 to 800 words of real
-content, and the Indonesian written properly rather than mirrored.
-
 ## Dead rules the code still carries
 
 Found while writing the design document, recorded there and unfixed:

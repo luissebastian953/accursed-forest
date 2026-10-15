@@ -5,19 +5,34 @@ export interface SitePage {
   file: string;
   /** hreflang for this page. */
   lang: string;
+  /** The translation group: one subject, one page per language. */
+  group: string;
 }
 
 /**
- * The indexable pages, the landing page and its Indonesian twin. `play.html` is `noindex`
- * and stays out: a sitemap lists only canonical pages meant for search.
+ * The indexable pages, in translation pairs. `play.html` is `noindex` and stays out: a
+ * sitemap lists only canonical pages meant for search.
  */
 export const SITE_PAGES: readonly SitePage[] = [
-  { path: '/', file: 'index.html', lang: 'en' },
-  { path: '/id/', file: 'id/index.html', lang: 'id' },
+  { path: '/', file: 'index.html', lang: 'en', group: 'home' },
+  { path: '/id/', file: 'id/index.html', lang: 'id', group: 'home' },
+  { path: '/guide/', file: 'guide/index.html', lang: 'en', group: 'guide' },
+  { path: '/id/panduan/', file: 'id/panduan/index.html', lang: 'id', group: 'guide' },
+  { path: '/glossary/', file: 'glossary/index.html', lang: 'en', group: 'glossary' },
+  { path: '/id/istilah/', file: 'id/istilah/index.html', lang: 'id', group: 'glossary' },
+  { path: '/endings/', file: 'endings/index.html', lang: 'en', group: 'endings' },
+  {
+    path: '/id/akhir-permainan/',
+    file: 'id/akhir-permainan/index.html',
+    lang: 'id',
+    group: 'endings',
+  },
+  { path: '/accuracy/', file: 'accuracy/index.html', lang: 'en', group: 'accuracy' },
+  { path: '/id/akurasi/', file: 'id/akurasi/index.html', lang: 'id', group: 'accuracy' },
 ];
 
-/** Where hreflang sends a searcher whose language has no page of its own. */
-export const DEFAULT_PAGE_PATH = '/';
+/** The language whose page a group's `x-default` points at. */
+export const DEFAULT_LANG = 'en';
 
 /** Images for Google Images, listed on every page that shows them. */
 export const SITE_IMAGES: readonly string[] = ['/brand/hero-estate-1600.webp', '/og-1200x630.png'];
@@ -62,8 +77,25 @@ function escapeXml(value: string): string {
 }
 
 /**
- * Each page with its date, every hreflang alternate plus x-default (Google wants all of them
- * on every page) and its images. No `changefreq` or `priority`: Google ignores both.
+ * One page's hreflang set: its own group, itself included, plus x-default on the group's
+ * English page. A page on another subject is never an alternate.
+ */
+function alternatesOf(
+  page: SitePage,
+  pages: readonly SitePage[],
+): { lang: string; path: string }[] {
+  const group = pages.filter((p) => p.group === page.group);
+  const fallback = group.find((p) => p.lang === DEFAULT_LANG) ?? page;
+
+  return [
+    ...group.map((p) => ({ lang: p.lang, path: p.path })),
+    { lang: 'x-default', path: fallback.path },
+  ];
+}
+
+/**
+ * Each page with its date, its group's hreflang set (Google wants all of them on every
+ * page) and its images. No `changefreq` or `priority`: Google ignores both.
  */
 export function renderSitemap(
   siteUrl: string,
@@ -72,16 +104,12 @@ export function renderSitemap(
   images: readonly string[] = SITE_IMAGES,
 ): string {
   const abs = (path: string) => escapeXml(`${siteUrl}${path}`);
-  const alternates = [
-    ...pages.map((page) => ({ lang: page.lang, path: page.path })),
-    { lang: 'x-default', path: DEFAULT_PAGE_PATH },
-  ];
   const urls = pages.map((page) =>
     [
       '  <url>',
       `    <loc>${abs(page.path)}</loc>`,
       `    <lastmod>${escapeXml(lastModified(page))}</lastmod>`,
-      ...alternates.map(
+      ...alternatesOf(page, pages).map(
         (alt) => `    <xhtml:link rel="alternate" hreflang="${alt.lang}" href="${abs(alt.path)}"/>`,
       ),
       ...images.map(

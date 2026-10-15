@@ -72,8 +72,10 @@ pnpm install
 pnpm dev            # http://localhost:5173, the landing page; the game is /play.html
 ```
 
-Two pages: `index.html` is a static landing page (real HTML for search
-engines, no engine loaded), and `play.html` is the game. The game page paints
+Two kinds of page: the static pages (`index.html` and its Indonesian twin, plus
+a guide, a glossary, an endings page and an accuracy page in each language, real
+HTML for search engines with no engine loaded and one shared stylesheet,
+`src/site/site.css`), and `play.html`, the game. The game page paints
 a boot shell first and loads the engine behind it; three.js ships as its own
 long-lived chunk (~250 KB gzipped) apart from the sim and the UI. Baloo 2 is
 self-hosted from `public/fonts` (one variable woff2, preloaded). Core Web
@@ -93,10 +95,12 @@ and JSON-LD (`VideoGame` + `Organization` + `WebSite` + `WebPage`). Set
 `VITE_SITE_URL` at build time to make those URLs absolute and to emit the
 crawl files (`tools/seo.ts`, unit-tested in `tests/tools/seo.test.ts`):
 
-- `sitemap.xml` lists the two landing pages, each with the full hreflang set
-  (en, id, x-default), a `lastmod` taken from that page's last git commit (so
-  it only moves when the page does), and the hero screenshot and share image
-  for Google Images. The game page is `noindex` and is not listed.
+- `sitemap.xml` lists the ten static pages, each with the hreflang set of its
+  own translation pair (en, id, and x-default on the English page; a page on
+  another subject is never declared an alternate), a `lastmod` taken from that
+  page's last git commit (so it only moves when the page does), and the hero
+  screenshot and share image for Google Images. The game page is `noindex` and
+  is not listed.
 - `robots.txt` allows everything and names the sitemap. The game page is
   deliberately not disallowed: a blocked page cannot be fetched, so Google
   would never see its `noindex`.
@@ -127,8 +131,9 @@ built from `master`:
 Set `VITE_SITE_URL` to the origin the site actually answers on, and nothing
 else is required. Two things to leave alone: `VITE_BASE`, which stays empty
 because the site is served from a domain root, and SPA fallback, which must
-stay **off**, since this is four real pages (`/`, `/id/`, `/play.html`,
-`/workbench.html`) and a catch-all rewrite would hide genuine 404s.
+stay **off**, since this is twelve real pages (the ten in `tools/seo.ts`,
+`/play.html` and `/workbench.html`) and a catch-all rewrite would hide genuine
+404s.
 
 Cache the hashed assets under `/assets/` for a year as immutable, and keep the
 HTML, `robots.txt` and `sitemap.xml` short-lived so a deploy is visible at once.
@@ -146,7 +151,10 @@ schema: the terms people search for, used where they mean something, rather
 than a keyword list. The pages share one design (a nav card, the title over a
 screenshot of a working estate, step and scenario cards) and are hand-mirrored;
 the hero is self-hosted WebP in three widths and preloaded, the icons an inline
-sprite, so nothing on them waits on a third party.
+sprite, so nothing on them waits on a third party. Each landing page links its
+four companion pages (how to play, glossary, endings, accuracy), written in that
+language rather than mirrored, and every companion page links the others and its
+twin.
 
 The game plays in English or Bahasa Indonesia (`src/i18n`). A first visit
 picks Indonesian for an Indonesian time zone or browser language; the title

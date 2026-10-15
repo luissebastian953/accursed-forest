@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cara bermain Sawit Simulator: panduan lengkap</title>
+    <meta
+      name="description"
+      content="Cara bermain Sawit Simulator: Kopdes, tebang atau bakar, bibit, panen pertama, tekanan api, hama, cuaca, aparat, dan lima syarat sertifikasi."
+    />
+    <meta name="robots" content="max-image-preview:large" />
+    <link rel="canonical" href="__SITE_URL__/id/panduan/" />
+    <link rel="alternate" hreflang="id" href="__SITE_URL__/id/panduan/" />
+    <link rel="alternate" hreflang="en" href="__SITE_URL__/guide/" />
+    <link rel="alternate" hreflang="x-default" href="__SITE_URL__/guide/" />
+    <meta property="og:site_name" content="Sawit Simulator" />
+    <meta property="og:title" content="Cara bermain Sawit Simulator" />
+    <meta
+      property="og:description"
+      content="Jalannya permainan, meter tekanan api, hama, cuaca, aparat, dan lima syarat Sertifikasi Sawit, dalam satu halaman."
+    />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="__SITE_URL__/id/panduan/" />
+    <meta property="og:image" content="__SITE_URL__/og-1200x630.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Nama Sawit Simulator di samping lencana heksagon emas berisi sawit muda berbuah merah"
+    />
+    <meta property="og:locale" content="id_ID" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Cara bermain Sawit Simulator" />
+    <meta
+      name="twitter:description"
+      content="Jalannya permainan, meter tekanan api, hama, cuaca, aparat, dan lima syarat Sertifikasi Sawit, dalam satu halaman."
+    />
+    <meta name="twitter:image" content="__SITE_URL__/og-1200x630.png" />
+    <meta
+      name="twitter:image:alt"
+      content="Nama Sawit Simulator di samping lencana heksagon emas berisi sawit muda berbuah merah"
+    />
+    <meta name="theme-color" content="#2f4f2d" />
+    <meta name="application-name" content="Sawit Simulator" />
+    <meta name="apple-mobile-web-app-title" content="Sawit" />
+    <link rel="icon" href="/icon-32.png" sizes="32x32" type="image/png" />
+    <link rel="icon" href="/brand/sawit-mark.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icon-180.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebPage",
+            "@id": "__SITE_URL__/id/panduan/#page",
+            "url": "__SITE_URL__/id/panduan/",
+            "name": "Cara bermain Sawit Simulator: panduan lengkap",
+            "description": "Cara bermain Sawit Simulator: Kopdes, tebang atau bakar, bibit, panen pertama, tekanan api, hama, cuaca, aparat, dan lima syarat sertifikasi.",
+            "isPartOf": {
+              "@id": "__SITE_URL__/#website"
+            },
+            "about": {
+              "@id": "__SITE_URL__/#game"
+            },
+            "inLanguage": "id",
+            "primaryImageOfPage": {
+              "@type": "ImageObject",
+              "url": "__SITE_URL__/og-1200x630.png"
+            },
+            "translationOfWork": {
+              "@id": "__SITE_URL__/guide/#page"
+            },
+            "breadcrumb": {
+              "@id": "__SITE_URL__/id/panduan/#breadcrumbs"
+            }
+          },
+          {
+            "@type": "BreadcrumbList",
+            "@id": "__SITE_URL__/id/panduan/#breadcrumbs",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Sawit Simulator",
+                "item": "__SITE_URL__/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Bahasa Indonesia",
+                "item": "__SITE_URL__/id/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "Panduan",
+                "item": "__SITE_URL__/id/panduan/"
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+    <link rel="preload" href="/fonts/baloo2-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link
+      rel="preload"
+      as="image"
+      href="/brand/hero-estate-1600.webp"
+      imagesrcset="/brand/hero-estate-960.webp 960w, /brand/hero-estate-1600.webp 1600w, /brand/hero-estate-1826.webp 1826w"
+      imagesizes="100vw"
+      fetchpriority="high"
+    />
+    <link rel="stylesheet" href="/fonts/fonts.css" />
+    <link rel="stylesheet" href="/src/site/site.css" />
+    <script>
+      // Google Analytics 4, only when VITE_GA_ID is set at build time. The queue
+      // is synchronous and the library idle, so an early event is not dropped.
+      (function () {
+        var id = '%VITE_GA_ID%';
+
+        if (!id || id.charAt(0) === '%') return;
+        window.dataLayer = window.dataLayer || [];
+
+        window.gtag = function () {
+          window.dataLayer.push(arguments);
+        };
+
+        window.gtag('js', new Date());
+        window.gtag('config', id, { page_language: 'id' });
+
+        var go = function () {
+          var s = document.createElement('script');
+          s.async = true;
+          s.src = 'https://www.googletagmanager.com/gtag/js?id=' + id;
+          document.head.appendChild(s);
+        };
+
+        if ('requestIdleCallback' in window) requestIdleCallback(go, { timeout: 4000 });
+        else setTimeout(go, 2000);
+      })();
+    </script>
+  </head>
+  <body>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <symbol id="i-play" viewBox="0 0 24 24">
+        <path
+          d="M7 5v14l12-7z"
+          fill="#fff"
+          stroke="#2f7a2b"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+      </symbol>
+      <symbol id="i-coin" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" fill="#f4b731" stroke="#d99a1a" stroke-width="3" />
+        <circle cx="12" cy="12" r="5" fill="#ffd54a" stroke="#d99a1a" stroke-width="2" />
+      </symbol>
+      <symbol id="i-palm" viewBox="0 0 30 30">
+        <path d="M15 26V13" stroke="#6e3016" stroke-width="3" stroke-linecap="round" />
+        <path
+          d="M15 13c-6-1-9-5-9-9 5 0 8 3 9 9zM15 13c6-1 9-5 9-9-5 0-8 3-9 9zM15 13c-1-5 1-8 4-10 1 4 0 8-4 10zM15 13c1-5-1-8-4-10-1 4 0 8 4 10z"
+          fill="#4caf50"
+          stroke="#2f7a2b"
+          stroke-width="1.8"
+          stroke-linejoin="round"
+        />
+        <circle cx="13" cy="14" r="2" fill="#ff8a5c" />
+        <circle cx="17" cy="14" r="2" fill="#ff8a5c" />
+      </symbol>
+      <symbol id="i-news" viewBox="0 0 24 24">
+        <rect
+          x="4"
+          y="3"
+          width="16"
+          height="14"
+          rx="2"
+          fill="#fff6e0"
+          stroke="#7a6440"
+          stroke-width="2"
+        />
+        <path d="M8 8h8M8 12h5" stroke="#7a6440" stroke-width="1.8" stroke-linecap="round" />
+        <circle cx="16" cy="17" r="3" fill="#f4b731" stroke="#d99a1a" stroke-width="1.5" />
+        <path d="M14.5 19.5 14 23l2-1 2 1-.5-3.5" fill="#ff6a4d" />
+      </symbol>
+      <symbol id="i-axe" viewBox="0 0 24 24">
+        <path d="M5 21 15 11" stroke="#7a6440" stroke-width="3" stroke-linecap="round" />
+        <path
+          d="M13 5c3-2 6-2 8 0-1 3-3 5-6 6l-3-3c0-1 0-2 1-3z"
+          fill="#9a9a9a"
+          stroke="#4a4a4a"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+      </symbol>
+      <symbol id="i-basket" viewBox="0 0 24 24">
+        <path
+          d="M3 10h18l-2 10H5z"
+          fill="#c9a06a"
+          stroke="#7a5a2a"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+        <circle cx="9" cy="8" r="3" fill="#ff8a5c" stroke="#b8482a" stroke-width="1.5" />
+        <circle cx="15" cy="8" r="3" fill="#ff8a5c" stroke="#b8482a" stroke-width="1.5" />
+      </symbol>
+      <symbol id="i-rain" viewBox="0 0 22 22">
+        <path
+          d="M6 12a4 4 0 0 1 .5-8 5 5 0 0 1 9.5 1 3.5 3.5 0 0 1 0 7z"
+          fill="#cddbe0"
+          stroke="#3f5fa8"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M7 15v3M11 15v4M15 15v3"
+          stroke="#5a8bff"
+          stroke-width="2.2"
+          stroke-linecap="round"
+        />
+      </symbol>
+      <symbol id="i-warn" viewBox="0 0 24 24">
+        <path
+          d="M12 3 3 20h18z"
+          fill="#ffd54a"
+          stroke="#d99a1a"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+        <path d="M12 9v5" stroke="#5a3a12" stroke-width="2.5" stroke-linecap="round" />
+        <circle cx="12" cy="17" r="1.4" fill="#5a3a12" />
+      </symbol>
+      <symbol id="i-fire" viewBox="0 0 20 20">
+        <path
+          d="M10 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-6 1 1 2 2 3 1-1-2 0-4 0-5z"
+          fill="#ff7a3a"
+          stroke="#c2410c"
+          stroke-width="1.8"
+        />
+        <path d="M10 11c1 2 2 2 2 4a2 2 0 0 1-4 0c0-1 1-2 2-4z" fill="#ffd54a" />
+      </symbol>
+      <symbol id="i-tree" viewBox="0 0 26 26">
+        <path
+          d="M13 3 6 13h4l-4 7h14l-4-7h4zM13 20v4"
+          fill="#3faa4c"
+          stroke="#2f7a2b"
+          stroke-width="2"
+          stroke-linejoin="round"
+          stroke-linecap="round"
+        />
+      </symbol>
+      <symbol id="i-house" viewBox="0 0 32 32">
+        <path
+          d="M4 14 16 5l12 9"
+          stroke="#9e2e20"
+          stroke-width="3"
+          stroke-linejoin="round"
+          fill="#c94a30"
+        />
+        <rect
+          x="8"
+          y="14"
+          width="16"
+          height="12"
+          fill="#f4ecdc"
+          stroke="#7a6440"
+          stroke-width="2"
+        />
+        <rect x="14" y="19" width="4" height="7" fill="#7a6440" />
+      </symbol>
+      <symbol id="i-drop" viewBox="0 0 20 20">
+        <circle cx="10" cy="11" r="6" fill="#ff8a5c" stroke="#b8482a" stroke-width="2" />
+        <path d="M10 5V2" stroke="#2f7a2b" stroke-width="2.5" stroke-linecap="round" />
+      </symbol>
+      <symbol id="i-bug" viewBox="0 0 26 26">
+        <path
+          d="M3 13a10 8 0 0 1 20 0zM9 13v6a4 3 0 0 0 8 0v-6"
+          fill="#ff6a4d"
+          stroke="#9e2e20"
+          stroke-width="2"
+          stroke-linejoin="round"
+          stroke-linecap="round"
+        />
+      </symbol>
+    </svg>
+
+    <div class="backdrop">
+      <img
+        src="/brand/hero-estate-1600.webp"
+        srcset="
+          /brand/hero-estate-960.webp   960w,
+          /brand/hero-estate-1600.webp 1600w,
+          /brand/hero-estate-1826.webp 1826w
+        "
+        sizes="100vw"
+        width="1826"
+        height="1336"
+        alt="Kebun kelapa sawit dari atas: barisan sawit muda mengelilingi Kopdes, hutan masih berdiri di satu sisi, kampung di tepi sungai di sisi lain"
+        fetchpriority="high"
+        decoding="async"
+      />
+    </div>
+
+    <div class="page">
+      <div class="lang-hint" id="lang-hint" hidden>
+        <span lang="en">This page is also available in English.</span>
+        <a href="/guide/" hreflang="en" lang="en">Open the English version</a>
+        <button type="button" aria-label="Close">✕</button>
+      </div>
+
+      <nav class="card" aria-label="Situs">
+        <a class="brand" href="/id/">
+          <img src="/brand/sawit-mark.svg" width="40" height="40" alt="" />
+          <span>Sawit Simulator</span>
+        </a>
+        <div class="links">
+          <a href="/id/panduan/" aria-current="page">Panduan</a>
+          <a href="/id/istilah/">Istilah</a>
+          <a href="/id/akhir-permainan/">Akhir permainan</a>
+          <a href="/id/akurasi/">Akurasi</a>
+          <a class="alt" href="/guide/" hreflang="en" lang="en">English</a>
+          <a class="play" href="/play.html">MAIN</a>
+        </div>
+      </nav>
+
+      <header class="hero compact">
+        <h1>Cara bermain Sawit Simulator</h1>
+        <p class="lede">
+          Simulasi kebun sawit di browser: satu kebun, satu Kopdes, hutan yang bisa kamu buka atau
+          kamu biarkan berdiri. Seluruh permainan dalam satu halaman, dari bibit pertama sampai
+          sertifikat.
+        </p>
+        <a class="btn btn-green" href="/play.html" data-testid="play-link">
+          <svg class="ic" aria-hidden="true"><use href="#i-play" /></svg>
+          Main di browser
+        </a>
+      </header>
+
+      <main class="stack">
+        <nav class="card" aria-label="Di halaman ini">
+          <span class="eyebrow">Di halaman ini</span>
+          <div class="toc">
+            <a href="#alur">Jalannya permainan</a>
+            <a href="#api">Tekanan api</a>
+            <a href="#hama">Hama</a>
+            <a href="#cuaca">Cuaca</a>
+            <a href="#aparat">Aparat</a>
+            <a href="#sertifikasi">Sertifikasi</a>
+            <a href="#kontrol">Kontrol</a>
+          </div>
+        </nav>
+
+        <section class="card prose" id="alur">
+          <div class="head">
+            <h2>Jalannya permainan</h2>
+            <span class="eyebrow">Kopdes, lahan, bibit, buah</span>
+          </div>
+
+          <p>
+            Kamu mulai dengan Rp 250.000.000 dan 64 petak gratis, masing-masing satu hektar, dengan
+            satu petak cokelat kosong di tengah. Klik petak itu dan bangun <b>Kopdes</b> di sana,
+            koperasi desa yang menjadi satu-satunya bangunan di kebun. Semua yang dibeli, dijual,
+            dan dipekerjakan kebun ini lewat Kopdes.
+          </p>
+          <p>
+            Lalu buka lahan. <b>Tebang</b> mengirim regu ke petak selama sebulan lebih, menjual
+            kayunya, dan meninggalkan sisa tebangan. <b>Bakar</b> hanya Rp 250.000, selesai dalam
+            hitungan hari, tetapi menaikkan meter tekanan api dan perhatian aparat. Padang rumput
+            dan semak tidak perlu dibuka sama sekali: tidak ada yang berdiri di atasnya.
+          </p>
+          <p>
+            Beli <b>bibit</b> di toko Kopdes: 144 bibit mengisi satu petak datar, 96 untuk petak
+            berbukit. Tanam, pupuk, airi semak yang kering, lalu tunggu. Sawit baru berbuah sekitar
+            delapan belas bulan setelah ditanam, jadi tahun pertama hanya biaya. Begitu sebuah petak
+            berbuah, ia siap <b>dipanen</b> setiap enam hari, dan hanya di dalam jangkauan Kopdes,
+            karena tandan buah segar (<i>TBS</i>) harus sampai ke pabrik di hari yang sama. Kopdes
+            membeli dengan harga hari itu. Nyalakan panen otomatis dan regu Kopdes yang berkeliling,
+            dengan sedikit biaya tambahan.
+          </p>
+          <p>
+            <b>Tingkatkan Kopdes</b> untuk memperluas jangkauannya: tingkat 2 butuh sepuluh petak
+            berbuah, tingkat 3 dua puluh, tingkat 4 empat puluh, dan setiap tingkat juga memangkas
+            harga yang kamu terima, karena semua tetangga ikut menanam sawit. Tingkat 3 membuka
+            penggajian (pekerja sanitasi, dokter tanaman, satpam) dan kecepatan 50x. Tingkat 4
+            adalah salah satu dari lima syarat sertifikasi.
+          </p>
+        </section>
+
+        <section class="card prose" id="api">
+          <div class="head">
+            <h2>Meter tekanan api</h2>
+            <span class="eyebrow">Lewat garis, apinya bukan milikmu lagi</span>
+          </div>
+
+          <p>
+            Pembakaran ada tiga tingkat: rendah, sedang, tinggi. Rendah menambah 1 ke tekanan api
+            kebun, sedang 3, tinggi 5, dan garis kebakaran liar ada di angka 3: satu bakaran tinggi
+            langsung melewatinya, satu bakaran sedang tepat di garis, dan bakaran rendah yang
+            berjarak beberapa bulan tidak akan pernah sampai. Tekanan turun perlahan, sekitar tiga
+            poin dalam setengah tahun.
+          </p>
+          <p>
+            Lewat garis itu, setiap api di kebun membesar, merambat cepat ke apa pun yang kering,
+            dan menyelimuti kabupaten dengan kabut asap yang bertahan lebih lama dari apinya. Api
+            tiga kali lebih mudah merambat ke hutan yang masih berdiri, dua kali lebih mudah pada
+            tahun El Niño, dan hujan beberapa hari berturut-turut bisa memadamkan sebuah petak.
+            Petir dan kemarau menyalakan api yang tidak disulut siapa pun; api seperti itu habis di
+            petaknya sendiri, tidak merambat, dan tidak ada yang menyalahkanmu. Api buatan manusia
+            yang masuk ke lahan tetangga atau hutan lindung lain ceritanya (lihat bagian aparat).
+          </p>
+        </section>
+
+        <section class="card prose" id="hama">
+          <div class="head">
+            <h2>Hama dan pengobatannya</h2>
+            <span class="eyebrow">Ganoderma dan kumbang tanduk</span>
+          </div>
+
+          <p>
+            <b>Ganoderma</b> lambat dan menggerogoti dari dalam. Jamur ini menyebar antarpohon lewat
+            akar, diam berbulan-bulan tanpa gejala, membuat sawit tampak sakit, lalu mematikannya.
+            Sisa tebangan di petak menaikkan peluang infeksi baru, dan banjir melipatgandakannya
+            tiga kali. Obatnya: <b>Trichoderma</b> dari toko memangkas separuh penyebaran di satu
+            petak selama 120 hari; cabut sawit sakit sebelum ia menulari enam tetangganya; parit
+            satu lubang tanam supaya akarnya terputus untuk selamanya; sulam yang kosong; atau sewa
+            dokter tanaman yang mencabut dua sawit sakit sehari dan membeli Trichoderma sendiri.
+          </p>
+          <p>
+            <b>Kumbang tanduk</b> (kumbang badak) cepat, dan urusannya kebersihan. Ia berbiak di apa
+            pun yang tertinggal setelah lahan dibuka, itulah sebabnya petak bekas bakaran menjadi
+            sarang kumbang, dan ia hanya menggerek sawit muda. <b>Perangkap feromon</b> membunuh
+            kumbang di satu petak selama 120 hari, <b>Metarhizium</b> memperlambat biaknya selama 90
+            hari, dan <b>regu sanitasi</b> mengangkut sisa tebangannya, satu- satunya cara yang
+            melaparkan kedua hama sekaligus. Dibiarkan, petak jatuh ke status wabah, dan Ganoderma
+            menyebar lebih cepat di sana sampai wabahnya reda.
+          </p>
+        </section>
+
+        <section class="card prose" id="cuaca">
+          <div class="head">
+            <h2>Dek cuaca</h2>
+            <span class="eyebrow">Setahun 360 hari, basah dan kering</span>
+          </div>
+
+          <p>
+            Musim hujan berjalan dari hari ke-300 sampai hari ke-89 tahun berikutnya, dan setiap
+            tahun mengundi satu rezim iklim: normal, <b>El Niño</b> (lebih kering, api merambat dua
+            kali lebih cepat), atau <b>La Niña</b> (lebih basah, sungai naik). Tahun kering dan
+            tahun basah cenderung datang berkelompok, bukan bergantian.
+          </p>
+          <ul>
+            <li>
+              <b>Kabut asap</b> datang di musim kering, jauh lebih sering saat El Niño dan ketika
+              tekanan api kebunmu sendiri tinggi. Ia memangkas sinar matahari dan menekan harga buah
+              selama berminggu-minggu.
+            </li>
+            <li>
+              <b>Banjir</b> datang di musim hujan, terutama saat La Niña, ke petak rendah di dekat
+              sungai: sawit muda rusak, pupuk hanyut, Ganoderma bersemai tiga kali lebih cepat.
+              Drainase mengeluarkan sebuah petak dari daftar banjir untuk selamanya.
+            </li>
+            <li>
+              <b>Kemarau</b> tidak diundi; ia adalah dua belas hari kering berturut-turut. Petak
+              tanpa irigasi mengering, dan saat El Niño tumpukan sisa tebangan bisa terbakar
+              sendiri.
+            </li>
+            <li>
+              <b>Hujan abu</b> jarang terjadi: ia menghentikan panen dan melukai sawit muda selagi
+              turun, lalu meninggalkan 90 hari tanah yang lebih subur.
+            </li>
+            <li>
+              <b>Longsor</b> mengancam setiap lereng pada musim basah yang panjang, dan peluangnya
+              bergantung pada seberapa banyak hutan yang masih berdiri di sekitarnya. Gunduli
+              perbukitan, dan tahun basah berikutnya meruntuhkannya; tanaman penutup tanah memangkas
+              separuh risikonya; regu ekskavasi menggali hektar yang tertimbun dalam waktu kurang
+              dari sepekan.
+            </li>
+          </ul>
+        </section>
+
+        <section class="card prose" id="aparat">
+          <div class="head">
+            <h2>Aparat dan integritas</h2>
+            <span class="eyebrow">Surat di 40, polisi di 70, penangkapan di 100</span>
+          </div>
+
+          <p>
+            <b>Perhatian</b> adalah meter dari 0 sampai 100. Menebang hutan menaikkannya sedikit,
+            membakar menaikkannya banyak, dan api yang menyeberang ke lahan yang bukan milikmu
+            menaikkannya lebih lagi. Musim yang tenang menurunkannya, dan menanam hutan kembali
+            adalah satu-satunya hal yang diterima Kementerian apa adanya: meter langsung terpangkas
+            separuh.
+          </p>
+          <p>
+            Di angka 40, <b>surat</b> datang dari kantor kecamatan dan setiap regu pembuka lahan
+            biayanya naik separuh sampai meter turun lagi di bawah 25. Di angka 70, polisi membuka
+            <b>penyelidikan</b>: dilarang menebang atau membakar selama 90 hari, meski panen dan
+            penjualan tetap berjalan. Api yang mencapai hutan lindung membuka penyelidikan seketika.
+            Di angka 100, atau pada kebakaran liar kedua selagi polisi masih di sana, kamu
+            <b>ditangkap</b>, dan permainan berakhir.
+          </p>
+          <p>
+            <b>Integritas</b> adalah angka tersembunyi tentang seberapa jujur kabupaten ini, dan ia
+            bermata dua. Kantor yang korup membiarkanmu menyelesaikan penyelidikan dengan biaya
+            koordinasi sebesar kira-kira setahun panen, dan meloloskan sertifikat meski ada syarat
+            yang kurang. Kantor yang jujur tidak mengangkat telepon, dan justru dialah yang bisa
+            membekukan <b>izin usaha</b> pada hari kamu membakar: 90 hari tanpa pembukaan lahan,
+            tanpa tanam sawit, tanpa panen, sementara menanam hutan tetap diperbolehkan.
+          </p>
+        </section>
+
+        <section class="card prose" id="sertifikasi">
+          <div class="head">
+            <h2>Lima syarat Sertifikasi Sawit</h2>
+            <span class="eyebrow">Diperiksa setiap akhir tahun, mulai tahun ke-3</span>
+          </div>
+
+          <p>
+            <b>Sertifikasi Sawit</b> adalah syarat kemenangan, dan panelnya di dalam game
+            menunjukkan sejauh mana kelima syarat sudah terpenuhi. Penuhi kelimanya dan Kementerian
+            mengirim spanduk.
+          </p>
+          <ol>
+            <li>
+              <b>Laba operasi, dan tiga tahun untung</b>: target laba kumulatif, dengan tiga tahun
+              terakhir yang ditutup masing-masing untung.
+            </li>
+            <li>
+              <b>Hektar yang berbuah</b>: dua puluh petak dengan sedikitnya separuh sawitnya
+              berbuah.
+            </li>
+            <li>
+              <b>Tanpa bakar lahan</b>: lima tahun bersih, atau tidak pernah membakar sama sekali.
+            </li>
+            <li>
+              <b>Hutan di lereng</b>: cukup hutan yang dibiarkan berdiri di sekitar perbukitan
+              kebunmu sendiri.
+            </li>
+            <li>
+              <b>Kopdes di tingkat tertinggi</b>: tingkat 4, yang berarti empat puluh petak berbuah
+              di sepanjang jalan.
+            </li>
+          </ol>
+          <p>
+            Laba, hektar, dan Kopdes tidak pernah dilonggarkan. Syarat tanpa bakar dan hutan bisa
+            dilonggarkan, tetapi hanya oleh Kementerian yang cukup korup untuk pura-pura tidak
+            melihat, dan epilog akan mengatakannya. Jalan yang jujur adalah kelima syarat penuh.
+            Selengkapnya di <a href="/id/akhir-permainan/">halaman akhir permainan</a>.
+          </p>
+        </section>
+
+        <section class="card prose" id="kontrol">
+          <div class="head">
+            <h2>Kecepatan dan kontrol</h2>
+            <span class="eyebrow">Satu hari lima detik pada 1x</span>
+          </div>
+
+          <p>
+            Waktu berjalan pada 1x, 10x, atau 50x; kecepatan 50x terbuka begitu Kopdes mencapai
+            tingkat 3. Jeda kapan saja, dan baca umpan beritanya: sebuah tajuk di game ini mengubah
+            harga, upah, atau kesabaran aparat, dan cip di bilah atas menunjukkan berapa lama ia
+            berlaku.
+          </p>
+          <p>
+            Geser untuk menggeser peta, gulir untuk memperbesar, <kbd>Q</kbd>/<kbd>E</kbd> memutar
+            tampilan. Klik petak untuk membuka panelnya, klik dua kali untuk terbang ke sana.
+            <kbd>Spasi</kbd> menjeda; <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> mengatur kecepatan.
+            <kbd>F</kbd> melompat ke Kopdes, <kbd>K</kbd> membuka tokonya, <kbd>N</kbd> umpan
+            berita, <kbd>?</kbd> daftar ini di dalam game, <kbd>Esc</kbd> menutup panel. Simpanan
+            tersimpan di browser, tanpa akun; permainan yang kalah bisa diputar ulang ke awal tahun
+            mana pun sebelumnya, benih sama, cuaca ke depan sama, keputusan berbeda.
+          </p>
+        </section>
+
+        <section class="card controls">
+          <div class="cta" style="border-top: 0; padding-top: 0">
+            <p>Siap kapan saja.</p>
+            <a class="btn btn-coral" href="/play.html">Mulai permainan</a>
+          </div>
+        </section>
+
+        <nav class="card read-more" aria-label="Baca juga">
+          <span class="eyebrow">Baca juga</span>
+          <div class="links">
+            <a href="/id/">Tentang game</a>
+            <a href="/id/istilah/">Istilah</a>
+            <a href="/id/akhir-permainan/">Akhir permainan</a>
+            <a href="/id/akurasi/">Akurasi</a>
+          </div>
+        </nav>
+      </main>
+
+      <footer>
+        <a class="brand" href="/id/">
+          <img src="/brand/sawit-mark.svg" width="22" height="22" alt="" />
+          <span>Sawit Simulator</span>
+        </a>
+        <a href="/play.html">Main</a>
+        <a href="/guide/" hreflang="en" lang="en">English</a>
+      </footer>
+    </div>
+
+    <script>
+      // A visitor who reads English gets a pointer to the twin page, never a
+      // redirect: crawlers and shared links must land where they point.
+      (function () {
+        try {
+          if (localStorage.getItem('sawit:lang-hint') === 'off') return;
+          var want = localStorage.getItem('sawit:locale');
+          if (want !== 'en' && want !== 'id') {
+            var zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            var langs = navigator.languages || [navigator.language];
+            var indonesian =
+              /^Asia\/(Jakarta|Pontianak|Makassar|Jayapura)$/.test(zone) ||
+              langs.some(function (l) {
+                return /^id\b/i.test(l);
+              });
+            want = indonesian ? 'id' : 'en';
+          }
+          if (want !== 'en') return;
+          var hint = document.getElementById('lang-hint');
+          hint.hidden = false;
+          hint.querySelector('button').onclick = function () {
+            hint.hidden = true;
+            try {
+              localStorage.setItem('sawit:lang-hint', 'off');
+            } catch (e) {
+              /* storage off */
+            }
+          };
+        } catch (e) {
+          /* no storage, no Intl: no hint */
+        }
+      })();
+    </script>
+  </body>
+</html>
