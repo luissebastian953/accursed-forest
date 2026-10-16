@@ -166,8 +166,8 @@ prose stays English in its event data, because tests and the sweep read it,
 and the interface says it again in the player's language: a headline records
 which template line it drew and its raw variables, and `src/ui/newsText.ts`
 renders the Indonesian from `locales/id/headlines.json`; the chronicle's
-estate lines and the app's toasts go through `chronicle.json` and
-`toasts.json`. A run's epilogue carries a share card: five lines of text and
+estate lines, a command's rejection reason and the app's toasts go through
+`chronicle.json`, `rejections.json` and `toasts.json`. A run's epilogue carries a share card: five lines of text and
 emoji with a link to the landing page that opens the same estate.
 
 The interface follows the cartoon UI kit: cream cards with a hard bottom

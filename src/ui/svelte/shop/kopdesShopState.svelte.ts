@@ -8,6 +8,7 @@ import { kopdesRange } from '@sim/kopdes';
 import type { Command, DispatchResult, ItemId } from '@sim/types';
 
 import type { IconName } from '../../icons.ts';
+import { rejectionText } from '../../rejection.ts';
 
 import KopdesShopView from './KopdesShop.svelte';
 
@@ -89,7 +90,7 @@ export function shopView(sim: Sim): ShopView {
   const index = state.economy.inputPriceIndex;
   const offer = (command: Command): Offer => ({
     command,
-    rejection: sim.validate(command)?.reason ?? null,
+    rejection: rejectionText(sim.validate(command)),
   });
 
   const e = state.economy;

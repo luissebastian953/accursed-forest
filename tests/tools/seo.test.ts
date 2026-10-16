@@ -51,11 +51,13 @@ describe('the sitemap', () => {
     expect(sitemap).not.toContain('play.html');
   });
 
-  it('pairs every page with a twin in the other language, and no page is in two groups', () => {
+  it('pairs every page with a twin, or stands alone as an explainer, and is in one group', () => {
     for (const page of SITE_PAGES) {
       const group = SITE_PAGES.filter((p) => p.group === page.group);
+      const langs = group.map((p) => p.lang).sort();
 
-      expect(group.map((p) => p.lang).sort(), page.path).toEqual(['en', 'id']);
+      if (page.images) expect(langs, page.path).toEqual(['id']);
+      else expect(langs, page.path).toEqual(['en', 'id']);
     }
 
     expect(new Set(SITE_PAGES.map((p) => p.path)).size).toBe(SITE_PAGES.length);

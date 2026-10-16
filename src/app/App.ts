@@ -107,6 +107,7 @@ import {
 
 import { locale, t } from '../i18n/index.ts';
 import { newsText } from '../ui/newsText.ts';
+import { rejectionText } from '../ui/rejection.ts';
 
 import { track } from './analytics.ts';
 import { GameLoop } from './loop.ts';
@@ -1163,7 +1164,7 @@ export async function startApp(root: HTMLElement): Promise<() => void> {
       refreshHud();
       syncTutorial();
     } else {
-      toasts.push(result.reason, 'warn');
+      toasts.push(rejectionText(result) ?? result.reason, 'warn');
     }
 
     return result;

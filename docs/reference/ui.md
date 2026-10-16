@@ -57,6 +57,15 @@ runs without the runes.
 The news feed's three lanes (GDD 8 panels 3, 8, 13): a colour and a message
 key, shared by the ticker and the full feed panel.
 
+## `src/ui/rejection.ts`
+
+Why a button is greyed out, in the player's language. A rejection carries the
+sim's English sentence and, since schema 21's companion change in the
+commands, a message key with raw variables; this renders the key through the
+`rejections` catalog, formatting `rp` and `cash` as rupiah and passing every
+other variable as it is. A rejection without a key, which no command produces
+any more, shows its English.
+
 ## `src/ui/styles.css`
 
 Cartoon UI kit (design kit, Sep 2026): cream cards with a hard bottom edge,

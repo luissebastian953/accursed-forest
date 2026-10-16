@@ -1,6 +1,7 @@
 <script lang="ts">
   import { t } from '../../../i18n/index.ts';
   import { formatDate, formatRp } from '../../format.ts';
+  import { rejectionText } from '../../rejection.ts';
 
   import type { AuthorityCards } from './authorityCardsState.svelte.ts';
 
@@ -70,7 +71,7 @@
               class="rounded bg-white/5 px-3 py-2 text-xs opacity-70"
               data-testid="card-settle-unavailable"
             >
-              {v.settleRejection.reason}
+              {rejectionText(v.settleRejection)}
             </div>
           {/if}
           <button

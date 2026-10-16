@@ -168,7 +168,8 @@ test.describe('landing page', () => {
           /\S.{59,}/,
         );
         // Every page links its twin, and the twin links back.
-        await expect(page.locator(`a[href="${twin}"]`).first(), path).toBeVisible();
+        // The first such link is the hidden language hint; the nav's is the visible one.
+        await expect(page.locator(`a[href="${twin}"]:visible`).first(), path).toBeVisible();
 
         const canonical = page.locator('link[rel="canonical"]');
         const alternates = page.locator('link[rel="alternate"][hreflang]');

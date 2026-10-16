@@ -20,6 +20,14 @@ Found while writing the design document, recorded there and unfixed:
 
 ## Hosting
 
+- The three heaviest files under `/assets/`, three.js, the app chunk and the
+  mesher worker, were served with `max-age=0, must-revalidate` on 2026-10-15
+  while every other hashed asset was `immutable`. That is an EdgeOne cache
+  rule, not the build; every return visit revalidates 87% of the bytes until
+  the rule covers all of `/assets/`.
+- No HSTS, `X-Content-Type-Options` or `Referrer-Policy` headers. EdgeOne
+  response-header rules; nothing in the repo can set them.
+
 - `www.sawitsimulator.com` does not resolve. The apex is a CNAME to EdgeOne, so
   add `www` as its own CNAME or a redirect to the apex.
 - The deploy runs from the host's own git build, which ships whatever compiles,
@@ -31,6 +39,11 @@ Found while writing the design document, recorded there and unfixed:
   game URL is what people pass around.
 
 ## Interface
+
+- On a phone the block panel's upgrade buttons ("Irigasi", "Drainase") have
+  their labels overlapped by the price pill, and the tutorial's progress pill
+  at the bottom left runs off the right edge so Skip is off screen. The HUD
+  got its phone layout on 2026-10-15; the panel and the pill did not.
 
 - The certificate panel's footer still reads "Complete this to win the game"
   under the forest-win banner, which says the certificate is no longer the
