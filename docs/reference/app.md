@@ -10,6 +10,13 @@ Nothing below this file knows about anything beside it.
 
 ### Notes
 
+- `sharedCode`: `?estate=` is the share link's parameter, kept apart from the
+  `?seed=` dev flag on purpose. The dev flag skips the title and the guide; a
+  friend's link must do neither, so it only fills the seed box on the title
+  screen and in the menu's new-estate form, and the player presses Start.
+  `shareUrlFor()` builds the link the other way, to the landing page in the
+  player's language, because that page is indexable and the game page is not.
+
 - `startApp()` layout: the world fills the root, and the block panel is an
   aside laid over its right edge that slides in with a selection (GDD 8 panel
   9). Laying it over rather than docking it means the canvas never resizes
@@ -167,6 +174,21 @@ on top of it.
   low-frequency deterministic wobble. It must vary slowly across neighbouring
   columns: per-column noise carves one-column pits, and the mesher then
   correctly draws their walls, which reads as speckle.
+
+## `src/app/analytics.ts`
+
+The funnel, as Google Analytics 4 events: `game_start`, `tutorial_done`,
+`first_harvest`, `year_closed`, `run_ended` and `share`, each with the active
+locale. Every parameter is an enum or a number, never free text, because an
+estate name is personal data and the events leave the browser. With no `gtag`
+on the page, which is every build without `VITE_GA_ID`, nothing happens.
+
+### Notes
+
+- `track()`: `App.ts` calls it at the moments the audit named as the drop-off
+  questions (does a player start, finish the guide, reach a harvest, close a
+  year, see an ending), and the tutorial reports through a `done` handler so
+  the UI never imports this module.
 
 ## `src/app/loop.ts`
 

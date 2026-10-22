@@ -22,6 +22,8 @@ export interface TutorialHandlers {
   closeShop(): void;
   /** The crew only works while the clock runs; a paused estate is nudged to 1x. */
   resumeClock(): void;
+  /** The walkthrough is over for this browser, finished or skipped. */
+  done?(how: 'finished' | 'skipped'): void;
   /** Where a block's top face is on screen right now, or null when it is behind the camera. */
   project(block: BlockId): ScreenQuad | null;
 }
@@ -113,12 +115,14 @@ export class Tutorial {
   skip(): void {
     markDone();
     this.stop();
+    this.handlers.done?.('skipped');
   }
 
   /** Start playing: the walkthrough is over for this browser. */
   finish(): void {
     markDone();
     this.stop();
+    this.handlers.done?.('finished');
   }
 
   /** From the finishing card: the same field, so the estate steps are behind it and the guide is not. */

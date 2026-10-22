@@ -1,7 +1,7 @@
 import { CLEAR_PLANTATION } from '../balance/prices.ts';
 import { readBlock, spend, writeBlock } from '../state.ts';
 import { staffBlock } from '../systems/mobs.ts';
-import { operatingBanReason, operatingBanned } from '../systems/society.ts';
+import { operatingBanRejection, operatingBanned } from '../systems/society.ts';
 import type { Command, SimState } from '../types.ts';
 
 import { reject, type CommandHandler } from './handler.ts';
@@ -33,35 +33,52 @@ export const clearPlantation: CommandHandler<ClearPlantation> = {
     const { state, world } = ctx;
 
     if (!world.inBounds(...world.toXY(command.block))) {
-      return reject('unknownBlock', 'That block is outside the map.');
+      return reject('unknownBlock', 'That block is outside the map.', {
+        key: 'rejections.block.outsideMap',
+      });
     }
 
     const block = readBlock(state, world, command.block);
 
-    if (!block.owned) return reject('notOwned', 'You do not own this block.');
+    if (!block.owned) {
+      return reject('notOwned', 'You do not own this block.', {
+        key: 'rejections.block.notOwned',
+      });
+    }
 
     if (block.phase !== 'planted' && block.phase !== 'reforesting') {
-      return reject('wrongPhase', 'There is no plantation here to clear.');
+      return reject('wrongPhase', 'There is no plantation here to clear.', {
+        key: 'rejections.fell.noPlantation',
+      });
     }
 
-    if (block.burning) return reject('burning', 'This block is on fire.');
+    if (block.burning) {
+      return reject('burning', 'This block is on fire.', { key: 'rejections.block.onFire' });
+    }
 
     if (block.fellingUntil > state.tick) {
-      return reject('wrongPhase', 'A crew is already felling this block.');
+      return reject('wrongPhase', 'A crew is already felling this block.', {
+        key: 'rejections.fell.inProgress',
+      });
     }
 
-    if (operatingBanned(state)) return reject('banned', operatingBanReason(state));
+    if (operatingBanned(state)) return operatingBanRejection(state);
 
     if (palmsStanding(state, command.block) === 0) {
-      return reject('wrongPhase', 'Nothing is standing here to fell.');
+      return reject('wrongPhase', 'Nothing is standing here to fell.', {
+        key: 'rejections.fell.nothingStanding',
+      });
     }
 
     const cost = clearPlantationCost(state, command.block);
 
     if (state.economy.cash < cost) {
+      const cash = Math.max(0, state.economy.cash);
+
       return reject(
         'noCash',
-        `Felling this plantation costs Rp ${cost.toLocaleString('id-ID')}; you have Rp ${Math.max(0, state.economy.cash).toLocaleString('id-ID')}.`,
+        `Felling this plantation costs Rp ${cost.toLocaleString('id-ID')}; you have Rp ${cash.toLocaleString('id-ID')}.`,
+        { key: 'rejections.fell.cost', vars: { rp: cost, cash } },
       );
     }
 

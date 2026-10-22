@@ -1,4 +1,6 @@
 import './ui/styles.css';
+import { startApp } from '@app/App.ts';
+
 import { reportVitals } from './app/vitals.ts';
 
 const root = document.querySelector<HTMLDivElement>('#app');
@@ -25,8 +27,6 @@ async function boot(): Promise<void> {
 
     await startMobPoc(root!);
   } else {
-    const { startApp } = await import('@app/App.ts');
-
     await startApp(root!);
   }
 }

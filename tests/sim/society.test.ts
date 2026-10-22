@@ -32,6 +32,7 @@ import {
   tbsMeanFactor,
   underInvestigation,
 } from '@sim/systems/society.ts';
+import type { NewsVars } from '@sim/types.ts';
 import type { BlockId } from '@sim/types.ts';
 
 function ownedWild(sim: Sim): BlockId[] {
@@ -74,14 +75,14 @@ function tickFor<T extends SimEvent['type']>(
 describe('news templates (GDD 3.7)', () => {
   it('every template renders with no slot left unfilled and has at least one phrasing', () => {
     const sim = createSim(42);
-    const vars = {
-      n: 12,
-      days: 9,
-      pct: '1.07',
-      price: 'Rp 2.700',
-      block: 'block 3, 4',
-      until: 'Year 3, day 1',
-      cost: 'Rp 75.000.000',
+    const vars: NewsVars = {
+      n: 3,
+      days: 12,
+      pct: '8%',
+      price: 3400,
+      block: '4, 7',
+      until: 724,
+      cost: 75_000_000,
     };
 
     for (const [key, t] of Object.entries(NEWS_TEMPLATES)) {

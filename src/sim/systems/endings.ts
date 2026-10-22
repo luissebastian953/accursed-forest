@@ -93,6 +93,8 @@ function keepBooks(ctx: SimContext): number | null {
             lane: 'estate',
             severity: 'notice',
             title: `Forest planted back on ${blockList(world, [event.block])}`,
+            key: 'forestPlanted',
+            vars: { blocks: blockLabel(world, event.block) },
           });
         }
 
@@ -105,6 +107,8 @@ function keepBooks(ctx: SimContext): number | null {
           lane: 'estate',
           severity: 'notice',
           title: `Kopdes upgraded to level ${event.level}`,
+          key: 'kopdesUpgraded',
+          vars: { level: event.level },
         });
         break;
       case 'YearPassed':
@@ -120,6 +124,8 @@ function keepBooks(ctx: SimContext): number | null {
       lane: 'estate',
       severity: 'notice',
       title: `Forest chopped on ${blockList(world, chopped)}`,
+      key: 'forestChopped',
+      vars: { blocks: labels(world, chopped) },
     });
   }
 
@@ -128,6 +134,8 @@ function keepBooks(ctx: SimContext): number | null {
       lane: 'estate',
       severity: 'warning',
       title: `${capitalise(blockList(world, burned))} burned to clear`,
+      key: 'burnedToClear',
+      vars: { blocks: labels(world, burned) },
     });
   }
 
@@ -139,11 +147,18 @@ function keepBooks(ctx: SimContext): number | null {
         spreadNotYours > 0
           ? `Fire spread to ${spread} block${spread === 1 ? '' : 's'}, ${spreadNotYours} not yours`
           : `Fire spread to ${spread} block${spread === 1 ? '' : 's'}`,
+      key: `fireSpread${spreadNotYours > 0 ? 'NotYours' : ''}${spread === 1 ? 'One' : ''}`,
+      vars: { n: spread, notYours: spreadNotYours },
     });
   }
 
   stats.lowestCash = Math.min(stats.lowestCash, state.economy.cash);
   return closedYear;
+}
+
+/** The labels the chronicle carries, for a reader in another language to list its own way. */
+function labels(world: World, blocks: readonly BlockId[]): string {
+  return blocks.map((id) => blockLabel(world, id)).join('; ');
 }
 
 function blockList(world: World, blocks: readonly BlockId[]): string {
@@ -393,6 +408,12 @@ function closeYear(ctx: SimContext, year: number): void {
       lane: 'estate',
       severity: 'notice',
       title: `Year ${year} closed: ${summary.profit >= 0 ? 'profit' : 'loss'} Rp ${Math.abs(Math.round(summary.profit / 1_000_000))}M, ${summary.matureHectares} ha bearing`,
+      key: summary.profit >= 0 ? 'yearClosedProfit' : 'yearClosedLoss',
+      vars: {
+        year,
+        rp: Math.abs(Math.round(summary.profit / 1_000_000)),
+        ha: summary.matureHectares,
+      },
     });
   }
 

@@ -1,7 +1,10 @@
 <script lang="ts">
-  import { t } from '../../../i18n/index.ts';
+  import type { NewsItem } from '@sim/types';
+
+  import { locale, t } from '../../../i18n/index.ts';
   import { formatDate } from '../../format.ts';
   import { LANE_LABEL_KEY, LANE_TONE } from '../../newsLane.ts';
+  import { newsText } from '../../newsText.ts';
   import Phone from '../base/Phone.svelte';
   import PhoneHeader from '../base/PhoneHeader.svelte';
 
@@ -12,6 +15,8 @@
   }
 
   const { panel }: Props = $props();
+
+  const text = (item: NewsItem) => newsText(locale(), item, panel.feed.seed);
   const ui = $derived(panel.ui);
 
   const FILTERS: { id: NewsFilter; key: string }[] = [
@@ -97,13 +102,13 @@
                 </span>
               {/if}
             </div>
-            <div class="text-base font-extrabold leading-snug">{item.title}</div>
-            <div class="muted mt-1 text-xs leading-snug">{item.body}</div>
-            {#if item.effects.length > 0}
+            <div class="text-base font-extrabold leading-snug">{text(item).title}</div>
+            <div class="muted mt-1 text-xs leading-snug">{text(item).body}</div>
+            {#if text(item).effects.length > 0}
               <div
                 class="mt-2 rounded-xl bg-[var(--card)] px-3 py-1.5 text-xs font-extrabold text-[#b85e12]"
               >
-                → {item.effects.join(', ')}
+                → {text(item).effects.join(', ')}
               </div>
             {/if}
           </li>

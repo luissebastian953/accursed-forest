@@ -13,13 +13,14 @@ import {
   type MacroEvent,
   type MacroEventId,
 } from '../balance/society.ts';
+import { dateVars, reject } from '../commands/handler.ts';
 import { activeEvent, isWildfire } from '../fire.ts';
 import { estateForestCover } from '../landscape.ts';
 import { attentionDecayFactor, macroCalm } from '../macro.ts';
 import { chance, nextGaussian, nextInt, pickWeighted } from '../rng.ts';
 import { endRun, runOver } from '../run.ts';
 import { neighbourIds, readBlock, type SimContext } from '../state.ts';
-import type { BlockId, SimState } from '../types.ts';
+import type { BlockId, Rejection, SimState } from '../types.ts';
 
 const MACRO_IDS = Object.keys(MACRO.events) as MacroEventId[];
 
@@ -400,10 +401,16 @@ export function operatingBanned(state: SimState): boolean {
   return state.society.operatingBanUntil > state.tick;
 }
 
-export function operatingBanReason(state: SimState): string {
+/** The rejection every command shut by the ban returns, with the date it lifts. */
+export function operatingBanRejection(state: SimState): Rejection {
   const until = state.society.operatingBanUntil;
+  const { year, day } = dateVars(until);
 
-  return `Operating licence suspended; no clearing, palm planting or harvest until year ${Math.floor(until / 360) + 1}, day ${(until % 360) + 1}.`;
+  return reject(
+    'banned',
+    `Operating licence suspended; no clearing, palm planting or harvest until year ${year}, day ${day}.`,
+    { key: 'rejections.ban.operating', vars: { year, day } },
+  );
 }
 
 /** Clearing costs while a letter or investigation stands (GDD 3.9). */

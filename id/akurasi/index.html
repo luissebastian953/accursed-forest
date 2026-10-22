@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Apakah Sawit Simulator akurat? Yang nyata dan yang rekaan</title>
+    <meta
+      name="description"
+      content="Yang dimodelkan Sawit Simulator dari sistem nyata (musim kebakaran, kabut asap, Ganoderma, kumbang, harga TBS), yang rekaan, dan apa yang bukan game ini."
+    />
+    <meta name="robots" content="max-image-preview:large" />
+    <link rel="canonical" href="__SITE_URL__/id/akurasi/" />
+    <link rel="alternate" hreflang="id" href="__SITE_URL__/id/akurasi/" />
+    <link rel="alternate" hreflang="en" href="__SITE_URL__/accuracy/" />
+    <link rel="alternate" hreflang="x-default" href="__SITE_URL__/accuracy/" />
+    <meta property="og:site_name" content="Sawit Simulator" />
+    <meta property="og:title" content="Apakah Sawit Simulator akurat?" />
+    <meta
+      property="og:description"
+      content="Penjelasan lugas tentang apa yang dimodelkan game deforestasi ini dari sistem nyata, apa yang rekaan, dan apa yang bukan dirinya."
+    />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="__SITE_URL__/id/akurasi/" />
+    <meta property="og:image" content="__SITE_URL__/og-1200x630.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Nama Sawit Simulator di samping lencana heksagon emas berisi sawit muda berbuah merah"
+    />
+    <meta property="og:locale" content="id_ID" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Apakah Sawit Simulator akurat?" />
+    <meta
+      name="twitter:description"
+      content="Penjelasan lugas tentang apa yang dimodelkan game deforestasi ini dari sistem nyata, apa yang rekaan, dan apa yang bukan dirinya."
+    />
+    <meta name="twitter:image" content="__SITE_URL__/og-1200x630.png" />
+    <meta
+      name="twitter:image:alt"
+      content="Nama Sawit Simulator di samping lencana heksagon emas berisi sawit muda berbuah merah"
+    />
+    <meta name="theme-color" content="#2f4f2d" />
+    <meta name="application-name" content="Sawit Simulator" />
+    <meta name="apple-mobile-web-app-title" content="Sawit" />
+    <link rel="icon" href="/icon-32.png" sizes="32x32" type="image/png" />
+    <link rel="icon" href="/brand/sawit-mark.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icon-180.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebPage",
+            "@id": "__SITE_URL__/id/akurasi/#page",
+            "url": "__SITE_URL__/id/akurasi/",
+            "name": "Apakah Sawit Simulator akurat? Yang nyata dan yang rekaan",
+            "description": "Yang dimodelkan Sawit Simulator dari sistem nyata (musim kebakaran, kabut asap, Ganoderma, kumbang, harga TBS), yang rekaan, dan apa yang bukan game ini.",
+            "isPartOf": {
+              "@id": "__SITE_URL__/#website"
+            },
+            "about": {
+              "@id": "__SITE_URL__/#game"
+            },
+            "inLanguage": "id",
+            "primaryImageOfPage": {
+              "@type": "ImageObject",
+              "url": "__SITE_URL__/og-1200x630.png"
+            },
+            "translationOfWork": {
+              "@id": "__SITE_URL__/accuracy/#page"
+            },
+            "breadcrumb": {
+              "@id": "__SITE_URL__/id/akurasi/#breadcrumbs"
+            }
+          },
+          {
+            "@type": "BreadcrumbList",
+            "@id": "__SITE_URL__/id/akurasi/#breadcrumbs",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Sawit Simulator",
+                "item": "__SITE_URL__/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Bahasa Indonesia",
+                "item": "__SITE_URL__/id/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "Akurasi",
+                "item": "__SITE_URL__/id/akurasi/"
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+    <link rel="preload" href="/fonts/baloo2-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link
+      rel="preload"
+      as="image"
+      href="/brand/hero-estate-1600.webp"
+      imagesrcset="/brand/hero-estate-960.webp 960w, /brand/hero-estate-1600.webp 1600w, /brand/hero-estate-1826.webp 1826w"
+      imagesizes="100vw"
+      fetchpriority="high"
+    />
+    <link rel="stylesheet" href="/fonts/fonts.css" />
+    <link rel="stylesheet" href="/src/site/site.css" />
+    <script>
+      // Google Analytics 4, only when VITE_GA_ID is set at build time. The queue
+      // is synchronous and the library idle, so an early event is not dropped.
+      (function () {
+        var id = '%VITE_GA_ID%';
+
+        if (!id || id.charAt(0) === '%') return;
+        window.dataLayer = window.dataLayer || [];
+
+        window.gtag = function () {
+          window.dataLayer.push(arguments);
+        };
+
+        window.gtag('js', new Date());
+        window.gtag('config', id, { page_language: 'id' });
+
+        var go = function () {
+          var s = document.createElement('script');
+          s.async = true;
+          s.src = 'https://www.googletagmanager.com/gtag/js?id=' + id;
+          document.head.appendChild(s);
+        };
+
+        if ('requestIdleCallback' in window) requestIdleCallback(go, { timeout: 4000 });
+        else setTimeout(go, 2000);
+      })();
+    </script>
+  </head>
+  <body>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <symbol id="i-play" viewBox="0 0 24 24">
+        <path
+          d="M7 5v14l12-7z"
+          fill="#fff"
+          stroke="#2f7a2b"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+      </symbol>
+      <symbol id="i-coin" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" fill="#f4b731" stroke="#d99a1a" stroke-width="3" />
+        <circle cx="12" cy="12" r="5" fill="#ffd54a" stroke="#d99a1a" stroke-width="2" />
+      </symbol>
+      <symbol id="i-palm" viewBox="0 0 30 30">
+        <path d="M15 26V13" stroke="#6e3016" stroke-width="3" stroke-linecap="round" />
+        <path
+          d="M15 13c-6-1-9-5-9-9 5 0 8 3 9 9zM15 13c6-1 9-5 9-9-5 0-8 3-9 9zM15 13c-1-5 1-8 4-10 1 4 0 8-4 10zM15 13c1-5-1-8-4-10-1 4 0 8 4 10z"
+          fill="#4caf50"
+          stroke="#2f7a2b"
+          stroke-width="1.8"
+          stroke-linejoin="round"
+        />
+        <circle cx="13" cy="14" r="2" fill="#ff8a5c" />
+        <circle cx="17" cy="14" r="2" fill="#ff8a5c" />
+      </symbol>
+      <symbol id="i-news" viewBox="0 0 24 24">
+        <rect
+          x="4"
+          y="3"
+          width="16"
+          height="14"
+          rx="2"
+          fill="#fff6e0"
+          stroke="#7a6440"
+          stroke-width="2"
+        />
+        <path d="M8 8h8M8 12h5" stroke="#7a6440" stroke-width="1.8" stroke-linecap="round" />
+        <circle cx="16" cy="17" r="3" fill="#f4b731" stroke="#d99a1a" stroke-width="1.5" />
+        <path d="M14.5 19.5 14 23l2-1 2 1-.5-3.5" fill="#ff6a4d" />
+      </symbol>
+      <symbol id="i-axe" viewBox="0 0 24 24">
+        <path d="M5 21 15 11" stroke="#7a6440" stroke-width="3" stroke-linecap="round" />
+        <path
+          d="M13 5c3-2 6-2 8 0-1 3-3 5-6 6l-3-3c0-1 0-2 1-3z"
+          fill="#9a9a9a"
+          stroke="#4a4a4a"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+      </symbol>
+      <symbol id="i-basket" viewBox="0 0 24 24">
+        <path
+          d="M3 10h18l-2 10H5z"
+          fill="#c9a06a"
+          stroke="#7a5a2a"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+        <circle cx="9" cy="8" r="3" fill="#ff8a5c" stroke="#b8482a" stroke-width="1.5" />
+        <circle cx="15" cy="8" r="3" fill="#ff8a5c" stroke="#b8482a" stroke-width="1.5" />
+      </symbol>
+      <symbol id="i-rain" viewBox="0 0 22 22">
+        <path
+          d="M6 12a4 4 0 0 1 .5-8 5 5 0 0 1 9.5 1 3.5 3.5 0 0 1 0 7z"
+          fill="#cddbe0"
+          stroke="#3f5fa8"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M7 15v3M11 15v4M15 15v3"
+          stroke="#5a8bff"
+          stroke-width="2.2"
+          stroke-linecap="round"
+        />
+      </symbol>
+      <symbol id="i-warn" viewBox="0 0 24 24">
+        <path
+          d="M12 3 3 20h18z"
+          fill="#ffd54a"
+          stroke="#d99a1a"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+        <path d="M12 9v5" stroke="#5a3a12" stroke-width="2.5" stroke-linecap="round" />
+        <circle cx="12" cy="17" r="1.4" fill="#5a3a12" />
+      </symbol>
+      <symbol id="i-fire" viewBox="0 0 20 20">
+        <path
+          d="M10 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-6 1 1 2 2 3 1-1-2 0-4 0-5z"
+          fill="#ff7a3a"
+          stroke="#c2410c"
+          stroke-width="1.8"
+        />
+        <path d="M10 11c1 2 2 2 2 4a2 2 0 0 1-4 0c0-1 1-2 2-4z" fill="#ffd54a" />
+      </symbol>
+      <symbol id="i-tree" viewBox="0 0 26 26">
+        <path
+          d="M13 3 6 13h4l-4 7h14l-4-7h4zM13 20v4"
+          fill="#3faa4c"
+          stroke="#2f7a2b"
+          stroke-width="2"
+          stroke-linejoin="round"
+          stroke-linecap="round"
+        />
+      </symbol>
+      <symbol id="i-house" viewBox="0 0 32 32">
+        <path
+          d="M4 14 16 5l12 9"
+          stroke="#9e2e20"
+          stroke-width="3"
+          stroke-linejoin="round"
+          fill="#c94a30"
+        />
+        <rect
+          x="8"
+          y="14"
+          width="16"
+          height="12"
+          fill="#f4ecdc"
+          stroke="#7a6440"
+          stroke-width="2"
+        />
+        <rect x="14" y="19" width="4" height="7" fill="#7a6440" />
+      </symbol>
+      <symbol id="i-drop" viewBox="0 0 20 20">
+        <circle cx="10" cy="11" r="6" fill="#ff8a5c" stroke="#b8482a" stroke-width="2" />
+        <path d="M10 5V2" stroke="#2f7a2b" stroke-width="2.5" stroke-linecap="round" />
+      </symbol>
+      <symbol id="i-bug" viewBox="0 0 26 26">
+        <path
+          d="M3 13a10 8 0 0 1 20 0zM9 13v6a4 3 0 0 0 8 0v-6"
+          fill="#ff6a4d"
+          stroke="#9e2e20"
+          stroke-width="2"
+          stroke-linejoin="round"
+          stroke-linecap="round"
+        />
+      </symbol>
+    </svg>
+
+    <div class="backdrop">
+      <img
+        src="/brand/hero-estate-1600.webp"
+        srcset="
+          /brand/hero-estate-960.webp   960w,
+          /brand/hero-estate-1600.webp 1600w,
+          /brand/hero-estate-1826.webp 1826w
+        "
+        sizes="100vw"
+        width="1826"
+        height="1336"
+        alt="Kebun kelapa sawit dari atas: barisan sawit muda mengelilingi Kopdes, hutan masih berdiri di satu sisi, kampung di tepi sungai di sisi lain"
+        fetchpriority="high"
+        decoding="async"
+      />
+    </div>
+
+    <div class="page">
+      <div class="lang-hint" id="lang-hint" hidden>
+        <span lang="en">This page is also available in English.</span>
+        <a href="/accuracy/" hreflang="en" lang="en">Open the English version</a>
+        <button type="button" aria-label="Close">✕</button>
+      </div>
+
+      <nav class="card" aria-label="Situs">
+        <a class="brand" href="/id/">
+          <img src="/brand/sawit-mark.svg" width="40" height="40" alt="" />
+          <span>Sawit Simulator</span>
+        </a>
+        <div class="links">
+          <a href="/id/panduan/">Panduan</a>
+          <a href="/id/istilah/">Istilah</a>
+          <a href="/id/akhir-permainan/">Akhir permainan</a>
+          <a href="/id/akurasi/" aria-current="page">Akurasi</a>
+          <a class="alt" href="/accuracy/" hreflang="en" lang="en">English</a>
+          <a class="play" href="/play.html">MAIN</a>
+        </div>
+      </nav>
+
+      <header class="hero compact">
+        <h1>Apakah Sawit Simulator akurat?</h1>
+        <p class="lede">
+          Halaman lugas untuk siapa pun yang ingin mengutip game ini, mengajar dengannya, atau
+          membantahnya: apa yang dimodelkan dari sistem nyata, apa yang rekaan, dan apa yang bukan
+          game ini.
+        </p>
+        <a class="btn btn-green" href="/play.html" data-testid="play-link">
+          <svg class="ic" aria-hidden="true"><use href="#i-play" /></svg>
+          Main di browser
+        </a>
+      </header>
+
+      <main class="stack">
+        <nav class="card" aria-label="Di halaman ini">
+          <span class="eyebrow">Di halaman ini</span>
+          <div class="toc">
+            <a href="#singkat">Jawaban singkat</a>
+            <a href="#nyata">Yang nyata</a>
+            <a href="#rekaan">Yang rekaan</a>
+            <a href="#bukan">Apa yang bukan</a>
+            <a href="#sumber">Sumber</a>
+          </div>
+        </nav>
+
+        <section class="card prose" id="singkat">
+          <div class="head">
+            <h2>Jawaban singkat</h2>
+            <span class="eyebrow">Sistemnya nyata, angkanya rekaan</span>
+          </div>
+
+          <p>
+            Sistemnya nyata, angkanya tidak. Setiap mekanisme di dalam game, dari cara sebuah
+            bakaran menjadi kebakaran liar sampai cara jamur berpindah lewat akar, dimodelkan dari
+            sesuatu yang benar-benar terjadi di kebun-kebun Sumatra dan Kalimantan. Setiap angka
+            yang menempel pada mekanisme itu, harga, hari, peluang, ambang batas, disetel agar satu
+            permainan bisa diselesaikan dalam satu malam, dan harus dibaca sebagai karikatur yang
+            proporsinya dijaga, bukan sebagai pengukuran.
+          </p>
+        </section>
+
+        <section class="card prose" id="nyata">
+          <div class="head">
+            <h2>Yang dimodelkan dari sistem nyata</h2>
+            <span class="eyebrow">Bentuk setiap hal, bukan ukurannya</span>
+          </div>
+
+          <ul>
+            <li>
+              <b>Musim kebakaran Kalimantan dan Sumatra.</b> Lahan masih dibuka dengan api karena
+              itu cara termurah, tahun El Niño yang kering mengubah api itu menjadi bencana
+              regional, dan sebagian besar api berada di lahan yang memang hendak dipakai seseorang.
+              <a
+                href="https://www.forestsnews.org/37016/clearing-the-smoke-the-causes-and-consequences-of-indonesias-fires"
+                target="_blank"
+                rel="noopener"
+                >CIFOR Forests News</a
+              >
+              tentang sebab dan akibat kebakaran 2015 adalah ringkasan paling jernih.
+            </li>
+            <li>
+              <b>Kabut asap yang menutup sekolah.</b> Asap yang menyusul musim kebakaran menutup
+              sekolah, membatalkan penerbangan, dan memenuhi puskesmas dengan kasus ISPA.
+              <a
+                href="https://mongabay.co.id/2026/09/26/kebakaran-hutan-bahayakan-kesehatan-masyarakat-dan-rugikan-ekonomi/"
+                target="_blank"
+                rel="noopener"
+                >Mongabay Indonesia</a
+              >
+              melaporkan sekolah-sekolah di Kalimantan Barat belajar daring selama berminggu-minggu
+              pada musim 2026.
+            </li>
+            <li>
+              <b>Ganoderma yang menyebar lewat akar.</b> Busuk pangkal batang oleh
+              <i>Ganoderma boninense</i> berpindah lewat kontak akar dengan tunggul terinfeksi dan
+              pohon tetangga, diam lama tanpa gejala, dan paling parah di lahan peremajaan. Jalinan
+              akar di game, tahap latennya, dan pengobatan Trichoderma mengikuti
+              <a
+                href="https://www.frontiersin.org/journals/plant-science/articles/10.3389/fpls.2023.1156869/full"
+                target="_blank"
+                rel="noopener"
+                >ulasan di Frontiers in Plant Science (2023)</a
+              >.
+            </li>
+            <li>
+              <b>Kumbang yang berbiak di sisa tebangan.</b> Kumbang tanduk,
+              <i>Oryctes rhinoceros</i>, berbiak di batang busuk dan sisa pembukaan lahan lalu
+              menggerek sawit muda; perangkap feromon, sanitasi, dan <i>Metarhizium</i> adalah
+              pengendalian yang sungguhan, seperti diuraikan
+              <a
+                href="https://jopr.mpob.gov.my/advances-in-the-control-of-rhinoceros-beetle-oryctes-rhinoceros-in-oil-palm-review-article/"
+                target="_blank"
+                rel="noopener"
+                >ulasan Journal of Oil Palm Research</a
+              >.
+            </li>
+            <li>
+              <b>Harga buah yang mengikuti pasar dunia berdolar.</b> Petani menjual TBS ke pabrik
+              yang harganya mengikuti minyak sawit mentah, yang dihitung dalam dolar; rupiah yang
+              melemah, pungutan ekspor, mandat biodiesel, atau aturan negara pengimpor sampai ke
+              gerbang kebun dalam hitungan hari. Dek tajuk berita game dibangun persis di atas
+              rantai itu.
+            </li>
+            <li>
+              <b>Koperasi desa.</b> Banyak petani sawit menjual lewat koperasi yang juga menjual
+              sarana produksi dan mengatur tenaga kerja. Kopdes adalah lembaga itu.
+            </li>
+            <li>
+              <b>Longsor di lereng yang digunduli.</b> Akar hutan menahan lereng, dan lereng yang
+              dibuka pada musim basah yang panjang tidak tertahan. Peluang longsor di game membaca
+              tutupan hutan di sekitar setiap lereng karena alasan itu.
+            </li>
+            <li>
+              <b>Reboisasi yang butuh bertahun-tahun.</b> Hutan yang ditanam kembali dihitung sejak
+              tahap anakan dan dewasa dalam hitungan tahun, dan ia satu-satunya hal yang diterima
+              aparat apa adanya.
+              <a
+                href="https://auriga.or.id/press_release/detail/65/status-deforestasi-indonesia-2025"
+                target="_blank"
+                rel="noopener"
+                >Auriga Nusantara</a
+              >
+              menerbitkan angka deforestasi yang tutupan hutan di game adalah versi mainannya.
+            </li>
+            <li>
+              <b>Sertifikasi.</b> Sertifikasi Sawit di game adalah rekaan, tetapi syaratnya
+              menggemakan apa yang diaudit skema sungguhan: tanpa bakar, hutan di lereng, hubungan
+              yang berjalan dengan koperasi.
+              <a
+                href="https://rspo.org/as-an-organisation/our-standards/"
+                target="_blank"
+                rel="noopener"
+                >Standar RSPO</a
+              >
+              adalah titik acuannya.
+            </li>
+          </ul>
+        </section>
+
+        <section class="card prose" id="rekaan">
+          <div class="head">
+            <h2>Yang rekaan</h2>
+            <span class="eyebrow">Semua yang bernama, dan semua angka</span>
+          </div>
+
+          <ul>
+            <li>
+              <b>Setiap pejabat, kantor, dan perusahaan.</b> Presiden, para menteri, dan kantor
+              kecamatan di dek berita adalah tokoh fiksi dengan nama rekaan, di sebuah kabupaten
+              yang tidak ada. Tidak satu pun potret orang sungguhan, dan sebuah tes di kode game
+              gagal kalau nama orang nyata pernah masuk.
+            </li>
+            <li>
+              <b>Semua angka.</b> Harga, upah, laju tumbuh, peluang menyebar, penyelidikan 90 hari,
+              meter perhatian 100 poin, aturan lima tahun tanpa bakar: disetel untuk dimainkan,
+              bukan diukur. Kebun sungguhan butuh tiga puluh tahun untuk melakukan apa yang
+              dilakukan satu permainan dalam semalam.
+            </li>
+            <li>
+              <b>Jamnya.</b> Satu hari lima detik, setahun 360 hari, sawit berbuah di usia delapan
+              belas bulan alih-alih dua setengah sampai tiga tahun seperti aslinya, dan hutan tumbuh
+              kembali dalam satu dua tahun, bukan puluhan tahun. Pemampatan ini sengaja: sebuah
+              pilihan harus terbayar di dalam permainan, atau game tidak bisa menunjukkan harganya.
+            </li>
+            <li>
+              <b>Sertifikasi Sawit</b> itu sendiri, angka integritas, biaya koordinasi, dan Presiden
+              di depan pintu Kopdes pada epilog adalah perangkat game untuk membuat sebuah struktur
+              terlihat, bukan gambaran skema atau upacara yang sungguhan.
+            </li>
+          </ul>
+        </section>
+
+        <section class="card prose" id="bukan">
+          <div class="head">
+            <h2>Apa yang bukan game ini</h2>
+            <span class="eyebrow">Bukan nasihat, bukan pernyataan tentang siapa pun</span>
+          </div>
+
+          <p>
+            Ia bukan nasihat agronomi, keuangan, atau hukum; tidak ada yang sepatutnya menanam,
+            meminjam, atau membakar berdasarkan angka di dalamnya. Ia bukan pernyataan tentang
+            orang, perusahaan, kementerian, atau koperasi mana pun yang nyata, dan tidak menyebut
+            satu pun. Ia bukan pengukuran atas apa pun: pemain yang bersertifikat bersih telah
+            mempelajari bentuk sebuah persoalan, bukan ukurannya.
+          </p>
+          <p>
+            Yang sebenarnya: game simulasi manajemen yang membiarkanmu mengambil jalan pintas lalu
+            menunjukkan tagihannya, dalam Bahasa Indonesia dan Inggris, gratis, di browser. Kalau
+            kamu mengutipnya, kutip sebagai itu. Kalau kamu menemukan sistem yang salah jenisnya,
+            bukan sekadar ukurannya, <a href="/id/panduan/">panduan</a> dan
+            <a href="/id/istilah/">daftar istilah</a> menjelaskan apa yang game anggap dilakukan
+            setiap hal, dan dari situlah perdebatan sebaiknya dimulai.
+          </p>
+        </section>
+
+        <section class="card prose" id="sumber">
+          <div class="head">
+            <h2>Sumber</h2>
+            <span class="eyebrow">Tautan keluar, untuk catatan</span>
+          </div>
+
+          <ul class="sources">
+            <li>
+              <a
+                href="https://www.forestsnews.org/37016/clearing-the-smoke-the-causes-and-consequences-of-indonesias-fires"
+                target="_blank"
+                rel="noopener"
+                >CIFOR Forests News: Clearing the smoke, the causes and consequences of Indonesia’s
+                fires</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://mongabay.co.id/2026/09/26/kebakaran-hutan-bahayakan-kesehatan-masyarakat-dan-rugikan-ekonomi/"
+                target="_blank"
+                rel="noopener"
+                >Mongabay Indonesia: Kebakaran hutan bahayakan kesehatan masyarakat dan rugikan
+                ekonomi (2026)</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://auriga.or.id/press_release/detail/65/status-deforestasi-indonesia-2025"
+                target="_blank"
+                rel="noopener"
+                >Auriga Nusantara: Status Deforestasi Indonesia 2025</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://rspo.org/as-an-organisation/our-standards/"
+                target="_blank"
+                rel="noopener"
+                >RSPO: our standards, Principles and Criteria</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://www.frontiersin.org/journals/plant-science/articles/10.3389/fpls.2023.1156869/full"
+                target="_blank"
+                rel="noopener"
+                >Khoo dan Chong, Ganoderma boninense: general characteristics of pathogenicity and
+                methods of control, Frontiers in Plant Science (2023)</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://jopr.mpob.gov.my/advances-in-the-control-of-rhinoceros-beetle-oryctes-rhinoceros-in-oil-palm-review-article/"
+                target="_blank"
+                rel="noopener"
+                >Bedford, Advances in the control of rhinoceros beetle, Oryctes rhinoceros, in oil
+                palm, Journal of Oil Palm Research 26(3) (2014)</a
+              >
+            </li>
+          </ul>
+        </section>
+
+        <section class="card controls">
+          <div class="cta" style="border-top: 0; padding-top: 0">
+            <p>Siap kapan saja.</p>
+            <a class="btn btn-coral" href="/play.html">Mulai permainan</a>
+          </div>
+        </section>
+
+        <nav class="card read-more" aria-label="Baca juga">
+          <span class="eyebrow">Baca juga</span>
+          <div class="links">
+            <a href="/id/">Tentang game</a>
+            <a href="/id/panduan/">Panduan</a>
+            <a href="/id/istilah/">Istilah</a>
+            <a href="/id/akhir-permainan/">Akhir permainan</a>
+          </div>
+        </nav>
+      </main>
+
+      <footer>
+        <a class="brand" href="/id/">
+          <img src="/brand/sawit-mark.svg" width="22" height="22" alt="" />
+          <span>Sawit Simulator</span>
+        </a>
+        <a href="/play.html">Main</a>
+        <a href="/accuracy/" hreflang="en" lang="en">English</a>
+      </footer>
+    </div>
+
+    <script>
+      // A visitor who reads English gets a pointer to the twin page, never a
+      // redirect: crawlers and shared links must land where they point.
+      (function () {
+        try {
+          if (localStorage.getItem('sawit:lang-hint') === 'off') return;
+          var want = localStorage.getItem('sawit:locale');
+          if (want !== 'en' && want !== 'id') {
+            var zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            var langs = navigator.languages || [navigator.language];
+            var indonesian =
+              /^Asia\/(Jakarta|Pontianak|Makassar|Jayapura)$/.test(zone) ||
+              langs.some(function (l) {
+                return /^id\b/i.test(l);
+              });
+            want = indonesian ? 'id' : 'en';
+          }
+          if (want !== 'en') return;
+          var hint = document.getElementById('lang-hint');
+          hint.hidden = false;
+          hint.querySelector('button').onclick = function () {
+            hint.hidden = true;
+            try {
+              localStorage.setItem('sawit:lang-hint', 'off');
+            } catch (e) {
+              /* storage off */
+            }
+          };
+        } catch (e) {
+          /* no storage, no Intl: no hint */
+        }
+      })();
+    </script>
+  </body>
+</html>

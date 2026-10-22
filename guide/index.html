@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>How to play Sawit Simulator: the guide</title>
+    <meta
+      name="description"
+      content="How to play Sawit Simulator: the Workshop, chop or burn, seedlings, first harvest, fire pressure, pests, weather, authorities and the certificate."
+    />
+    <meta name="robots" content="max-image-preview:large" />
+    <link rel="canonical" href="__SITE_URL__/guide/" />
+    <link rel="alternate" hreflang="en" href="__SITE_URL__/guide/" />
+    <link rel="alternate" hreflang="id" href="__SITE_URL__/id/panduan/" />
+    <link rel="alternate" hreflang="x-default" href="__SITE_URL__/guide/" />
+    <meta property="og:site_name" content="Sawit Simulator" />
+    <meta property="og:title" content="How to play Sawit Simulator" />
+    <meta
+      property="og:description"
+      content="The loop, the fire pressure meter, pests, weather, the authorities and the five certificate conditions, in one page."
+    />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="__SITE_URL__/guide/" />
+    <meta property="og:image" content="__SITE_URL__/og-1200x630.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="The Sawit Simulator name beside a gold hexagon badge holding a young oil palm with red fruit"
+    />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="id_ID" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="How to play Sawit Simulator" />
+    <meta
+      name="twitter:description"
+      content="The loop, the fire pressure meter, pests, weather, the authorities and the five certificate conditions, in one page."
+    />
+    <meta name="twitter:image" content="__SITE_URL__/og-1200x630.png" />
+    <meta
+      name="twitter:image:alt"
+      content="The Sawit Simulator name beside a gold hexagon badge holding a young oil palm with red fruit"
+    />
+    <meta name="theme-color" content="#2f4f2d" />
+    <meta name="application-name" content="Sawit Simulator" />
+    <meta name="apple-mobile-web-app-title" content="Sawit" />
+    <link rel="icon" href="/icon-32.png" sizes="32x32" type="image/png" />
+    <link rel="icon" href="/brand/sawit-mark.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icon-180.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebPage",
+            "@id": "__SITE_URL__/guide/#page",
+            "url": "__SITE_URL__/guide/",
+            "name": "How to play Sawit Simulator: the guide",
+            "description": "How to play Sawit Simulator: the Workshop, chop or burn, seedlings, first harvest, fire pressure, pests, weather, authorities and the certificate.",
+            "isPartOf": {
+              "@id": "__SITE_URL__/#website"
+            },
+            "about": {
+              "@id": "__SITE_URL__/#game"
+            },
+            "inLanguage": "en",
+            "primaryImageOfPage": {
+              "@type": "ImageObject",
+              "url": "__SITE_URL__/og-1200x630.png"
+            },
+            "workTranslation": {
+              "@id": "__SITE_URL__/id/panduan/#page"
+            },
+            "breadcrumb": {
+              "@id": "__SITE_URL__/guide/#breadcrumbs"
+            }
+          },
+          {
+            "@type": "BreadcrumbList",
+            "@id": "__SITE_URL__/guide/#breadcrumbs",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Sawit Simulator",
+                "item": "__SITE_URL__/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Guide",
+                "item": "__SITE_URL__/guide/"
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+    <link rel="preload" href="/fonts/baloo2-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link
+      rel="preload"
+      as="image"
+      href="/brand/hero-estate-1600.webp"
+      imagesrcset="/brand/hero-estate-960.webp 960w, /brand/hero-estate-1600.webp 1600w, /brand/hero-estate-1826.webp 1826w"
+      imagesizes="100vw"
+      fetchpriority="high"
+    />
+    <link rel="stylesheet" href="/fonts/fonts.css" />
+    <link rel="stylesheet" href="/src/site/site.css" />
+    <script>
+      // Google Analytics 4, only when VITE_GA_ID is set at build time. The queue
+      // is synchronous and the library idle, so an early event is not dropped.
+      (function () {
+        var id = '%VITE_GA_ID%';
+
+        if (!id || id.charAt(0) === '%') return;
+        window.dataLayer = window.dataLayer || [];
+
+        window.gtag = function () {
+          window.dataLayer.push(arguments);
+        };
+
+        window.gtag('js', new Date());
+        window.gtag('config', id, { page_language: 'en' });
+
+        var go = function () {
+          var s = document.createElement('script');
+          s.async = true;
+          s.src = 'https://www.googletagmanager.com/gtag/js?id=' + id;
+          document.head.appendChild(s);
+        };
+
+        if ('requestIdleCallback' in window) requestIdleCallback(go, { timeout: 4000 });
+        else setTimeout(go, 2000);
+      })();
+    </script>
+  </head>
+  <body>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <symbol id="i-play" viewBox="0 0 24 24">
+        <path
+          d="M7 5v14l12-7z"
+          fill="#fff"
+          stroke="#2f7a2b"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+      </symbol>
+      <symbol id="i-coin" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" fill="#f4b731" stroke="#d99a1a" stroke-width="3" />
+        <circle cx="12" cy="12" r="5" fill="#ffd54a" stroke="#d99a1a" stroke-width="2" />
+      </symbol>
+      <symbol id="i-palm" viewBox="0 0 30 30">
+        <path d="M15 26V13" stroke="#6e3016" stroke-width="3" stroke-linecap="round" />
+        <path
+          d="M15 13c-6-1-9-5-9-9 5 0 8 3 9 9zM15 13c6-1 9-5 9-9-5 0-8 3-9 9zM15 13c-1-5 1-8 4-10 1 4 0 8-4 10zM15 13c1-5-1-8-4-10-1 4 0 8 4 10z"
+          fill="#4caf50"
+          stroke="#2f7a2b"
+          stroke-width="1.8"
+          stroke-linejoin="round"
+        />
+        <circle cx="13" cy="14" r="2" fill="#ff8a5c" />
+        <circle cx="17" cy="14" r="2" fill="#ff8a5c" />
+      </symbol>
+      <symbol id="i-news" viewBox="0 0 24 24">
+        <rect
+          x="4"
+          y="3"
+          width="16"
+          height="14"
+          rx="2"
+          fill="#fff6e0"
+          stroke="#7a6440"
+          stroke-width="2"
+        />
+        <path d="M8 8h8M8 12h5" stroke="#7a6440" stroke-width="1.8" stroke-linecap="round" />
+        <circle cx="16" cy="17" r="3" fill="#f4b731" stroke="#d99a1a" stroke-width="1.5" />
+        <path d="M14.5 19.5 14 23l2-1 2 1-.5-3.5" fill="#ff6a4d" />
+      </symbol>
+      <symbol id="i-axe" viewBox="0 0 24 24">
+        <path d="M5 21 15 11" stroke="#7a6440" stroke-width="3" stroke-linecap="round" />
+        <path
+          d="M13 5c3-2 6-2 8 0-1 3-3 5-6 6l-3-3c0-1 0-2 1-3z"
+          fill="#9a9a9a"
+          stroke="#4a4a4a"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+      </symbol>
+      <symbol id="i-basket" viewBox="0 0 24 24">
+        <path
+          d="M3 10h18l-2 10H5z"
+          fill="#c9a06a"
+          stroke="#7a5a2a"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+        <circle cx="9" cy="8" r="3" fill="#ff8a5c" stroke="#b8482a" stroke-width="1.5" />
+        <circle cx="15" cy="8" r="3" fill="#ff8a5c" stroke="#b8482a" stroke-width="1.5" />
+      </symbol>
+      <symbol id="i-rain" viewBox="0 0 22 22">
+        <path
+          d="M6 12a4 4 0 0 1 .5-8 5 5 0 0 1 9.5 1 3.5 3.5 0 0 1 0 7z"
+          fill="#cddbe0"
+          stroke="#3f5fa8"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M7 15v3M11 15v4M15 15v3"
+          stroke="#5a8bff"
+          stroke-width="2.2"
+          stroke-linecap="round"
+        />
+      </symbol>
+      <symbol id="i-warn" viewBox="0 0 24 24">
+        <path
+          d="M12 3 3 20h18z"
+          fill="#ffd54a"
+          stroke="#d99a1a"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+        <path d="M12 9v5" stroke="#5a3a12" stroke-width="2.5" stroke-linecap="round" />
+        <circle cx="12" cy="17" r="1.4" fill="#5a3a12" />
+      </symbol>
+      <symbol id="i-fire" viewBox="0 0 20 20">
+        <path
+          d="M10 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-6 1 1 2 2 3 1-1-2 0-4 0-5z"
+          fill="#ff7a3a"
+          stroke="#c2410c"
+          stroke-width="1.8"
+        />
+        <path d="M10 11c1 2 2 2 2 4a2 2 0 0 1-4 0c0-1 1-2 2-4z" fill="#ffd54a" />
+      </symbol>
+      <symbol id="i-tree" viewBox="0 0 26 26">
+        <path
+          d="M13 3 6 13h4l-4 7h14l-4-7h4zM13 20v4"
+          fill="#3faa4c"
+          stroke="#2f7a2b"
+          stroke-width="2"
+          stroke-linejoin="round"
+          stroke-linecap="round"
+        />
+      </symbol>
+      <symbol id="i-house" viewBox="0 0 32 32">
+        <path
+          d="M4 14 16 5l12 9"
+          stroke="#9e2e20"
+          stroke-width="3"
+          stroke-linejoin="round"
+          fill="#c94a30"
+        />
+        <rect
+          x="8"
+          y="14"
+          width="16"
+          height="12"
+          fill="#f4ecdc"
+          stroke="#7a6440"
+          stroke-width="2"
+        />
+        <rect x="14" y="19" width="4" height="7" fill="#7a6440" />
+      </symbol>
+      <symbol id="i-drop" viewBox="0 0 20 20">
+        <circle cx="10" cy="11" r="6" fill="#ff8a5c" stroke="#b8482a" stroke-width="2" />
+        <path d="M10 5V2" stroke="#2f7a2b" stroke-width="2.5" stroke-linecap="round" />
+      </symbol>
+      <symbol id="i-bug" viewBox="0 0 26 26">
+        <path
+          d="M3 13a10 8 0 0 1 20 0zM9 13v6a4 3 0 0 0 8 0v-6"
+          fill="#ff6a4d"
+          stroke="#9e2e20"
+          stroke-width="2"
+          stroke-linejoin="round"
+          stroke-linecap="round"
+        />
+      </symbol>
+    </svg>
+
+    <div class="backdrop">
+      <img
+        src="/brand/hero-estate-1600.webp"
+        srcset="
+          /brand/hero-estate-960.webp   960w,
+          /brand/hero-estate-1600.webp 1600w,
+          /brand/hero-estate-1826.webp 1826w
+        "
+        sizes="100vw"
+        width="1826"
+        height="1336"
+        alt="An oil-palm estate from above: rows of young palms around the Workshop, forest still standing at one edge, a village by the river at the other"
+        fetchpriority="high"
+        decoding="async"
+      />
+    </div>
+
+    <div class="page">
+      <div class="lang-hint" id="lang-hint" hidden>
+        <span lang="id">Halaman ini juga tersedia dalam Bahasa Indonesia.</span>
+        <a href="/id/panduan/" hreflang="id" lang="id">Buka versi Indonesia</a>
+        <button type="button" aria-label="Tutup">✕</button>
+      </div>
+
+      <nav class="card" aria-label="Site">
+        <a class="brand" href="/">
+          <img src="/brand/sawit-mark.svg" width="40" height="40" alt="" />
+          <span>Sawit Simulator</span>
+        </a>
+        <div class="links">
+          <a href="/guide/" aria-current="page">Guide</a>
+          <a href="/glossary/">Glossary</a>
+          <a href="/endings/">Endings</a>
+          <a href="/accuracy/">Accuracy</a>
+          <a class="alt" href="/id/panduan/" hreflang="id" lang="id">Bahasa Indonesia</a>
+          <a class="play" href="/play.html">PLAY</a>
+        </div>
+      </nav>
+
+      <header class="hero compact">
+        <h1>How to play Sawit Simulator</h1>
+        <p class="lede">
+          A palm oil simulator game in the browser: one estate, one Workshop, a forest you can clear
+          or keep. This is the whole game in one page, from the first seedling to the certificate.
+        </p>
+        <a class="btn btn-green" href="/play.html" data-testid="play-link">
+          <svg class="ic" aria-hidden="true"><use href="#i-play" /></svg>
+          Play in your browser
+        </a>
+      </header>
+
+      <main class="stack">
+        <nav class="card" aria-label="On this page">
+          <span class="eyebrow">On this page</span>
+          <div class="toc">
+            <a href="#loop">The loop</a>
+            <a href="#fire">Fire pressure</a>
+            <a href="#pests">Pests</a>
+            <a href="#weather">Weather</a>
+            <a href="#authorities">Authorities</a>
+            <a href="#certificate">Certificate</a>
+            <a href="#controls">Controls</a>
+          </div>
+        </nav>
+
+        <section class="card prose" id="loop">
+          <div class="head">
+            <h2>The loop</h2>
+            <span class="eyebrow">Workshop, land, seedlings, fruit</span>
+          </div>
+
+          <p>
+            You start with Rp 250.000.000 and 64 free blocks, one hectare each, with a bare brown
+            block in the middle. Click it and build the <b>Workshop</b> there (the game's village
+            cooperative, <i>Kopdes</i> in Indonesian). Everything the estate buys, sells and staffs
+            runs through it.
+          </p>
+          <p>
+            Then clear land. <b>Chop</b> puts a crew on a block for a month or so, sells the timber
+            and leaves debris behind. <b>Burn</b> costs Rp 250.000, takes days instead of weeks, and
+            raises the fire pressure meter and the attention of the authorities. Grassfield and
+            scrub have nothing standing on them and need no clearing at all.
+          </p>
+          <p>
+            Buy <b>seedlings</b> (<i>bibit</i>) at the Workshop shop: 144 fill a flat block, 96 a
+            hillside. Plant, fertilise, irrigate the dry scrub, and wait. Palms bear fruit about
+            eighteen months after planting, so the first year is all cost. Once a block bears, it is
+            ripe for a <b>harvest</b> every six days, inside the Workshop's range only, because
+            fresh fruit bunches (<i>TBS</i>) must reach the mill the same day. The Workshop buys at
+            the day's price. Switch on auto-harvest and its crew does the rounds for a small fee.
+          </p>
+          <p>
+            <b>Upgrade the Workshop</b> to widen its range: level 2 needs ten bearing blocks, level
+            3 twenty, level 4 forty, and each step also cuts the price you are paid, because every
+            neighbour is planting palm too. Level 3 opens the payroll (a sanitation worker, a plant
+            doctor, a security guard) and the 50x clock. Level 4 is one of the five certificate
+            conditions.
+          </p>
+        </section>
+
+        <section class="card prose" id="fire">
+          <div class="head">
+            <h2>The fire pressure meter</h2>
+            <span class="eyebrow">Past the line the fire is no longer yours</span>
+          </div>
+
+          <p>
+            A burn is low, medium or high. Low adds 1 to the estate's fire pressure, medium 3, high
+            5, and the wildfire line sits at 3: one high burn tips it on its own, one medium burn
+            sits exactly on the line, and low burns spaced months apart never do. Pressure decays
+            slowly, about three points in half a year.
+          </p>
+          <p>
+            Past the line every fire on the estate escalates, spreads fast into anything dry, and
+            puts a haze over the district that outlasts the flames. Fire spreads three times as
+            readily into standing forest, twice as readily in an El Niño year, and sustained rain
+            can put a block out. Lightning and drought start fires nobody lit; those burn their own
+            block out and never spread, and nobody blames you for them. A man-made fire that reaches
+            a neighbour's land or protected forest is a different matter (see the authorities
+            below).
+          </p>
+        </section>
+
+        <section class="card prose" id="pests">
+          <div class="head">
+            <h2>Pests and treatments</h2>
+            <span class="eyebrow">Ganoderma and the rhinoceros beetle</span>
+          </div>
+
+          <p>
+            <b>Ganoderma</b> is slow and structural. It spreads palm to palm through the roots, sits
+            latent for months, turns a palm visibly sick, and eventually kills it. Debris on the
+            block raises the chance of a new infection, and a flood triples it. The answers:
+            <b>Trichoderma</b> from the shop halves the spread on one block for 120 days; remove a
+            sick palm before it infects six neighbours; trench a slot to cut its root links for
+            good; replant the gaps; or hire a plant doctor who pulls two sick palms a day and buys
+            his own Trichoderma.
+          </p>
+          <p>
+            <b>Rhinoceros beetles</b> are fast and about housekeeping. They breed in whatever a
+            clearing left behind, which is why a burned block is a beetle nursery, and they bore
+            young palms only. <b>Pheromone traps</b> kill beetles on a block for 120 days,
+            <b>Metarhizium</b> slows their breeding for 90, and a <b>sanitation crew</b> removes the
+            debris itself, which is the only fix that starves both pests at once. Left alone, a
+            block tips into plague, and Ganoderma spreads faster there until it clears.
+          </p>
+        </section>
+
+        <section class="card prose" id="weather">
+          <div class="head">
+            <h2>The weather deck</h2>
+            <span class="eyebrow">A 360-day year, wet and dry</span>
+          </div>
+
+          <p>
+            The wet season runs from day 300 through day 89 of the next year, and each year rolls a
+            regime: normal, <b>El Niño</b> (drier, fire spreads twice as fast) or <b>La Niña</b>
+            (wetter, the river rises). Dry and wet years cluster rather than alternate.
+          </p>
+          <ul>
+            <li>
+              <b>Haze</b> (<i>kabut asap</i>) comes in the dry season, far more often under El Niño
+              and when the estate's own fire pressure is high. It cuts sunlight and dips the fruit
+              price for weeks.
+            </li>
+            <li>
+              <b>Flood</b> comes in the wet season, mostly under La Niña, to the low blocks near the
+              river: young palms take damage, fertilizer washes out, Ganoderma seeds three times as
+              fast. Drainage takes a block off the flood list for good.
+            </li>
+            <li>
+              <b>Drought</b> is not drawn, it is twelve dry days in a row. Unirrigated blocks dry
+              out, and under El Niño a debris pile can catch on its own.
+            </li>
+            <li>
+              <b>Ash fall</b> is rare: it halts harvests and hurts young palms while it lasts, then
+              leaves 90 days of richer soil behind.
+            </li>
+            <li>
+              <b>Landslides</b> take any slope in a long wet spell, and the chance depends on how
+              much forest still stands around it. Strip the hills and the next wet year brings them
+              down; a cover crop halves the risk; an excavation crew digs a buried hectare out
+              inside a week.
+            </li>
+          </ul>
+        </section>
+
+        <section class="card prose" id="authorities">
+          <div class="head">
+            <h2>The authorities and integrity</h2>
+            <span class="eyebrow">A letter at 40, police at 70, arrest at 100</span>
+          </div>
+
+          <p>
+            <b>Attention</b> is a meter from 0 to 100. Chopping forest raises it a little, burning
+            raises it a lot, and a fire that crosses onto land that is not yours raises it more.
+            Quiet seasons let it fall, and planting forest back is the one thing the Ministry takes
+            at face value: it halves the meter on the spot.
+          </p>
+          <p>
+            At 40 a <b>letter</b> arrives from the district office and every clearing crew costs
+            half again until the meter falls back under 25. At 70 the police open an
+            <b>investigation</b>: no chopping or burning for 90 days, though harvests and sales go
+            on. A fire that reaches protected forest opens one immediately. At 100, or on a second
+            wildfire while the police are already there, you are <b>arrested</b>, and the run is
+            over.
+          </p>
+          <p>
+            <b>Integrity</b> is a hidden stat for how honest the district is, and it cuts both ways.
+            A crooked office will let you settle an investigation for a coordination fee of roughly
+            a year's harvests, and will wave the certificate through with a shortfall. An honest one
+            will not take the call, and is the one that can suspend your <b>operating licence</b> on
+            the day of a burn: 90 days with no clearing, no palm planting and no harvest, while
+            planting forest stays allowed.
+          </p>
+        </section>
+
+        <section class="card prose" id="certificate">
+          <div class="head">
+            <h2>The certificate's five conditions</h2>
+            <span class="eyebrow">Checked at the close of every year, from year 3</span>
+          </div>
+
+          <p>
+            The <b>Palm Certificate</b> is the win condition, and the panel in the game shows how
+            far each of the five has come. Meet all five and the Ministry sends a banner.
+          </p>
+          <ol>
+            <li>
+              <b>Operating profit, and three profitable years</b>: a cumulative profit target, with
+              each of the last three closed years in the black.
+            </li>
+            <li>
+              <b>Lands bearing fruit</b>: twenty blocks with at least half their palms bearing.
+            </li>
+            <li><b>No burn-to-clear</b>: five years clean, or never having burned at all.</li>
+            <li>
+              <b>Forest on the slopes</b>: enough forest left standing around the estate's own
+              hills.
+            </li>
+            <li>
+              <b>Workshop at its highest level</b>: level 4, which means forty bearing blocks on the
+              way up.
+            </li>
+          </ol>
+          <p>
+            Profit, hectares and the Workshop are never waived. No-burn and forest can be, but only
+            by a Ministry crooked enough to look away, and the epilogue says so. The honest way is
+            the full five. The <a href="/endings/">endings page</a> has the rest.
+          </p>
+        </section>
+
+        <section class="card prose" id="controls">
+          <div class="head">
+            <h2>Speeds and controls</h2>
+            <span class="eyebrow">A day is five seconds at 1x</span>
+          </div>
+
+          <p>
+            Time runs at 1x, 10x or 50x; the 50x clock opens once the Workshop reaches level 3.
+            Pause whenever you like, and read the news feed: a headline in this game changes a
+            price, a wage or the patience of the authorities, and the chip on the bar shows how long
+            it lasts.
+          </p>
+          <p>
+            Drag to pan, wheel to zoom, <kbd>Q</kbd>/<kbd>E</kbd> rotate. Click a block to open its
+            panel, double-click to fly to it. <kbd>Space</kbd> pauses; <kbd>1</kbd> <kbd>2</kbd>
+            <kbd>3</kbd> set the speed. <kbd>F</kbd> jumps to the Workshop, <kbd>K</kbd> opens its
+            shop, <kbd>N</kbd> the news, <kbd>?</kbd> this list in game, <kbd>Esc</kbd> closes a
+            panel. Saves live in your browser, with no account; a lost run can be rewound to the
+            start of any earlier year, same seed, same weather ahead, different decisions.
+          </p>
+        </section>
+
+        <section class="card controls">
+          <div class="cta" style="border-top: 0; padding-top: 0">
+            <p>Ready when you are.</p>
+            <a class="btn btn-coral" href="/play.html">Start a game</a>
+          </div>
+        </section>
+
+        <nav class="card read-more" aria-label="Read more">
+          <span class="eyebrow">Read more</span>
+          <div class="links">
+            <a href="/">About the game</a>
+            <a href="/glossary/">Glossary</a>
+            <a href="/endings/">Endings</a>
+            <a href="/accuracy/">Accuracy</a>
+          </div>
+        </nav>
+      </main>
+
+      <footer>
+        <a class="brand" href="/">
+          <img src="/brand/sawit-mark.svg" width="22" height="22" alt="" />
+          <span>Sawit Simulator</span>
+        </a>
+        <a href="/play.html">Play</a>
+        <a href="/id/panduan/" hreflang="id" lang="id">Bahasa Indonesia</a>
+      </footer>
+    </div>
+
+    <script>
+      // A visitor who reads Indonesian gets a pointer to the twin page, never
+      // a redirect: crawlers and shared links must land where they point.
+      (function () {
+        try {
+          if (localStorage.getItem('sawit:lang-hint') === 'off') return;
+          var want = localStorage.getItem('sawit:locale');
+          if (want !== 'en' && want !== 'id') {
+            var zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            var langs = navigator.languages || [navigator.language];
+            var indonesian =
+              /^Asia\/(Jakarta|Pontianak|Makassar|Jayapura)$/.test(zone) ||
+              langs.some(function (l) {
+                return /^id\b/i.test(l);
+              });
+            want = indonesian ? 'id' : 'en';
+          }
+          if (want !== 'id') return;
+          var hint = document.getElementById('lang-hint');
+          hint.hidden = false;
+          hint.querySelector('button').onclick = function () {
+            hint.hidden = true;
+            try {
+              localStorage.setItem('sawit:lang-hint', 'off');
+            } catch (e) {
+              /* storage off */
+            }
+          };
+        } catch (e) {
+          /* no storage, no Intl: no hint */
+        }
+      })();
+    </script>
+  </body>
+</html>

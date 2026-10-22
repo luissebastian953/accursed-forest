@@ -333,6 +333,12 @@ export const MIGRATIONS: readonly Migration[] = [
       }
     },
   },
+  {
+    // Headlines and chronicle lines learned to carry their template pick and
+    // raw variables. Older items keep their English and render as they are.
+    from: 20,
+    up() {},
+  },
 ];
 
 /**

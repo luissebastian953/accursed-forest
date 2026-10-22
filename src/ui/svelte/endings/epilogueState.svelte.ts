@@ -22,12 +22,18 @@ export interface EpilogueView {
   chronicle: readonly ChronicleEntry[];
   /** Years with a start-of-year snapshot, newest first. */
   rewindYears: readonly number[];
+  /** The landing page with this estate's code, for the share card. */
+  shareUrl: string;
+  /** Names the region and the estate when a headline is said again in another language. */
+  seed: number;
 }
 
 export interface EpilogueHandlers {
   rewind(year: number): void;
   keepPlaying(): void;
   newEstate(): void;
+  /** The card left the game, by the clipboard or the share sheet. */
+  shared(method: 'copy' | 'share'): void;
 }
 
 export interface Look {

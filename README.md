@@ -72,8 +72,10 @@ pnpm install
 pnpm dev            # http://localhost:5173, the landing page; the game is /play.html
 ```
 
-Two pages: `index.html` is a static landing page (real HTML for search
-engines, no engine loaded), and `play.html` is the game. The game page paints
+Two kinds of page: the static pages (`index.html` and its Indonesian twin, plus
+a guide, a glossary, an endings page and an accuracy page in each language, real
+HTML for search engines with no engine loaded and one shared stylesheet,
+`src/site/site.css`), and `play.html`, the game. The game page paints
 a boot shell first and loads the engine behind it; three.js ships as its own
 long-lived chunk (~250 KB gzipped) apart from the sim and the UI. Baloo 2 is
 self-hosted from `public/fonts` (one variable woff2, preloaded). Core Web
@@ -81,12 +83,10 @@ Vitals (LCP, INP, CLS, FCP, TTFB) are measured with `web-vitals` and sent to
 Google Analytics 4 as events when `VITE_GA_ID` is set at build time (see
 `.env.example`); with it empty the pages load no third-party script at all.
 
-Production builds obfuscate the game's own chunks on top of minification
-(string literals into an encoded array, hex identifiers; the expensive
-transforms stay off so the sim keeps its frame budget) and ship no source
-maps; three.js is left as is. `VITE_OBFUSCATE=0` gives a readable build and
-`VITE_SOURCEMAP=1` emits maps, for debugging a deployment. This raises the
-cost of reading the code; it cannot hide it from the browser that runs it.
+Production builds are minified and ship no source maps; `VITE_SOURCEMAP=1`
+emits maps for debugging a deployment. The chunks are not obfuscated: the
+browser runs what it downloads, and the pass cost 52 KB gzipped and parse time
+on phones for nothing it protected ([ADR 0008](docs/adr/0008-no-obfuscation.md)).
 
 For search and social: the landing page carries a description, canonical
 link, Open Graph and Twitter cards (the 1200×630 image in `public/`), the
@@ -95,10 +95,12 @@ and JSON-LD (`VideoGame` + `Organization` + `WebSite` + `WebPage`). Set
 `VITE_SITE_URL` at build time to make those URLs absolute and to emit the
 crawl files (`tools/seo.ts`, unit-tested in `tests/tools/seo.test.ts`):
 
-- `sitemap.xml` lists the two landing pages, each with the full hreflang set
-  (en, id, x-default), a `lastmod` taken from that page's last git commit (so
-  it only moves when the page does), and the hero screenshot and share image
-  for Google Images. The game page is `noindex` and is not listed.
+- `sitemap.xml` lists the ten static pages, each with the hreflang set of its
+  own translation pair (en, id, and x-default on the English page; a page on
+  another subject is never declared an alternate), a `lastmod` taken from that
+  page's last git commit (so it only moves when the page does), and the hero
+  screenshot and share image for Google Images. The game page is `noindex` and
+  is not listed.
 - `robots.txt` allows everything and names the sitemap. The game page is
   deliberately not disallowed: a blocked page cannot be fetched, so Google
   would never see its `noindex`.
@@ -129,8 +131,9 @@ built from `master`:
 Set `VITE_SITE_URL` to the origin the site actually answers on, and nothing
 else is required. Two things to leave alone: `VITE_BASE`, which stays empty
 because the site is served from a domain root, and SPA fallback, which must
-stay **off**, since this is four real pages (`/`, `/id/`, `/play.html`,
-`/workbench.html`) and a catch-all rewrite would hide genuine 404s.
+stay **off**, since this is twelve real pages (the ten in `tools/seo.ts`,
+`/play.html` and `/workbench.html`) and a catch-all rewrite would hide genuine
+404s.
 
 Cache the hashed assets under `/assets/` for a year as immutable, and keep the
 HTML, `robots.txt` and `sitemap.xml` short-lived so a deploy is visible at once.
@@ -148,7 +151,10 @@ schema: the terms people search for, used where they mean something, rather
 than a keyword list. The pages share one design (a nav card, the title over a
 screenshot of a working estate, step and scenario cards) and are hand-mirrored;
 the hero is self-hosted WebP in three widths and preloaded, the icons an inline
-sprite, so nothing on them waits on a third party.
+sprite, so nothing on them waits on a third party. Each landing page links its
+four companion pages (how to play, glossary, endings, accuracy), written in that
+language rather than mirrored, and every companion page links the others and its
+twin.
 
 The game plays in English or Bahasa Indonesia (`src/i18n`). A first visit
 picks Indonesian for an Indonesian time zone or browser language; the title
@@ -156,8 +162,13 @@ screen and the menu switch it; the choice is remembered (`sawit:locale`), and
 the landing pages show a dismissible pointer to their twin instead of
 redirecting. Catalogs are flat JSON per panel in `src/i18n/locales/<locale>/`;
 `t('panel.key', vars)` falls back to English, then to the key. The sim's own
-prose (headlines, chronicle entries, a command's rejection reason) is still
-English: it is part of the sim's event data, not the UI's.
+prose stays English in its event data, because tests and the sweep read it,
+and the interface says it again in the player's language: a headline records
+which template line it drew and its raw variables, and `src/ui/newsText.ts`
+renders the Indonesian from `locales/id/headlines.json`; the chronicle's
+estate lines, a command's rejection reason and the app's toasts go through
+`chronicle.json`, `rejections.json` and `toasts.json`. A run's epilogue carries a share card: five lines of text and
+emoji with a link to the landing page that opens the same estate.
 
 The interface follows the cartoon UI kit: cream cards with a hard bottom
 edge, inset pills, Baloo 2 (self-hosted), and the 39 flat icons in
@@ -190,7 +201,8 @@ The renderer poses every body part on the CPU and skins the whole crowd into
 one merged mesh per material: two draw calls, no new shaders
 (`src/render/mobs/`); the `?mobs` page measures why.
 
-URL flags: `?webgl` forces the WebGL 2 fallback CI uses; `?seed=42` picks a
+URL flags: `?estate=ABC-DEFG` is a share link: it fills the seed box on the
+title screen and nothing else; `?webgl` forces the WebGL 2 fallback CI uses; `?seed=42` picks a
 world; `?fresh` ignores the save in this browser; `?spike` opens the GDD 6.9 art
 spike instead of the game; `?models` lays out every scenery model (`src/render/models/`); `?mobs` is the mob proof of concept (`src/render/mobs/`), a rigged crowd with a cost readout; `?debug` exposes the running sim as
 `window.__sawit` for the browser suite and for poking at events by hand;

@@ -32,6 +32,8 @@
   const RING_PAD = 6;
   const CARD_GAP = 18;
   const EDGE = 12;
+  /** Up to this width the card is kept under the top bar, which spans the screen there. */
+  const PHONE_W = 640;
 
   let overlay = $state<HTMLElement | null>(null);
   let size = $state({ w: 0, h: 0 });
@@ -39,6 +41,8 @@
   let quad = $state<[number, number][] | null>(null);
   let cardW = $state(0);
   let cardH = $state(0);
+  /** The top bar's bottom edge, in the overlay's pixels, as the bar publishes it. */
+  let panelTop = $state(0);
 
   const same = (a: Box | null, b: Box | null): boolean =>
     a === b ||
@@ -99,6 +103,11 @@
       if (Math.abs(rect.width - size.w) > 0.5 || Math.abs(rect.height - size.h) > 0.5) {
         size = { w: rect.width, h: rect.height };
       }
+
+      const bar =
+        parseFloat(document.documentElement.style.getPropertyValue('--panel-top')) - rect.top;
+
+      if (Number.isFinite(bar) && Math.abs(bar - panelTop) > 0.5) panelTop = bar;
 
       let nextBox: Box | null = null;
 
@@ -209,7 +218,9 @@
     const below = a.y + a.h / 2 < size.h / 2;
     const cx = a.x + a.w / 2;
     const x = Math.min(Math.max(cx - cardW / 2, EDGE), Math.max(EDGE, size.w - cardW - EDGE));
-    const y = below ? a.y + a.h + CARD_GAP : a.y - CARD_GAP - cardH;
+    const free = below ? a.y + a.h + CARD_GAP : a.y - CARD_GAP - cardH;
+    // On a phone the bar spans the screen, so a card up there would sit behind it.
+    const y = size.w <= PHONE_W ? Math.max(free, panelTop) : free;
 
     return { x, y, below, arrowX: Math.min(Math.max(cx - x, 28), cardW - 28) };
   });

@@ -136,6 +136,27 @@ export interface Weather {
 export type NewsLane = 'natural' | 'economic' | 'government';
 export type NewsSeverity = 'info' | 'notice' | 'warning' | 'critical';
 
+/** The raw values a headline was dealt with: numbers and labels, formatted by whoever renders it. */
+export interface NewsVars {
+  n?: number;
+  days?: number;
+  pct?: string;
+  /** Rupiah, as a number. */
+  price?: number;
+  /** A block's label, such as B4, without the word in front of it. */
+  block?: string;
+  /** A tick, rendered as a date. */
+  until?: number;
+  /** Rupiah, as a number. */
+  cost?: number;
+}
+
+/** Which title and body a headline drew from its template, for rendering it again in another language. */
+export interface NewsPick {
+  title: number;
+  body: number;
+}
+
 export interface NewsItem {
   /** Template key: cooldowns and tests look headlines up by it. */
   key: string;
@@ -146,6 +167,8 @@ export interface NewsItem {
   body: string;
   effects: string[];
   blocks?: BlockId[];
+  pick?: NewsPick;
+  vars?: NewsVars;
 }
 
 export interface Society {
@@ -325,6 +348,11 @@ export interface ChronicleEntry {
   lane: NewsLane | 'estate';
   severity: NewsSeverity;
   title: string;
+  /** A headline's template key, or an estate line's `chronicle.*` message key. */
+  key?: string;
+  pick?: NewsPick;
+  /** A headline's `NewsVars`, or whatever an estate line's message needs. */
+  vars?: Record<string, string | number>;
 }
 
 export interface RunState {
@@ -448,7 +476,13 @@ export interface CommandRecord {
   command: Command;
 }
 
-/** Why a command was refused. The UI shows `reason` verbatim (GDD 8 copy rules). */
+/** The catalog key and raw variables a rejection sentence is built from. */
+export interface RejectionMessage {
+  key: string;
+  vars?: Record<string, string | number>;
+}
+
+/** Why a command was refused. `reason` is the English sentence; `message` names it for the catalog. */
 export interface Rejection {
   ok: false;
   code:
@@ -474,6 +508,7 @@ export interface Rejection {
     | 'unknownBlock'
     | 'notImplemented';
   reason: string;
+  message?: RejectionMessage;
 }
 
 export interface Accepted {

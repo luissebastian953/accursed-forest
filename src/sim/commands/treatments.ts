@@ -9,7 +9,9 @@ interface Treatment {
   field: 'trapsUntil' | 'metarhiziumUntil' | 'trichodermaUntil';
   days: number;
   label: string;
+  activeKey: string;
   buy: string;
+  buyKey: string;
   /** Trichoderma only makes sense where palms stand. */
   needsPalms: boolean;
 }
@@ -20,7 +22,9 @@ const TREATMENTS = {
     field: 'trapsUntil',
     days: BEETLES.trapDays,
     label: 'Traps',
+    activeKey: 'rejections.treat.trapsActive',
     buy: 'No pheromone traps in stock; buy a kit at the Workshop.',
+    buyKey: 'rejections.treat.noTraps',
     needsPalms: false,
   },
   ApplyMetarhizium: {
@@ -28,7 +32,9 @@ const TREATMENTS = {
     field: 'metarhiziumUntil',
     days: BEETLES.metarhiziumDays,
     label: 'Metarhizium',
+    activeKey: 'rejections.treat.metarhiziumActive',
     buy: 'No Metarhizium in stock; buy some at the Workshop.',
+    buyKey: 'rejections.treat.noMetarhizium',
     needsPalms: false,
   },
   ApplyTrichoderma: {
@@ -36,7 +42,9 @@ const TREATMENTS = {
     field: 'trichodermaUntil',
     days: GANODERMA.trichodermaDays,
     label: 'Trichoderma',
+    activeKey: 'rejections.treat.trichodermaActive',
     buy: 'No Trichoderma in stock; buy some at the Workshop.',
+    buyKey: 'rejections.treat.noTrichoderma',
     needsPalms: true,
   },
 } satisfies Record<string, Treatment>;
@@ -47,24 +55,38 @@ function validateTreatment(ctx: SimContext, command: TreatmentCommand): Rejectio
   const { state, world } = ctx;
   const t: Treatment = TREATMENTS[command.type];
 
-  if (!world.inBounds(...world.toXY(command.block)))
-    return reject('unknownBlock', 'That block is outside the map.');
+  if (!world.inBounds(...world.toXY(command.block))) {
+    return reject('unknownBlock', 'That block is outside the map.', {
+      key: 'rejections.block.outsideMap',
+    });
+  }
 
   const block = readBlock(state, world, command.block);
 
-  if (!block.owned) return reject('notOwned', 'You do not own this block.');
-  if (block.burning) return reject('burning', 'This block is on fire.');
-  if (t.needsPalms && !state.palms.has(command.block))
-    return reject('wrongPhase', 'Nothing planted here to treat.');
-
-  if (block[t.field] > state.tick) {
-    return reject(
-      'occupied',
-      `${t.label} already active for ${block[t.field] - state.tick} more days.`,
-    );
+  if (!block.owned) {
+    return reject('notOwned', 'You do not own this block.', { key: 'rejections.block.notOwned' });
   }
 
-  if (state.inventory[t.item] < 1) return reject('noInventory', t.buy);
+  if (block.burning) {
+    return reject('burning', 'This block is on fire.', { key: 'rejections.block.onFire' });
+  }
+
+  if (t.needsPalms && !state.palms.has(command.block)) {
+    return reject('wrongPhase', 'Nothing planted here to treat.', {
+      key: 'rejections.treat.nothingPlanted',
+    });
+  }
+
+  if (block[t.field] > state.tick) {
+    const n = block[t.field] - state.tick;
+
+    return reject('occupied', `${t.label} already active for ${n} more days.`, {
+      key: t.activeKey,
+      vars: { n },
+    });
+  }
+
+  if (state.inventory[t.item] < 1) return reject('noInventory', t.buy, { key: t.buyKey });
   return null;
 }
 

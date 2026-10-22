@@ -39,19 +39,26 @@ export const reforestBlock: CommandHandler<ReforestBlock> = {
 
     if (short > 0) {
       if (!state.kopdes) {
-        return reject('noKopdes', 'Saplings come from a Workshop. Build one first.');
+        return reject('noKopdes', 'Saplings come from a Workshop. Build one first.', {
+          key: 'rejections.reforest.noKopdes',
+        });
       }
 
       if (!inKopdesRange(state, world, command.block)) {
-        return reject('noKopdes', 'No Workshop within range of this block to buy saplings from.');
+        return reject('noKopdes', 'No Workshop within range of this block to buy saplings from.', {
+          key: 'rejections.reforest.outOfRange',
+        });
       }
 
       const cost = reforestCost(ctx, command.block);
 
       if (state.economy.cash < cost) {
+        const cash = Math.max(0, state.economy.cash);
+
         return reject(
           'noCash',
-          `${short} saplings cost Rp ${cost.toLocaleString('id-ID')}; you have Rp ${Math.max(0, state.economy.cash).toLocaleString('id-ID')}.`,
+          `${short} saplings cost Rp ${cost.toLocaleString('id-ID')}; you have Rp ${cash.toLocaleString('id-ID')}.`,
+          { key: 'rejections.reforest.cost', vars: { n: short, rp: cost, cash } },
         );
       }
     }

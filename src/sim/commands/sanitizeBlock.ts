@@ -11,17 +11,35 @@ export const sanitizeBlock: CommandHandler<SanitizeBlock> = {
     const { state, world } = ctx;
 
     if (!world.inBounds(...world.toXY(command.block))) {
-      return reject('unknownBlock', 'That block is outside the map.');
+      return reject('unknownBlock', 'That block is outside the map.', {
+        key: 'rejections.block.outsideMap',
+      });
     }
 
     const block = readBlock(state, world, command.block);
 
-    if (!block.owned) return reject('notOwned', 'You do not own this block.');
-    if (block.burning) return reject('burning', 'Wait for the fire to go out.');
-    if (block.debris <= 0) return reject('wrongPhase', 'No debris to clear here.');
+    if (!block.owned) {
+      return reject('notOwned', 'You do not own this block.', {
+        key: 'rejections.block.notOwned',
+      });
+    }
+
+    if (block.burning) {
+      return reject('burning', 'Wait for the fire to go out.', {
+        key: 'rejections.block.waitForFire',
+      });
+    }
+
+    if (block.debris <= 0) {
+      return reject('wrongPhase', 'No debris to clear here.', {
+        key: 'rejections.sanitize.noDebris',
+      });
+    }
 
     if (state.inventory.sanitationCrew < 1) {
-      return reject('noInventory', 'No sanitation crew on hand; hire one at the Workshop.');
+      return reject('noInventory', 'No sanitation crew on hand; hire one at the Workshop.', {
+        key: 'rejections.sanitize.noCrew',
+      });
     }
 
     return null;

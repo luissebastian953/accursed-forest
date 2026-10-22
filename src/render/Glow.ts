@@ -30,8 +30,8 @@ export class Glow {
    * Compile the bloom shaders while the boot shell still covers the canvas.
    * Left alone they compile on the first flame, which is the worst moment.
    */
-  async warm(): Promise<void> {
-    await this.pipeline.renderAsync?.();
+  warm(): void {
+    this.pipeline.render();
   }
 
   dispose(): void {

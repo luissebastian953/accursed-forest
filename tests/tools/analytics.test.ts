@@ -4,7 +4,19 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 /** The pages carrying the Google Analytics snippet, which is every page that ships. */
-const PAGES = ['index.html', 'id/index.html', 'play.html'] as const;
+const PAGES = [
+  'index.html',
+  'id/index.html',
+  'guide/index.html',
+  'id/panduan/index.html',
+  'glossary/index.html',
+  'id/istilah/index.html',
+  'endings/index.html',
+  'id/akhir-permainan/index.html',
+  'accuracy/index.html',
+  'id/akurasi/index.html',
+  'play.html',
+] as const;
 
 function source(page: string): string {
   return readFileSync(fileURLToPath(new URL(`../../${page}`, import.meta.url)), 'utf8');

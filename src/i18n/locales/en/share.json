@@ -1,0 +1,16 @@
+{
+  "title": "Share this run",
+  "hint": "The card gives nothing away. The link opens the same estate for whoever follows it.",
+  "copy": "Copy card",
+  "copied": "Copied!",
+  "share": "Share",
+  "copyFailed": "Could not copy. Select the text and copy it yourself.",
+  "cardHead": "Sawit Simulator: estate {code}",
+  "cardEnding": "Year {year}, {ending}",
+  "cardForest": "Forest cover {pct}",
+  "cardBurned": "Burned {n}",
+  "cardPlanted": "Forest planted {n}",
+  "cardProfit": "Operating profit {rp}",
+  "cardLoss": "Operating loss {rp}",
+  "cardPlay": "Play the same estate: {url}"
+}

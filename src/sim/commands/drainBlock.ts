@@ -11,19 +11,40 @@ export const drainBlock: CommandHandler<DrainBlock> = {
     const { state, world } = ctx;
 
     if (!world.inBounds(...world.toXY(command.block))) {
-      return reject('unknownBlock', 'That block is outside the map.');
+      return reject('unknownBlock', 'That block is outside the map.', {
+        key: 'rejections.block.outsideMap',
+      });
     }
 
     const block = readBlock(state, world, command.block);
 
-    if (!block.owned) return reject('notOwned', 'You do not own this block.');
-    if (block.burning) return reject('burning', 'Wait for the fire to go out.');
-    if (block.drained) return reject('occupied', 'Already drained.');
-    if (block.phase === 'kopdes')
-      return reject('wrongPhase', 'The Workshop does not need drainage.');
+    if (!block.owned) {
+      return reject('notOwned', 'You do not own this block.', {
+        key: 'rejections.block.notOwned',
+      });
+    }
+
+    if (block.burning) {
+      return reject('burning', 'Wait for the fire to go out.', {
+        key: 'rejections.block.waitForFire',
+      });
+    }
+
+    if (block.drained) {
+      return reject('occupied', 'Already drained.', { key: 'rejections.drain.done' });
+    }
+
+    if (block.phase === 'kopdes') {
+      return reject('wrongPhase', 'The Workshop does not need drainage.', {
+        key: 'rejections.drain.kopdes',
+      });
+    }
 
     if (state.economy.cash < DRAINAGE_COST) {
-      return reject('noCash', `Drainage costs Rp ${DRAINAGE_COST.toLocaleString('id-ID')}.`);
+      return reject('noCash', `Drainage costs Rp ${DRAINAGE_COST.toLocaleString('id-ID')}.`, {
+        key: 'rejections.drain.cost',
+        vars: { rp: DRAINAGE_COST },
+      });
     }
 
     return null;

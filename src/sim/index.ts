@@ -1,6 +1,7 @@
 import { rebuildActiveSet } from './activeSet.ts';
 import { ECONOMY } from './balance/prices.ts';
 import { SPOIL_FIRST } from './commands/excavateBlock.ts';
+import { reject } from './commands/handler.ts';
 import { handlerFor } from './commands/index.ts';
 import { EventSink, type SimEvent } from './events.ts';
 import { runOver } from './run.ts';
@@ -62,7 +63,7 @@ class SimImpl implements Sim {
 
   validate(command: Command): Rejection | null {
     if (runOver(this.state) && command.type !== 'KeepPlaying') {
-      return { ok: false, code: 'gameOver', reason: 'The run is over.' };
+      return reject('gameOver', 'The run is over.', { key: 'rejections.run.over' });
     }
 
     // Spoil stops everything but the digger, and saying so once here is what
@@ -71,14 +72,17 @@ class SimImpl implements Sim {
       const block = this.state.blocks.get(command.block);
 
       if (block && block.landslideAt >= 0) {
-        return { ok: false, code: 'wrongPhase', reason: SPOIL_FIRST };
+        return reject('wrongPhase', SPOIL_FIRST, { key: 'rejections.dig.spoilFirst' });
       }
     }
 
     const handler = handlerFor(command);
 
     if (!handler) {
-      return { ok: false, code: 'notImplemented', reason: `${command.type} is not available yet.` };
+      return reject('notImplemented', `${command.type} is not available yet.`, {
+        key: 'rejections.command.notImplemented',
+        vars: { type: command.type },
+      });
     }
 
     return handler.validate(this.ctx, command);

@@ -40,10 +40,31 @@ The cartoon icon set (design kit): flat SVGs served from `public/icons`.
   brown: each is only ever drawn on a saturated disc or button, where the
   brown would disappear.
 
+## `src/ui/newsText.ts`
+
+A headline or a chronicle line in the reader's language. English is the sim's
+own text, returned untouched. Indonesian is rendered from
+`locales/id/headlines.json` by the headline's template key and the title and
+body it drew, with the raw variables the sim kept, through the sim's own
+`renderWith` and an Indonesian formatter for blocks, dates and rupiah. Estate
+chronicle lines go through `locales/*/chronicle.json` by key. Anything the
+catalog lacks, and every item from a save older than schema 21, falls back to
+the English the sim wrote. Takes the locale as a parameter so the unit test
+runs without the runes.
+
 ## `src/ui/newsLane.ts`
 
 The news feed's three lanes (GDD 8 panels 3, 8, 13): a colour and a message
 key, shared by the ticker and the full feed panel.
+
+## `src/ui/rejection.ts`
+
+Why a button is greyed out, in the player's language. A rejection carries the
+sim's English sentence and, since schema 21's companion change in the
+commands, a message key with raw variables; this renders the key through the
+`rejections` catalog, formatting `rp` and `cash` as rupiah and passing every
+other variable as it is. A rejection without a key, which no command produces
+any more, shows its English.
 
 ## `src/ui/styles.css`
 
@@ -77,6 +98,13 @@ colours below mirror it so the HUD and the world stay in step (GDD 6.1).
   of the same sentence. Under `prefers-reduced-motion` the animation stops
   and the second copy is hidden, leaving one centred line, because scrolling
   words are unreadable to exactly the people that query is asking for.
+- The top bar's phone block (`@media (max-width: 640px)`) sits outside
+  `@layer components`, after it, on purpose. Tailwind's utilities live in a
+  later layer, and a later layer wins over an earlier one whatever the
+  selector's specificity, so a compact `padding` written inside the
+  components layer would lose to the `p-3` and `gap-2` already on the bar.
+  Unlayered rules beat every layer. The block only shrinks and hides; at
+  641px and above nothing in it applies, so the desktop bar is untouched.
 
 ## `src/ui/svelte/authority/AuthorityCards.svelte`
 
@@ -484,6 +512,20 @@ certificate or the fade.
   purpose; see GDD 8 panel 15.
 - `forestWin`: the only thing `.epilogue-glow` keys off. Kept separate from
   `win` because the certificate endings deliberately do not get it.
+- `copyCard()`: the clipboard needs a secure context and a user gesture, and
+  some browsers refuse it inside an embedded frame. When it throws, the card's
+  text is selected instead, so the player can copy it by hand, and the hint
+  says so. `shareCard()` swallows the rejection a dismissed share sheet
+  raises: a player who changed their mind is not an error.
+
+## `src/ui/svelte/endings/runCard.ts`
+
+The run as five lines of text and emoji for a chat or a post: the estate's
+code, the year and the ending's title, forest cover against what burned and
+what was planted back, the operating profit, and the landing page link that
+opens the same estate. It takes `t()` as a parameter rather than importing it,
+so the unit test runs without a locale, and it names no ending in the text,
+only its badge, because the card is read by people who have not played.
 
 ## `src/ui/svelte/endings/YearEndCard.svelte`
 
@@ -552,6 +594,14 @@ and the event chip strip below it, drawn from `hudState.svelte.ts`'s view.
 - `certificate button` states: three states, so progress reads without opening
   anything: nothing met is neutral, some met is gold, all met is green and
   waits on the Ministry's year-end check.
+- The phone layout (640px and under) is CSS only: the markup carries class
+  hooks (`hud-tiles`, `hud-controls`, `hud-phone-hide`, `hud-speed-word`,
+  `hud-speed-num`) and `styles.css` swaps what shows. The speed buttons and
+  the help button hold both their wordings at once, the full one and the
+  phone one, with one of the two `display: none`, so every `data-testid`
+  stays on the same element and the browser suite finds the same buttons at
+  every width. The sound button's `!px-3` became `.hud-sound` for the same
+  reason: an important utility cannot be narrowed by the phone block.
 
 ## `src/ui/svelte/hud/HudMarker.svelte`
 
@@ -642,6 +692,12 @@ The news feed on the phone frame (GDD 8 panel 13): every headline the run has
 seen, filtered by lane, each with its date and the line the player actually
 reads. Lane colours come from `src/ui/newsLane.ts`, shared with the ticker.
 
+### Notes
+
+- `text(item)`: every title, body and effect on the panel goes through
+  `newsText` with the feed's seed, so the panel reads in the active language
+  and follows a switch in the menu.
+
 ## `src/ui/svelte/news/NewsTicker.svelte`
 
 The headline strip along the bar (GDD 8 panel 3): the latest headline, in its
@@ -662,6 +718,11 @@ The news ticker (GDD 8 panels 3 and 8): the latest three headlines along the
 bottom, lane-coloured, with a badge for unread warnings. Click to open the
 full feed. `NewsTicker` keeps the pre-Svelte constructor and
 `update`/`setHidden`/`dispose` surface so `App.ts` is unchanged.
+
+### Notes
+
+- `update(news, unread, seed)`: the change key carries the locale, so a
+  language switch re-renders the three items even when the feed did not move.
 
 ## `src/ui/svelte/shop/KopdesShop.svelte`
 
@@ -825,6 +886,12 @@ and, when the target is gone, Show me. The finishing card is here too.
   with the diamond added.
 - `--tutorial-lift` is set on the document root while the walkthrough is
   active; the toasts read it to climb over the pill.
+- On a phone (640px and under) the card's top is clamped to `--panel-top`,
+  the bar's bottom edge as `Hud.svelte` publishes it. The bar spans the
+  whole width there, so a card placed under a target near the top of the
+  screen would otherwise open behind it. The value is read off the root's
+  inline style each measured frame, not through `getComputedStyle`, which
+  would force a layout flush for a number the bar already wrote.
 
 ## `src/ui/svelte/tutorial/tutorialState.svelte.ts`
 

@@ -4,7 +4,7 @@ import { BIOMES } from '../balance/biomes.ts';
 import { LAND_PRICE } from '../balance/prices.ts';
 import { landFactor } from '../macro.ts';
 import { countOwned, hasOwnedNeighbour, readBlock, spend, writeBlock } from '../state.ts';
-import type { BlockId, Command, SimState } from '../types.ts';
+import type { BlockId, Command, Rejection, SimState } from '../types.ts';
 import type { World } from '../worldgen/index.ts';
 
 import { reject, type CommandHandler } from './handler.ts';
@@ -36,28 +36,42 @@ export const buyBlock: CommandHandler<BuyBlock> = {
     const { state, world } = ctx;
 
     if (!world.inBounds(...world.toXY(command.block))) {
-      return reject('unknownBlock', 'That block is outside the map.');
+      return reject('unknownBlock', 'That block is outside the map.', {
+        key: 'rejections.block.outsideMap',
+      });
     }
 
     const block = readBlock(state, world, command.block);
 
-    if (block.owned) return reject('occupied', 'You already own this block.');
-    if (block.burning) return reject('burning', 'This block is on fire; nobody is selling.');
-
-    if (!block.forSale) {
-      return reject('notForSale', `${describe(block.biome)} is not for sale.`);
+    if (block.owned) {
+      return reject('occupied', 'You already own this block.', {
+        key: 'rejections.buy.alreadyOwned',
+      });
     }
 
+    if (block.burning) {
+      return reject('burning', 'This block is on fire; nobody is selling.', {
+        key: 'rejections.buy.onFire',
+      });
+    }
+
+    if (!block.forSale) return notForSale(block.biome);
+
     if (!hasOwnedNeighbour(state, world, command.block)) {
-      return reject('notAdjacent', 'Not adjacent to your land; buy a neighbouring block first.');
+      return reject('notAdjacent', 'Not adjacent to your land; buy a neighbouring block first.', {
+        key: 'rejections.buy.notAdjacent',
+      });
     }
 
     const price = landPrice(state, world, command.block);
 
     if (state.economy.cash < price) {
+      const cash = Math.max(0, state.economy.cash);
+
       return reject(
         'noCash',
-        `Costs Rp ${price.toLocaleString('id-ID')}; you have Rp ${Math.max(0, state.economy.cash).toLocaleString('id-ID')}.`,
+        `Costs Rp ${price.toLocaleString('id-ID')}; you have Rp ${cash.toLocaleString('id-ID')}.`,
+        { key: 'rejections.buy.cost', vars: { rp: price, cash } },
       );
     }
 
@@ -76,15 +90,23 @@ export const buyBlock: CommandHandler<BuyBlock> = {
   },
 };
 
-function describe(biome: string): string {
+function notForSale(biome: string): Rejection {
   switch (biome) {
     case 'protected':
-      return 'Protected forest';
+      return reject('notForSale', 'Protected forest is not for sale.', {
+        key: 'rejections.buy.notForSaleProtected',
+      });
     case 'river':
-      return 'River water';
+      return reject('notForSale', 'River water is not for sale.', {
+        key: 'rejections.buy.notForSaleRiver',
+      });
     case 'village':
-      return 'Village land';
+      return reject('notForSale', 'Village land is not for sale.', {
+        key: 'rejections.buy.notForSaleVillage',
+      });
     default:
-      return 'This land';
+      return reject('notForSale', 'This land is not for sale.', {
+        key: 'rejections.buy.notForSale',
+      });
   }
 }

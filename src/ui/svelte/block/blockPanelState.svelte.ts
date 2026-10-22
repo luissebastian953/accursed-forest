@@ -62,6 +62,7 @@ import type { World } from '@sim/worldgen/index';
 import { t } from '../../../i18n/index.ts';
 import { formatKg, formatPercent, formatRp, formatRpCompact, formatTonnes } from '../../format.ts';
 import type { IconName } from '../../icons.ts';
+import { rejectionText } from '../../rejection.ts';
 import type { TipTone } from '../base/tooltip.ts';
 
 import BlockPanelView_ from './BlockPanel.svelte';
@@ -301,7 +302,7 @@ function dangerView(sim: Sim, id: BlockId): BlockView['danger'] {
     fruitKg: stand && block.species === 'palm' ? harvestableKg(stand, 'palm', state.tick) : 0,
     years: Math.floor((state.tick - oldest) / GROWTH.daysPerYear),
     days: CLEAR_PLANTATION.days,
-    rejection: sim.validate(command)?.reason ?? null,
+    rejection: rejectionText(sim.validate(command)),
     command,
   };
 }
@@ -330,7 +331,7 @@ function reforestView(sim: Sim, id: BlockId): ReforestView {
     label: t('block.reforest'),
     command,
     testId: 'action-ReforestBlock',
-    rejection: sim.validate(command)?.reason ?? null,
+    rejection: rejectionText(sim.validate(command)),
     minor: false,
     cost,
     icon: 'shop-sapling',
@@ -603,7 +604,7 @@ function upgradeView(sim: Sim, level: number): BlockView['upgrade'] {
     needed: kopdesMaturedNeeded(level),
     cost,
     cash: state.economy.cash,
-    rejection: sim.validate(command)?.reason ?? null,
+    rejection: rejectionText(sim.validate(command)),
     nextLevel: level + 1,
     nextRange: kopdesRange(level + 1),
     range: kopdesRange(level),
@@ -801,7 +802,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
       label,
       command,
       testId,
-      rejection: refused?.reason ?? null,
+      rejection: rejectionText(refused),
       minor: extra.minor ?? false,
       ...(extra.cost !== undefined ? { cost: extra.cost } : {}),
       ...(extra.icon !== undefined ? { icon: extra.icon } : {}),
@@ -1403,7 +1404,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
       }),
       options: ([1, 2, 3] as FireIntensity[]).map((intensity) => {
         const command: Command = { type: 'BurnBlock', block: id, intensity };
-        const rejection = sim.validate(command)?.reason ?? null;
+        const rejection = rejectionText(sim.validate(command));
         const tips = pressure + FIRE.pressure[intensity] > threshold;
 
         return {
@@ -1437,7 +1438,7 @@ export function blockView(sim: Sim, id: BlockId, selectedSlot: number | null): B
           label: t('block.chop'),
           command: { type: 'ChopBlock', block: id },
           testId: 'action-ChopBlock',
-          rejection: sim.validate({ type: 'ChopBlock', block: id })?.reason ?? null,
+          rejection: rejectionText(sim.validate({ type: 'ChopBlock', block: id })),
           minor: false,
           cost: chopCost(block.biome, state),
           icon: 'axe-chop',

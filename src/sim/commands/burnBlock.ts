@@ -3,10 +3,10 @@ import { ignite, isFuel, isWildfire, startWildfire } from '../fire.ts';
 import { hasWon } from '../run.ts';
 import { readBlock, spend } from '../state.ts';
 import { staffBlock } from '../systems/mobs.ts';
-import { operatingBanReason, operatingBanned, underInvestigation } from '../systems/society.ts';
+import { operatingBanRejection, operatingBanned, underInvestigation } from '../systems/society.ts';
 import type { Command } from '../types.ts';
 
-import { investigationReason } from './chopBlock.ts';
+import { investigationRejection } from './chopBlock.ts';
 import { reject, type CommandHandler } from './handler.ts';
 
 type BurnBlock = Extract<Command, { type: 'BurnBlock' }>;
@@ -19,36 +19,59 @@ export const burnBlock: CommandHandler<BurnBlock> = {
     const { state, world } = ctx;
 
     if (!world.inBounds(...world.toXY(command.block))) {
-      return reject('unknownBlock', 'That block is outside the map.');
+      return reject('unknownBlock', 'That block is outside the map.', {
+        key: 'rejections.block.outsideMap',
+      });
     }
 
     const block = readBlock(state, world, command.block);
 
-    if (!block.owned) return reject('notOwned', 'You do not own this block.');
-    // A won estate keeps its fire; the sandbox is for building, not razing.
-    if (hasWon(state)) return reject('halted', WON_NO_BURN);
-
-    if (block.bannedUntil > state.tick) {
-      return reject('banned', `Clearing is banned here until day ${block.bannedUntil}.`);
+    if (!block.owned) {
+      return reject('notOwned', 'You do not own this block.', {
+        key: 'rejections.block.notOwned',
+      });
     }
 
-    if (operatingBanned(state)) return reject('banned', operatingBanReason(state));
-    if (underInvestigation(state)) return reject('banned', investigationReason(state));
-    if (block.burning) return reject('burning', 'This block is already burning.');
+    // A won estate keeps its fire; the sandbox is for building, not razing.
+    if (hasWon(state)) return reject('halted', WON_NO_BURN, { key: 'rejections.burn.won' });
+
+    if (block.bannedUntil > state.tick) {
+      return reject('banned', `Clearing is banned here until day ${block.bannedUntil}.`, {
+        key: 'rejections.ban.clearingUntilDay',
+        vars: { day: block.bannedUntil },
+      });
+    }
+
+    if (operatingBanned(state)) return operatingBanRejection(state);
+    if (underInvestigation(state)) return investigationRejection(state);
+
+    if (block.burning) {
+      return reject('burning', 'This block is already burning.', {
+        key: 'rejections.burn.alreadyBurning',
+      });
+    }
 
     if (!isFuel(block, false)) {
-      return reject(
-        'noFuel',
-        block.phase === 'cleared'
-          ? 'Nothing left to burn; not enough debris.'
-          : block.phase === 'planted'
-            ? 'You would be burning your own palms.'
-            : 'Nothing here will burn.',
-      );
+      if (block.phase === 'cleared') {
+        return reject('noFuel', 'Nothing left to burn; not enough debris.', {
+          key: 'rejections.burn.noDebris',
+        });
+      }
+
+      if (block.phase === 'planted') {
+        return reject('noFuel', 'You would be burning your own palms.', {
+          key: 'rejections.burn.ownPalms',
+        });
+      }
+
+      return reject('noFuel', 'Nothing here will burn.', { key: 'rejections.burn.nothingBurns' });
     }
 
     if (state.economy.cash < FIRE.burnCost) {
-      return reject('noCash', `A burn crew costs Rp ${FIRE.burnCost.toLocaleString('id-ID')}.`);
+      return reject('noCash', `A burn crew costs Rp ${FIRE.burnCost.toLocaleString('id-ID')}.`, {
+        key: 'rejections.burn.crewCost',
+        vars: { rp: FIRE.burnCost },
+      });
     }
 
     return null;

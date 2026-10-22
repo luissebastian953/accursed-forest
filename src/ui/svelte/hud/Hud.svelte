@@ -132,11 +132,11 @@
   >
     <Icon name={spec.icon} />
     <div>
-      <div class="label">{spec.label}</div>
+      <div class="label hud-tile-label">{spec.label}</div>
       <div class="hud-value">
         {#if body}{@render body()}{:else}{spec.value}{/if}
       </div>
-      {#if spec.note}<div class="label">{spec.note}</div>{/if}
+      {#if spec.note}<div class="label hud-tile-note">{spec.note}</div>{/if}
     </div>
     {#if spec.alert}<span class="ping" data-testid={`${spec.testId}-alert`}>!</span>{/if}
   </div>
@@ -152,7 +152,7 @@
 {/snippet}
 
 <div
-  class="ui-slide chrome-right pointer-events-none absolute left-0 z-10 flex flex-col items-start gap-2 p-3"
+  class="ui-slide chrome-right hud-bar pointer-events-none absolute left-0 z-10 flex flex-col items-start gap-2 p-3"
   class:ui-hidden-top={ui.hidden}
   style="top: var(--marquee-h, 0px)"
   bind:this={bar}
@@ -188,11 +188,11 @@
     {/snippet}
 
     <div
-      class="card pointer-events-auto flex flex-col items-start gap-1.5 px-3.5 py-2"
+      class="card hud-card pointer-events-auto flex flex-col items-start gap-1.5 px-3.5 py-2"
       data-testid="hud"
       bind:this={card}
     >
-      <div class="flex flex-wrap items-center justify-start gap-2">
+      <div class="hud-tiles flex flex-wrap items-center justify-start gap-2">
         {@render tile({
           icon: 'coin',
           label: inDebt ? t('hud.cashDebt') : t('hud.cash'),
@@ -281,14 +281,14 @@
         {/if}
       </div>
 
-      <div class="flex w-full flex-wrap items-center justify-between gap-2">
-        <div class="flex flex-wrap items-center gap-2">
+      <div class="hud-controls flex w-full flex-wrap items-center justify-between gap-2">
+        <div class="hud-group flex flex-wrap items-center gap-2">
           <div
-            class="pill-muted flex items-center gap-1.5 p-1"
+            class="hud-speed pill-muted flex items-center gap-1.5 p-1"
             role="group"
             aria-label={t('hud.speedGroup')}
           >
-            <span class="label px-1.5">{t('hud.speed')}</span>
+            <span class="label hud-phone-hide px-1.5">{t('hud.speed')}</span>
             {#each SPEEDS as speed (speed)}
               {@const shut = speedNeedsKopdes(speed, v.kopdesLevel)}
               <Tooltip text={shut ? t('hud.speedNeedsKopdes', { level: TURBO_KOPDES_LEVEL }) : ''}>
@@ -299,9 +299,10 @@
                   data-locked={shut ? 'kopdes' : undefined}
                   onclick={() => hud.handlers.setSpeed(speed)}
                 >
-                  {#if speed === 0}<Icon name="pause" />{/if}{#if shut}<Icon name="lock" />{/if}{t(
-                    `hud.speed${speed}`,
-                  )}
+                  {#if speed === 0}<Icon name="pause" />{/if}{#if shut}<Icon
+                      name="lock"
+                    />{/if}<span class="hud-speed-word">{t(`hud.speed${speed}`)}</span
+                  >{#if speed > 0}<span class="hud-speed-num">{speed}×</span>{/if}
                 </button>
               </Tooltip>
             {/each}
@@ -314,7 +315,7 @@
           </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="hud-group flex flex-wrap items-center gap-2">
           {#if v.reforest}
             <!--
               The forest win is already won and waits for the year to close, so
@@ -388,7 +389,7 @@
             data-testid="help-button"
             onclick={() => hud.handlers.openHelp()}
           >
-            {t('hud.help')}
+            <span class="hud-phone-hide">{t('hud.help')}</span><span class="hud-phone-only">?</span>
           </button>
 
           <button
@@ -400,7 +401,7 @@
           </button>
 
           <button
-            class={`btn ${v.sound ? 'btn-green' : 'btn-red'} !px-3`}
+            class={`btn hud-sound ${v.sound ? 'btn-green' : 'btn-red'}`}
             aria-pressed={v.sound}
             aria-label={t('menu.sound')}
             title={v.sound ? t('menu.soundOn') : t('menu.soundOff')}
@@ -410,7 +411,7 @@
             <Icon name={v.sound ? 'speaker-on' : 'speaker-off'} />
           </button>
 
-          <div class="label flex items-center gap-2">
+          <div class="label hud-phone-hide flex items-center gap-2">
             {#if v.estateName}
               <span
                 class="pill-muted px-1.5 py-0.5 normal-case !text-[var(--ink)]"
@@ -439,7 +440,7 @@
 
     {#if v.events.length > 0}
       <div
-        class="pointer-events-auto flex flex-wrap justify-start gap-1.5"
+        class="hud-events pointer-events-auto flex flex-wrap justify-start gap-1.5"
         data-testid="events-strip"
       >
         {#each v.events as chip (chip.id)}

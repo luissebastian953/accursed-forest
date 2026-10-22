@@ -3,7 +3,6 @@ import { fileURLToPath } from 'node:url';
 
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import tailwindcss from '@tailwindcss/vite';
-import JavaScriptObfuscator from 'javascript-obfuscator';
 import { defineConfig, type Plugin } from 'vite';
 import checker from 'vite-plugin-checker';
 
@@ -105,57 +104,6 @@ function siteUrlPlugin(): Plugin {
   };
 }
 
-/**
- * Production hardening: only the cheap transforms, because the rest cost frame
- * time in the sim's hot loops. Nothing here encrypts the game (GDD, config.md).
- */
-const obfuscate = process.env['VITE_OBFUSCATE'] !== '0';
-/**
- * The string array halves the sim's tick rate (24.8 to 12.5 days a second at
- * 50x), so only the chunks whose strings are copy and markup get it.
- */
-const STRING_ARRAY_CHUNKS = new Set(['App', 'play']);
-
-function obfuscatePlugin(): Plugin {
-  return {
-    name: 'sawit-obfuscate',
-    apply: 'build',
-    enforce: 'post',
-    renderChunk(code, chunk) {
-      if (!obfuscate || chunk.name === 'three') return null;
-
-      const result = JavaScriptObfuscator.obfuscate(code, {
-        target: 'browser',
-        seed: 7,
-        compact: true,
-        simplify: true,
-        identifierNamesGenerator: 'hexadecimal',
-        renameGlobals: false,
-        ignoreImports: true,
-        stringArray: STRING_ARRAY_CHUNKS.has(chunk.name),
-        stringArrayThreshold: 0.8,
-        stringArrayEncoding: ['base64'],
-        stringArrayRotate: true,
-        stringArrayShuffle: true,
-        stringArrayWrappersCount: 1,
-        stringArrayWrappersType: 'variable',
-        splitStrings: false,
-        transformObjectKeys: false,
-        numbersToExpressions: false,
-        controlFlowFlattening: false,
-        deadCodeInjection: false,
-        selfDefending: false,
-        debugProtection: false,
-        disableConsoleOutput: false,
-        unicodeEscapeSequence: false,
-        sourceMap: false,
-      });
-
-      return { code: result.getObfuscatedCode(), map: null };
-    },
-  };
-}
-
 export default defineConfig({
   base,
   define: { __APP_VERSION__: appVersion },
@@ -167,7 +115,6 @@ export default defineConfig({
       typescript: true,
       eslint: { lintCommand: 'eslint "src/**/*.{ts,svelte}"', useFlatConfig: true },
     }),
-    obfuscatePlugin(),
   ],
   resolve: {
     // Vite 8 reads the tsconfig aliases only for imports made from TypeScript,
@@ -184,14 +131,26 @@ export default defineConfig({
   },
   build: {
     target: 'es2022',
-    // Maps only on request: shipping them hands the source back.
+    // Maps only on request: a deployment is debugged with VITE_SOURCEMAP=1.
     sourcemap: process.env['VITE_SOURCEMAP'] === '1',
     rollupOptions: {
-      // Three pages: the static landing page, the game, and the workbench,
-      // a development page that ships but is never indexed or linked.
+      // The indexable pages (tools/seo.ts), the game, and the workbench, a
+      // development page that ships but is never indexed or linked.
       input: {
         index: 'index.html',
         id: 'id/index.html',
+        guide: 'guide/index.html',
+        'id-panduan': 'id/panduan/index.html',
+        glossary: 'glossary/index.html',
+        'id-istilah': 'id/istilah/index.html',
+        endings: 'endings/index.html',
+        'id-akhir-permainan': 'id/akhir-permainan/index.html',
+        accuracy: 'accuracy/index.html',
+        'id-akurasi': 'id/akurasi/index.html',
+        panduanBerbuah: 'id/panduan/berapa-lama-sawit-berbuah/index.html',
+        panduanKumbang: 'id/panduan/kumbang-tanduk-sawit/index.html',
+        panduanGanoderma: 'id/panduan/ganoderma-kelapa-sawit/index.html',
+        panduanReplanting: 'id/panduan/biaya-replanting-sawit/index.html',
         play: 'play.html',
         workbench: 'workbench.html',
       },

@@ -10,7 +10,7 @@ named in backticks so a search from the code lands on it.
 
 | Area                                                                | Modules |
 | ------------------------------------------------------------------- | ------- |
-| [Application](app.md)                                               | 11      |
+| [Application](app.md)                                               | 12      |
 | [Audio](audio.md)                                                   | 4       |
 | [Configuration](config.md)                                          | 3       |
 | [Entry points](entries.md)                                          | 3       |
