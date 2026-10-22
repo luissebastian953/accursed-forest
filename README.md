@@ -135,8 +135,10 @@ stay **off**, since this is twelve real pages (the ten in `tools/seo.ts`,
 `/play.html` and `/workbench.html`) and a catch-all rewrite would hide genuine
 404s.
 
-Cache the hashed assets under `/assets/` for a year as immutable, and keep the
-HTML, `robots.txt` and `sitemap.xml` short-lived so a deploy is visible at once.
+`edgeone.json` at the root sets the response headers the host would otherwise
+leave out: a year of `immutable` on everything under `/assets/`, and HSTS,
+`nosniff` and a referrer policy on every page. The HTML, `robots.txt` and
+`sitemap.xml` stay short-lived so a deploy is visible at once.
 
 Deploying from CI instead of the host's own git build is what ties a release to
 a green suite: `npx edgeone pages deploy dist -n <project> -t $EDGEONE_API_TOKEN`

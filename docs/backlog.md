@@ -20,13 +20,12 @@ Found while writing the design document, recorded there and unfixed:
 
 ## Hosting
 
-- The three heaviest files under `/assets/`, three.js, the app chunk and the
-  mesher worker, were served with `max-age=0, must-revalidate` on 2026-10-15
-  while every other hashed asset was `immutable`. That is an EdgeOne cache
-  rule, not the build; every return visit revalidates 87% of the bytes until
-  the rule covers all of `/assets/`.
-- No HSTS, `X-Content-Type-Options` or `Referrer-Policy` headers. EdgeOne
-  response-header rules; nothing in the repo can set them.
+- `edgeone.json` asks for `immutable` on all of `/assets/` and for the HSTS,
+  `nosniff` and referrer headers. Check the live headers after the next
+  deploy: on 2026-10-22 three hashed files (three.js, mobs, the preload
+  helper's stylesheet) still came back `max-age=0, must-revalidate`, and no
+  page carried the security headers. If the file is ignored, the same rules
+  go in the EdgeOne console under the project's rule settings.
 
 - `www.sawitsimulator.com` does not resolve. The apex is a CNAME to EdgeOne, so
   add `www` as its own CNAME or a redirect to the apex.
