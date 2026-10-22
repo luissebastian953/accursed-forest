@@ -137,7 +137,8 @@ stay **off**, since this is twelve real pages (the ten in `tools/seo.ts`,
 
 `edgeone.json` at the root sets the response headers the host would otherwise
 leave out: a year of `immutable` on everything under `/assets/`, and HSTS,
-`nosniff` and a referrer policy on every page. The HTML, `robots.txt` and
+`nosniff` and a referrer policy on every page, and a 301 from `www` to the
+apex so there is one address to rank. The HTML, `robots.txt` and
 `sitemap.xml` stay short-lived so a deploy is visible at once.
 
 Deploying from CI instead of the host's own git build is what ties a release to

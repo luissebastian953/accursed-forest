@@ -27,8 +27,10 @@ Found while writing the design document, recorded there and unfixed:
   page carried the security headers. If the file is ignored, the same rules
   go in the EdgeOne console under the project's rule settings.
 
-- `www.sawitsimulator.com` does not resolve. The apex is a CNAME to EdgeOne, so
-  add `www` as its own CNAME or a redirect to the apex.
+- `www.sawitsimulator.com` was added to the EdgeOne project on 2026-10-22 and
+  `edgeone.json` redirects it to the apex. The host still served it with a
+  `*.cdn.myqcloud.com` certificate that evening: the www row's HTTPS
+  configuration in the console needs a certificate applied.
 - The deploy runs from the host's own git build, which ships whatever compiles,
   tests or no tests. The workflow that deploys from CI after a green suite is
   written and parked; wiring it needs `EDGEONE_API_TOKEN` as a repository
