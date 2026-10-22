@@ -40,11 +40,6 @@ Found while writing the design document, recorded there and unfixed:
 
 ## Interface
 
-- On a phone the block panel's upgrade buttons ("Irigasi", "Drainase") have
-  their labels overlapped by the price pill, and the tutorial's progress pill
-  at the bottom left runs off the right edge so Skip is off screen. The HUD
-  got its phone layout on 2026-10-15; the panel and the pill did not.
-
 - The certificate panel's footer still reads "Complete this to win the game"
   under the forest-win banner, which says the certificate is no longer the
   point. The footer should follow the band.

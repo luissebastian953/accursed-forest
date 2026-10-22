@@ -362,13 +362,13 @@
         {@render card(false)}
       {/if}
 
-      <div class="absolute bottom-16 left-[30px] z-[42] flex flex-col items-start gap-3">
+      <div class="tut-dock absolute bottom-16 left-[30px] z-[42] flex flex-col items-start gap-3">
         {#if !anchor}
           {@render card(true)}
         {/if}
         <div class="tut-pill" data-testid="tutorial-pill">
           <span class="label">{t('tutorial.pill')}</span>
-          <span class="whitespace-nowrap font-extrabold">
+          <span class="tut-step whitespace-nowrap font-extrabold">
             {t('tutorial.stepOf', { n: stepNumber, of: STEPS.length, title })}
           </span>
           <span class="gauge w-24" aria-hidden="true">
@@ -581,6 +581,35 @@
     border-radius: 18px;
     border: 3px solid var(--green-edge);
     background: #eaf7dd;
+  }
+
+  /* The pill is wider than a phone; the buttons drop to a second row instead. */
+  @media (max-width: 640px) {
+    .tut-dock {
+      left: 12px;
+      right: 12px;
+    }
+
+    .tut-pill {
+      flex-wrap: wrap;
+      gap: 0.4rem 0.7rem;
+      padding-left: 0.75rem;
+    }
+
+    .tut-pill .label {
+      display: none;
+    }
+
+    .tut-step {
+      flex: 1 1 100%;
+      min-width: 0;
+      white-space: normal;
+      line-height: 1.2;
+    }
+
+    .tut-pill .gauge {
+      margin-right: auto;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

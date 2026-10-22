@@ -876,6 +876,9 @@ and, when the target is gone, Show me. The finishing card is here too.
   with `transform-box: fill-box`, so they scale from their own centre. Both
   stop under `prefers-reduced-motion`, and the ping goes with them since a
   still second outline says nothing.
+- Under 640px the pill spans the screen and wraps: the step line on its
+  own row, the bar and the buttons under it. Laid out in one row it was
+  508px wide on a 390px phone, with Skip past the right edge.
 - The card sits under a target in the top half of the screen and over one in
   the bottom half, centred on it and kept inside the edges; the arrow moves
   along the card's edge to stay on the target's centre. Until the card has

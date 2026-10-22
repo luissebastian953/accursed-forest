@@ -313,7 +313,7 @@
           <!-- The water and ground work reads with the tiles it answers to,
                not after the pests at the foot of the panel. -->
           {#if v.minor.length > 0}
-            <div class="grid grid-cols-2 gap-1.5" data-testid="land-work">
+            <div class="grid grid-cols-2 gap-1.5 max-sm:grid-cols-1" data-testid="land-work">
               {#each v.minor as action (action.testId)}
                 {@render landButton(action)}
               {/each}
