@@ -28,11 +28,12 @@ skips the sitemap: a sitemap of relative URLs is invalid, not just weak.
 
 ### Notes
 
-- `SITE_PAGES`: the indexable pages, five translation pairs: the landing page,
-  the guide, the glossary, the endings and the accuracy page, each in English
-  and Indonesian, and the Indonesian explainers under `/id/panduan/`, which
-  have no English twin. `play.html` is the game behind a `noindex` tag and
-  stays out; a sitemap lists only canonical pages meant for search.
+- `SITE_PAGES`: the indexable pages, nine translation pairs: the landing page,
+  the guide, the glossary, the endings and the accuracy page, and the four
+  explainers (`EXPLAINERS`, English slug under `/guide/`, Indonesian under
+  `/id/panduan/`, grouped by the English slug). `play.html` is the game behind
+  a `noindex` tag and stays out; a sitemap lists only canonical pages meant
+  for search.
 - `SitePage.group`: the translation group. hreflang alternates are declared
   only within a group, because without it every page was an alternate of every
   other, which was true of two pages that were translations of each other and

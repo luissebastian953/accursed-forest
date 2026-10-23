@@ -145,6 +145,10 @@ test.describe('landing page', () => {
       ['/glossary/', '/id/istilah/'],
       ['/endings/', '/id/akhir-permainan/'],
       ['/accuracy/', '/id/akurasi/'],
+      ['/guide/when-does-oil-palm-bear-fruit/', '/id/panduan/berapa-lama-sawit-berbuah/'],
+      ['/guide/rhinoceros-beetle-oil-palm/', '/id/panduan/kumbang-tanduk-sawit/'],
+      ['/guide/ganoderma-oil-palm/', '/id/panduan/ganoderma-kelapa-sawit/'],
+      ['/guide/oil-palm-replanting-cost/', '/id/panduan/biaya-replanting-sawit/'],
     ];
     const scripts: string[] = [];
 

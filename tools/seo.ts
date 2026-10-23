@@ -11,9 +11,17 @@ export interface SitePage {
   images?: readonly string[];
 }
 
+/** The explainers, as English slug and Indonesian slug; the English slug names the group. */
+export const EXPLAINERS: readonly (readonly [string, string])[] = [
+  ['when-does-oil-palm-bear-fruit', 'berapa-lama-sawit-berbuah'],
+  ['rhinoceros-beetle-oil-palm', 'kumbang-tanduk-sawit'],
+  ['ganoderma-oil-palm', 'ganoderma-kelapa-sawit'],
+  ['oil-palm-replanting-cost', 'biaya-replanting-sawit'],
+];
+
 /**
- * The indexable pages: five translation pairs, and the Indonesian explainers, which have no
- * English twin. `play.html` is `noindex` and stays out: a sitemap lists only canonical pages.
+ * The indexable pages: nine translation pairs, the five companion pages and the four
+ * explainers. `play.html` is `noindex` and stays out: a sitemap lists only canonical pages.
  */
 export const SITE_PAGES: readonly SitePage[] = [
   { path: '/', file: 'index.html', lang: 'en', group: 'home' },
@@ -31,18 +39,16 @@ export const SITE_PAGES: readonly SitePage[] = [
   },
   { path: '/accuracy/', file: 'accuracy/index.html', lang: 'en', group: 'accuracy' },
   { path: '/id/akurasi/', file: 'id/akurasi/index.html', lang: 'id', group: 'accuracy' },
-  ...[
-    'berapa-lama-sawit-berbuah',
-    'kumbang-tanduk-sawit',
-    'ganoderma-kelapa-sawit',
-    'biaya-replanting-sawit',
-  ].map((slug) => ({
-    path: `/id/panduan/${slug}/`,
-    file: `id/panduan/${slug}/index.html`,
-    lang: 'id',
-    group: `panduan-${slug}`,
-    images: [],
-  })),
+  ...EXPLAINERS.flatMap(([en, id]) => [
+    { path: `/guide/${en}/`, file: `guide/${en}/index.html`, lang: 'en', group: en, images: [] },
+    {
+      path: `/id/panduan/${id}/`,
+      file: `id/panduan/${id}/index.html`,
+      lang: 'id',
+      group: en,
+      images: [],
+    },
+  ]),
 ];
 
 /** The language whose page a group's `x-default` points at. */

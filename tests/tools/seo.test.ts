@@ -15,11 +15,11 @@ const DATES: Record<string, string> = {
   'index.html': '2026-09-17T16:40:12+07:00',
   'id/index.html': '2026-09-15T09:00:00+07:00',
 };
-const EXPLAINERS = [
-  '/id/panduan/berapa-lama-sawit-berbuah/',
-  '/id/panduan/kumbang-tanduk-sawit/',
-  '/id/panduan/ganoderma-kelapa-sawit/',
-  '/id/panduan/biaya-replanting-sawit/',
+const EXPLAINER_PAIRS: [string, string][] = [
+  ['/guide/when-does-oil-palm-bear-fruit/', '/id/panduan/berapa-lama-sawit-berbuah/'],
+  ['/guide/rhinoceros-beetle-oil-palm/', '/id/panduan/kumbang-tanduk-sawit/'],
+  ['/guide/ganoderma-oil-palm/', '/id/panduan/ganoderma-kelapa-sawit/'],
+  ['/guide/oil-palm-replanting-cost/', '/id/panduan/biaya-replanting-sawit/'],
 ];
 const sitemap = renderSitemap(SITE, (page) => DATES[page.file] ?? '2026-10-15T12:00:00+07:00');
 
@@ -47,17 +47,15 @@ describe('the sitemap', () => {
     expect(pages).toEqual(SITE_PAGES.map((page) => `${SITE}${page.path}`));
     expect(pages).toContain(`${SITE}/`);
     expect(pages).toContain(`${SITE}/id/`);
-    expect(pages).toHaveLength(14);
+    expect(pages).toHaveLength(18);
     expect(sitemap).not.toContain('play.html');
   });
 
-  it('pairs every page with a twin, or stands alone as an explainer, and is in one group', () => {
+  it('pairs every page with a twin in its own group, the explainers included', () => {
     for (const page of SITE_PAGES) {
       const group = SITE_PAGES.filter((p) => p.group === page.group);
-      const langs = group.map((p) => p.lang).sort();
 
-      if (page.images) expect(langs, page.path).toEqual(['id']);
-      else expect(langs, page.path).toEqual(['en', 'id']);
+      expect(group.map((p) => p.lang).sort(), page.path).toEqual(['en', 'id']);
     }
 
     expect(new Set(SITE_PAGES.map((p) => p.path)).size).toBe(SITE_PAGES.length);
@@ -80,11 +78,8 @@ describe('the sitemap', () => {
 
   it('declares alternates only within a group, with x-default on the English page of the group', () => {
     for (const page of SITE_PAGES) {
-      const en = SITE_PAGES.find((p) => p.group === page.group && p.lang === 'en');
+      const en = SITE_PAGES.find((p) => p.group === page.group && p.lang === 'en')!;
       const id = SITE_PAGES.find((p) => p.group === page.group && p.lang === 'id')!;
-
-      // An explainer has no English twin; its own test below covers it.
-      if (!en) continue;
 
       expect(alternates(urlBlock(page.path)), page.path).toEqual({
         en: `${SITE}${en.path}`,
@@ -114,19 +109,18 @@ describe('the sitemap', () => {
     );
   });
 
-  it('keeps hreflang inside a group: an explainer is its own x-default, not a twin of the landing page', () => {
-    for (const path of EXPLAINERS) {
-      const block = urlBlock(path);
-      const links = [...block.matchAll(/hreflang="([^"]+)" href="([^"]+)"/g)].map((m) => [
-        m[1],
-        m[2],
-      ]);
+  it('keeps hreflang inside a group: an explainer pair is never an alternate of the guide', () => {
+    for (const [en, id] of EXPLAINER_PAIRS) {
+      for (const path of [en, id]) {
+        expect(alternates(urlBlock(path)), path).toEqual({
+          en: `${SITE}${en}`,
+          id: `${SITE}${id}`,
+          'x-default': `${SITE}${en}`,
+        });
+      }
 
-      expect(links).toEqual([
-        ['id', `${SITE}${path}`],
-        ['x-default', `${SITE}${path}`],
-      ]);
-      expect(urlBlock('/')).not.toContain(path);
+      expect(urlBlock('/guide/')).not.toContain(en);
+      expect(urlBlock('/id/panduan/')).not.toContain(id);
     }
   });
 
