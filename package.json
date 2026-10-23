@@ -1,6 +1,7 @@
 {
   "name": "accursed-forest",
   "private": true,
+  "license": "MIT",
   "version": "0.1.0",
   "description": "Sawit Simulator, a browser oil-palm plantation management sim",
   "type": "module",

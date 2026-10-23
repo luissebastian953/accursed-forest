@@ -281,3 +281,7 @@ src/
   component next to it (`menuState.svelte.ts` beside `Menu.svelte`): with
   bundler module resolution, TypeScript would otherwise resolve `./Menu.svelte`
   to the module.
+
+## License
+
+MIT. See [`LICENSE`](LICENSE).
