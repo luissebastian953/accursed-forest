@@ -70,8 +70,8 @@ function siteUrlPlugin(): Plugin {
         }
 
         if (!siteUrl) {
-          out = out.replace(/^\s*<link rel="canonical"[^>]*>\n?/m, '');
-          out = out.replace(/^\s*<link rel="alternate" hreflang=[^>]*>\n?/gm, '');
+          out = out.replace(/^\s*<link\s+rel="canonical"[^>]*>\n?/m, '');
+          out = out.replace(/^\s*<link\s+rel="alternate"\s+hreflang=[^>]*>\n?/gm, '');
         }
 
         // Search Console reads the tag from the home page; the game page is noindex.
