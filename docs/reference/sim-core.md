@@ -168,6 +168,9 @@ that lets a 64x64 world cost the size of the estate.
   the start site, with the Kopdes block pre-cleared (GDD 4.6). Water and
   protected forest inside the square stay unowned: you cannot hold title to a
   river.
+- `startSpecial()`: a special estate name (`src/sim/balance/specialEstates.ts`)
+  is applied here, once, to the state the save then carries. Nothing new is
+  stored, so the save schema does not change and a reload keeps the head start.
 
 ## `src/sim/types.ts`
 

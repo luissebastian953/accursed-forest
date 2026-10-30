@@ -415,6 +415,24 @@ deck, and the authority meter with its warnings and arrest.
   that it is never the cheap way out: an estate pays about a year of good
   harvests for the favour.
 
+## `src/sim/balance/specialEstates.ts`
+
+The three estate names that start a different run (GDD 4.6): `karhutla`,
+`nyawit` and `penyawit`. The world is still the one the name hashes to; only
+the estate's first day changes.
+
+### Notes
+
+- `SPECIAL_ESTATES`: Karhutla opens in an El Niño year with the attention
+  meter at 20, half way to the first letter at 40. Nyawit adds 100 million to
+  the starting cash, the severance of someone who left the office to go into
+  palm. Penyawit puts seedlings for a whole block and four bags of fertilizer
+  in the shed, an old hand's head start.
+- `specialEstate()`: reads the name the way `seedFromEstateCode()` reads it,
+  letters and digits of any case, so "Karhutla", "KARHUTLA!" and
+  "kar-hutla" all count. It matches the whole name only: "Penyawit Handal",
+  the sample name the suite and the e2e tests type, stays an ordinary estate.
+
 ## `src/sim/balance/world.ts`
 
 World shape and generation tunables (GDD 4.6).

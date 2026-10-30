@@ -161,6 +161,11 @@
               </b>.
             {/if}
           </p>
+          {#if preview.special}
+            <p class="m-0 text-center text-xs font-bold text-[#2f7a2b]" data-testid="start-special">
+              {t(`start.special.${preview.special}`)}
+            </p>
+          {/if}
           <div class="border-t-2 border-dashed border-[var(--card-edge)]"></div>
           <div class="grid grid-cols-2 gap-2">
             <button

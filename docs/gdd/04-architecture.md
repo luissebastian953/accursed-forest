@@ -185,6 +185,15 @@ riverbank within `1` block of water. The map itself is `WORLD.width` by
 square around the start site, water and protected forest inside it excepted,
 because nobody holds title to a river.
 
+**Three names start a different run.** Typing `Karhutla`, `Nyawit` or
+`Penyawit` as the estate name keeps the world the name generates but changes
+the estate's first day: Karhutla opens in an El Niño year with the district
+already watching, Nyawit arrives with a severance payout on top of the
+starting cash, and Penyawit has seedlings for a block and fertilizer in the
+shed. The start form says so in one line as the name is typed. The table is
+`SPECIAL_ESTATES` in `src/sim/balance/specialEstates.ts`, applied once in
+`createInitialState`, so the save carries it like any other state.
+
 **The Kopdes hectare is put on the forest's edge, never inside it.** Two terms
 do it, both in `START_SITE`. `openWeight` rewards a start square that contains
 open ground at all (`openTarget`, a fifth of it), because a square that is

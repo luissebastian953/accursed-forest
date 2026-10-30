@@ -1,6 +1,6 @@
 import { mount, unmount, type Component } from 'svelte';
 
-import { estateCodeFor, seedFromEstateCode } from '@sim/index';
+import { estateCodeFor, seedFromEstateCode, specialEstate, type SpecialEstateId } from '@sim/index';
 
 import type { IconName } from '../../icons.ts';
 
@@ -95,17 +95,27 @@ export class StartScreen {
    * The estate the card is offering: the one behind the title until the
    * player types, then the one their boxes describe.
    */
-  get preview(): { name: string; code: string; isNew: boolean } {
+  get preview(): { name: string; code: string; isNew: boolean; special: SpecialEstateId | null } {
     const name = this.ui.name.trim();
     const code = this.ui.code.trim();
 
     if (name === '' && code === '') {
-      return { name: this.view.estateName, code: this.view.estateCode, isNew: false };
+      return {
+        name: this.view.estateName,
+        code: this.view.estateCode,
+        isNew: false,
+        special: null,
+      };
     }
 
     const seed = seedFromEstateCode(code === '' ? name : code);
 
-    return { name, code: seed === null ? '' : estateCodeFor(seed), isNew: true };
+    return {
+      name,
+      code: seed === null ? '' : estateCodeFor(seed),
+      isNew: true,
+      special: specialEstate(name),
+    };
   }
 
   show(view: StartScreenView): void {

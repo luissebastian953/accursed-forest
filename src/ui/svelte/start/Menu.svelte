@@ -95,6 +95,14 @@
             {preview.random ? t('menu.randomCode') : preview.code}
           </b>.
         </p>
+        {#if preview.special}
+          <p
+            class="m-0 mt-1 text-center text-xs font-bold text-[#2f7a2b]"
+            data-testid="menu-special"
+          >
+            {t(`start.special.${preview.special}`)}
+          </p>
+        {/if}
 
         <div class="mt-4 grid grid-cols-2 gap-2">
           <button
