@@ -149,6 +149,7 @@ test.describe('landing page', () => {
       ['/guide/rhinoceros-beetle-oil-palm/', '/id/panduan/kumbang-tanduk-sawit/'],
       ['/guide/ganoderma-oil-palm/', '/id/panduan/ganoderma-kelapa-sawit/'],
       ['/guide/oil-palm-replanting-cost/', '/id/panduan/biaya-replanting-sawit/'],
+      ['/guide/karhutla-land-fires-oil-palm/', '/id/panduan/karhutla-bakar-lahan-sawit/'],
     ];
     const scripts: string[] = [];
 

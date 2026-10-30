@@ -70,8 +70,8 @@ function siteUrlPlugin(): Plugin {
         }
 
         if (!siteUrl) {
-          out = out.replace(/^\s*<link rel="canonical"[^>]*>\n?/m, '');
-          out = out.replace(/^\s*<link rel="alternate" hreflang=[^>]*>\n?/gm, '');
+          out = out.replace(/^\s*<link\s+rel="canonical"[^>]*>\n?/m, '');
+          out = out.replace(/^\s*<link\s+rel="alternate"\s+hreflang=[^>]*>\n?/gm, '');
         }
 
         // Search Console reads the tag from the home page; the game page is noindex.
@@ -151,10 +151,12 @@ export default defineConfig({
         panduanKumbang: 'id/panduan/kumbang-tanduk-sawit/index.html',
         panduanGanoderma: 'id/panduan/ganoderma-kelapa-sawit/index.html',
         panduanReplanting: 'id/panduan/biaya-replanting-sawit/index.html',
+        panduanKarhutla: 'id/panduan/karhutla-bakar-lahan-sawit/index.html',
         guideBearFruit: 'guide/when-does-oil-palm-bear-fruit/index.html',
         guideBeetle: 'guide/rhinoceros-beetle-oil-palm/index.html',
         guideGanoderma: 'guide/ganoderma-oil-palm/index.html',
         guideReplanting: 'guide/oil-palm-replanting-cost/index.html',
+        guideKarhutla: 'guide/karhutla-land-fires-oil-palm/index.html',
         play: 'play.html',
         workbench: 'workbench.html',
       },
