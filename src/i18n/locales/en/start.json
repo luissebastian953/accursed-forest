@@ -28,5 +28,8 @@
   "build": "v{version}, {backend}, saves in this browser",
   "codeError": "That is not an estate code: seven letters, like ABC-DEFG.",
   "welcome": "Estate {code}. Click a block to begin; press H or ? for controls.",
-  "language": "Language"
+  "language": "Language",
+  "special.karhutla": "Karhutla: an El Niño year to start, and the district is already watching you.",
+  "special.nyawit": "Nyawit: you quit the office to go into palm, with the severance in the bank.",
+  "special.penyawit": "Penyawit: an old hand. Seedlings for a block and fertiliser are already in the shed."
 }

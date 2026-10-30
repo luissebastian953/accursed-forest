@@ -1,4 +1,5 @@
 import { ECONOMY } from './balance/prices.ts';
+import { SPECIAL_ESTATES, specialEstate, type SpecialEstate } from './balance/specialEstates.ts';
 import type { EventSink } from './events.ts';
 import { createRng } from './rng.ts';
 import type { Block, BlockId, LedgerEntry, SimState } from './types.ts';
@@ -121,7 +122,20 @@ export function createInitialState(world: World, name = ''): SimState {
   kopdesBlock.phase = 'cleared';
   kopdesBlock.clearProgress = 1;
 
+  const special = specialEstate(name);
+
+  if (special !== null) startSpecial(state, SPECIAL_ESTATES[special]);
+
   return state;
+}
+
+function startSpecial(state: SimState, spec: SpecialEstate): void {
+  if (spec.regime !== undefined) state.weather.regime = spec.regime;
+  state.society.attention += spec.attention ?? 0;
+  state.economy.cash += spec.cash ?? 0;
+  state.run.stats.lowestCash = state.economy.cash;
+  state.inventory.bibit += spec.bibit ?? 0;
+  state.inventory.fertilizer += spec.fertilizer ?? 0;
 }
 
 /**

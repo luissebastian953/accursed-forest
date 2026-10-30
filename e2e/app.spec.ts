@@ -138,9 +138,10 @@ async function selectWildNeighbour(page: Page, biome?: RegExp): Promise<void> {
     await page.mouse.click(c.x + dx, c.y + dy);
     await page.waitForTimeout(150);
 
+    // The camera pans as blocks are picked, so a probe can land on the Workshop, whose panel has no phase.
     const phase = (
       await tid(page, 'block-phase')
-        .textContent()
+        .textContent({ timeout: 1000 })
         .catch(() => '')
     )?.trim();
 
@@ -819,7 +820,23 @@ test.describe('Sawit Simulator', () => {
     await tid(page, 'buy-bibit-144').click();
     await page.keyboard.press('Escape');
 
-    await selectWildNeighbour(page, /Wild forest/);
+    // The nearest wild forest, picked from the state: a screen probe depends on how far the camera panned.
+    await page.evaluate(() => {
+      const hook = (window as unknown as DebugWindow).__sawit;
+      const { state, world } = hook.sim();
+      const [kx, ky] = world.toXY(state.worldGen.kopdesBlock);
+      const away = (id: number) => {
+        const [x, y] = world.toXY(id);
+
+        return Math.abs(x - kx) + Math.abs(y - ky);
+      };
+      const forest = [...state.blocks.values()]
+        .filter((b) => b.owned && b.phase === 'wild' && b['biome'] === 'forest')
+        .sort((a, b) => away(a.id) - away(b.id))[0]!;
+
+      hook.select(forest.id);
+    });
+    await expect(tid(page, 'block-panel')).toContainText('Wild forest');
     await tid(page, 'action-ChopBlock').click();
     await unlockTurbo(page);
     await tid(page, 'speed-50').click();

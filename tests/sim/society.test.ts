@@ -106,17 +106,17 @@ describe('news templates (GDD 3.7)', () => {
    */
   it('names only its own invented cast, never a real person', () => {
     const CAST = [
-      'Prerows',
+      'Wowowski',
       'BehLOL',
       'Purboy',
       'Amrun',
-      'Rajuli',
+      'Wazowski',
       'Nazarra',
       'Mulyonows',
       'Tanjidoor',
     ];
     const REAL =
-      /\b(Prabowo|Subianto|Jokowi|Joko|Widodo|Mulyono|Bahlil|Lahadalia|Purbaya|Sadewa|Amran|Sulaiman|Raja Juli|Antoni|Suahasil|Nazara|Kibutsuji|Muzan|Tanjiro|Kamado)\b/;
+      /\b(Prabowo|Subianto|Jokowi|Joko|Widodo|Mulyono|Bahlil|Lahadalia|Purbaya|Sadewa|Amran|Sulaiman|Raja Juli|Antoni|Suahasil|Nazara|Kibutsuji|Muzan|Tanjiro|Kamado|Windah|Basudara|Syahganda|Dudung|Natalius|Pigai|Shanmugam)\b/;
 
     for (const [key, t] of Object.entries(NEWS_TEMPLATES)) {
       for (const text of [...t.titles, ...t.bodies]) {
@@ -290,9 +290,19 @@ describe('integrity (GDD 3.7)', () => {
         expect(after).toBeGreaterThanOrEqual(0);
         expect(after).toBeLessThanOrEqual(1);
 
+        // A headline that moves integrity can land the same day and pull the other way.
+        const pulled = events.some(
+          (e) =>
+            e.type === 'MacroEventStarted' &&
+            (MACRO_EVENTS as Record<string, { integrity?: number }>)[e.id]?.integrity !== undefined,
+        );
+
         if (events.some((e) => e.type === 'IntegrityScandal')) {
           scandals += 1;
-          expect(after).toBeGreaterThan(Math.min(1, before + INTEGRITY.scandalJump) - 0.05);
+
+          if (!pulled) {
+            expect(after).toBeGreaterThan(Math.min(1, before + INTEGRITY.scandalJump) - 0.05);
+          }
         }
       }
     }

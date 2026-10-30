@@ -13,7 +13,7 @@
   "burnWildfire": "Fire pressure over the line; this is a wildfire now.",
   "burning": "{block} burning; speed capped at {speed}×.",
   "yearBegins": "Year {year} begins; {regime}",
-  "regimeElNino": "forecasters call an El Niño year. Fires will spread.",
+  "regimeElNino": "forecasters warn of a heat wave all year. Fires will spread.",
   "regimeLaNina": "a La Niña year: expect a wet one.",
   "regimeNormal": "an ordinary year, as far as anyone can tell.",
   "ripe": "Ripe: {block} is ready to harvest.",

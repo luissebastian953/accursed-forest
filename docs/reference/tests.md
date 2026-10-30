@@ -359,6 +359,12 @@ register (GDD 3.9).
   carry the name of a real person the cast is drawn from. The guard is the point,
   because the register invites exactly that mistake.
 
+## `tests/sim/specialEstates.test.ts`
+
+The three special estate names (GDD 4.6): that each answers to its name however
+it is typed and only to the whole name, that each gives the start it promises,
+and that the world under it is the one the name would have generated anyway.
+
 ## `tests/sim/weather-events.test.ts`
 
 The event deck, the seasons and the landscape they act on (GDD 3.6): haze,

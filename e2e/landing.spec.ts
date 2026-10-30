@@ -151,6 +151,7 @@ test.describe('landing page', () => {
       ['/guide/oil-palm-replanting-cost/', '/id/panduan/biaya-replanting-sawit/'],
       ['/guide/oil-palm-fertilizer-dose/', '/id/panduan/dosis-pupuk-sawit/'],
       ['/guide/oil-palm-spacing/', '/id/panduan/jarak-tanam-sawit/'],
+      ['/guide/karhutla-land-fires-oil-palm/', '/id/panduan/karhutla-bakar-lahan-sawit/'],
     ];
     const scripts: string[] = [];
 

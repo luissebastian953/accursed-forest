@@ -28,5 +28,8 @@
   "build": "v{version}, {backend}, simpanan di browser ini",
   "codeError": "Itu bukan kode kebun: tujuh huruf, seperti ABC-DEFG.",
   "welcome": "Kebun {code}. Klik petak untuk mulai; tekan H atau ? untuk kontrol.",
-  "language": "Bahasa"
+  "language": "Bahasa",
+  "special.karhutla": "Karhutla: tahun pertama El Niño, dan kabupaten sudah mengawasi Anda.",
+  "special.nyawit": "Nyawit: Anda keluar dari kantor untuk nyawit, dengan pesangon di bank.",
+  "special.penyawit": "Penyawit: orang lama. Bibit untuk satu petak dan pupuk sudah ada di gudang."
 }

@@ -140,7 +140,7 @@ export const NATURAL: Record<string, NewsTemplate> = {
     cooldownDays: 300,
     titles: [
       'Forecasters declare an El Niño year',
-      'Meteorology agency: El Niño conditions expected all year',
+      'Meteorology agency: a heat wave is expected all year',
     ],
     bodies: [
       'A longer, harsher dry season is forecast. Fires will spread further and first harvests may come late.',

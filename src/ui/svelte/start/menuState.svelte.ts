@@ -1,6 +1,6 @@
 import { mount, unmount, type Component } from 'svelte';
 
-import { estateCodeFor, seedFromEstateCode } from '@sim/index';
+import { estateCodeFor, seedFromEstateCode, specialEstate, type SpecialEstateId } from '@sim/index';
 
 import MenuPanel from './Menu.svelte';
 
@@ -80,18 +80,19 @@ export class Menu {
    * The estate the form describes, as its boxes stand: the name alone
    * settles the code, moving as the player types.
    */
-  get preview(): { code: string; random: boolean } {
+  get preview(): { code: string; random: boolean; special: SpecialEstateId | null } {
     const name = this.state.name.trim();
     const code = this.state.code.trim();
     const from = code === '' ? name : code;
+    const special = specialEstate(name);
 
-    if (from === '') return { code: '', random: true };
+    if (from === '') return { code: '', random: true, special };
 
     const seed = seedFromEstateCode(from);
 
     return seed === null
-      ? { code: '', random: true }
-      : { code: estateCodeFor(seed), random: false };
+      ? { code: '', random: true, special }
+      : { code: estateCodeFor(seed), random: false, special };
   }
 
   toggle(): void {

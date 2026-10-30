@@ -127,7 +127,7 @@
   "noSpread": "Nothing next door will catch.",
   "spreadOne": "Could spread to {n} neighbour{elNino}.",
   "spreadMany": "Could spread to {n} neighbours{elNino}.",
-  "elNinoDoubled": "; doubled this El Niño year",
+  "elNinoDoubled": "; doubled in this heat wave",
   "wildfireJoins": "A wildfire is burning: any new fire joins it.",
   "level": "Level {n}",
   "sellsWithin": "sells within {n} blocks",

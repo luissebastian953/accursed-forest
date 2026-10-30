@@ -808,7 +808,9 @@ reopens it to find a half-filled form pointed at their estate.
   to the menu the player never asked for.
 - `preview` getter: the estate the form describes, as its boxes stand. The
   name alone settles the code, so it moves as the player types; an empty
-  pair means a world drawn at random, which has no code until it exists.
+  pair means a world drawn at random, which has no code until it exists. It
+  also names the special estate the name asks for, if any, so the form can
+  say what the run will start with.
 - `openNew(direct)`: step two, the boxes that describe a new estate. The
   `direct` parameter means it was opened from outside the menu, so Cancel
   closes it entirely rather than stepping back to the menu's face.
@@ -946,7 +948,8 @@ and `show`/`dismiss`/`isOpen`/`dispose` surface so `App.ts` is unchanged.
 
 - `preview` getter: the estate the card is offering, the one behind the
   title until the player types, then the one their boxes describe. The
-  name alone settles the code, so it moves as they type.
+  name alone settles the code, so it moves as they type, and a special
+  estate name shows its one-line promise under the code.
 
 ## `src/ui/toastPolicy.ts`
 

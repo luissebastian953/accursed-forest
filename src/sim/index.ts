@@ -140,3 +140,4 @@ export type {
   SimState,
 } from './types.ts';
 export { estateCodeFor, seedFromEstateCode } from './worldgen/index.ts';
+export { specialEstate, type SpecialEstateId } from './balance/specialEstates.ts';

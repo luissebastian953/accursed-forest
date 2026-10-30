@@ -28,8 +28,8 @@ skips the sitemap: a sitemap of relative URLs is invalid, not just weak.
 
 ### Notes
 
-- `SITE_PAGES`: the indexable pages, eleven translation pairs: the landing page,
-  the guide, the glossary, the endings and the accuracy page, and the six
+- `SITE_PAGES`: the indexable pages, twelve translation pairs: the landing page,
+  the guide, the glossary, the endings and the accuracy page, and the seven
   explainers (`EXPLAINERS`, English slug under `/guide/`, Indonesian under
   `/id/panduan/`, grouped by the English slug). `play.html` is the game behind
   a `noindex` tag and stays out; a sitemap lists only canonical pages meant

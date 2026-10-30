@@ -704,10 +704,11 @@ in exactly one place (`src/sim/macro.ts`):
 
 Multipliers compound: two running headlines that both raise shop prices
 raise them together, not the larger of the two. The deck's cast is invented
-end to end: President Prerows, Energy Minister BehLOL, Finance Minister
-Purboy, Agriculture Minister Amrun, Forestry Minister Rajuli, his deputy
+end to end: President Wowowski, Energy Minister BehLOL, Finance Minister
+Purboy, Agriculture Minister Amrun, Forestry Minister Wazowski, his deputy
 Nazarra and former president Mulyonows hold offices in a kabupaten that does
-not exist. What is not invented is the shape of it: a speech into a
+not exist, and the streamer Windows Batubara broadcasts from it. The news
+names countries, never a real city, street or mountain. What is not invented is the shape of it: a speech into a
 microphone moves a seedling's price, an enforcement drive moves land, and
 nobody who says either is the one who pays.
 
