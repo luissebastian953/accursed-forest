@@ -156,7 +156,7 @@ export const MACRO_EVENTS = {
   kitchensNeverInspected: { weight: 1.2, inputFactor: 1.08, days: { min: 120, max: 180 } },
   coopBecomesKitchen: {
     weight: 1.2,
-    kopdesCashPerDay: 900_000,
+    kopdesCashPerDay: 150_000,
     wageFactor: 1.1,
     days: { min: 120, max: 180 },
   },
