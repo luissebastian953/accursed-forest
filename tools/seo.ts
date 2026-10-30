@@ -17,11 +17,13 @@ export const EXPLAINERS: readonly (readonly [string, string])[] = [
   ['rhinoceros-beetle-oil-palm', 'kumbang-tanduk-sawit'],
   ['ganoderma-oil-palm', 'ganoderma-kelapa-sawit'],
   ['oil-palm-replanting-cost', 'biaya-replanting-sawit'],
+  ['oil-palm-fertilizer-dose', 'dosis-pupuk-sawit'],
+  ['oil-palm-spacing', 'jarak-tanam-sawit'],
   ['karhutla-land-fires-oil-palm', 'karhutla-bakar-lahan-sawit'],
 ];
 
 /**
- * The indexable pages: ten translation pairs, the five companion pages and the five
+ * The indexable pages: twelve translation pairs, the five companion pages and the seven
  * explainers. `play.html` is `noindex` and stays out: a sitemap lists only canonical pages.
  */
 export const SITE_PAGES: readonly SitePage[] = [

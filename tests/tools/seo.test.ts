@@ -20,6 +20,8 @@ const EXPLAINER_PAIRS: [string, string][] = [
   ['/guide/rhinoceros-beetle-oil-palm/', '/id/panduan/kumbang-tanduk-sawit/'],
   ['/guide/ganoderma-oil-palm/', '/id/panduan/ganoderma-kelapa-sawit/'],
   ['/guide/oil-palm-replanting-cost/', '/id/panduan/biaya-replanting-sawit/'],
+  ['/guide/oil-palm-fertilizer-dose/', '/id/panduan/dosis-pupuk-sawit/'],
+  ['/guide/oil-palm-spacing/', '/id/panduan/jarak-tanam-sawit/'],
   ['/guide/karhutla-land-fires-oil-palm/', '/id/panduan/karhutla-bakar-lahan-sawit/'],
 ];
 const sitemap = renderSitemap(SITE, (page) => DATES[page.file] ?? '2026-10-15T12:00:00+07:00');
@@ -48,7 +50,7 @@ describe('the sitemap', () => {
     expect(pages).toEqual(SITE_PAGES.map((page) => `${SITE}${page.path}`));
     expect(pages).toContain(`${SITE}/`);
     expect(pages).toContain(`${SITE}/id/`);
-    expect(pages).toHaveLength(20);
+    expect(pages).toHaveLength(24);
     expect(sitemap).not.toContain('play.html');
   });
 

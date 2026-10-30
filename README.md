@@ -131,7 +131,7 @@ built from `master`:
 Set `VITE_SITE_URL` to the origin the site actually answers on, and nothing
 else is required. Two things to leave alone: `VITE_BASE`, which stays empty
 because the site is served from a domain root, and SPA fallback, which must
-stay **off**, since this is twenty-two real pages (the twenty in `tools/seo.ts`,
+stay **off**, since this is twenty-six real pages (the twenty-four in `tools/seo.ts`,
 `/play.html` and `/workbench.html`) and a catch-all rewrite would hide genuine
 404s.
 
