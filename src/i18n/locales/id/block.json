@@ -127,7 +127,7 @@
   "noSpread": "Tidak ada tetangga yang akan terbakar.",
   "spreadOne": "Bisa merambat ke {n} tetangga{elNino}.",
   "spreadMany": "Bisa merambat ke {n} tetangga{elNino}.",
-  "elNinoDoubled": "; dua kali lipat di tahun El Niño ini",
+  "elNinoDoubled": "; dua kali lipat di gelombang panas ini",
   "wildfireJoins": "Kebakaran liar sedang berlangsung: api baru akan bergabung.",
   "level": "Tingkat {n}",
   "sellsWithin": "melayani sejauh {n} petak",

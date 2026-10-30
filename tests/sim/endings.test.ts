@@ -12,6 +12,7 @@ import {
 } from '@sim/balance/endings.ts';
 import { FOREST_GROWTH, GROWTH } from '@sim/balance/growth.ts';
 import { ECONOMY, ITEM_PRICES } from '@sim/balance/prices.ts';
+import { MACRO_EVENTS, MACRO_PREFIX, type MacroEventId } from '@sim/balance/society.ts';
 import { SLOTS_PER_BLOCK } from '@sim/balance/world.ts';
 import { WON_NO_BURN } from '@sim/commands/burnBlock.ts';
 import type { SimEvent } from '@sim/events.ts';
@@ -351,6 +352,16 @@ describe('bankruptcy (GDD 3.8)', () => {
     sim.state.tick = 3 * YEAR;
 
     const [block] = plantMature(sim, 1);
+    const quiet = (Object.keys(MACRO_EVENTS) as MacroEventId[]).find(
+      (id) => 'calm' in MACRO_EVENTS[id],
+    )!;
+
+    // A deck contract pays a Kopdes estate daily and would lift it over the line, so hold the deck.
+    sim.state.weather.activeEvents.push({
+      id: MACRO_PREFIX + quiet,
+      startedAt: sim.state.tick,
+      endsAt: sim.state.tick + YEAR,
+    });
 
     expect(inKopdesRange(sim.state, sim.world, block!)).toBe(true);
     expect(creditLine(sim.state, sim.world)).toBe(BANKRUPTCY.creditPerHectare);

@@ -60,8 +60,10 @@ in `localStorage`. English and Indonesian.
   repeatable procedure goes in a skill. Reasons that would stop someone
   undoing a decision belong in an ADR, with the comment pointing at it.
   `tests/tools/comments.test.ts` fails on any longer comment, in any file.
-- The game's officials are invented: Prerows, BehLOL, Purboy, Amrun, Rajuli,
-  Nazarra, Mulyonows, Tanjidoor. A test fails on any real name.
+- The game's officials are invented: Wowowski, BehLOL, Purboy, Amrun, Wazowski,
+  Nazarra, Mulyonows, Tanjidoor, and the streamer Windows Batubara. A test
+  fails on any real name. The news names countries, never a real city, street
+  or mountain.
 
 ## Verifying
 

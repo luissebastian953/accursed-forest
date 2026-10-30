@@ -163,7 +163,7 @@ export const MACRO_EVENTS = {
   budgetEatsSubsidy: { weight: 0.8, inputRise: 0.09, fromYear: 3, once: true },
   blameTheChillies: { weight: 1.5, inputFactor: 1.02, days: { min: 20, max: 20 } },
 
-  // ── Mulyonows in Osaka, and what is under it ──────────────────────────
+  // ── Mulyonows in Japan, and what is under it ──────────────────────────
   osakaCulvert: { weight: 1, attentionDecayFactor: 3, days: { min: 7, max: 7 }, once: true },
   endlessCastle: {
     weight: 1.5,
@@ -172,6 +172,53 @@ export const MACRO_EVENTS = {
     days: { min: 5, max: 5 },
     once: true,
     after: 'osakaCulvert',
+  },
+
+  // ── The haze, and whose it is ─────────────────────────────────────────
+  weSendOxygen: {
+    weight: 1.2,
+    attentionScale: 0.75,
+    attentionDecayFactor: 1.5,
+    days: { min: 30, max: 45 },
+    once: true,
+  },
+  wazowskiBlamesMalaysia: { weight: 1, attentionDecayFactor: 1.6, days: { min: 20, max: 30 } },
+  gasToSingaporeCut: { weight: 1, tbsFactor: 0.94, days: { min: 60, max: 90 } },
+  singaporeWarnsFirms: {
+    weight: 1,
+    attention: 10,
+    tbsFactor: 0.9,
+    forestSoftens: true,
+    days: { min: 120, max: 180 },
+  },
+  notADisaster: { weight: 1, settleFactor: 0.75, days: { min: 60, max: 90 } },
+  foreignHands: {
+    weight: 1,
+    attention: 12,
+    attentionDecayFactor: 0.6,
+    days: { min: 90, max: 150 },
+  },
+  healthMinisterRain: { weight: 0.8, landslideFactor: 1.6, days: { min: 30, max: 45 } },
+  weevilsInTheSmoke: { weight: 1, yieldFactor: 0.93, days: { min: 90, max: 150 } },
+
+  // ── Youth Pledge Day ──────────────────────────────────────────────────
+  youthPledgeDay: { weight: 1, attentionDecayFactor: 2, days: { min: 10, max: 14 } },
+  crossInTheCapital: { weight: 1, landFactor: 1.1, attention: 6, days: { min: 120, max: 180 } },
+  threeFingers: { weight: 1, settleFactor: 1.5, days: { min: 30, max: 45 } },
+  windowsBatubara: {
+    weight: 1,
+    attention: 8,
+    attentionDecayFactor: 0.75,
+    days: { min: 45, max: 60 },
+  },
+
+  // ── The palm trade ────────────────────────────────────────────────────
+  stateExportDesk: { weight: 1, tbsFactor: 0.93, days: { min: 180, max: 270 } },
+  forcedLabourBan: {
+    weight: 1,
+    wageFactor: 1.08,
+    tbsFactor: 0.96,
+    days: { min: 120, max: 180 },
   },
 
   // ── What burning costs, which the deck never deals at random ──────────
@@ -209,6 +256,13 @@ export const MACRO_EVENTS = {
     landslideFactor: 2,
     tbsFactor: 1.14,
     days: { min: 30, max: 30 },
+    once: true,
+  },
+  planetOfTheApes: {
+    weight: 0.6,
+    mobsQuiet: true,
+    attentionDecayFactor: 2,
+    days: { min: 60, max: 90 },
     once: true,
   },
 } as const satisfies Record<string, MacroEvent>;

@@ -174,10 +174,12 @@ The headline deck (GDD 3.7): what the country does to the estate while the
 player is busy with it. Every entry is data, and every lever below is read
 in exactly one place, so an event can only do what it says here.
 
-The world is fictional and so are its officials. President Prerows, Energy
+The world is fictional and so are its officials. President Wowowski, Energy
 Minister BehLOL, Finance Minister Purboy, Agriculture Minister Amrun,
-Forestry Minister Rajuli, his deputy Nazarra and the previous president
-Mulyonows are invented figures in an invented kabupaten. What is not
+Forestry Minister Wazowski, his deputy Nazarra and the previous president
+Mulyonows are invented figures in an invented kabupaten, and so is the
+streamer Windows Batubara. Places are countries or nothing: no real city,
+street or mountain appears in the copy. What is not
 invented is the shape of the thing: a speech moves prices, an enforcement
 drive moves land, and nobody in the deck is ever held to account for
 either.
@@ -268,9 +270,9 @@ Natural lane (GDD 3.7): generated directly by the weather and the land.
 The headline deck's own copy (GDD 3.7): what the ticker says when one of the
 events in `macroEvents.ts` lands.
 
-The country here is invented, and so is everyone in it. President Prerows,
+The country here is invented, and so is everyone in it. President Wowowski,
 Energy Minister BehLOL, Finance Minister Purboy, Agriculture Minister
-Amrun, Forestry Minister Rajuli, his deputy Nazarra and the former
+Amrun, Forestry Minister Wazowski, his deputy Nazarra and the former
 president Mulyonows hold offices that do not exist in a kabupaten that does
 not exist. What the deck satirises is the shape: that a sentence said into
 a microphone moves the price of a seedling, and that nobody who says it is
