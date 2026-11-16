@@ -6,7 +6,15 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig, type Plugin } from 'vite';
 import checker from 'vite-plugin-checker';
 
-import { normalizeSiteUrl, renderRobots, renderSitemap, verificationMeta } from './tools/seo.ts';
+import { clarityScript, normalizeClarityId } from './tools/clarity.ts';
+import { indexNowKeyFile, normalizeIndexNowKey } from './tools/indexnow.ts';
+import {
+  normalizeSiteUrl,
+  renderRobots,
+  renderSitemap,
+  verificationMeta,
+  type VerificationName,
+} from './tools/seo.ts';
 
 /** Stamped into save manifests (GDD 7). */
 const appVersion = JSON.stringify(process.env['npm_package_version'] ?? '0.0.0-dev');
@@ -16,8 +24,19 @@ const appVersion = JSON.stringify(process.env['npm_package_version'] ?? '0.0.0-d
  * drops those tags and the sitemap; a malformed value fails the build.
  */
 const siteUrl = normalizeSiteUrl(process.env['VITE_SITE_URL']);
-/** The Search Console "HTML tag" token, if ownership is verified that way. */
-const googleVerification = (process.env['VITE_GOOGLE_SITE_VERIFICATION'] ?? '').trim();
+/** Ownership tokens for Search Console and Bing Webmaster Tools, when verified by tag. */
+const verifications = (
+  [
+    ['google-site-verification', process.env['VITE_GOOGLE_SITE_VERIFICATION']],
+    ['msvalidate.01', process.env['VITE_BING_SITE_VERIFICATION']],
+  ] as const
+)
+  .map(([name, token]): [VerificationName, string] => [name, (token ?? '').trim()])
+  .filter(([, token]) => token !== '');
+/** Microsoft Clarity's project id; empty ships no Clarity script. */
+const clarityId = normalizeClarityId(process.env['VITE_CLARITY_ID']);
+/** The IndexNow key, written to the root as `<key>.txt` for Bing and the others to fetch. */
+const indexNowKey = normalizeIndexNowKey(process.env['VITE_INDEXNOW_KEY']);
 /**
  * Where the site is mounted. Empty is the root of a domain; a project host
  * such as GitHub Pages serves under a path (config.md).
@@ -74,12 +93,16 @@ function siteUrlPlugin(): Plugin {
           out = out.replace(/^\s*<link\s+rel="alternate"\s+hreflang=[^>]*>\n?/gm, '');
         }
 
-        // Search Console reads the tag from the home page; the game page is noindex.
-        if (googleVerification && !ctx.filename.endsWith('play.html')) {
-          out = out.replace(
-            /(<meta name="viewport"[^>]*>)/,
-            `$1\n    ${verificationMeta(googleVerification)}`,
-          );
+        // The search engines read the tag from the home page; the game page is noindex.
+        if (verifications.length > 0 && !ctx.filename.endsWith('play.html')) {
+          const tags = verifications.map(([name, token]) => verificationMeta(name, token));
+
+          out = out.replace(/(<meta name="viewport"[^>]*>)/, `$1\n    ${tags.join('\n    ')}`);
+        }
+
+        // Every page that ships to players, the game included; the workbench is development only.
+        if (clarityId && !ctx.filename.endsWith('workbench.html')) {
+          out = out.replace('</head>', `  ${clarityScript(clarityId)}\n  </head>`);
         }
 
         return out;
@@ -87,6 +110,14 @@ function siteUrlPlugin(): Plugin {
     },
     generateBundle() {
       this.emitFile({ type: 'asset', fileName: 'robots.txt', source: renderRobots(siteUrl) });
+
+      if (indexNowKey) {
+        this.emitFile({
+          type: 'asset',
+          fileName: indexNowKeyFile(indexNowKey),
+          source: indexNowKey,
+        });
+      }
 
       if (!siteUrl) {
         this.warn(

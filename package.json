@@ -21,6 +21,7 @@
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "sweep": "tsx tools/balance-sweep.ts",
+    "indexnow": "tsx tools/indexnow-submit.ts",
     "knip": "knip",
     "commit": "cz",
     "prepare": "lefthook install"

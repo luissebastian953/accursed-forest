@@ -164,7 +164,10 @@ export function renderRobots(siteUrl: string): string {
   return `${lines.join('\n')}\n`;
 }
 
-/** The Search Console ownership tag, for the landing pages' head. */
-export function verificationMeta(token: string): string {
-  return `<meta name="google-site-verification" content="${escapeXml(token.trim())}" />`;
+/** The search engines whose ownership tag the build can write: Search Console and Bing. */
+export type VerificationName = 'google-site-verification' | 'msvalidate.01';
+
+/** A search engine's ownership tag, for the head of every page but the game. */
+export function verificationMeta(name: VerificationName, token: string): string {
+  return `<meta name="${name}" content="${escapeXml(token.trim())}" />`;
 }

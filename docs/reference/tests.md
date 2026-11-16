@@ -399,6 +399,13 @@ measurement id still ships no script.
   silent, because `window.gtag?.()` has nothing to complain to, so the shape is
   pinned here instead of left to review.
 
+## `tests/tools/clarity.test.ts`
+
+The Clarity tag (`tools/clarity.ts`): an empty id ships nothing, an id that could
+break out of the inline script fails the build, and the tag has the same shape
+the analytics test pins for Google Analytics, the queue synchronous and the
+library at idle.
+
 ## `tests/tools/comments.test.ts`
 
 The two-line comment rule from CLAUDE.md, enforced over every tracked file rather
@@ -412,6 +419,12 @@ two lines belongs in this reference, under the file's `### Notes`.
   its template out (GDD 3.7), and a retired template is a thirty-line comment
   by the letter of the rule. The rule is about prose that should have been a
   reference entry, not about copy left on the shelf.
+
+## `tests/tools/indexnow.test.ts`
+
+The IndexNow submission (`tools/indexnow.ts`): the key's rules, the key file at
+the root of the host, every indexable page submitted absolute by default, and a
+path outside the sitemap refused, the game page included.
 
 ## `tests/tools/newsKeys.test.ts`
 
@@ -430,7 +443,8 @@ bug and not a retirement.
 
 The crawl files: that the sitemap lists exactly the indexable pages and never
 the game page, that robots.txt names the sitemap, what an empty or malformed
-`VITE_SITE_URL` does, and the Search Console verification tag.
+`VITE_SITE_URL` does, and the ownership tags for Search Console and Bing
+Webmaster Tools.
 
 ## `tests/ui/tutorial.test.ts`
 

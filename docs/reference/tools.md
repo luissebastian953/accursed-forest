@@ -16,6 +16,71 @@ pnpm sweep -- --cert --spare # ...who never chops forest
 `--cert` expands to 48 blocks, because the top of the Kopdes ladder asks for 40
 bearing ones and a run that stops short of it never certifies (GDD 3.3).
 
+## `tools/clarity.ts`
+
+The Microsoft Clarity tag, as the build writes it into each page: session
+recordings, heatmaps, and dead and rage clicks, from Microsoft's free product
+analytics. Pure string building, so the build and the unit tests share it.
+
+### Notes
+
+- `normalizeClarityId()`: letters and digits only, or the build fails. The id
+  is written into an inline script, so anything else could end it.
+- `clarityScript()`: the same shape as the Google Analytics snippet: the
+  `clarity` queue is installed at once and the library fetched at idle, so it
+  is never in the critical path and a `track()` call that fires first is queued
+  rather than lost. It tags every session with `page_language` from
+  `<html lang>`, so recordings filter by English and Indonesian.
+- Recording starts at idle, so the first second or two of a visit is missing
+  from a replay. Clarity snapshots the page when it starts, so the replay
+  still opens on the right content.
+- Clarity masks input text in its default Balanced mode, which covers the
+  estate name. Do not switch the project to Relaxed: the estate name is
+  personal data (`src/app/analytics.ts`).
+- The game's canvas is not recorded, only its Svelte panels. Since 31 October
+  2025 Clarity needs a consent signal (`consentv2`) for visitors from the EEA,
+  the UK and Switzerland. The site has no consent banner and sends none, so
+  those visitors are recorded without cookies and their sessions are not linked.
+
+## `tools/indexnow.ts`
+
+The IndexNow submission, pure: the key's validation, the key file's name and
+the JSON body. IndexNow is how Bing hears about a changed page within minutes
+rather than waiting for its next crawl. The shared endpoint passes each
+submission on to the other engines on the protocol (Yandex, Seznam, Naver and
+the rest). Google is not one of them.
+
+### Notes
+
+- `normalizeIndexNowKey()`: 8 to 128 of a-z, A-Z, 0-9 and `-`, as the protocol
+  allows. That rules out a path, so the key file can only land at the root.
+- `indexNowPayload()`: every page in `SITE_PAGES` by default, or the paths
+  given. A path that is not an indexable page is refused rather than
+  submitted: `play.html` is `noindex`, and a typo only spends quota.
+- `describeIndexNowStatus()`: 202 is not a failure. It means the key has not
+  been validated yet, which is normal on a first submission.
+
+## `tools/indexnow-submit.ts`
+
+`pnpm indexnow`: submits the pages once a deploy is live.
+
+    pnpm indexnow                    # every page in the sitemap
+    pnpm indexnow -- /guide/ /id/    # just these
+    pnpm indexnow -- --dry-run       # print the body, send nothing
+
+It reads `VITE_SITE_URL` and `VITE_INDEXNOW_KEY` from the environment, or from
+`.env` when there is one.
+
+### Notes
+
+- Before submitting, it fetches the live key file with a cache-busting query and
+  stops unless that file holds the key. Submitting before the deploy lands
+  gets a 403, and EdgeOne's git trigger has failed silently before, so the key
+  file is the proof the new build is the one being served.
+- Run it after a deploy that changes what a page says, not after every push.
+  Resubmitting unchanged URLs does not speed anything up, and the endpoint
+  rate-limits with 429.
+
 ## `tools/seo.ts`
 
 What crawlers read about the site besides the pages themselves: the XML
@@ -56,6 +121,9 @@ skips the sitemap: a sitemap of relative URLs is invalid, not just weak.
   sit in an `aria-hidden` wrapper with an empty `alt` while this list asked
   Google to index it, which is the page and the sitemap contradicting each
   other. `e2e/landing.spec.ts` pins the description on both pages.
+- `verificationMeta()`: the ownership tag for Search Console
+  (`google-site-verification`) or Bing Webmaster Tools (`msvalidate.01`), the
+  token escaped. Both engines read it from the home page.
 - `renderRobots()`: crawl everything. The game page is not blocked on
   purpose: a blocked page cannot be fetched, so its `noindex` would never be
   seen and a linked URL could still be indexed bare. The sitemap line needs
