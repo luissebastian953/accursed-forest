@@ -420,6 +420,18 @@ two lines belongs in this reference, under the file's `### Notes`.
   by the letter of the rule. The rule is about prose that should have been a
   reference entry, not about copy left on the shelf.
 
+## `tests/tools/headTags.test.ts`
+
+The length of every indexable page's `<title>` and meta description, read from
+the HTML: a title of at most 60 characters and a description of 100 to 155.
+
+### Notes
+
+- Bing's URL Inspection flagged `/id/` with "Title too long" (81) and "Meta
+  Description too long or too short" (202). Bing publishes no exact limits; the
+  tools that track its report put them near 65 and 160, and Google cuts the
+  snippet at about the same, so the bounds sit a little inside both.
+
 ## `tests/tools/indexnow.test.ts`
 
 The IndexNow submission (`tools/indexnow.ts`): the key's rules, the key file at

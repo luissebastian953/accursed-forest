@@ -36,6 +36,7 @@
     "e2e",
     "tests/tools/analytics.test.ts",
     "tests/tools/comments.test.ts",
+    "tests/tools/headTags.test.ts",
     "tests/tools/newsKeys.test.ts"
   ]
 }
