@@ -81,7 +81,9 @@ long-lived chunk (~250 KB gzipped) apart from the sim and the UI. Baloo 2 is
 self-hosted from `public/fonts` (one variable woff2, preloaded). Core Web
 Vitals (LCP, INP, CLS, FCP, TTFB) are measured with `web-vitals` and sent to
 Google Analytics 4 as events when `VITE_GA_ID` is set at build time (see
-`.env.example`); with it empty the pages load no third-party script at all.
+`.env.example`), and the same funnel events go to Microsoft Clarity, which
+records sessions and heatmaps, when `VITE_CLARITY_ID` is set. With both empty,
+the pages load no third-party script at all.
 
 Production builds are minified and ship no source maps; `VITE_SOURCEMAP=1`
 emits maps for debugging a deployment. The chunks are not obfuscated: the
@@ -104,14 +106,26 @@ crawl files (`tools/seo.ts`, unit-tested in `tests/tools/seo.test.ts`):
 - `robots.txt` allows everything and names the sitemap. The game page is
   deliberately not disallowed: a blocked page cannot be fetched, so Google
   would never see its `noindex`.
-- `VITE_GOOGLE_SITE_VERIFICATION` adds the Search Console ownership tag to
-  both landing pages.
+- `VITE_GOOGLE_SITE_VERIFICATION` and `VITE_BING_SITE_VERIFICATION` add the
+  ownership tags for Search Console and Bing Webmaster Tools to every page
+  but the game.
+- `VITE_INDEXNOW_KEY` writes the IndexNow key file at the root, and
+  `pnpm indexnow` tells Bing (and Yandex, Seznam, Naver) which pages changed.
 
 Without `VITE_SITE_URL` the build writes robots.txt without a sitemap line,
 skips the sitemap, drops canonical and hreflang, and warns; a malformed value
 fails the build. After deploying: verify the domain in Search Console, submit
 `https://<origin>/sitemap.xml` under Sitemaps, and request indexing for `/` and
 `/id/` with URL Inspection (Google retired sitemap pings in 2023).
+
+For Bing: in Bing Webmaster Tools, import the site from Search Console, which
+verifies it and brings the sitemap across. Set `VITE_BING_SITE_VERIFICATION` as
+well, so ownership survives losing the Search Console link. Then set
+`VITE_INDEXNOW_KEY` and, once a deploy that changes a page has landed, run
+`pnpm indexnow`. It checks that the live key file holds the key before it
+submits anything. In Clarity, turn on the Google Analytics integration (it
+needs `VITE_GA_ID` on the page) to see Clarity's recordings next to the GA4
+sessions.
 
 ## Deploying
 

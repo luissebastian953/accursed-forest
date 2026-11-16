@@ -30,6 +30,20 @@ empty the game builds and runs, and ships no third-party script.
   "HTML tag" method, which is the content value of the
   `<meta name="google-site-verification">` tag it hands out. It is added to both
   landing pages. Leave it empty when ownership is verified by DNS instead.
+- `VITE_BING_SITE_VERIFICATION`: ownership for Bing Webmaster Tools by its
+  "HTML Meta Tag" method, the content value of `<meta name="msvalidate.01">`.
+  It goes on every page but the game, beside the Search Console tag. Bing's
+  import from Search Console needs no tag at all, but Bing re-checks that
+  ownership by syncing with Search Console, so the tag is the fallback that
+  survives losing that link.
+- `VITE_CLARITY_ID`: the Microsoft Clarity project id. Left empty, no Clarity
+  script ships. Set, the build adds the tag to every page that players see, the
+  game included, and never the workbench. It is letters and digits or the build
+  fails, because the value is written into an inline script.
+- `VITE_INDEXNOW_KEY`: the IndexNow key. Set, the build writes `/<key>.txt`
+  holding the key, which is how Bing and the other IndexNow engines confirm a
+  submission comes from the host. The key is public by design, the file is on the
+  site, so it is a setting, not a secret. `pnpm indexnow` reads the same variable.
 - `VITE_BASE`: where the site is mounted. Empty is a domain root, which is what
   EdgeOne Pages and any real host give you. A project host such as GitHub Pages
   serves under `/<repo>/`, and the value is that path segment; the build then
@@ -72,6 +86,14 @@ chunking. Nothing is obfuscated ([ADR 0008](../adr/0008-no-obfuscation.md)).
   Empty locally, so `__SITE_URL__` resolves to an empty string and URLs stay
   relative, the canonical and hreflang tags are dropped and no sitemap is
   written. A malformed value fails the build.
+- `verifications`: the ownership tags, Search Console's and Bing's, each only
+  when its token is set. They go on every page but the game, which is
+  `noindex` and never the page an engine checks.
+- `clarityId`: the Clarity tag goes before `</head>` on every page except the
+  workbench. It is injected here rather than written into twenty-five pages by
+  hand, which is how the Google Analytics snippet is carried.
+- `indexNowKey`: emitted as `<key>.txt` at the root of `dist/`, beside
+  `robots.txt`, whether or not `VITE_SITE_URL` is set.
 - `lastCommitDate()`: a shallow CI checkout may not reach a file's last change,
   so the lookup falls back to the repository's most recent commit, and then to
   the build date.

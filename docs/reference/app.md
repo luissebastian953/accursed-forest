@@ -182,6 +182,9 @@ The funnel, as Google Analytics 4 events: `game_start`, `tutorial_done`,
 locale. Every parameter is an enum or a number, never free text, because an
 estate name is personal data and the events leave the browser. With no `gtag`
 on the page, which is every build without `VITE_GA_ID`, nothing happens.
+The same names also go to Microsoft Clarity as custom events, so recordings
+can be filtered by funnel step. Clarity gets the name only, without
+parameters.
 
 ### Notes
 

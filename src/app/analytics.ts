@@ -1,5 +1,11 @@
 import { locale } from '../i18n/index.ts';
 
+declare global {
+  interface Window {
+    clarity?: (...args: unknown[]) => void;
+  }
+}
+
 /** The funnel, as Google Analytics 4 events. Every value is an enum or a number: no free text. */
 export type FunnelEvent =
   | { name: 'game_start'; resumed: boolean }
@@ -10,9 +16,10 @@ export type FunnelEvent =
   | { name: 'share'; method: 'copy' | 'share' | 'link' };
 
 export function track(event: FunnelEvent): void {
-  if (typeof window.gtag !== 'function') return;
-
   const { name, ...params } = event;
 
+  // Clarity takes the name alone, so its recordings can be filtered by funnel step.
+  window.clarity?.('event', name);
+  if (typeof window.gtag !== 'function') return;
   window.gtag('event', name, { ...params, locale: locale() });
 }

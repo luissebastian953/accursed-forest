@@ -202,10 +202,16 @@ describe('VITE_SITE_URL', () => {
   });
 });
 
-describe('Search Console verification', () => {
-  it('renders the meta tag with the token escaped', () => {
-    expect(verificationMeta(' abc"123 ')).toBe(
+describe('ownership verification', () => {
+  it('renders the Search Console tag with the token escaped', () => {
+    expect(verificationMeta('google-site-verification', ' abc"123 ')).toBe(
       '<meta name="google-site-verification" content="abc&quot;123" />',
+    );
+  });
+
+  it('renders the Bing Webmaster Tools tag under its own name', () => {
+    expect(verificationMeta('msvalidate.01', 'ABCDEF0123456789')).toBe(
+      '<meta name="msvalidate.01" content="ABCDEF0123456789" />',
     );
   });
 });
