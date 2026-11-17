@@ -454,7 +454,9 @@ bug and not a retirement.
 ## `tests/tools/seo.test.ts`
 
 The crawl files: that the sitemap lists exactly the indexable pages and never
-the game page, that robots.txt names the sitemap, what an empty or malformed
+the game page, that robots.txt names the sitemap and gives the AI crawlers their
+own allow-everything group, that `/llms.txt` links every indexable page once
+under its language, how a page head is read, what an empty or malformed
 `VITE_SITE_URL` does, and the ownership tags for Search Console and Bing
 Webmaster Tools.
 

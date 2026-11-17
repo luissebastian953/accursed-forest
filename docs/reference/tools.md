@@ -84,7 +84,7 @@ It reads `VITE_SITE_URL` and `VITE_INDEXNOW_KEY` from the environment, or from
 ## `tools/seo.ts`
 
 What crawlers read about the site besides the pages themselves: the XML
-sitemap and robots.txt. Pure string building, so the build (vite.config.ts)
+sitemap, robots.txt and `/llms.txt`. Pure string building, so the build (vite.config.ts)
 and the unit tests share it; the build supplies the dates.
 
 Both need absolute URLs, so they hang off `VITE_SITE_URL`. Without it the
@@ -128,3 +128,23 @@ skips the sitemap: a sitemap of relative URLs is invalid, not just weak.
   purpose: a blocked page cannot be fetched, so its `noindex` would never be
   seen and a linked URL could still be indexed bare. The sitemap line needs
   an absolute URL, so it is only written when the origin is known.
+- `AI_CRAWLERS`: the answer engines' crawlers (OpenAI, Anthropic, Google's
+  Gemini token, Perplexity, Apple, Meta, Amazon, DuckDuckGo, Mistral, Common
+  Crawl), named in their own robots.txt group with `Allow: /`. `*` already lets
+  them in, so the group changes nothing today; it keeps them in if a `Disallow`
+  is ever added under `*`, because a crawler that matches a named group ignores
+  `*` entirely. ChatGPT search and Copilot answer from Bing's index and Gemini
+  from Google's, so Bingbot and Googlebot stay on `*`. DeepSeek publishes no
+  crawler name, so there is nothing to list for it; its training data reaches
+  it through Common Crawl, and its search through the engines above.
+- `readHead()`: a page's `<title>` and meta description as plain text,
+  whitespace collapsed and entities decoded. The build feeds it to `/llms.txt`
+  and `tests/tools/headTags.test.ts` holds the lengths to it, so both read the
+  head the same way.
+- `renderLlmsTxt()`: `/llms.txt` in the llmstxt.org shape: an H1, the landing
+  page's description as the summary, a short paragraph of facts (free, in the
+  browser, no account, the officials invented), the game's address, then every
+  indexable page linked under English and Bahasa Indonesia with its own title
+  and description. Built from the pages' heads rather than written by hand, so
+  it cannot drift from them. No assistant has promised to read it; it costs one
+  small file, and the pages themselves are what the crawlers index.

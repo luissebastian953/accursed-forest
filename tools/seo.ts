@@ -154,14 +154,113 @@ export function renderSitemap(
 }
 
 /**
+ * The answer engines' crawlers, named so a later `Disallow` under `*` cannot shut them out
+ * by accident. Training, search and user-fetch agents alike; Bingbot and Googlebot ride `*`.
+ */
+export const AI_CRAWLERS: readonly string[] = [
+  'GPTBot',
+  'OAI-SearchBot',
+  'ChatGPT-User',
+  'ClaudeBot',
+  'Claude-SearchBot',
+  'Claude-User',
+  'Google-Extended',
+  'PerplexityBot',
+  'Perplexity-User',
+  'Applebot-Extended',
+  'meta-externalagent',
+  'Amazonbot',
+  'DuckAssistBot',
+  'MistralAI-User',
+  'CCBot',
+];
+
+/**
  * robots.txt allows everything: a blocked game page could never show its `noindex`, and a
  * linked URL could still be indexed bare. The sitemap line waits for a known origin.
  */
 export function renderRobots(siteUrl: string): string {
-  const lines = ['User-agent: *', 'Allow: /'];
+  const lines = [
+    'User-agent: *',
+    'Allow: /',
+    '',
+    ...AI_CRAWLERS.map((agent) => `User-agent: ${agent}`),
+    'Allow: /',
+  ];
 
   if (siteUrl) lines.push('', `Sitemap: ${siteUrl}/sitemap.xml`);
   return `${lines.join('\n')}\n`;
+}
+
+/** What a page says about itself in its head. */
+export interface PageHead {
+  title: string;
+  description: string;
+}
+
+function decodeHtml(value: string): string {
+  return value
+    .replace(/\s+/g, ' ')
+    .replaceAll('&quot;', '"')
+    .replaceAll('&#39;', "'")
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&amp;', '&')
+    .trim();
+}
+
+/** A page's `<title>` and meta description as plain text, empty when missing. */
+export function readHead(html: string): PageHead {
+  return {
+    title: decodeHtml(/<title>([\s\S]*?)<\/title>/.exec(html)?.[1] ?? ''),
+    description: decodeHtml(
+      /<meta\s+name="description"\s+content="([\s\S]*?)"/.exec(html)?.[1] ?? '',
+    ),
+  };
+}
+
+const LLMS_SECTIONS: readonly { lang: string; heading: string }[] = [
+  { lang: 'en', heading: 'English' },
+  { lang: 'id', heading: 'Bahasa Indonesia' },
+];
+
+/**
+ * `/llms.txt` (llmstxt.org): the site as an assistant would summarise it, every indexable
+ * page linked with its own title and description, so it cannot drift from the pages.
+ */
+export function renderLlmsTxt(
+  siteUrl: string,
+  headOf: (page: SitePage) => PageHead,
+  pages: readonly SitePage[] = SITE_PAGES,
+): string {
+  const home = pages.find((p) => p.path === '/') ?? pages[0]!;
+  const sections = LLMS_SECTIONS.flatMap(({ lang, heading }) => [
+    '',
+    `## ${heading}`,
+    '',
+    ...pages
+      .filter((p) => p.lang === lang)
+      .map((p) => {
+        const head = headOf(p);
+
+        return `- [${head.title}](${siteUrl}${p.path}): ${head.description}`;
+      }),
+  ]);
+
+  return [
+    '# Sawit Simulator',
+    '',
+    `> ${headOf(home).description}`,
+    '',
+    'A free, single-player management game that runs in the web browser (WebGPU, with a',
+    'WebGL 2 fallback), in English and Bahasa Indonesia. Nothing to install and no account:',
+    'saves stay in the browser. The officials in the game are invented; the explainers and',
+    'the accuracy page below say what the game takes from real oil-palm agronomy.',
+    '',
+    `Play it at ${siteUrl}/play.html`,
+    ...sections,
+    '',
+  ].join('\n');
 }
 
 /** The search engines whose ownership tag the build can write: Search Console and Bing. */

@@ -105,7 +105,11 @@ crawl files (`tools/seo.ts`, unit-tested in `tests/tools/seo.test.ts`):
   is not listed.
 - `robots.txt` allows everything and names the sitemap. The game page is
   deliberately not disallowed: a blocked page cannot be fetched, so Google
-  would never see its `noindex`.
+  would never see its `noindex`. The AI crawlers (GPTBot, OAI-SearchBot,
+  ClaudeBot, PerplexityBot, Google-Extended and the rest of `AI_CRAWLERS`) get
+  their own allow-everything group.
+- `llms.txt` describes the site for AI assistants and links every indexable
+  page with its title and description, read from the pages at build time.
 - `VITE_GOOGLE_SITE_VERIFICATION` and `VITE_BING_SITE_VERIFICATION` add the
   ownership tags for Search Console and Bing Webmaster Tools to every page
   but the game.
@@ -113,7 +117,7 @@ crawl files (`tools/seo.ts`, unit-tested in `tests/tools/seo.test.ts`):
   `pnpm indexnow` tells Bing (and Yandex, Seznam, Naver) which pages changed.
 
 Without `VITE_SITE_URL` the build writes robots.txt without a sitemap line,
-skips the sitemap, drops canonical and hreflang, and warns; a malformed value
+skips the sitemap and llms.txt, drops canonical and hreflang, and warns; a malformed value
 fails the build. After deploying: verify the domain in Search Console, submit
 `https://<origin>/sitemap.xml` under Sitemaps, and request indexing for `/` and
 `/id/` with URL Inspection (Google retired sitemap pings in 2023).

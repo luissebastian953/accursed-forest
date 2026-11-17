@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 import { svelte } from '@sveltejs/vite-plugin-svelte';
@@ -10,6 +11,8 @@ import { clarityScript, normalizeClarityId } from './tools/clarity.ts';
 import { indexNowKeyFile, normalizeIndexNowKey } from './tools/indexnow.ts';
 import {
   normalizeSiteUrl,
+  readHead,
+  renderLlmsTxt,
   renderRobots,
   renderSitemap,
   verificationMeta,
@@ -121,7 +124,7 @@ function siteUrlPlugin(): Plugin {
 
       if (!siteUrl) {
         this.warn(
-          'VITE_SITE_URL is not set: no sitemap.xml, no Sitemap line in robots.txt, and no canonical or hreflang tags. Set it for a production build.',
+          'VITE_SITE_URL is not set: no sitemap.xml, no llms.txt, no Sitemap line in robots.txt, and no canonical or hreflang tags. Set it for a production build.',
         );
         return;
       }
@@ -130,6 +133,13 @@ function siteUrlPlugin(): Plugin {
         type: 'asset',
         fileName: 'sitemap.xml',
         source: renderSitemap(siteUrl, (page) => lastCommitDate(page.file)),
+      });
+      this.emitFile({
+        type: 'asset',
+        fileName: 'llms.txt',
+        source: renderLlmsTxt(siteUrl, (page) =>
+          readHead(readFileSync(fileURLToPath(new URL(page.file, import.meta.url)), 'utf8')),
+        ),
       });
     },
   };
