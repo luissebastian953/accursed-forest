@@ -384,6 +384,15 @@ elevation and moisture, the map is a mix rather than all one biome, rivers reach
 the map edge, and riverbank is exactly the strip beside the water. The estate
 code round-trips to the same map, which is what makes a code worth sharing.
 
+## `tests/tools/aiReferral.test.ts`
+
+The AI referral tag (`tools/aiReferral.ts`), run as a page would run it against
+a stub window: the assistant named from the referrer, a subdomain or
+`utm_source`; every other visitor, Google included, left alone; one
+`ai_referral` per visit to GA4 and the Clarity tag on every page after it;
+blocked storage and missing tools survived; and the session key the same one
+`src/app/analytics.ts` reads.
+
 ## `tests/tools/analytics.test.ts`
 
 The shape of the Google Analytics snippet in all three pages, read from the HTML

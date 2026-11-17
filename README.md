@@ -82,8 +82,11 @@ self-hosted from `public/fonts` (one variable woff2, preloaded). Core Web
 Vitals (LCP, INP, CLS, FCP, TTFB) are measured with `web-vitals` and sent to
 Google Analytics 4 as events when `VITE_GA_ID` is set at build time (see
 `.env.example`), and the same funnel events go to Microsoft Clarity, which
-records sessions and heatmaps, when `VITE_CLARITY_ID` is set. With both empty,
-the pages load no third-party script at all.
+records sessions and heatmaps, when `VITE_CLARITY_ID` is set. A visitor sent by
+an AI assistant (ChatGPT, Perplexity, Gemini, Claude, Copilot, DeepSeek and
+others) gets an `ai_referral` event on arrival and `ai_source` on every funnel
+event and Clarity recording after it. With both empty, the pages load no
+third-party script at all.
 
 Production builds are minified and ship no source maps; `VITE_SOURCEMAP=1`
 emits maps for debugging a deployment. The chunks are not obfuscated: the
@@ -130,6 +133,13 @@ well, so ownership survives losing the Search Console link. Then set
 submits anything. In Clarity, turn on the Google Analytics integration (it
 needs `VITE_GA_ID` on the page) to see Clarity's recordings next to the GA4
 sessions.
+
+For AI assistants: in GA4, register `ai_source` as an event-scoped custom
+dimension, then build a funnel exploration (`ai_referral`, `game_start`,
+`tutorial_done`, `first_harvest`, `run_ended`) broken down by it. A custom
+channel group named AI assistants, matching session source on
+`chatgpt|openai|perplexity|gemini|bard|claude|copilot|deepseek|grok|meta\.ai|mistral|kimi|qwen|doubao|you\.com|phind`
+and placed above Referral, puts the same visits in the acquisition reports.
 
 ## Deploying
 

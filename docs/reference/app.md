@@ -184,7 +184,8 @@ estate name is personal data and the events leave the browser. With no `gtag`
 on the page, which is every build without `VITE_GA_ID`, nothing happens.
 The same names also go to Microsoft Clarity as custom events, so recordings
 can be filtered by funnel step. Clarity gets the name only, without
-parameters.
+parameters. A visit that an AI assistant sent carries `ai_source` on every
+event as well (`tools/aiReferral.ts`).
 
 ### Notes
 

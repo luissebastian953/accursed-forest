@@ -7,6 +7,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig, type Plugin } from 'vite';
 import checker from 'vite-plugin-checker';
 
+import { aiReferralScript } from './tools/aiReferral.ts';
 import { clarityScript, normalizeClarityId } from './tools/clarity.ts';
 import { indexNowKeyFile, normalizeIndexNowKey } from './tools/indexnow.ts';
 import {
@@ -106,6 +107,11 @@ function siteUrlPlugin(): Plugin {
         // Every page that ships to players, the game included; the workbench is development only.
         if (clarityId && !ctx.filename.endsWith('workbench.html')) {
           out = out.replace('</head>', `  ${clarityScript(clarityId)}\n  </head>`);
+        }
+
+        // After GA and Clarity, so both queues exist when it reports the assistant.
+        if (!ctx.filename.endsWith('workbench.html')) {
+          out = out.replace('</head>', `  ${aiReferralScript()}\n  </head>`);
         }
 
         return out;

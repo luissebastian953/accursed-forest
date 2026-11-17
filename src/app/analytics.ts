@@ -15,11 +15,28 @@ export type FunnelEvent =
   | { name: 'run_ended'; ending: string; year: number }
   | { name: 'share'; method: 'copy' | 'share' | 'link' };
 
+/** The key the landing page's AI referral tag writes (tools/aiReferral.ts). */
+const AI_SOURCE_KEY = 'sawit:ai-source';
+
+/** The assistant that sent this visit, or '' for every other visitor. */
+function aiSource(): string {
+  try {
+    return window.sessionStorage.getItem(AI_SOURCE_KEY) ?? '';
+  } catch {
+    return '';
+  }
+}
+
 export function track(event: FunnelEvent): void {
   const { name, ...params } = event;
+  const source = aiSource();
 
   // Clarity takes the name alone, so its recordings can be filtered by funnel step.
   window.clarity?.('event', name);
   if (typeof window.gtag !== 'function') return;
-  window.gtag('event', name, { ...params, locale: locale() });
+  window.gtag('event', name, {
+    ...params,
+    locale: locale(),
+    ...(source ? { ai_source: source } : {}),
+  });
 }
