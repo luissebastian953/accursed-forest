@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 import { svelte } from '@sveltejs/vite-plugin-svelte';
@@ -6,10 +7,13 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig, type Plugin } from 'vite';
 import checker from 'vite-plugin-checker';
 
+import { aiReferralScript } from './tools/aiReferral.ts';
 import { clarityScript, normalizeClarityId } from './tools/clarity.ts';
 import { indexNowKeyFile, normalizeIndexNowKey } from './tools/indexnow.ts';
 import {
   normalizeSiteUrl,
+  readHead,
+  renderLlmsTxt,
   renderRobots,
   renderSitemap,
   verificationMeta,
@@ -105,6 +109,11 @@ function siteUrlPlugin(): Plugin {
           out = out.replace('</head>', `  ${clarityScript(clarityId)}\n  </head>`);
         }
 
+        // After GA and Clarity, so both queues exist when it reports the assistant.
+        if (!ctx.filename.endsWith('workbench.html')) {
+          out = out.replace('</head>', `  ${aiReferralScript()}\n  </head>`);
+        }
+
         return out;
       },
     },
@@ -121,7 +130,7 @@ function siteUrlPlugin(): Plugin {
 
       if (!siteUrl) {
         this.warn(
-          'VITE_SITE_URL is not set: no sitemap.xml, no Sitemap line in robots.txt, and no canonical or hreflang tags. Set it for a production build.',
+          'VITE_SITE_URL is not set: no sitemap.xml, no llms.txt, no Sitemap line in robots.txt, and no canonical or hreflang tags. Set it for a production build.',
         );
         return;
       }
@@ -130,6 +139,13 @@ function siteUrlPlugin(): Plugin {
         type: 'asset',
         fileName: 'sitemap.xml',
         source: renderSitemap(siteUrl, (page) => lastCommitDate(page.file)),
+      });
+      this.emitFile({
+        type: 'asset',
+        fileName: 'llms.txt',
+        source: renderLlmsTxt(siteUrl, (page) =>
+          readHead(readFileSync(fileURLToPath(new URL(page.file, import.meta.url)), 'utf8')),
+        ),
       });
     },
   };

@@ -82,8 +82,11 @@ self-hosted from `public/fonts` (one variable woff2, preloaded). Core Web
 Vitals (LCP, INP, CLS, FCP, TTFB) are measured with `web-vitals` and sent to
 Google Analytics 4 as events when `VITE_GA_ID` is set at build time (see
 `.env.example`), and the same funnel events go to Microsoft Clarity, which
-records sessions and heatmaps, when `VITE_CLARITY_ID` is set. With both empty,
-the pages load no third-party script at all.
+records sessions and heatmaps, when `VITE_CLARITY_ID` is set. A visitor sent by
+an AI assistant (ChatGPT, Perplexity, Gemini, Claude, Copilot, DeepSeek and
+others) gets an `ai_referral` event on arrival and `ai_source` on every funnel
+event and Clarity recording after it. With both empty, the pages load no
+third-party script at all.
 
 Production builds are minified and ship no source maps; `VITE_SOURCEMAP=1`
 emits maps for debugging a deployment. The chunks are not obfuscated: the
@@ -105,7 +108,11 @@ crawl files (`tools/seo.ts`, unit-tested in `tests/tools/seo.test.ts`):
   is not listed.
 - `robots.txt` allows everything and names the sitemap. The game page is
   deliberately not disallowed: a blocked page cannot be fetched, so Google
-  would never see its `noindex`.
+  would never see its `noindex`. The AI crawlers (GPTBot, OAI-SearchBot,
+  ClaudeBot, PerplexityBot, Google-Extended and the rest of `AI_CRAWLERS`) get
+  their own allow-everything group.
+- `llms.txt` describes the site for AI assistants and links every indexable
+  page with its title and description, read from the pages at build time.
 - `VITE_GOOGLE_SITE_VERIFICATION` and `VITE_BING_SITE_VERIFICATION` add the
   ownership tags for Search Console and Bing Webmaster Tools to every page
   but the game.
@@ -113,7 +120,7 @@ crawl files (`tools/seo.ts`, unit-tested in `tests/tools/seo.test.ts`):
   `pnpm indexnow` tells Bing (and Yandex, Seznam, Naver) which pages changed.
 
 Without `VITE_SITE_URL` the build writes robots.txt without a sitemap line,
-skips the sitemap, drops canonical and hreflang, and warns; a malformed value
+skips the sitemap and llms.txt, drops canonical and hreflang, and warns; a malformed value
 fails the build. After deploying: verify the domain in Search Console, submit
 `https://<origin>/sitemap.xml` under Sitemaps, and request indexing for `/` and
 `/id/` with URL Inspection (Google retired sitemap pings in 2023).
@@ -126,6 +133,13 @@ well, so ownership survives losing the Search Console link. Then set
 submits anything. In Clarity, turn on the Google Analytics integration (it
 needs `VITE_GA_ID` on the page) to see Clarity's recordings next to the GA4
 sessions.
+
+For AI assistants: in GA4, register `ai_source` as an event-scoped custom
+dimension, then build a funnel exploration (`ai_referral`, `game_start`,
+`tutorial_done`, `first_harvest`, `run_ended`) broken down by it. A custom
+channel group named AI assistants, matching session source on
+`chatgpt|openai|perplexity|gemini|bard|claude|copilot|deepseek|grok|meta\.ai|mistral|kimi|qwen|doubao|you\.com|phind`
+and placed above Referral, puts the same visits in the acquisition reports.
 
 ## Deploying
 

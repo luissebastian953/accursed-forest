@@ -3,6 +3,31 @@
 What each module is for, as it was written at the top of the file before the
 headers moved here. A `GDD n` reference points into the [design document](../gdd/README.md).
 
+## `tools/aiReferral.ts`
+
+The tag that tells the funnel which AI assistant sent a visitor. The build
+puts it at the end of the head of every page that ships, after the GA4 and
+Clarity snippets. It reads the referrer's host, or `utm_source` when the
+assistant's app strips the referrer, against `AI_SOURCES`, keeps the match in
+`sessionStorage` under `sawit:ai-source`, sends GA4 one `ai_referral` event on
+arrival and tags the Clarity recording `ai_source` on every page of the visit.
+`track()` in `src/app/analytics.ts` adds the same `ai_source` to each funnel
+event, so `game_start` through `run_ended` can be split by assistant.
+
+### Notes
+
+- `AI_SOURCES`: a short name per assistant and the hosts its links come from.
+  Subdomains match, so `www.perplexity.ai` is Perplexity. Google's AI Overviews
+  and AI Mode arrive as `google.com` and cannot be told apart from search, and
+  an app that strips both referrer and `utm_source` arrives as direct.
+- `aiReferralScript()`: plain inline JavaScript, because the landing pages run
+  no bundled code. It always ships: with neither GA4 nor Clarity on the page it
+  only writes the session key, which costs nothing and sends nothing anywhere.
+  The key is read by the game, which is a separate page, hence the session
+  storage rather than a variable.
+- GA4 needs `ai_source` registered as an event-scoped custom dimension
+  (Admin, Custom definitions) before reports can show it, like `page_language`.
+
 ## `tools/balance-sweep.ts`
 
 Headless balance sweep (GDD 5, GDD 10.3): run the scripted player for N years on
@@ -84,7 +109,7 @@ It reads `VITE_SITE_URL` and `VITE_INDEXNOW_KEY` from the environment, or from
 ## `tools/seo.ts`
 
 What crawlers read about the site besides the pages themselves: the XML
-sitemap and robots.txt. Pure string building, so the build (vite.config.ts)
+sitemap, robots.txt and `/llms.txt`. Pure string building, so the build (vite.config.ts)
 and the unit tests share it; the build supplies the dates.
 
 Both need absolute URLs, so they hang off `VITE_SITE_URL`. Without it the
@@ -128,3 +153,23 @@ skips the sitemap: a sitemap of relative URLs is invalid, not just weak.
   purpose: a blocked page cannot be fetched, so its `noindex` would never be
   seen and a linked URL could still be indexed bare. The sitemap line needs
   an absolute URL, so it is only written when the origin is known.
+- `AI_CRAWLERS`: the answer engines' crawlers (OpenAI, Anthropic, Google's
+  Gemini token, Perplexity, Apple, Meta, Amazon, DuckDuckGo, Mistral, Common
+  Crawl), named in their own robots.txt group with `Allow: /`. `*` already lets
+  them in, so the group changes nothing today; it keeps them in if a `Disallow`
+  is ever added under `*`, because a crawler that matches a named group ignores
+  `*` entirely. ChatGPT search and Copilot answer from Bing's index and Gemini
+  from Google's, so Bingbot and Googlebot stay on `*`. DeepSeek publishes no
+  crawler name, so there is nothing to list for it; its training data reaches
+  it through Common Crawl, and its search through the engines above.
+- `readHead()`: a page's `<title>` and meta description as plain text,
+  whitespace collapsed and entities decoded. The build feeds it to `/llms.txt`
+  and `tests/tools/headTags.test.ts` holds the lengths to it, so both read the
+  head the same way.
+- `renderLlmsTxt()`: `/llms.txt` in the llmstxt.org shape: an H1, the landing
+  page's description as the summary, a short paragraph of facts (free, in the
+  browser, no account, the officials invented), the game's address, then every
+  indexable page linked under English and Bahasa Indonesia with its own title
+  and description. Built from the pages' heads rather than written by hand, so
+  it cannot drift from them. No assistant has promised to read it; it costs one
+  small file, and the pages themselves are what the crawlers index.

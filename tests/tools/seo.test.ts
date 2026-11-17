@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  AI_CRAWLERS,
   normalizeSiteUrl,
+  readHead,
+  renderLlmsTxt,
   renderRobots,
   renderSitemap,
   SITE_IMAGES,
@@ -183,7 +186,59 @@ describe('robots.txt', () => {
   });
 
   it('writes no sitemap line without an origin: robots.txt needs an absolute URL there', () => {
-    expect(renderRobots('')).toBe('User-agent: *\nAllow: /\n');
+    expect(renderRobots('')).not.toContain('Sitemap');
+    expect(renderRobots('').endsWith('Allow: /\n')).toBe(true);
+  });
+
+  it('names every AI crawler in one group that allows everything', () => {
+    const groups = renderRobots(SITE).split('\n\n');
+    const ai = groups.find((group) => group.includes('User-agent: GPTBot'))!;
+
+    expect(ai.split('\n')).toEqual([...AI_CRAWLERS.map((a) => `User-agent: ${a}`), 'Allow: /']);
+
+    for (const agent of ['OAI-SearchBot', 'ClaudeBot', 'Google-Extended', 'PerplexityBot']) {
+      expect(AI_CRAWLERS).toContain(agent);
+    }
+  });
+});
+
+describe('llms.txt', () => {
+  const headOf = (page: SitePage) => ({
+    title: `Title of ${page.path}`,
+    description: `About ${page.path}.`,
+  });
+  const llms = renderLlmsTxt(SITE, headOf);
+
+  it('opens with the name and the landing page description as the summary', () => {
+    expect(llms.startsWith('# Sawit Simulator\n\n> About /.\n')).toBe(true);
+    expect(llms).toContain(`${SITE}/play.html`);
+  });
+
+  it('links every indexable page once, absolute, under its language', () => {
+    const [, en, id] = llms.split(/^## .*$/m);
+
+    for (const page of SITE_PAGES) {
+      const line = `- [Title of ${page.path}](${SITE}${page.path}): About ${page.path}.`;
+
+      expect(llms.split(line), page.path).toHaveLength(2);
+      expect(page.lang === 'en' ? en : id, page.path).toContain(line);
+    }
+  });
+});
+
+describe('a page head', () => {
+  it('reads the title and a multi-line description as plain text', () => {
+    const html = `<title>A &amp; B</title>
+      <meta
+        name="description"
+        content="One line,
+          and &quot;two&quot;." />`;
+
+    expect(readHead(html)).toEqual({ title: 'A & B', description: 'One line, and "two".' });
+  });
+
+  it('comes back empty for a page with neither', () => {
+    expect(readHead('<p>no head</p>')).toEqual({ title: '', description: '' });
   });
 });
 
